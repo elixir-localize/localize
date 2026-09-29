@@ -81,6 +81,14 @@ iex> Localize.Time.to_string(~T[14:30:45], format: skeleton, locale: :en, prefer
 {:ok, "2:30 PM"}
 ```
 
+Dates and times set in a column line up when their numbers are the same width, which `alignment: :column` arranges: a numeric month, day and hour are padded to two digits, in the locale's own digits, while a spelled-out month stays as it is:
+
+```elixir
+iex> column = Localize.DateTime.SemanticSkeleton.semantic("YMD", length: :short, alignment: :column)
+iex> Localize.Date.to_string(~D[2025-01-05], format: column, locale: :en)
+{:ok, "01/05/25"}
+```
+
 MessageFormat 2's `:date`, `:time` and `:datetime` functions are built on semantic skeletons; see the [message formatting guide](message_formatting.md).
 
 ### Custom pattern strings

@@ -219,12 +219,15 @@ defmodule Localize.DateTime do
 
   # Every formatting path ends here, however the pattern was resolved: a
   # single available format, the date and time halves joined through the
-  # wrapper, append items, or a zone-only skeleton. An exact semantic hour
-  # cycle is substituted at this one point so no path can skip it — TR35
-  # applies it to the matched pattern, after skeleton matching.
+  # wrapper, append items, or a zone-only skeleton. A semantic skeleton's
+  # pattern variations — an exact hour cycle and column alignment — are
+  # applied at this one point so no path can skip them, as TR35 applies
+  # them to the matched pattern, after skeleton matching. A wrapper's `{1}`
+  # and `{0}` halves take theirs where `Localize.Date` and `Localize.Time`
+  # resolve them.
   defp invoke_formatter(output, datetime, pattern, locale_id, options_map) do
     {semantic, options_map} = Map.pop(options_map, :semantic_skeleton)
-    pattern = Localize.DateTime.SemanticSkeleton.apply_hour_cycle(pattern, semantic)
+    pattern = Localize.DateTime.SemanticSkeleton.apply_pattern_variations(pattern, semantic)
     run_formatter(output, datetime, pattern, locale_id, options_map)
   end
 
@@ -429,7 +432,9 @@ defmodule Localize.DateTime do
   # A complete value whose semantic date resolves to one of the locale's
   # standard date formats formats with that format, joined to any time as a
   # standard date is, by the date-time pattern of its length. The time half
-  # stays semantic, so its precision and hour cycle hold.
+  # stays semantic, so its precision and hour cycle hold. The skeleton goes
+  # with the options to `invoke_formatter/5`, which applies its pattern
+  # variations to whichever pattern results.
   defp format_with_semantic_skeleton(
          datetime,
          options,
@@ -439,6 +444,7 @@ defmodule Localize.DateTime do
          shape
        ) do
     calendar = cldr_calendar_for(datetime)
+    options = Keyword.put(options, :semantic_skeleton, semantic_skeleton)
 
     case Localize.DateTime.SemanticSkeleton.standard_date_format(
            semantic_skeleton,
@@ -457,14 +463,23 @@ defmodule Localize.DateTime do
           invoke_formatter(output, datetime, pattern, locale_id, Map.new(options))
         end
 
-      {:ok, date_format, %{fields: [:time | _zone]} = time_skeleton} when shape == :complete ->
-        options =
-          options
-          |> Keyword.put(:date_format, date_format)
-          |> Keyword.put(:time_format, time_skeleton)
+      # The wrapper's `{1}` takes the date half as the semantic date it is,
+      # which `Localize.Date` renders with this same standard format and its
+      # pattern variations; the wrapper is the standard format's own.
+      {:ok, date_format, %{fields: [:time | _zone] = time_fields} = time_skeleton}
+      when shape == :complete ->
+        date_skeleton = %{semantic_skeleton | fields: semantic_skeleton.fields -- time_fields}
 
-        style = Keyword.get(options, :style, :at)
-        format_with_wrapper(datetime, options, locale_id, date_format, style, output)
+        options_map =
+          options
+          |> Map.new()
+          |> Map.put(:date_format, date_skeleton)
+          |> Map.put(:time_format, time_skeleton)
+
+        with {:ok, wrapper} <-
+               resolve_wrapper(date_format, locale_id, Keyword.get(options, :style, :at)) do
+          invoke_formatter(output, datetime, wrapper, locale_id, options_map)
+        end
 
       _other ->
         format_with_classical_skeleton(datetime, options, locale_id, semantic_skeleton, output)
@@ -478,14 +493,8 @@ defmodule Localize.DateTime do
            cldr_calendar_for(datetime),
            datetime
          ) do
-      {:ok, skeleton} ->
-        # Carried through so `format_resolved_pattern/6` can substitute an
-        # exact hour cycle's symbol, which TR35 does after skeleton matching.
-        options = Keyword.put(options, :semantic_skeleton, semantic_skeleton)
-        format_with_skeleton(datetime, options, locale_id, skeleton, output)
-
-      {:error, _} = error ->
-        error
+      {:ok, skeleton} -> format_with_skeleton(datetime, options, locale_id, skeleton, output)
+      {:error, _} = error -> error
     end
   end
 

@@ -61,7 +61,7 @@ defmodule Localize.DateTime.SemanticSkeleton do
             zone_length: :auto,
             hour_cycle: :auto,
             time_precision: :second,
-            alignment: :auto
+            alignment: :inline
 
   @type field :: :year | :month | :day | :weekday | :time | :zone
 
@@ -76,7 +76,7 @@ defmodule Localize.DateTime.SemanticSkeleton do
           zone_length: :auto | :short | :long,
           hour_cycle: :auto | :clock12 | :clock24 | :h11 | :h12 | :h23 | :h24,
           time_precision: time_precision(),
-          alignment: :auto | :column
+          alignment: :inline | :column
         }
 
   @codes %{
@@ -100,7 +100,11 @@ defmodule Localize.DateTime.SemanticSkeleton do
   @exact_hour_cycles %{h11: "K", h12: "h", h23: "H", h24: "k"}
   @twelve_hour_cycles [:clock12, :h11, :h12]
   @twenty_four_hour_cycles [:clock24, :h23, :h24]
-  @alignments [:auto, :column]
+  @alignments [:inline, :column]
+
+  # The fields column alignment widens from one letter to two: the numeric
+  # month, day and hour.
+  @column_padded_symbols ~w(M L d h H K k)
 
   # The symbols of a date format's skeleton that make up each semantic date
   # field. An era travels with the year, as does the Chinese calendar's
@@ -155,9 +159,12 @@ defmodule Localize.DateTime.SemanticSkeleton do
     (the default) or `{:fractional_second, digits}` with `digits` from 1 to
     9. `:minute_optional` drops the minutes when they are zero.
 
-  * `:alignment` is `:auto` (the default) or `:column`, the latter asking
-    for fields padded to a fixed width for tabular display. It is validated
-    but not yet applied.
+  * `:alignment` is `:inline` (the default) or `:column`, TR35's two
+    alignments. `:column` is for dates and times set in a column, where
+    equal widths line up: it pads a numeric month, day and hour to two
+    digits, so `en`'s short date "1/5/25" becomes "01/05/25". It never
+    turns a number into text or back, and it acts on the pattern the
+    skeleton resolves to, leaving the classical skeleton as it is.
 
   ### Returns
 
@@ -193,7 +200,7 @@ defmodule Localize.DateTime.SemanticSkeleton do
          {:ok, zone_length} <- validate(options, :zone_length, @zone_lengths, :auto),
          {:ok, hour_cycle} <- validate(options, :hour_cycle, @hour_cycles, :auto),
          {:ok, time_precision} <- validate_time_precision(options),
-         {:ok, alignment} <- validate(options, :alignment, @alignments, :auto) do
+         {:ok, alignment} <- validate(options, :alignment, @alignments, :inline) do
       {:ok,
        %__MODULE__{
          fields: fields,
@@ -401,6 +408,21 @@ defmodule Localize.DateTime.SemanticSkeleton do
   end
 
   @doc false
+  # The options TR35 applies to the pattern a semantic skeleton matched
+  # rather than to the skeleton: an exact hour cycle's symbol and column
+  # alignment's padding. Every formatter that resolves a semantic skeleton
+  # passes the pattern through here, so no path applies one and not the
+  # other.
+  @spec apply_pattern_variations(String.t(), t() | term()) :: String.t()
+  def apply_pattern_variations(pattern, %__MODULE__{} = skeleton) when is_binary(pattern) do
+    pattern
+    |> apply_hour_cycle(skeleton)
+    |> apply_alignment(skeleton)
+  end
+
+  def apply_pattern_variations(pattern, _skeleton), do: pattern
+
+  @doc false
   # TR35 §Hour Cycle Pattern Variations. Standard skeletons carry only the
   # canonical `h` and `H`, and the matched `dateFormatItem` encodes whichever
   # cycle the locale prefers — `ja` writes `aK:mm:ss` for `hms`. So a caller
@@ -431,6 +453,32 @@ defmodule Localize.DateTime.SemanticSkeleton do
     end)
     |> elem(0)
     |> Enum.join()
+  end
+
+  # TR35 §Alignment: `:column` renders the numeric fields it affects with at
+  # least two digits. As ICU4X does, a month, day or hour written with one
+  # letter is widened to two, which pads a number and leaves a spelled-out
+  # month (`MMM`) as it is; the year is not touched. Quoted literal text
+  # keeps its letters.
+  defp apply_alignment(pattern, %__MODULE__{alignment: :column}) do
+    pattern
+    |> String.graphemes()
+    |> Enum.chunk_by(& &1)
+    |> Enum.map_reduce(false, fn
+      ["'" | _rest] = quotes, quoted -> {quotes, quoted_after(quotes, quoted)}
+      [symbol], false when symbol in @column_padded_symbols -> {[symbol, symbol], false}
+      run, quoted -> {run, quoted}
+    end)
+    |> elem(0)
+    |> IO.iodata_to_binary()
+  end
+
+  defp apply_alignment(pattern, _skeleton), do: pattern
+
+  # Each quote opens or closes quoted text, and a doubled quote is a literal
+  # quote that leaves the state as it was.
+  defp quoted_after(quotes, quoted) do
+    if rem(length(quotes), 2) == 1, do: not quoted, else: quoted
   end
 
   # ── Date widths ─────────────────────────────────────────────

@@ -14,9 +14,11 @@ Outstanding work on Localize. The design detail behind these items lives under [
 
 * [ ] **Choose a fixed-offset representation that `DateTime` functions honour** — Localize and Calendrical carry an offset such as `-05:00` under `Etc/UTC`, so `DateTime.shift_zone(parsed, "Etc/UTC")` returns it unchanged. The MF2 interpreter converts from the instant instead; `Etc/GMT+5` or an offset string would need both libraries to change together.
 
-* [ ] **`SemanticSkeleton` validates `:alignment` without applying it** — TR35 conformance needs every option implemented; `:column` should pad the numeric fields to two digits.
+* [ ] **`SemanticSkeleton` accepts field sets and options TR35 does not allow** — TR35 conformance needs an error for a set such as `YD` or `MT`, and for an option whose fields are absent, such as `:alignment` on `E` or `:year_style` without `Y`; `new/2` accepts both.
 
-* [ ] **`SemanticSkeleton` accepts field sets TR35 does not define** — TR35 conformance needs an error for a set such as `YD` or `MT`; `new/2` accepts any combination of the six fields.
+* [ ] **An era needs a whole date, even where the year alone decides it** — the formatter asks for the month and day of any `G` field, so a year and month fail with `:Gy`, `year_style: :with_era` or `th`'s long semantic `YM`, whose year carries its era.
+
+* [ ] **Settle TR35's `Auto` zone style with CLDR** — TR35 makes it the default but its mapping table gives it no row, so Localize defaults to `:specific`; ICU4X offers no automatic style at all.
 
 ## In progress
 
@@ -35,6 +37,8 @@ Outstanding work on Localize. The design detail behind these items lives under [
 * [ ] **`localize_emoji` sibling library** — plan item 11, a separate package on its own schedule. A Phoenix LiveView picker (`localize_emoji_live`) is out of scope for its 0.1.0.
 
 ## Done
+
+* [x] **`SemanticSkeleton` applies `:column` alignment** — a one-letter month, day or hour in the resolved pattern is widened to two, as ICU4X does, on every path through `Localize.Date`, `Localize.Time` and `Localize.DateTime`; the default takes TR35's name, `:inline`. 2026-09-29, v1.4.0.
 
 * [x] **`he`'s short GMT format of a whole hour carries one left-to-right mark** — the short form keeps the offset pattern up to its hour field, as ICU's `truncateOffsetPattern` does, so "GMT-5" no longer repeats the mark its negative pattern ends with. The long form and the short form with minutes keep both marks, as ICU's do. 2026-09-29, v1.4.0.
 

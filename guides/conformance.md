@@ -300,7 +300,7 @@ Two areas are explicitly out of scope:
 
 | Feature | Status | Notes |
 |---------|--------|-------|
-| Semantic skeleton support | Partial | `Localize.DateTime.SemanticSkeleton` builds a skeleton from meaning (`"YMDE"`, `"MDTZ"`) with `:length`, `:year_style`, `:zone_style`, `:hour_cycle` and `:time_precision`, taking the widths from the locale's date formats. It matches CLDR on all 240 conformance cases; `:alignment` is not applied and undefined field sets are accepted. |
+| Semantic skeleton support | Partial | `Localize.DateTime.SemanticSkeleton` builds a skeleton from meaning (`"YMDE"`, `"MDTZ"`) with `:length`, `:year_style`, `:zone_style`, `:hour_cycle`, `:time_precision` and `:alignment`, taking the widths from the locale's date formats. It matches CLDR on all 240 conformance cases; undefined field sets, and options given without the fields they apply to, are accepted rather than rejected. |
 
 ### Supported Calendars
 

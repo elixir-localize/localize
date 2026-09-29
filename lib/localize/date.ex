@@ -119,9 +119,9 @@ defmodule Localize.Date do
     format = Keyword.get(options, :format, @default_format)
 
     with {:ok, locale_id} <- resolve_locale_id(locale),
-         format = effective_format(date, format, locale_id),
-         {:ok, pattern} <- find_format(date, format, locale_id, options) do
-      overrides = number_system_overrides_for(date, format, locale_id)
+         effective = effective_format(date, format, locale_id),
+         {:ok, pattern} <- find_format(date, effective, locale_id, options) do
+      overrides = number_system_overrides_for(date, effective, locale_id)
 
       formatter_options =
         options
@@ -129,7 +129,7 @@ defmodule Localize.Date do
         |> Map.put_new(:locale, locale)
         |> merge_number_system_overrides(overrides)
 
-      {:ok, pattern, locale_id, formatter_options}
+      {:ok, pattern_variations(pattern, format), locale_id, formatter_options}
     end
   end
 
@@ -173,14 +173,14 @@ defmodule Localize.Date do
     format
   end
 
-  defp partial_formatting_plan(resolved_format, date, _format, locale_id, options) do
+  defp partial_formatting_plan(resolved_format, date, format, locale_id, options) do
     with {:ok, pattern} <- find_format(date, resolved_format, locale_id, options) do
       overrides = number_system_overrides_for(date, resolved_format, locale_id)
 
       formatter_options =
         options |> Map.new() |> merge_number_system_overrides(overrides)
 
-      {:ok, pattern, locale_id, formatter_options}
+      {:ok, pattern_variations(pattern, format), locale_id, formatter_options}
     end
   end
 
@@ -303,8 +303,17 @@ defmodule Localize.Date do
   # skeleton. `Localize.DateTime` resolves the `{1}` half of a date-time
   # wrapper here.
   def resolve_pattern(date, format, locale_id, options) do
-    find_format(date, effective_format(date, format, locale_id), locale_id, options)
+    with {:ok, pattern} <-
+           find_format(date, effective_format(date, format, locale_id), locale_id, options) do
+      {:ok, pattern_variations(pattern, format)}
+    end
   end
+
+  # A semantic skeleton's pattern variations, its column alignment among
+  # them, apply to whichever pattern it resolved to: a standard format's as
+  # much as a matched skeleton's.
+  defp pattern_variations(pattern, format),
+    do: Localize.DateTime.SemanticSkeleton.apply_pattern_variations(pattern, format)
 
   # A semantic skeleton whose date fields resolve to one of the locale's
   # standard date formats is that format from here on, number systems and

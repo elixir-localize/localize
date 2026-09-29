@@ -265,6 +265,266 @@ defmodule Localize.DateTime.SemanticSkeletonTest do
     end
   end
 
+  # TR35 §Alignment: column alignment is for dates and times set in a column,
+  # and the most common behaviour is to render the fields it affects with at
+  # least two digits — TR35's example is "01/01/2000" for "1/1/2000" in US
+  # English. ICU4X, the reference implementation, widens a one-letter month,
+  # day, week or hour field of the matched pattern to two letters, and its own
+  # example is `en-US` short "1/1/25" becoming "01/01/25".
+  #
+  # The other expectations apply that rule by hand to CLDR 49's patterns: `en`
+  # short "M/d/yy", medium "MMM d, y", full "EEEE, MMMM d, y", `Md` "M/d",
+  # `hm` "h:mm a" and `hms` "h:mm:ss a", joined by "{1}, {0}" or, at full
+  # length, "{1} 'at' {0}"; `es` short "d/M/yy"; `de` medium "dd.MM.y"; `fi`
+  # `Hms` "H.mm.ss"; `ja` `hms` "aK:mm:ss"; `ar` short "d/M/y" with a
+  # right-to-left mark after the day and the month; `he` short "d.M.y". ICU4C
+  # 78.3 formats the padded `ar` and `he` patterns as below, code point for
+  # code point: a decimal numbering system pads with its own zero, and Hebrew
+  # numerals have no zero to pad with.
+  describe "column alignment" do
+    @one_digit ~N[2025-01-05 09:05:07]
+
+    test "TR35's and ICU4X's examples" do
+      inline = Skeleton.semantic("YMD", length: :short)
+
+      assert Localize.Date.to_string(~D[2025-01-01], format: inline, locale: :en) ==
+               {:ok, "1/1/25"}
+
+      assert column(Localize.Date, ~D[2025-01-01], "YMD", length: :short, locale: :en) ==
+               {:ok, "01/01/25"}
+
+      assert column(Localize.Date, ~D[2000-01-01], "YMD",
+               length: :short,
+               year_style: :full,
+               locale: :en
+             ) == {:ok, "01/01/2000"}
+    end
+
+    test "a one-letter month, day or hour is widened; a spelled-out month and the year are not" do
+      assert column(Localize.Date, ~D[2025-01-05], "YMD", length: :short, locale: :es) ==
+               {:ok, "05/01/25"}
+
+      assert column(Localize.Date, ~D[2025-01-05], "YMD", locale: :en) ==
+               {:ok, "Jan 05, 2025"}
+
+      assert column(Localize.Date, ~D[2025-01-05], "YMD", locale: :de) == {:ok, "05.01.2025"}
+
+      assert column(Localize.Time, ~T[09:05:07], "T", locale: :en, prefer: :ascii) ==
+               {:ok, "09:05:07 AM"}
+
+      assert column(Localize.Time, ~T[09:05:07], "T", locale: :fi) == {:ok, "09.05.07"}
+
+      assert column(Localize.Time, ~T[09:05:07], "T", hour_cycle: :clock12, locale: :ja) ==
+               {:ok, "午前09:05:07"}
+
+      assert column(Localize.Time, ~T[00:30:45], "T", hour_cycle: :h11, locale: :ja) ==
+               {:ok, "午前00:30:45"}
+    end
+
+    test "every formatter path pads" do
+      # A standard date format on its own and joined to a time by its wrapper.
+      assert column(Localize.DateTime, @one_digit, "YMD", length: :short, locale: :en) ==
+               {:ok, "01/05/25"}
+
+      assert column(Localize.DateTime, @one_digit, "YMDT",
+               length: :short,
+               locale: :en,
+               prefer: :ascii
+             ) == {:ok, "01/05/25, 09:05:07 AM"}
+
+      assert column(Localize.DateTime, @one_digit, "YMDET",
+               length: :long,
+               locale: :en,
+               prefer: :ascii
+             ) == {:ok, "Sunday, January 05, 2025 at 09:05:07 AM"}
+
+      # A matched skeleton, and partial dates, times and date-times.
+      assert column(Localize.DateTime, @one_digit, "MDT",
+               length: :short,
+               locale: :en,
+               prefer: :ascii
+             ) == {:ok, "01/05, 09:05:07 AM"}
+
+      assert column(Localize.Date, %{month: 1, day: 5}, "MD", length: :short, locale: :en) ==
+               {:ok, "01/05"}
+
+      assert column(Localize.Time, %{hour: 9, minute: 5}, "T",
+               time_precision: :minute,
+               locale: :en,
+               prefer: :ascii
+             ) == {:ok, "09:05 AM"}
+
+      assert column(Localize.DateTime, %{month: 1, day: 5, hour: 9, minute: 5}, "MDT",
+               length: :short,
+               time_precision: :minute,
+               locale: :en,
+               prefer: :ascii
+             ) == {:ok, "01/05, 09:05 AM"}
+
+      # Semantic date and time formats given separately.
+      date = Skeleton.semantic("YMD", length: :short, alignment: :column)
+      time = Skeleton.semantic("T", alignment: :column)
+
+      assert Localize.DateTime.to_string(@one_digit,
+               date_format: date,
+               time_format: time,
+               locale: :en,
+               prefer: :ascii
+             ) == {:ok, "01/05/25, 09:05:07 AM"}
+    end
+
+    test "to_parts carries the padded values" do
+      skeleton = Skeleton.semantic("YMDT", length: :short, alignment: :column)
+      {:ok, parts} = Localize.DateTime.to_parts(@one_digit, format: skeleton, locale: :en)
+
+      assert %{type: :month, value: "01"} in parts
+      assert %{type: :day, value: "05"} in parts
+      assert %{type: :hour, value: "09"} in parts
+    end
+
+    test "a decimal numbering system pads with its own zero; Hebrew numerals are not padded" do
+      rlm = <<0x200F::utf8>>
+
+      assert column(Localize.Date, ~D[2025-01-05], "YMD", length: :short, locale: "ar-u-nu-arab") ==
+               {:ok, "٠٥#{rlm}/٠١#{rlm}/٢٠٢٥"}
+
+      assert column(Localize.Date, ~D[2025-01-05], "YMD",
+               length: :short,
+               locale: :he,
+               number_system: :hebr
+             ) == {:ok, "ה׳.א׳.ב׳כ״ה"}
+    end
+
+    test "a quoted literal letter is left alone" do
+      skeleton = Skeleton.semantic("YMDT", alignment: :column)
+
+      assert Skeleton.apply_pattern_variations("d 'de' MMMM 'de' y", skeleton) ==
+               "dd 'de' MMMM 'de' y"
+
+      assert Skeleton.apply_pattern_variations("h 'o''clock' a", skeleton) == "hh 'o''clock' a"
+    end
+
+    test "the classical skeleton is the same" do
+      for alignment <- [:inline, :column] do
+        skeleton = Skeleton.semantic("YMD", length: :short, alignment: alignment)
+        assert Skeleton.to_classical_skeleton(skeleton, locale: :en) == {:ok, :yyMd}
+      end
+    end
+
+    @sweep_locales ~w(am ar bal be bn cy da de en en-AU es fa fi fr he hi hu it ja ko ky mr my pt ru th uk zh zh-Hant)a
+
+    @instants [~U[2025-01-05 09:05:07Z], ~U[2025-11-15 22:45:56Z]]
+    @dates [~D[2025-01-05], ~D[2025-11-15]]
+    @times [~T[09:05:07], ~T[22:45:56]]
+
+    # Each field set with the values that take it down every path: whole and
+    # partial dates and times through `Localize.Date` and `Localize.Time`, and
+    # instants through `Localize.DateTime`'s standard formats, wrappers,
+    # matched skeletons and glue.
+    @sweep [
+      {"D", [], @dates ++ [%{month: 1, day: 5}]},
+      {"DE", [], @dates},
+      {"MD", [], @dates ++ [%{month: 1, day: 5}]},
+      {"MDE", [], @dates},
+      {"YMD", [], @dates ++ @instants},
+      {"YMDE", [], @dates ++ @instants},
+      {"Y", [], @dates ++ [%{year: 2025, month: 1}]},
+      {"M", [], @dates ++ [%{year: 2025, month: 1}, %{month: 1, day: 5}]},
+      {"YM", [], @dates ++ [%{year: 2025, month: 1}]},
+      {"T", [], @times ++ @instants},
+      {"T", [time_precision: :minute], [%{hour: 9, minute: 5}, %{hour: 22, minute: 45}]},
+      {"DT", [], @instants},
+      {"ET", [], @instants},
+      {"MDT", [], @instants},
+      {"MDT", [time_precision: :minute], [%{month: 1, day: 5, hour: 9, minute: 5}]},
+      {"YMDT", [], @instants},
+      {"YMDET", [], @instants},
+      {"TZ", [], @instants},
+      {"MDZ", [], @instants},
+      {"YMDTZ", [], @instants},
+      {"YMDETZ", [], @instants}
+    ]
+
+    # Column alignment changes nothing but the width of a one-digit month, day
+    # or hour, whichever path the skeleton takes, so a value's column parts are
+    # its inline parts with each one-digit month, day and hour zero-padded, and
+    # a value a locale cannot format fails the same way under either. Latin
+    # digits keep the comparison to ASCII.
+    test "every preloaded locale pads exactly its one-digit months, days and hours" do
+      results =
+        for locale <- @sweep_locales,
+            {code, options} <-
+              Enum.flat_map(@sweep, fn {code, options, values} ->
+                for length <- [:short, :medium, :long],
+                    value <- values,
+                    do: {code, [{:length, length}, {:value, value} | options]}
+              end) do
+          {value, options} = Keyword.pop!(options, :value)
+          inline = aligned_parts(value, code, options, :inline, locale)
+          column = aligned_parts(value, code, options, :column, locale)
+          {{locale, code, options, value}, inline, column}
+        end
+
+      assert_padded(results)
+    end
+
+    test "every hour cycle pads a one-digit hour" do
+      results =
+        for locale <- @sweep_locales,
+            hour_cycle <- [:auto, :clock12, :clock24, :h11, :h12, :h23, :h24],
+            value <- [~T[00:30:45], ~U[2025-01-05 00:30:45Z]] ++ @times ++ @instants do
+          options = [hour_cycle: hour_cycle]
+          inline = aligned_parts(value, "T", options, :inline, locale)
+          column = aligned_parts(value, "T", options, :column, locale)
+          {{locale, hour_cycle, value}, inline, column}
+        end
+
+      assert_padded(results)
+    end
+  end
+
+  # Formats `value` with `module` under a column-aligned semantic skeleton,
+  # splitting the skeleton's options from the formatter's.
+  defp column(module, value, code, options) do
+    {skeleton_options, options} =
+      Keyword.split(options, [:length, :year_style, :hour_cycle, :time_precision])
+
+    skeleton = Skeleton.semantic(code, [alignment: :column] ++ skeleton_options)
+    module.to_string(value, [format: skeleton] ++ options)
+  end
+
+  defp aligned_parts(value, code, options, alignment, locale) do
+    skeleton = Skeleton.semantic(code, [alignment: alignment] ++ options)
+    Localize.DateTime.to_parts(value, format: skeleton, locale: locale, number_system: :latn)
+  end
+
+  defp assert_padded(results) do
+    failures =
+      for {key, inline, column} <- results, column != pad_one_digit_fields(inline) do
+        {key, inline, column}
+      end
+
+    padded = Enum.count(results, fn {_key, inline, column} -> inline != column end)
+
+    assert failures == [], inspect(Enum.take(failures, 5), pretty: true, limit: :infinity)
+    assert padded > 0
+  end
+
+  # A one-digit month, day or hour, zero-padded to two.
+  defp pad_one_digit_fields({:ok, parts}) do
+    {:ok,
+     Enum.map(parts, fn
+       %{type: type, value: <<digit>>} = part
+       when type in [:month, :day, :hour] and digit in ?0..?9 ->
+         %{part | value: <<?0, digit>>}
+
+       part ->
+         part
+     end)}
+  end
+
+  defp pad_one_digit_fields({:error, _exception} = error), do: error
+
   describe "new/2" do
     test "parses a field code" do
       assert {:ok, %Skeleton{fields: [:year, :month, :day, :weekday]}} = Skeleton.new("YMDE")
@@ -274,14 +534,15 @@ defmodule Localize.DateTime.SemanticSkeletonTest do
       assert {:ok, %Skeleton{fields: [:time, :zone]}} = Skeleton.new([:time, :zone])
     end
 
-    test "defaults are medium length, automatic year and zone form, specific zone, seconds" do
+    test "defaults are medium length, automatic year and zone form, specific zone, seconds, inline" do
       assert {:ok,
               %Skeleton{
                 length: :medium,
                 year_style: :auto,
                 zone_style: :specific,
                 zone_length: :auto,
-                time_precision: :second
+                time_precision: :second,
+                alignment: :inline
               }} = Skeleton.new("YMD")
     end
 
@@ -293,6 +554,10 @@ defmodule Localize.DateTime.SemanticSkeletonTest do
       assert {:error, %Localize.InvalidValueError{}} = Skeleton.new("YMD", length: :enormous)
       assert {:error, %Localize.InvalidValueError{}} = Skeleton.new("YMDZ", zone_style: :bogus)
       assert {:error, %Localize.InvalidValueError{}} = Skeleton.new("TZ", zone_length: :medium)
+
+      # TR35 names the alignments inline and column.
+      assert {:error, %Localize.InvalidValueError{value: :auto}} =
+               Skeleton.new("YMD", alignment: :auto)
 
       for precision <- [
             :fortnight,
