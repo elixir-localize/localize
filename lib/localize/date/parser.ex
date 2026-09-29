@@ -65,7 +65,10 @@ defmodule Localize.Date.Parser do
   # marker (`平成`, `هـ`, `AH`, `BCE`, `民國`). The parser
   # captures the era name, resolves it via
   # `Localize.Calendar.eras/2`, and computes the calendar-year
-  # from the era-year for calendars that need it (Japanese).
+  # from the year of that era: from the era's start year in
+  # the Japanese calendar, and in any other as the year the
+  # formatter writes that way, so "1 BC" is year 0. A year
+  # its era qualifies is taken as written, never pivoted.
   #
 
   alias Localize.Calendar, as: LCalendar
@@ -825,18 +828,22 @@ defmodule Localize.Date.Parser do
   # Extract the `{year, month, day}` triple for one side of an
   # interval. Any field may be absent (missing from this
   # endpoint's portion of the pattern); represented as `nil`
-  # so `materialise/3` can fill from the other side.
+  # so `materialise/3` can fill from the other side. A year
+  # written with its era is the year of that era.
   defp extract_partial(caps, prefix, reference_year, calendar_module) do
-    year = extract_partial_year(caps, prefix, reference_year, calendar_module)
+    era_index = extract_partial_era_index(caps, prefix)
     month = extract_partial_month(caps, prefix)
     day = extract_partial_day(caps, prefix)
-    era_index = extract_partial_era_index(caps, prefix)
-    year = apply_partial_era_year(year, era_index, calendar_module)
 
-    reject_invalid(%{year: year, month: month, day: day})
+    with {:ok, year} <-
+           caps
+           |> extract_partial_year(prefix, era_index, reference_year, calendar_module)
+           |> resolve_calendar_year(era_index, calendar_module, {month, day}) do
+      reject_invalid(%{year: year, month: month, day: day})
+    end
   end
 
-  defp extract_partial_year(caps, prefix, reference_year, calendar_module) do
+  defp extract_partial_year(caps, prefix, era_index, reference_year, calendar_module) do
     case Map.get(caps, prefix <> "year") do
       nil ->
         nil
@@ -846,22 +853,28 @@ defmodule Localize.Date.Parser do
 
       raw ->
         case Integer.parse(raw) do
-          {n, ""} -> maybe_pivot_two_digit_year(n, raw, reference_year, calendar_module)
-          _ -> :invalid
+          {n, ""} ->
+            maybe_pivot_two_digit_year(n, raw, era_index, reference_year, calendar_module)
+
+          _ ->
+            :invalid
         end
     end
   end
 
   # The 2-digit-year pivot is a Gregorian convention (see the
-  # note on `extract_year_field/3`). Non-Gregorian years are
-  # taken literally.
-  defp maybe_pivot_two_digit_year(n, raw, reference_year, calendar_module) do
+  # note on `extract_year_field/4`) for a year written without
+  # its era. Non-Gregorian years, and a year its era qualifies
+  # ("44 BC", "44 AD"), are taken literally.
+  defp maybe_pivot_two_digit_year(n, raw, nil = _era_index, reference_year, calendar_module) do
     if cldr_calendar_type(calendar_module) == :gregorian and String.length(raw) == 2 do
       pivot_year(n, reference_year)
     else
       n
     end
   end
+
+  defp maybe_pivot_two_digit_year(n, _raw, _era_index, _reference_year, _calendar_module), do: n
 
   defp extract_partial_month(caps, prefix) do
     case Map.get(caps, prefix <> "month") do
@@ -894,23 +907,10 @@ defmodule Localize.Date.Parser do
     end
   end
 
-  # Era field (Japanese imperial) — capture index, use it to
-  # convert era_year into Gregorian year.
+  # The era field's capture index, which `resolve_calendar_year/4`
+  # turns a year of that era into the calendar's year with.
   defp extract_partial_era_index(caps, prefix) do
     prefixed_indexed_capture(caps, prefix, "__e", ~r/__e(\d+)__$/)
-  end
-
-  defp apply_partial_era_year(year, era_index, calendar_module) do
-    case {cldr_calendar_type(calendar_module), era_index, year} do
-      {:japanese, era, y} when is_integer(era) and is_integer(y) ->
-        case japanese_era_start_year(era) do
-          {:ok, start_year} -> start_year + y - 1
-          :error -> y
-        end
-
-      _ ->
-        year
-    end
   end
 
   defp extract_month_by_name(caps, prefix), do: named_month_capture(caps, prefix)
@@ -2229,18 +2229,17 @@ defmodule Localize.Date.Parser do
   # strategy table below resolves which combination yields a
   # full Date.
   defp extract_fields(caps, reference_year, era_index, calendar_module, week_config) do
-    with {:ok, year_in_calendar} <-
-           extract_year_field(caps, reference_year, calendar_module),
+    month = extract_optional_month(caps)
+    day = extract_optional_day(caps)
+
+    with {:ok, year_of_era} <-
+           extract_year_field(caps, reference_year, era_index, calendar_module),
          {:ok, calendar_year} <-
-           resolve_calendar_year(
-             year_in_calendar,
-             era_index,
-             cldr_calendar_type(calendar_module)
-           ) do
+           resolve_calendar_year(year_of_era, era_index, calendar_module, {month, day}) do
       reject_invalid(%{
         year: calendar_year,
-        month: caps |> extract_optional_month() |> named_month(calendar_year, calendar_module),
-        day: extract_optional_day(caps),
+        month: named_month(month, calendar_year, calendar_module),
+        day: day,
         quarter: extract_optional_quarter(caps),
         week_of_year: extract_optional_int(caps, "week_of_year"),
         week_of_month: extract_optional_int(caps, "week_of_month"),
@@ -2268,19 +2267,20 @@ defmodule Localize.Date.Parser do
   # aware calendars (Japanese imperial, ROC, etc.) the year
   # value is meant literally (`平成12年` = Heisei year 12,
   # not "the year '12 ≈ 2012"), so pivoting would corrupt the
-  # input.
+  # input, as it would a year its era qualifies ("44 BC").
   # Year field is required by `extract_fields`. Falls back to
   # `year_fallback` when no `y`/`Y` was captured: in `:struct`
   # mode this is the reference year (so patterns like `MMM d`
   # parse against the current year); in `:map` mode it's `nil`
   # (so the year stays absent from the result map).
-  defp extract_year_field(caps, year_fallback, calendar_module) do
+  defp extract_year_field(caps, year_fallback, era_index, calendar_module) do
     case Map.get(caps, "year") || Map.get(caps, "week_based_year") do
       raw when is_binary(raw) and raw != "" ->
         case Integer.parse(raw) do
           {n, ""} ->
             reference_year = year_fallback || Date.utc_today().year
-            {:ok, maybe_pivot_two_digit_year(n, raw, reference_year, calendar_module)}
+
+            {:ok, maybe_pivot_two_digit_year(n, raw, era_index, reference_year, calendar_module)}
 
           _ ->
             :error
@@ -2474,24 +2474,67 @@ defmodule Localize.Date.Parser do
     end
   end
 
-  # When no year was captured (only possible in `:map` mode),
-  # there's nothing to resolve — era arithmetic is moot.
-  defp resolve_calendar_year(nil, _era_index, _calendar), do: {:ok, nil}
+  # The calendar's year for a year written as `year` of era
+  # `era_index`. A year without an era is the calendar's own,
+  # and without a year (only possible in `:map` mode, or an
+  # interval endpoint) there's nothing to resolve.
+  defp resolve_calendar_year(year, era_index, _calendar_module, _month_day)
+       when not is_integer(year) or is_nil(era_index),
+       do: {:ok, year}
 
   # For Japanese imperial dates, the parsed `year` is the
   # year-within-era, not the Gregorian year. Convert using
-  # the era's start date from CLDR supplemental data.
-  defp resolve_calendar_year(year, era_index, :japanese) when is_integer(era_index) do
-    case japanese_era_start_year(era_index) do
-      {:ok, start_year} -> {:ok, start_year + year - 1}
-      :error -> {:error, :unknown_era}
+  # the era's start date from CLDR supplemental data. Any
+  # other calendar says which of its years it writes that way.
+  defp resolve_calendar_year(year, era_index, calendar_module, month_day) do
+    if cldr_calendar_type(calendar_module) == :japanese do
+      case japanese_era_start_year(era_index) do
+        {:ok, start_year} -> {:ok, start_year + year - 1}
+        :error -> {:error, :unknown_era}
+      end
+    else
+      year_in_era(year, era_index, calendar_module, month_day)
     end
   end
 
-  # For other era-aware calendars (Islamic, Hebrew, etc.), the
-  # year in input IS the calendar's year — no era arithmetic
-  # needed. The era marker is presentational.
-  defp resolve_calendar_year(year, _era_index, _calendar), do: {:ok, year}
+  # The calendar's year that the formatter writes as `year` of era
+  # `era_index`. A forward era counts years as they are and a before era
+  # counts back, from year 0 in a calendar that has one (1 BC) and from
+  # year -1 in one that does not, so those are the candidates, each asked
+  # of the calendar through the functions the formatter uses. The month and
+  # day, where the input has them as numbers, settle an era that begins
+  # mid-year.
+  defp year_in_era(year, era_index, calendar_module, {month, day}) do
+    probe = era_probe(calendar_module, era_month(month), era_day(day))
+
+    [year, -year, 1 - year]
+    |> Enum.uniq()
+    |> Enum.find(&written_as?(Map.put(probe, :year, &1), year, era_index))
+    |> case do
+      nil -> {:error, :unknown_era}
+      calendar_year -> {:ok, calendar_year}
+    end
+  end
+
+  defp written_as?(date, year, era_index) do
+    Localize.Calendar.displayed_year(date) == {:ok, year} and
+      match?({:ok, {_year_of_era, ^era_index}}, Localize.Calendar.year_of_era(date))
+  end
+
+  defp era_probe(calendar_module, nil, _day), do: %{calendar: calendar_module}
+
+  defp era_probe(calendar_module, month, nil),
+    do: %{calendar: calendar_module, month: month}
+
+  defp era_probe(calendar_module, month, day),
+    do: %{calendar: calendar_module, month: month, day: day}
+
+  defp era_month(month) when is_integer(month), do: month
+  defp era_month({:named, month}) when is_integer(month), do: month
+  defp era_month(_month), do: nil
+
+  defp era_day(day) when is_integer(day), do: day
+  defp era_day(_day), do: nil
 
   defp japanese_era_start_year(era_index) do
     eras = get_in(Localize.SupplementalData.calendars(), [:japanese, :eras])
