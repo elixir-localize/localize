@@ -16,7 +16,9 @@ Outstanding work on Localize. The design detail behind these items lives under [
 
 * [ ] **Report `pt`'s `GyMMMM` to CLDR** — CLDR gives it as "MMMM 'de' Y G", with the week-based year `Y` where every sibling format has `y`, so 2025-12-29 renders "dezembro de 2026 d.C.".
 
-* [ ] **Calendrical calendars show a year before their first era as a signed year** — `Calendrical.Gregorian` year 0 renders "0 BC" and `Calendrical.Roc` year -5 "-5 B.R.O.C." where `Calendar.ISO` gives "1 BC": Localize prefers `calendar_year/3`, which returns the year as it is, over `year_of_era/3`. Decide whether the fix is Localize's or Calendrical's.
+* [ ] **The date parser ignores the era outside the Japanese calendar** — "Jun 1, 1 BC" parses to AD 1 and "Jun 1, 44 BC" to 2044, the two-digit pivot applied; a year before the first era should count back as the formatter writes it.
+
+* [ ] **Calendrical callbacks that raise or disagree reach Localize's formatting** — Coptic and Ethiopic `year_of_era/3` raise for year 0, which `valid_date?/3` accepts; the Japanese calendars raise before their first era; `Reform.Japan`'s `calendar_year/3` gives the raw year (1000) where its era year is 21. The fixes are Calendrical's.
 
 * [ ] **`Localize.Calendar.localize/3` names the first value of a part the date lacks** — a map without a month is January, the first quarter and a Monday, and one without a year the current era; characterization tests pin this. Decide whether they should be errors.
 
@@ -39,6 +41,8 @@ Outstanding work on Localize. The design detail behind these items lives under [
 * [ ] **`localize_emoji` sibling library** — plan item 11, a separate package on its own schedule. A Phoenix LiveView picker (`localize_emoji_live`) is out of scope for its 0.1.0.
 
 ## Done
+
+* [x] **A year before a Calendrical calendar's first era counts back from it** — a year below 1 from `calendar_year/3` is shown as its year of era, so `Calendrical.Gregorian` year 0 is "1 BC"; across Calendrical's 32 calendars only years below 1 change. 2026-09-29, v1.4.0.
 
 * [x] **An era for a partial date** — its era and year of era are those its days agree on, so a year and month take `:Gy`, `year_style: :with_era` and `th`'s long `YM`; a Japanese date spanning two eras names the fields that settle it. 2026-09-29, v1.4.0.
 

@@ -1243,9 +1243,10 @@ defmodule Localize.Calendar do
 
   @doc false
   # The year a date shows: Calendrical's `calendar_year/3` where the
-  # calendar has one, which in the Japanese calendar is the year of its
-  # era, and otherwise the year of era, so a year before the first counts
-  # as TR35 counts it — year 0 is 1 BC.
+  # calendar has one and it gives a year of at least 1, and otherwise the
+  # year of era, so a year before a calendar's first era counts back as
+  # TR35 counts it — year 0 is 1 BC in `Calendar.ISO` and in Calendrical's
+  # calendars alike.
   @spec displayed_year(term()) :: {:ok, Calendar.year()} | {:error, [atom()]}
   def displayed_year(date), do: settle(date, &displayed_year_on/2)
 
@@ -1339,9 +1340,19 @@ defmodule Localize.Calendar do
     end
   end
 
+  # Calendrical's `calendar_year/3` numbers a year as its calendar displays
+  # it — the year of its era in the Japanese calendar, the year as a Julian
+  # calendar beginning in March counts it — but gives a year before the
+  # first era as it is, 0 or -5. TR35 counts those back from the era, so a
+  # year below 1 is the year of era, from the `year_of_era/3` that names
+  # the date's era.
   defp displayed_year_on(calendar, {year, month, day} = date) do
-    if function_exported?(calendar, :calendar_year, 3) do
-      calendar.calendar_year(year, month, day)
+    shown =
+      if function_exported?(calendar, :calendar_year, 3),
+        do: calendar.calendar_year(year, month, day)
+
+    if is_integer(shown) and shown >= 1 do
+      shown
     else
       calendar |> year_of_era_on(date) |> elem(0)
     end

@@ -88,6 +88,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+* A year before a Calendrical calendar's first era counts back from the era, as TR35 and `Calendar.ISO` count it — `Calendrical.Gregorian` year 0 is "1 BC" and `Calendrical.Roc` year -5 "6 B.R.O.C." — where it showed the year as it is, "0 BC".
+
 * A partial date shows its era and year of era as its days do — `%{year: 2025, month: 1}` with `:GyMMM` is "Jan 2025 AD" where the era was blank, and `%{year: 0}` is year "1" — and a Japanese one whose days span two eras returns an error naming the fields that settle it.
 
 * The short localized GMT format of a whole hour keeps the offset pattern up to its hour field, as ICU does, so `he`'s "GMT-5" carries one left-to-right mark where it carried two.

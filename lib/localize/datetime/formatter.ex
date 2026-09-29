@@ -902,8 +902,9 @@ defmodule Localize.DateTime.Formatter do
   # For era-aware calendars implementing the Calendrical
   # behaviour, `calendar_year/3` returns the displayed
   # calendar year (Heisei 12, BE 2543, AH 1420) — which is
-  # what CLDR's `y` token wants. `Calendar.ISO` exports no
-  # `calendar_year/3` and takes its `year_of_era/3`, so BCE
+  # what CLDR's `y` token wants. A year before a calendar's
+  # first era, and every year of `Calendar.ISO`, which exports
+  # no `calendar_year/3`, comes from `year_of_era/3`, so BCE
   # dates render era-relative per TR35: year -1 is "2" (with
   # era "BC"), year 0 is "1" — never a signed proleptic year
   # like "-1 BC". A partial date shows the year its days agree

@@ -20,6 +20,29 @@ defmodule Localize.DateTime.FormatterEdgeTest.BadYearOfEraCalendar do
   def cldr_calendar_type, do: :gregorian
 end
 
+defmodule Localize.DateTime.FormatterEdgeTest.BeforeEraCalendar do
+  @moduledoc false
+  # Numbers years as Calendrical's Gregorian calendar does: `calendar_year/3`
+  # gives the year as it is, and `year_of_era/3` counts a year below 1 back
+  # from the era, year 0 being 1 BC.
+
+  def cldr_calendar_type, do: :gregorian
+  def calendar_year(year, _month, _day), do: year
+  def year_of_era(year, _month, _day) when year > 0, do: {year, 1}
+  def year_of_era(year, _month, _day), do: {1 - year, 0}
+end
+
+defmodule Localize.DateTime.FormatterEdgeTest.NoYearZeroCalendar do
+  @moduledoc false
+  # Numbers years as Calendrical's Julian calendar does, with no year 0, so
+  # year -1 is 1 BC.
+
+  def cldr_calendar_type, do: :gregorian
+  def calendar_year(year, _month, _day), do: year
+  def year_of_era(year, _month, _day) when year > 0, do: {year, 1}
+  def year_of_era(year, _month, _day), do: {-year, 0}
+end
+
 defmodule Localize.DateTime.FormatterEdgeTest do
   use ExUnit.Case, async: true
 
@@ -30,7 +53,9 @@ defmodule Localize.DateTime.FormatterEdgeTest do
 
   alias Localize.DateTime.Formatter
   alias Localize.DateTime.FormatterEdgeTest.BadYearOfEraCalendar
+  alias Localize.DateTime.FormatterEdgeTest.BeforeEraCalendar
   alias Localize.DateTime.FormatterEdgeTest.CalendarYearCalendar
+  alias Localize.DateTime.FormatterEdgeTest.NoYearZeroCalendar
 
   @date ~D[2024-07-06]
   @time ~T[14:30:45.123456]
@@ -307,6 +332,27 @@ defmodule Localize.DateTime.FormatterEdgeTest do
     test "a calendar whose year_of_era/3 returns a non-tuple falls back to the year" do
       date = %{year: 2024, month: 7, day: 6, calendar: BadYearOfEraCalendar}
       assert date_format(date, "y") == "2024"
+    end
+
+    # TR35 counts a year before the first era back from it, so year 0 is 1 BC
+    # as `Calendar.ISO` renders it; a calendar without a year 0 writes 44 BC
+    # as -44.
+    test "a year below 1 from calendar_year/3 is shown as its year of era" do
+      for year <- [0, -1, -44], pattern <- ["y G", "yy G"] do
+        date = %{year: year, month: 3, day: 15, calendar: BeforeEraCalendar}
+        assert date_format(date, pattern) == date_format(Date.new!(year, 3, 15), pattern)
+      end
+
+      assert date_format(%{year: 0, month: 3, day: 15, calendar: BeforeEraCalendar}, "y G") ==
+               "1 BC"
+
+      assert date_format(%{year: 0, calendar: BeforeEraCalendar}, "y G") == "1 BC"
+
+      assert date_format(%{year: -1, month: 3, day: 15, calendar: NoYearZeroCalendar}, "y G") ==
+               "1 BC"
+
+      assert date_format(%{year: -44, month: 3, day: 15, calendar: NoYearZeroCalendar}, "y G") ==
+               "44 BC"
     end
 
     test "W on a non-ISO calendar uses the plain day-of-month derivation" do
