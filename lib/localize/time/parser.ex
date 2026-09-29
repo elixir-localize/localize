@@ -152,8 +152,13 @@ defmodule Localize.Time.Parser do
       lenient = load_lenient_date(locale)
       regexes = pattern_regexes(patterns, locale, day_periods, lenient)
 
-      match_patterns(input, patterns, regexes, day_periods, as) ||
-        {:error, no_match_error(input, locale)}
+      # A time is written in the digits of the locale's number system, as
+      # `bn`'s "১০:০৫ AM" and `fa`'s "۱۰:۰۵" are, and read as the date
+      # parser reads them.
+      input
+      |> Localize.Date.Parser.transliterate_digits(locale)
+      |> match_patterns(patterns, regexes, day_periods, as)
+      |> Kernel.||({:error, no_match_error(input, locale)})
     end
   end
 

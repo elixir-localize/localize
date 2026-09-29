@@ -18,9 +18,15 @@ Outstanding work on Localize. The design detail behind these items lives under [
 
 * [ ] **Report 12-hour patterns without a day period to CLDR** — `fr-CM`'s `h`, `hm` and `hms`, `bal-Latn`'s `hm` and `es-AR`'s `hms` are 12-hour patterns with no day period, which TR35 forbids, so the "12:30" and "1:45" they write each name two times.
 
+* [ ] **Zone names and localized GMT formats do not parse** — the zone field reads only English-shaped text, so of 7,884 zoned long and full date-times formatted in every locale 2,951 fail on their zone (`fr` "UTC−4", `de` "Nordamerikanische Ostküsten-Sommerzeit", `ar` "غرينتش-4"), and the names it does read ("EDT", "Eastern Daylight Time") are not resolved, so 1,075 come back without their zone.
+
+* [ ] **The localized GMT format writes Latin digits** — TR35 writes its offset in the locale's default digits, as ICU4C does (`ar-EG` "غرينتش-٤", `ne` "GMT-४"), where Localize writes "غرينتش-4" and "GMT-4"; the parser reads the two forms alike.
+
 * [ ] **The time parser reads only the Gregorian calendar's time formats** — `Localize.DateTime.parse/2` in another calendar reads its time with the Gregorian patterns, so `de`'s Chinese `Bh` "10 vorm." does not parse where its Gregorian "10 Uhr vorm." does; take the calendar's time formats when `:calendar` is given, as the formatter now does.
 
-* [ ] **Native digits in the time parser** — `Localize.Time.parse/2` reads Latin digits only, so `bn` "১০:০৫ AM" and `fa` "۱۰:۰۵" are errors and their date-times do not parse back, while the date parser transliterates them.
+* [ ] **Date round trips that fail in eight locales** — `haw` writes months in Roman numerals ("31/xii/24"), `nnh`'s long and full dates do not parse, `gd`'s `yMMM` writes the week-based year ("Dùbh 2025" for 2024-12-31, a CLDR report like `pt`'s), `en-ZW` reads "May 2019" as May 20, and numeric `yMd` dates in `mt`, `sbp`, `ug` and `vai-Latn` are read day-first.
+
+* [ ] **Numeric era dates read in another pattern's field order** — an era year small enough to be a day or a month fits the locale's other numeric patterns, so the Japanese `my` "Kanpō (1741–1744) 2/6/1" (y/M/d) is read as 1741-06-02 and `fa`'s "6/1/2 Kanpō (1741–1744)" as 1746-01-02, in either digits; `sa` likewise.
 
 * [ ] **Numeric widths in interval patterns** — TR35's `availableFormats` adjustment pads an interval item's `d/M` to a style's `dd/MM` (`vi` short "01/04/2023 – 10/04/2023"); ICU4C and V8 normalise the skeleton's numeric widths away and write "1/4/2023 – 10/4/2023". Decide which to follow; it predates the calendar work and shows in Gregorian `vi`, `id`, `ms`, `te`, `am` and `sw`.
 
@@ -51,6 +57,8 @@ Outstanding work on Localize. The design detail behind these items lives under [
 * [ ] **`localize_emoji` sibling library** — plan item 11, a separate package on its own schedule. A Phoenix LiveView picker (`localize_emoji_live`) is out of scope for its 0.1.0.
 
 ## Done
+
+* [x] **Native digits in the time parser** — times, and with them date-times, are read in the digits of the locale's number system, and month, quarter, weekday and era names written in those digits (`dz`, `bn`, `ckb`, `ff-Adlm`) are read too; of 59,787 times and 3,942 short and medium date-times formatted in every locale none in native digits fails to parse, and a zoned one fails only where its Latin-digit form does. 2026-09-30, v1.4.0.
 
 * [x] **The time parser's pattern order** — standard formats first and patterns with a zone or a flexible day period last, and a flexible day period read against every period of its name; of 59,787 times formatted in every locale, every one in Latin digits parses back but 15 from the patterns CLDR gives no day period. 2026-09-30, v1.4.0.
 

@@ -88,6 +88,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+* `Localize.Time.parse/2` reads a time written in the digits of the locale's number system, as the date parser does, so `bn` "১০:০৫ AM" and `fa` "۱۰:۰۵" parse, and with them the date-times of 67 locales that write their own digits.
+
+* The date parser reads month, quarter, weekday and era names written in the locale's digits, as `dz`'s abbreviated months ("༤" is April), `ckb`'s short weekdays and `ff-Adlm`'s Japanese eras are, where transliterating the input's digits left them unmatched.
+
 * `Localize.Time.parse/2` tries the locale's standard formats first, then its available formats with those carrying a zone or a flexible day period last, where their order followed a map, so `ms` "11:59 PTG" is 23:59 rather than 11:59 in a zone "PTG".
 
 * A flexible day period is read as the period of that name its hour falls in (`fr` "9:05 matin" is 09:05, not 21:05), as midnight or noon at their hour, and as AM or PM where the locale names none, as the formatter then writes it. A word the locale does not name is no longer read as one, where any word was read as the morning.

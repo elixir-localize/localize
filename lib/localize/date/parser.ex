@@ -1555,16 +1555,39 @@ defmodule Localize.Date.Parser do
   # Translate non-Latin digit runs to Latin before integer
   # parsing. Walk the locale's default number system; for
   # numeric systems with custom digit sets, build the
-  # translation table on the fly.
-  defp transliterate_digits(input, locale) do
-    with {:ok, system} <- Localize.Number.System.number_system_from_locale(locale),
-         {:ok, digits} when is_binary(digits) and byte_size(digits) > 0 <-
-           Localize.Number.System.number_system_digits(system) do
-      digit_translate(input, digits)
-    else
-      _ -> input
+  # translation table on the fly. `Localize.Time.Parser` reads
+  # a time's digits the same way.
+  @doc false
+  def transliterate_digits(input, locale) do
+    case locale_digits(locale) do
+      nil -> input
+      digits -> digit_translate(input, digits)
     end
   end
+
+  # The digits of the locale's default number system, or `nil` where they
+  # are Latin or the system has none.
+  defp locale_digits(locale) do
+    with {:ok, system} <- Localize.Number.System.number_system_from_locale(locale),
+         {:ok, digits} when is_binary(digits) and digits not in ["", "0123456789"] <-
+           Localize.Number.System.number_system_digits(system) do
+      digits
+    else
+      _ -> nil
+    end
+  end
+
+  # The input is read with its digits in Latin, so names the locale writes
+  # with its own digits are read in Latin digits too: `dz`'s abbreviated
+  # months and its quarters are Tibetan numbers, and `fa`'s short weekdays
+  # and the year ranges of `ar-EG`'s Japanese era names carry its digits.
+  defp latin_names(data, nil), do: data
+  defp latin_names(name, digits) when is_binary(name), do: digit_translate(name, digits)
+
+  defp latin_names(%{} = data, digits),
+    do: Map.new(data, fn {key, value} -> {key, latin_names(value, digits)} end)
+
+  defp latin_names(other, _digits), do: other
 
   defp digit_translate(input, "0123456789"), do: input
 
@@ -1642,13 +1665,14 @@ defmodule Localize.Date.Parser do
   defp field_context(locale, calendar_module, reference, months_data) do
     cldr_calendar = cldr_calendar_type(calendar_module)
     month_patterns = maybe_load_month_patterns(locale, cldr_calendar)
+    digits = locale_digits(locale)
 
     %{
-      quarters: maybe_load_quarters(locale, cldr_calendar),
-      days: maybe_load_days(locale, cldr_calendar),
+      quarters: latin_names(maybe_load_quarters(locale, cldr_calendar), digits),
+      days: latin_names(maybe_load_days(locale, cldr_calendar), digits),
       locale: locale,
-      months: months_data,
-      eras: maybe_load_eras(locale, era_calendar_type(calendar_module)),
+      months: latin_names(months_data, digits),
+      eras: latin_names(maybe_load_eras(locale, era_calendar_type(calendar_module)), digits),
       cyclic_years: maybe_load_cyclic_years(locale, cldr_calendar),
       month_patterns: month_patterns,
       traditional_months: traditional_months?(calendar_module, month_patterns),
