@@ -25,7 +25,7 @@ A simple message is plain text with optional placeholders. It cannot start with 
 ```
 Hello, world!
 Hello, {$name}!
-Today is {$date :date style=medium}.
+Today is {$date :date length=long}.
 ```
 
 Simple messages are the most common form. Text is literal; placeholders are enclosed in `{ }`.
@@ -215,46 +215,73 @@ When the bound value is a `Localize.Unit` struct, the unit and value are derived
 
 ### `:date`
 
-Formats a date value. Accepts `Date`, `NaiveDateTime`, `DateTime` structs, or ISO 8601 string literals.
+Formats a date. The operand is a `Date`, `NaiveDateTime` or `DateTime`, or a string holding an ISO 8601 date or datetime.
 
-```
+```text
 {$when :date}
-{$when :date style=short}
-{|2006-01-02| :date style=long}
+{$when :date fields=month-day}
+{|2006-01-02| :date length=long}
 ```
 
 | Option | Values | Description |
 |--------|--------|-------------|
-| `style` / `length` | `short`, `medium`, `long`, `full` | Date format style (default: `medium`). |
+| `fields` | `weekday`, `day-weekday`, `month-day`, `month-day-weekday`, `year-month-day`, `year-month-day-weekday` | The fields shown (default: `year-month-day`). |
+| `length` | `short`, `medium`, `long` | The room the date has (default: `medium`). |
+
+The options choose a TR35 semantic skeleton, and the locale decides the order and the widths: in `en-AU`, `{$d :date fields=month-day}` is "14 Jun" and with `length=long` "14 June". A year, month and day at one length is the locale's standard date format of that length, and at `long` with a weekday its full date.
 
 ### `:time`
 
-Formats a time value. Accepts `Time`, `NaiveDateTime`, `DateTime` structs, or ISO 8601 datetime string literals.
+Formats a time. The operand is a `Time`, `NaiveDateTime` or `DateTime`, or a string holding an ISO 8601 datetime.
 
-```
+```text
 {$when :time}
-{$when :time style=short}
+{$when :time precision=second timeZoneStyle=short}
 ```
 
 | Option | Values | Description |
 |--------|--------|-------------|
-| `style` | `short`, `medium`, `long`, `full` | Time format style (default: `medium`). |
-| `precision` | `second`, `minute` | `second` maps to `medium`, `minute` maps to `short`. |
+| `precision` | `hour`, `minute`, `second` | The smallest unit shown (default: `minute`). |
+| `timeZoneStyle` | `short`, `long` | Adds the zone, "EST" or "Eastern Standard Time"; without it none is shown. |
 
 ### `:datetime`
 
-Formats a combined date and time value.
+Formats a date with a time.
 
-```
+```text
 {$when :datetime}
-{$when :datetime dateStyle=long timeStyle=short}
+{$when :datetime dateFields=month-day dateLength=long timePrecision=hour}
 ```
 
 | Option | Values | Description |
 |--------|--------|-------------|
-| `style` | `short`, `medium`, `long`, `full` | Sets both date and time style (default: `medium`). |
-| `dateStyle` / `dateLength` | `short`, `medium`, `long`, `full` | Date portion style. |
-| `timeStyle` / `timePrecision` | `short`, `medium`, `long`, `full` | Time portion style/precision. |
+| `dateFields` | the values of `fields` | The date fields shown (default: `year-month-day`). |
+| `dateLength` | `short`, `medium`, `long` | The room the date has (default: `medium`). |
+| `timePrecision` | `hour`, `minute`, `second` | The smallest unit shown (default: `minute`). |
+| `timeZoneStyle` | `short`, `long` | Adds the zone. |
+
+A long or full date joins its time with the locale's at-time pattern, so `en` gives "January 2, 2006 at 3:04 PM". The options of all three functions must be literals, as TR35 requires: `{$d :date length=$length}` is an error.
+
+### Date and time override options
+
+`timeZone`, `hour12` and `calendar` apply to all three functions and may be set by a variable. An expression that re-annotates a declared date or time inherits them and no other option, so `{$d :time}` keeps the `timeZone` of `.local $d = {$x :datetime timeZone=UTC dateLength=long}` but not its `dateLength`.
+
+| Option | Values | Description |
+|--------|--------|-------------|
+| `timeZone` | an IANA zone, `UTC`, `input` | Converts the value into the zone, or places a floating time in it; `input` keeps the value's own zone. |
+| `hour12` | `true`, `false` | A 12- or 24-hour clock in the locale's own style. |
+| `calendar` | a Unicode calendar identifier such as `hebrew` | Formats in that calendar. |
+
+A zone other than UTC needs a time zone database such as `:tz`, and `calendar` needs the `calendrical` package; without them the option is an error. A string operand with an offset, such as `|2006-01-02T15:04:06-05:00|`, keeps it, and one without is a floating time.
+
+### Styles from earlier drafts
+
+The `style`, `dateStyle` and `timeStyle` options of earlier MessageFormat 2 drafts, which ICU's implementation still takes, choose the locale's standard formats: `short`, `medium`, `long` or `full`. So do `length=full` and a style name given as a precision.
+
+```text
+{$when :date style=short}
+{$when :datetime dateStyle=long timeStyle=short}
+```
 
 ## Declarations
 
@@ -543,9 +570,9 @@ The Localize MF2 implementation targets the [Unicode MessageFormat 2.0 specifica
 | `:string` | Default | String coercion via `String.Chars` |
 | `:number` | Default | Locale-aware via `Localize.Number` |
 | `:integer` | Default | Integer format via `Localize.Number` |
-| `:date` | Default | Date formatting via `Localize.Date` |
-| `:time` | Default | Time formatting via `Localize.Time` |
-| `:datetime` | Default | DateTime formatting via `Localize.DateTime` |
+| `:date` | Draft | Semantic skeleton via `Localize.Date` |
+| `:time` | Draft | Semantic skeleton via `Localize.Time` |
+| `:datetime` | Draft | Semantic skeleton via `Localize.DateTime` |
 | `:percent` | Stable | Percent format via `Localize.Number` |
 | `:currency` | Stable | Currency format via `Localize.Number` |
 | `:unit` | Extended | Unit format via `Localize.Unit` |

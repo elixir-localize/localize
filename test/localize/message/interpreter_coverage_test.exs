@@ -199,8 +199,9 @@ defmodule Localize.Message.InterpreterCoverageTest do
                format("{$d :date style=short}", %{"d" => "2024-06-01T08:00:00Z"}, locale: :en)
     end
 
+    # TR35: `{$d :datetime}` is `dateFields=year-month-day timePrecision=minute`.
     test "an ISO datetime string with offset is parsed for the datetime function" do
-      assert {:ok, ["Jun 1, 2024, 8:00:00 AM"], ["t"], []} =
+      assert {:ok, ["Jun 1, 2024, 8:00 AM"], ["t"], []} =
                format("{$t :datetime}", %{"t" => "2024-06-01T08:00:00Z"}, locale: :en)
     end
   end

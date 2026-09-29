@@ -68,7 +68,20 @@ iex> Localize.Date.to_string(~D[2024-07-06], format: long, locale: :en)
 {:ok, "July 6, 2024"}
 ```
 
-The letters name components — `Y` year, `M` month, `D` day, `E` weekday, `T` time, `Z` zone — and `:length`, `:year_style`, `:zone_style`, `:hour_cycle` and `:alignment` adjust the rendering. A semantic skeleton is accepted anywhere a classical one is: `Localize.Date`, `Localize.Time` and `Localize.DateTime` all take it as `:format`.
+The letters name components — `Y` year, `M` month, `D` day, `E` weekday, `T` time, `Z` zone — and `:length`, `:year_style`, `:zone_style`, `:zone_length`, `:hour_cycle`, `:time_precision` and `:alignment` adjust the rendering. A semantic skeleton is accepted anywhere a classical one is: `Localize.Date`, `Localize.Time` and `Localize.DateTime` all take it as `:format`.
+
+The year, month and day take their widths from the locale's own date format at the requested length, as TR35 specifies, so a year, month and day is the standard date format of that length: numeric in German at medium length, where English abbreviates the month. A time shows its seconds unless `:time_precision` asks for `:hour` or `:minute`:
+
+```elixir
+iex> Localize.Date.to_string(~D[2024-07-06], format: Localize.DateTime.SemanticSkeleton.semantic("YMD"), locale: :de)
+{:ok, "06.07.2024"}
+
+iex> skeleton = Localize.DateTime.SemanticSkeleton.semantic("T", time_precision: :minute)
+iex> Localize.Time.to_string(~T[14:30:45], format: skeleton, locale: :en, prefer: :ascii)
+{:ok, "2:30 PM"}
+```
+
+MessageFormat 2's `:date`, `:time` and `:datetime` functions are built on semantic skeletons; see the [message formatting guide](message_formatting.md).
 
 ### Custom pattern strings
 

@@ -502,19 +502,22 @@ defmodule Localize.DateTime.Timezone do
   # A metazone usage period is selected by a UTC instant; when the
   # datetime carries no date fields (or is nil) the open-ended
   # current period matches via the nil instant.
+  # The UTC instant a map stands for, which selects its metazone period. A map
+  # whose fields name no real date and time has none, and then only the zone's
+  # current metazone applies, as for a map with no year.
   defp metazone_instant(%{year: year} = datetime) when is_integer(year) do
-    {:ok, instant} =
-      NaiveDateTime.new(
-        year,
-        Map.get(datetime, :month, 1),
-        Map.get(datetime, :day, 1),
-        Map.get(datetime, :hour, 0),
-        Map.get(datetime, :minute, 0),
-        Map.get(datetime, :second, 0)
-      )
+    month = Map.get(datetime, :month, 1)
+    day = Map.get(datetime, :day, 1)
+    hour = Map.get(datetime, :hour, 0)
+    minute = Map.get(datetime, :minute, 0)
+    second = Map.get(datetime, :second, 0)
 
-    offset = Map.get(datetime, :utc_offset, 0) + Map.get(datetime, :std_offset, 0)
-    NaiveDateTime.add(instant, -offset, :second)
+    with true <- Enum.all?([month, day, hour, minute, second], &is_integer/1),
+         {:ok, instant} <- NaiveDateTime.new(year, month, day, hour, minute, second) do
+      NaiveDateTime.add(instant, -(total_offset(datetime) || 0), :second)
+    else
+      _no_instant -> nil
+    end
   end
 
   defp metazone_instant(_datetime), do: nil
@@ -580,7 +583,7 @@ defmodule Localize.DateTime.Timezone do
 
   def non_location_format(datetime, locale_id, options)
       when is_map(datetime) and is_keyword_list(options) do
-    time_zone = Map.get(datetime, :time_zone)
+    time_zone = datetime |> Map.get(:time_zone) |> named_zone(datetime)
     format = Keyword.get(options, :format, :long)
 
     with {:ok, type} <- non_location_type(Keyword.get(options, :type, :specific)),
@@ -623,6 +626,20 @@ defmodule Localize.DateTime.Timezone do
        allowed_values: @non_location_types
      )}
   end
+
+  # A UTC zone names the zero offset and no other. A struct carrying another
+  # offset under a UTC identifier — the fixed offset an ISO 8601 parse of
+  # `15:04-05:00` gives — is an offset with no name, which TR35 renders in
+  # the localized GMT format rather than as "UTC".
+  defp named_zone(time_zone, datetime) when is_binary(time_zone) do
+    canonical = Map.get(@zone_canonical_names, time_zone, time_zone)
+
+    if canonical in ["Etc/UTC", "Etc/GMT"] and (total_offset(datetime) || 0) != 0,
+      do: nil,
+      else: time_zone
+  end
+
+  defp named_zone(time_zone, _datetime), do: time_zone
 
   defp generic_location_or_gmt(datetime, time_zone, locale_id, format) do
     case generic_location_format(time_zone, locale_id) do

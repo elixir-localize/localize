@@ -10,7 +10,7 @@ Locale-aware formatting, validation, and data access for Elixir, built on the [U
 
 Localize consolidates the functionality of the `ex_cldr_*` library family into a single package. No compile-time backend modules or code generation is required — all CLDR data is loaded at runtime and cached in `:persistent_term`.
 
-The CLDR release a given version ships is reported by `Localize.version/0`.
+Localize 1.4 is built on CLDR 49; `Localize.version/0` reports the CLDR release a given version ships.
 
 Try it without installing anything at the [Localize playground](https://playground.elixir-localize.com).
 
@@ -65,7 +65,7 @@ Localize ships a [Claude Code](https://claude.com/claude-code) skill that teache
 /plugin install localize@localize
 ```
 
-The skill source lives in [skills/localize](https://github.com/elixir-localize/localize/blob/v1.5.0/skills/localize/SKILL.md).
+The skill source lives in [skills/localize](https://github.com/elixir-localize/localize/blob/v1.4.0/skills/localize/SKILL.md).
 
 ## MCP server
 
@@ -84,7 +84,7 @@ Add `localize` to your dependencies in `mix.exs`:
 ```elixir
 def deps do
   [
-    {:localize, "~> 1.0"}
+    {:localize, "~> 1.4"}
   ]
 end
 ```
@@ -94,7 +94,7 @@ On OTP 26 only:
 ```elixir
 def deps do
   [
-    {:localize, "~> 1.0"},
+    {:localize, "~> 1.4"},
     {:json_polyfill, "~> 0.2 or ~> 1.0"}
   ]
 end
@@ -376,4 +376,4 @@ Locale-aware Phoenix LiveView inputs, so a user can enter a value under their ow
 
 ## License
 
-Apache License 2.0, together with the Unicode License v3 for the CLDR and UCD data embedded in the package. See the [LICENSE](https://github.com/elixir-localize/localize/blob/v1.5.0/LICENSE.md) file for details, including which Unicode data is used and what it becomes.
+Apache License 2.0, together with the Unicode License v3 for the CLDR and UCD data embedded in the package. See the [LICENSE](https://github.com/elixir-localize/localize/blob/v1.4.0/LICENSE.md) file for details, including which Unicode data is used and what it becomes.

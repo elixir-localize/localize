@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.5.0] — Unreleased
+## [1.4.0] — Unreleased
 
 ### Added
 
@@ -24,7 +24,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 * A skeleton whose time half is only a zone joins its date through CLDR 49's `Date-Timezone` item, and one whose date half is only a weekday joins its time through `Time-Day-Of-Week`, as TR35 now specifies. `en` `:yMMMdz` renders "Jul 6, 2024 EDT", where it errored.
 
-* `Localize.DateTime.SemanticSkeleton` implements TR35 semantic skeletons, asking for a date by meaning (`"YMDE"`) rather than by field, and `:format` accepts one throughout. `:hour_cycle` takes TR35's `:clock12` and `:clock24` preferences and the exact cycles `:h11` to `:h24`.
+* `Localize.DateTime.SemanticSkeleton` implements TR35 semantic skeletons, asking for a date by meaning (`"YMDE"`) rather than by field, and `:format` accepts one throughout. The year, month and day take the locale's own widths, so `YMD` renders its length's standard date format, and `:time_precision`, `:zone_length` and `:hour_cycle` shape the time.
+
+* MessageFormat 2's `:date`, `:time` and `:datetime` take TR35's options — `fields`, `length`, `precision`, `dateFields`, `dateLength`, `timePrecision` and `timeZoneStyle` — and the override options `timeZone`, `hour12` and `calendar`, which a re-annotation inherits. `{$d :date fields=month-day}` in `en-AU` is "14 Jun".
 
 * `Localize.DateTime.Timezone.parse_offset/2` reads a fixed UTC offset from a zone string — ISO 8601, or the localized GMT format in any locale's spelling — inverting `gmt_format/3`. `Localize.DateTime.parse/2` uses it, so `"May 16, 2026 2:30 PM GMT+10:30"` parses without `calendrical`.
 
@@ -38,7 +40,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 * Ordinal dates from CLDR 49, which CLDR designates a **technical preview**: the `ddd` field formats the day from the locale's `dayOfMonths` data, so `en` `:yMMMddd` renders "Jul 6th, 2024". Locales without that data, and patterns with a numeric month, format the plain day.
 
+* Date-time skeletons resolve through TR35's append items when no available format carries every requested field, appending the missing ones from the locale's `appendItems` templates. `en` has no quarter format, so `:yMMMdQ` now renders "Jul 6, 2024 (quarter: 3)" where it errored.
+
+* `Localize.DateTime.Timezone.location_name/3` returns the place the generic location format names for a timezone — a country for a single-zone territory or a CLDR primary zone, a city otherwise — and `generic_location_format/2` renders it through the locale's `regionFormat`.
+
+* The `g` pattern symbol formats the modified Julian day and the deprecated `l` is ignored, as TR35 specifies, where both returned a tokenize error.
+
 ### Changed
+
+* **Breaking.** MessageFormat 2's `{$t :time}` and `{$d :datetime}` give the time to the minute, as TR35 specifies, where they gave seconds; `precision=second` and `timePrecision=second` restore them. A date or time option other than `timeZone`, `hour12` and `calendar` set by a variable is an error, as TR35 requires.
 
 * **Breaking.** The parse functions' `:calendar` option is a calendar module — `Calendar.ISO`, the default, or one such as `Calendrical.Hebrew` — and the date is built and returned in that module, where a module sharing a CLDR calendar type with another came back in the other. A CLDR calendar name such as `:hebrew` returns `Localize.UnknownCalendarError`, and `Localize.DateParseError` reports the module.
 
@@ -66,7 +76,23 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 * Skeleton matching ranks narrow and short text widths nearer abbreviated than wide, and breaks a tie between formats missing a field by TR35's field order, as CLDR's reference generator does. `ja` `:yMdEEEEE` now renders "2024/7/6(土)", not "2024/7/6土".
 
+* **Breaking.** A pattern or skeleton asking for a field the value does not hold returns `{:error, %Localize.DateTimeInvalidInputError{}}` naming the missing fields, where it rendered blank — `format: :yMMMd` on `%{year: 2026, month: 6}` gave "Jun , 2026".
+
+* **Breaking.** A standard format on a partial date derives its skeleton from the fields present, with the month as wide as the format asks, where it errored. Without a format the `:medium` default applies, so `%{year: 2024, month: 6}` renders "Jun 2024" rather than "6/2024".
+
+* **Breaking.** The numeric `e` and `c` weekday fields count from the locale's first day of the week, as TR35 specifies, so a Saturday is 7 in `en` and 6 in `de` where both gave 6. `cc` is one digit, like `c`, rather than zero-padded.
+
+* **Breaking.** A date or time pattern field at a width TR35's symbol table does not list — `ddd`, `MMMMMM`, `HHH` — formats as U+FFFD, following TR35's Handling Invalid Patterns.
+
+* **Breaking.** A zero offset is spelled out wherever a localized GMT format is used, `"GMT+00:00"` long and `"GMT+0"` short, as TR35's examples and ICU give it. `Localize.DateTime.Timezone.gmt_format/3` drops its `:zero_format` option, which selected between the two.
+
 ### Fixed
+
+* A MessageFormat 2 date/time literal keeps the UTC offset it carries, where `|2006-01-02T15:04:06-05:00|` was read as a floating time and its offset dropped.
+
+* A fixed UTC offset carried under a UTC identifier, as a parsed ISO 8601 offset and Calendrical's fixed offsets are, names its zone in the localized GMT format ("GMT-5"), where it was named "UTC".
+
+* `Localize.DateTime.Timezone.metazone_for/2` takes a map whose fields name no real date and time, returning the zone's current metazone, where it raised.
 
 * `Localize.Locale.parent/1` gives a parent found by dropping a subtag its own CLDR locale rather than the child's, so `ar-SA`, `de-AT`, `fr-CA`, `es-419` and `zh-Hant-HK` spell numbers out with their language's RBNF rules instead of failing. A validated `und` walks to root rather than to English.
 
@@ -99,30 +125,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 * Full UCA conformance restored: all 210,155 pairs in both CLDR collation conformance files sort correctly, where 637 and 536 failed. `FractionalUCA.txt` and the UCD property files had been hand-vendored at Unicode 17 and are now copied by the pipeline.
 
 * `Localize.Locale.LocaleDisplay.display_name/2` renders a locale in `root` (or `und`) as bare subtag codes per TR35's code fallback — `display_name("nl-BE", locale: :root)` is `"nl (BE)"`, where it answered in English. `root` is now accepted wherever `und` is.
-
-## [1.4.0] — Unreleased
-
-### Added
-
-* Date-time skeletons resolve through TR35's append items when no available format carries every requested field, appending the missing ones from the locale's `appendItems` templates. `en` has no quarter format, so `:yMMMdQ` now renders "Jul 6, 2024 (quarter: 3)" where it errored.
-
-* `Localize.DateTime.Timezone.location_name/3` returns the place the generic location format names for a timezone — a country for a single-zone territory or a CLDR primary zone, a city otherwise — and `generic_location_format/2` renders it through the locale's `regionFormat`.
-
-* The `g` pattern symbol formats the modified Julian day and the deprecated `l` is ignored, as TR35 specifies, where both returned a tokenize error.
-
-### Changed
-
-* **Breaking.** A pattern or skeleton asking for a field the value does not hold returns `{:error, %Localize.DateTimeInvalidInputError{}}` naming the missing fields, where it rendered blank — `format: :yMMMd` on `%{year: 2026, month: 6}` gave "Jun , 2026".
-
-* **Breaking.** A standard format on a partial date derives its skeleton from the fields present, with the month as wide as the format asks, where it errored. Without a format the `:medium` default applies, so `%{year: 2024, month: 6}` renders "Jun 2024" rather than "6/2024".
-
-* **Breaking.** The numeric `e` and `c` weekday fields count from the locale's first day of the week, as TR35 specifies, so a Saturday is 7 in `en` and 6 in `de` where both gave 6. `cc` is one digit, like `c`, rather than zero-padded.
-
-* **Breaking.** A date or time pattern field at a width TR35's symbol table does not list — `ddd`, `MMMMMM`, `HHH` — formats as U+FFFD, following TR35's Handling Invalid Patterns.
-
-* **Breaking.** A zero offset is spelled out wherever a localized GMT format is used, `"GMT+00:00"` long and `"GMT+0"` short, as TR35's examples and ICU give it. `Localize.DateTime.Timezone.gmt_format/3` drops its `:zero_format` option, which selected between the two.
-
-### Fixed
 
 * Month names come from the calendar's `month_of_year/3`, so Hebrew months are named correctly in ordinary and leap years ("Adar II" included) and a Chinese leap month takes the leap-month pattern ("Second Monthbis"). They were looked up by the date's month number.
 

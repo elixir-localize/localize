@@ -300,7 +300,7 @@ Two areas are explicitly out of scope:
 
 | Feature | Status | Notes |
 |---------|--------|-------|
-| Semantic skeleton support | Implemented | `Localize.DateTime.SemanticSkeleton` builds a skeleton from meaning (`"YMDE"`, `"MDTZ"`) with `:length`, `:year_style`, `:zone_style` and `:hour_cycle`. The mapping to classical skeletons matches CLDR on all 240 conformance cases. |
+| Semantic skeleton support | Partial | `Localize.DateTime.SemanticSkeleton` builds a skeleton from meaning (`"YMDE"`, `"MDTZ"`) with `:length`, `:year_style`, `:zone_style`, `:hour_cycle` and `:time_precision`, taking the widths from the locale's date formats. It matches CLDR on all 240 conformance cases; `:alignment` is not applied and undefined field sets are accepted. |
 
 ### Supported Calendars
 
@@ -467,9 +467,9 @@ Two areas are explicitly out of scope:
 | `:percent` | Implemented | |
 | `:currency` | Implemented | |
 | `:unit` | Implemented | Delegates to `Localize.Unit.to_string/2`. |
-| `:date` | Implemented | Delegates to `Localize.Date.to_string/2`. |
-| `:time` | Implemented | Delegates to `Localize.Time.to_string/2`. |
-| `:datetime` | Implemented | Delegates to `Localize.DateTime.to_string/2`. |
+| `:date` | Implemented | Draft. `fields` and `length` choose a semantic skeleton; the override options `timeZone` and `calendar` are supported, `calendar` through `calendrical`. |
+| `:time` | Implemented | Draft. `precision` and `timeZoneStyle` choose a semantic skeleton; the override options `timeZone`, `hour12` and `calendar` are supported. |
+| `:datetime` | Implemented | Draft. `dateFields`, `dateLength`, `timePrecision` and `timeZoneStyle` choose a semantic skeleton; the override options are supported and inherited on re-annotation. |
 | `:offset` | Implemented | Adjusts a numeric operand with the required `add` or `subtract` option (a non-negative integer) for both formatting and selection, per the MF2 `:offset` function. Used for patterns like "you and N other people". |
 
 ### Localize-specific MF2 functions (not in the spec)

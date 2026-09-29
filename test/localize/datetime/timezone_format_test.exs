@@ -112,6 +112,37 @@ defmodule Localize.DateTime.TimezoneFormatTest do
       gmt = %{time_zone: "Etc/GMT", utc_offset: 0, std_offset: 0}
       assert {:ok, "Greenwich Mean Time"} = Timezone.non_location_format(gmt, :en)
     end
+
+    # ICU 77, through `Intl.DateTimeFormat` with `timeZone: "-05:00"`, gives
+    # "GMT-5" and "GMT-05:00" for the short and long names, specific and
+    # generic alike: an offset has no name. The struct is the one an ISO 8601
+    # parse of a fixed offset gives, which keeps a UTC identifier.
+    test "an offset carried under a UTC identifier is not named UTC" do
+      offset = %{time_zone: "Etc/UTC", utc_offset: -18_000, std_offset: 0}
+
+      assert {:ok, "GMT-05:00"} = Timezone.non_location_format(offset, :en)
+      assert {:ok, "GMT-5"} = Timezone.non_location_format(offset, :en, format: :short)
+      assert {:ok, "GMT-05:00"} = Timezone.non_location_format(offset, :en, type: :generic)
+
+      assert {:ok, "GMT-5"} =
+               Timezone.non_location_format(offset, :en, type: :generic, format: :short)
+
+      {:ok, parsed} = Localize.DateTime.parse("2006-01-02T15:04:06-05:00")
+
+      assert {:ok, "3:04 PM GMT-5"} =
+               Localize.DateTime.to_string(parsed, format: :jmz, locale: :en)
+    end
+
+    test "a map naming no real date and time takes the zone's current metazone" do
+      for datetime <- [
+            %{year: 2006, month: 13},
+            %{year: 2006, month: "x"},
+            %{year: 2006, day: 1.5},
+            %{year: 2006, utc_offset: nil}
+          ] do
+        assert Timezone.metazone_for("America/New_York", datetime) == :america_eastern
+      end
+    end
   end
 
   describe "gmt_format/3" do

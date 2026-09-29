@@ -33,6 +33,7 @@ test_locales = [
   "ar-EG",
   "ar-SA",
   "bal",
+  "be",
   "bn",
   "cy",
   "da",

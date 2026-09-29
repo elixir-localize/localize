@@ -586,7 +586,12 @@ defmodule Localize.Time do
   # resolves to a classical skeleton and takes the same path from there.
   defp find_format(time, %Localize.DateTime.SemanticSkeleton{} = semantic, locale_id, options) do
     with {:ok, skeleton} <-
-           Localize.DateTime.SemanticSkeleton.to_classical_skeleton(semantic, :gregorian) do
+           Localize.DateTime.SemanticSkeleton.classical_skeleton(
+             semantic,
+             locale_id,
+             :gregorian,
+             time
+           ) do
       skeleton
       |> resolve_skeleton(locale_id, options)
       |> apply_semantic_hour_cycle(semantic)

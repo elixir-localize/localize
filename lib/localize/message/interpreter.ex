@@ -24,11 +24,14 @@ defmodule Localize.Message.Interpreter do
   #
   # ### Draft
   #
-  # * `:date` — format a date using CLDR date patterns.
+  # * `:date` — format a date from TR35's semantic skeleton options,
+  #   `fields` and `length`.
   #
-  # * `:time` — format a time using CLDR time patterns.
+  # * `:time` — format a time, with `precision` and `timeZoneStyle`.
   #
-  # * `:datetime` — format a datetime using CLDR datetime patterns.
+  # * `:datetime` — format a date and time, with `dateFields`,
+  #   `dateLength`, `timePrecision` and `timeZoneStyle`. All three take
+  #   the override options `timeZone`, `hour12` and `calendar`.
   #
   # * `:unit` — format a number with a unit of measure.
   #
@@ -105,6 +108,33 @@ defmodule Localize.Message.Interpreter do
         &{Atom.to_string(&1), &1}
       )
   }
+
+  # TR35's `:date`, `:time` and `:datetime` options choose a semantic
+  # skeleton: the date fields `fields` and `dateFields` name, and the
+  # lengths, time precisions and zone forms.
+  @mf2_date_fields %{
+    "weekday" => [:weekday],
+    "day-weekday" => [:day, :weekday],
+    "month-day" => [:month, :day],
+    "month-day-weekday" => [:month, :day, :weekday],
+    "year-month-day" => [:year, :month, :day],
+    "year-month-day-weekday" => [:year, :month, :day, :weekday]
+  }
+
+  @mf2_date_lengths %{"long" => :long, "medium" => :medium, "short" => :short}
+  @mf2_time_precisions %{"hour" => :hour, "minute" => :minute, "second" => :second}
+  @mf2_time_zone_styles %{"long" => :long, "short" => :short}
+
+  @date_time_functions ["date", "time", "datetime"]
+
+  # TR35 §Date and Time Override Options: the only options a variable may
+  # set, and the only ones an expression inherits from a date/time operand.
+  @date_time_override_options ["timeZone", "hour12", "calendar"]
+
+  # The `style`, `dateStyle` and `timeStyle` options of earlier drafts, and
+  # the `full` length and style-word precisions that went with them, choose
+  # the locale's standard formats.
+  @standard_format_styles ["short", "medium", "long", "full"]
 
   # ── Public API ─────────────────────────────────────────────────
 
@@ -898,6 +928,23 @@ defmodule Localize.Message.Interpreter do
     {:function, name, merged}
   end
 
+  # A date/time expression on a date/time operand inherits the operand's
+  # override options and no others, as TR35 specifies, so `{$d :time}` on
+  # `.local $d = {|…| :datetime timeZone=UTC dateLength=long}` keeps UTC.
+  defp merge_declared_options(
+         {:function, name, options},
+         {:function, declared_name, declared_options}
+       )
+       when name in @date_time_functions and declared_name in @date_time_functions do
+    inherited =
+      Enum.filter(declared_options, fn {:option, key, _value} ->
+        key in @date_time_override_options
+      end)
+
+    merged = Enum.uniq_by(options ++ inherited, fn {:option, key, _value} -> key end)
+    {:function, name, merged}
+  end
+
   defp merge_declared_options(func, _declared_func) do
     func
   end
@@ -941,7 +988,7 @@ defmodule Localize.Message.Interpreter do
     bindings = Keyword.get(options, :bindings, %{})
     name = function_name(raw_name)
 
-    case validate_select_option(name, func_options) do
+    case validate_literal_options(name, func_options) do
       :ok ->
         case resolve_func_options(func_options, bindings) do
           {:ok, func_opts} -> format_with_function(name, value, func_opts, options)
@@ -965,10 +1012,12 @@ defmodule Localize.Message.Interpreter do
 
   defp normalize_function(func), do: func
 
-  # TR35: "The option value of the `select` option MUST be set by a
-  # literal" — a variable-valued `select` is a Bad Option error, since
-  # the set of variant keys is tied to the selection mode chosen.
-  defp validate_select_option(name, func_options)
+  # TR35 requires some options to be set by a literal, since a variable
+  # could change what the expression means, and a variable in one is a Bad
+  # Option error: `select` on the numeric functions, as the set of variant
+  # keys is tied to the selection mode chosen, and every option of the
+  # date/time functions but the override options.
+  defp validate_literal_options(name, func_options)
        when name in ["number", "integer", "offset", "percent"] do
     Enum.find_value(func_options, :ok, fn
       {:option, "select", {:variable, _var_name}} ->
@@ -979,7 +1028,18 @@ defmodule Localize.Message.Interpreter do
     end)
   end
 
-  defp validate_select_option(_name, _func_options) do
+  defp validate_literal_options(name, func_options) when name in @date_time_functions do
+    Enum.find_value(func_options, :ok, fn
+      {:option, option, {:variable, _var_name}}
+      when is_binary(option) and option not in @date_time_override_options ->
+        {:error, "the #{option} option of :#{name} must be set by a literal value"}
+
+      _other ->
+        nil
+    end)
+  end
+
+  defp validate_literal_options(_name, _func_options) do
     :ok
   end
 
@@ -1015,34 +1075,21 @@ defmodule Localize.Message.Interpreter do
   end
 
   # ── Date/time formatting ───────────────────────────────────────
+  #
+  # TR35's `:date`, `:time` and `:datetime` options are semantic skeleton
+  # choices, so `{$d :date}` is `YMD` at medium length, `{$t :time}` a time
+  # to the minute and `{$d :datetime}` both. The override options act on the
+  # operand first: `timeZone` converts it, `calendar` moves it into another
+  # calendar, and `hour12` chooses the clock.
 
-  defp format_with_function("date", value, func_opts, options) do
-    with {:ok, value} <- ensure_date(value) do
-      localize_opts = resolve_locale_options(options)
-      localize_opts = map_date_options(localize_opts, func_opts, :format)
-      Localize.Date.to_string(value, localize_opts)
-    end
-  end
-
-  defp format_with_function("time", %Time{} = value, func_opts, options) do
-    localize_opts = resolve_locale_options(options)
-    localize_opts = map_time_options(localize_opts, func_opts, :format)
-    Localize.Time.to_string(value, localize_opts)
-  end
-
-  defp format_with_function("time", value, func_opts, options) do
-    with {:ok, value} <- ensure_datetime(value) do
-      localize_opts = resolve_locale_options(options)
-      localize_opts = map_time_options(localize_opts, func_opts, :format)
-      Localize.Time.to_string(value, localize_opts)
-    end
-  end
-
-  defp format_with_function("datetime", value, func_opts, options) do
-    with {:ok, value} <- ensure_datetime(value) do
-      localize_opts = resolve_locale_options(options)
-      localize_opts = map_datetime_options(localize_opts, func_opts)
-      Localize.DateTime.to_string(value, localize_opts)
+  defp format_with_function(name, value, func_opts, options)
+       when name in @date_time_functions do
+    with {:ok, operand} <- date_time_operand(name, value),
+         {:ok, operand} <- convert_time_zone(operand, Map.get(func_opts, :timeZone)),
+         {:ok, operand} <- convert_calendar(operand, Map.get(func_opts, :calendar)),
+         {:ok, hour_cycle} <- hour_cycle_option(Map.get(func_opts, :hour12)),
+         {:ok, format_options} <- date_time_format(name, func_opts, hour_cycle, options) do
+      format_date_time(name, operand, format_options)
     end
   end
 
@@ -2074,6 +2121,259 @@ defmodule Localize.Message.Interpreter do
 
   # ── Date/time option mapping ───────────────────────────────────
 
+  defp format_date_time("date", operand, format_options),
+    do: Localize.Date.to_string(to_date(operand), format_options)
+
+  defp format_date_time("time", operand, format_options),
+    do: Localize.Time.to_string(operand, format_options)
+
+  defp format_date_time("datetime", operand, format_options),
+    do: Localize.DateTime.to_string(operand, format_options)
+
+  defp to_date(%NaiveDateTime{} = datetime), do: NaiveDateTime.to_date(datetime)
+  defp to_date(%DateTime{} = datetime), do: DateTime.to_date(datetime)
+  defp to_date(date), do: date
+
+  # TR35 §Date and Time Override Options. `input` keeps the operand's own
+  # zone, which a floating value lacks; `UTC` or an IANA zone converts a
+  # zoned value into that zone and places a floating one in it. A date or a
+  # time alone has no instant to convert. A conversion the time zone
+  # database cannot make is a Bad Option error.
+  defp convert_time_zone(operand, nil), do: {:ok, operand}
+  defp convert_time_zone(%DateTime{} = operand, "input"), do: {:ok, operand}
+
+  defp convert_time_zone(operand, "input") do
+    {:error,
+     "the timeZone option input needs an operand with a time zone or offset, " <>
+       "got #{inspect(operand)}"}
+  end
+
+  defp convert_time_zone(operand, "UTC"), do: convert_time_zone(operand, "Etc/UTC")
+
+  defp convert_time_zone(%DateTime{} = operand, zone) when is_binary(zone) do
+    case DateTime.shift_zone(utc_instant(operand), zone) do
+      {:ok, datetime} -> {:ok, datetime}
+      {:error, reason} -> {:error, time_zone_error(zone, reason)}
+    end
+  end
+
+  defp convert_time_zone(%NaiveDateTime{} = operand, zone) when is_binary(zone) do
+    place_in_time_zone(operand, zone)
+  end
+
+  defp convert_time_zone(operand, zone) when is_binary(zone), do: {:ok, operand}
+
+  defp convert_time_zone(_operand, zone) do
+    {:error, "the timeZone option must be a time zone identifier, got #{inspect(zone)}"}
+  end
+
+  # A floating time placed in a zone. An ambiguous wall time takes the
+  # earlier of its instants, and one a transition skips is read with the
+  # offset before it, so 02:30 on a spring-forward night is 03:30:
+  # Temporal's `compatible` disambiguation.
+  defp place_in_time_zone(naive_datetime, zone) do
+    case DateTime.from_naive(naive_datetime, zone) do
+      {:ok, datetime} ->
+        {:ok, datetime}
+
+      {:ambiguous, earlier, _later} ->
+        {:ok, earlier}
+
+      {:gap, just_before, _just_after} ->
+        skipped = NaiveDateTime.diff(naive_datetime, DateTime.to_naive(just_before), :microsecond)
+        {:ok, DateTime.add(just_before, skipped, :microsecond)}
+
+      {:error, reason} ->
+        {:error, time_zone_error(zone, reason)}
+    end
+  end
+
+  defp time_zone_error(zone, reason) do
+    "cannot convert to the time zone #{inspect(zone)}: #{inspect(reason)}"
+  end
+
+  # Localize and Calendrical carry a fixed offset such as an ISO 8601
+  # `-05:00` under the `Etc/UTC` identifier with its own offset, which
+  # `DateTime.shift_zone/2` takes for UTC already and returns unchanged. A
+  # conversion starts from its instant in UTC instead.
+  defp utc_instant(%DateTime{time_zone: "Etc/UTC", utc_offset: utc, std_offset: std} = datetime)
+       when is_integer(utc) and is_integer(std) and utc + std != 0 do
+    DateTime.add(%{datetime | utc_offset: 0, std_offset: 0, zone_abbr: "UTC"}, -(utc + std))
+  end
+
+  defp utc_instant(datetime), do: datetime
+
+  # TR35 names a calendar by its Unicode identifier (`hebrew`,
+  # `islamic-umalqura`), which resolves to a calendar module here, where the
+  # message names it. Calendrical provides the calendars, so without it the
+  # option is a Bad Option error. A time alone has no calendar to change.
+  defp convert_calendar(operand, nil), do: {:ok, operand}
+
+  defp convert_calendar(%Time{} = operand, identifier) when is_binary(identifier),
+    do: {:ok, operand}
+
+  defp convert_calendar(operand, identifier) when is_binary(identifier) do
+    with {:ok, calendar} <- calendar_module(identifier) do
+      case convert_to_calendar(operand, calendar) do
+        {:ok, converted} ->
+          {:ok, converted}
+
+        {:error, reason} ->
+          {:error,
+           "cannot convert #{inspect(operand)} to the #{identifier} calendar: #{inspect(reason)}"}
+      end
+    end
+  end
+
+  defp convert_calendar(_operand, identifier) do
+    {:error,
+     "the calendar option must be a Unicode calendar identifier, got #{inspect(identifier)}"}
+  end
+
+  defp calendar_module(identifier) do
+    Localize.OptionalDependency.call(
+      "Calendrical",
+      :calendar_from_cldr_calendar_type,
+      [identifier],
+      package: "calendrical",
+      operation: "formatting in the #{identifier} calendar"
+    )
+  end
+
+  defp convert_to_calendar(%Date{} = date, calendar), do: Date.convert(date, calendar)
+
+  defp convert_to_calendar(%NaiveDateTime{} = datetime, calendar),
+    do: NaiveDateTime.convert(datetime, calendar)
+
+  defp convert_to_calendar(%DateTime{} = datetime, calendar),
+    do: DateTime.convert(datetime, calendar)
+
+  # `hour12` asks for a 12- or 24-hour clock in the locale's own style,
+  # TR35's Clock12 and Clock24.
+  defp hour_cycle_option(nil), do: {:ok, nil}
+  defp hour_cycle_option(value) when value in [true, "true"], do: {:ok, :clock12}
+  defp hour_cycle_option(value) when value in [false, "false"], do: {:ok, :clock24}
+
+  defp hour_cycle_option(value) do
+    {:error, "the hour12 option must be true or false, got #{inspect(value)}"}
+  end
+
+  defp date_time_format(name, func_opts, hour_cycle, options) do
+    localize_options = resolve_locale_options(options)
+
+    if standard_format_options?(func_opts) do
+      standard_format(name, func_opts, hour_cycle, localize_options)
+    else
+      with {:ok, skeleton} <- semantic_skeleton(name, func_opts, hour_cycle) do
+        {:ok, Keyword.put(localize_options, :format, skeleton)}
+      end
+    end
+  end
+
+  defp standard_format_options?(func_opts) do
+    Enum.any?([:style, :dateStyle, :timeStyle], &Map.has_key?(func_opts, &1)) or
+      Enum.any?([:length, :dateLength], &(Map.get(func_opts, &1) == "full")) or
+      Enum.any?(
+        [:precision, :timePrecision],
+        &(Map.get(func_opts, &1) in @standard_format_styles)
+      )
+  end
+
+  defp semantic_skeleton("date", func_opts, _hour_cycle) do
+    with {:ok, fields} <-
+           mf2_option(func_opts, :fields, "date", @mf2_date_fields, "year-month-day"),
+         {:ok, length} <- mf2_option(func_opts, :length, "date", @mf2_date_lengths, "medium") do
+      Localize.DateTime.SemanticSkeleton.new(fields, length: length)
+    end
+  end
+
+  defp semantic_skeleton("time", func_opts, hour_cycle) do
+    with {:ok, precision} <-
+           mf2_option(func_opts, :precision, "time", @mf2_time_precisions, "minute"),
+         {:ok, zone_length} <-
+           mf2_option(func_opts, :timeZoneStyle, "time", @mf2_time_zone_styles, nil) do
+      time_skeleton([:time], precision, zone_length, hour_cycle, [])
+    end
+  end
+
+  defp semantic_skeleton("datetime", func_opts, hour_cycle) do
+    with {:ok, fields} <-
+           mf2_option(func_opts, :dateFields, "datetime", @mf2_date_fields, "year-month-day"),
+         {:ok, length} <-
+           mf2_option(func_opts, :dateLength, "datetime", @mf2_date_lengths, "medium"),
+         {:ok, precision} <-
+           mf2_option(func_opts, :timePrecision, "datetime", @mf2_time_precisions, "minute"),
+         {:ok, zone_length} <-
+           mf2_option(func_opts, :timeZoneStyle, "datetime", @mf2_time_zone_styles, nil) do
+      time_skeleton(fields ++ [:time], precision, zone_length, hour_cycle, length: length)
+    end
+  end
+
+  # A zone is shown only when `timeZoneStyle` asks for one, as the specific
+  # zone name in the form it names: `zzzz` long, `z` short.
+  defp time_skeleton(fields, precision, zone_length, hour_cycle, options) do
+    fields = if zone_length, do: fields ++ [:zone], else: fields
+
+    options =
+      [
+        time_precision: precision,
+        zone_length: zone_length || :auto,
+        hour_cycle: hour_cycle || :auto
+      ] ++ options
+
+    Localize.DateTime.SemanticSkeleton.new(fields, options)
+  end
+
+  # An MF2 option's value from its table, its default when it is absent, and
+  # a Bad Option error for any other value.
+  defp mf2_option(func_opts, key, function, table, default) do
+    case Map.get(func_opts, key, default) do
+      nil ->
+        {:ok, nil}
+
+      value when is_binary(value) and is_map_key(table, value) ->
+        {:ok, Map.get(table, value)}
+
+      value ->
+        {:error,
+         "the #{key} option of :#{function} must be one of " <>
+           "#{Enum.join(Map.keys(table), ", ")}, got #{inspect(value)}"}
+    end
+  end
+
+  # A standard format takes `hour12` as the locale's `-u-hc-` keyword, which
+  # the standard formats honor.
+  defp standard_format(name, func_opts, hour_cycle, localize_options) do
+    with {:ok, localize_options} <- put_hour_cycle(localize_options, hour_cycle) do
+      {:ok, standard_format_options(name, localize_options, func_opts)}
+    end
+  end
+
+  defp standard_format_options("date", localize_options, func_opts),
+    do: map_date_options(localize_options, func_opts, :format)
+
+  defp standard_format_options("time", localize_options, func_opts),
+    do: map_time_options(localize_options, func_opts, :format)
+
+  defp standard_format_options("datetime", localize_options, func_opts),
+    do: map_datetime_options(localize_options, func_opts)
+
+  defp put_hour_cycle(localize_options, nil), do: {:ok, localize_options}
+
+  defp put_hour_cycle(localize_options, hour_cycle) do
+    hc = if hour_cycle == :clock12, do: :h12, else: :h23
+
+    with {:ok, language_tag} <- Localize.validate_locale(Keyword.get(localize_options, :locale)) do
+      extensions =
+        case language_tag.locale do
+          %Localize.LanguageTag.U{} = extensions -> %{extensions | hc: hc}
+          _none -> %Localize.LanguageTag.U{hc: hc}
+        end
+
+      {:ok, Keyword.put(localize_options, :locale, %{language_tag | locale: extensions})}
+    end
+  end
+
   defp map_date_options(localize_opts, func_opts, format_key) do
     style =
       func_opts[:style] || func_opts[:length] || func_opts[:dateStyle] || func_opts[:dateLength]
@@ -2108,7 +2408,7 @@ defmodule Localize.Message.Interpreter do
     end
   end
 
-  defp parse_date_style(style) when is_binary(style) do
+  defp parse_date_style(style) do
     case style do
       "short" -> :short
       "medium" -> :medium
@@ -2118,7 +2418,7 @@ defmodule Localize.Message.Interpreter do
     end
   end
 
-  defp parse_time_style(style) when is_binary(style) do
+  defp parse_time_style(style) do
     case style do
       "short" -> :short
       "medium" -> :medium
@@ -2607,77 +2907,56 @@ defmodule Localize.Message.Interpreter do
        "Expected a number or a numeric string."}
   end
 
-  defp ensure_date(value) when is_binary(value) do
-    case Date.from_iso8601(value) do
+  # TR35 §Date and Time Operands: a date/time value, or a string holding an
+  # ISO 8601 date, or a datetime whose offset, if it has one, is kept. A
+  # datetime without an offset is a floating time, and `:time` and
+  # `:datetime` read a date as its midnight.
+  defp date_time_operand("time", %Time{} = time), do: {:ok, time}
+  defp date_time_operand("date", %Date{} = date), do: {:ok, date}
+  defp date_time_operand(_name, %Date{} = date), do: at_midnight(date)
+  defp date_time_operand(_name, %NaiveDateTime{} = datetime), do: {:ok, datetime}
+  defp date_time_operand(_name, %DateTime{} = datetime), do: {:ok, datetime}
+
+  defp date_time_operand(name, value) when is_binary(value) do
+    case date_time_literal(value) do
+      {:ok, %Date{} = date} ->
+        date_time_operand(name, date)
+
+      {:ok, datetime} ->
+        {:ok, datetime}
+
+      :error ->
+        {:error,
+         "cannot parse #{inspect(value)} as #{operand_kind(name)}. " <>
+           "Expected an ISO 8601 date or datetime string."}
+    end
+  end
+
+  defp date_time_operand(name, value) do
+    {:error,
+     "cannot format #{inspect(value)} as #{operand_kind(name)}. " <>
+       "Expected a Date, Time, NaiveDateTime, DateTime, or ISO 8601 string."}
+  end
+
+  defp date_time_literal(string) do
+    case Date.from_iso8601(string) do
       {:ok, date} -> {:ok, date}
-      {:error, _} -> date_from_naive_datetime_string(value)
+      {:error, _reason} -> Localize.DateTime.Parser.from_iso8601(string)
     end
   end
 
-  defp ensure_date(%Date{} = value), do: {:ok, value}
-  defp ensure_date(%NaiveDateTime{} = value), do: {:ok, NaiveDateTime.to_date(value)}
-  defp ensure_date(%DateTime{} = value), do: {:ok, DateTime.to_date(value)}
-
-  defp ensure_date(value) do
-    {:error,
-     "cannot format #{inspect(value)} as a date. " <>
-       "Expected a Date, NaiveDateTime, DateTime, or ISO 8601 date string."}
-  end
-
-  defp date_from_naive_datetime_string(value) do
-    case NaiveDateTime.from_iso8601(value) do
-      {:ok, ndt} -> {:ok, NaiveDateTime.to_date(ndt)}
-      {:error, _} -> date_from_datetime_string(value)
+  defp at_midnight(%Date{calendar: calendar} = date) do
+    with {:ok, midnight} <- Time.new(0, 0, 0, {0, 0}, calendar),
+         {:ok, datetime} <- NaiveDateTime.new(date, midnight) do
+      {:ok, datetime}
+    else
+      {:error, reason} ->
+        {:error, "cannot read #{inspect(date)} as a datetime: #{inspect(reason)}"}
     end
   end
 
-  defp date_from_datetime_string(value) do
-    case DateTime.from_iso8601(value) do
-      {:ok, dt, _offset} ->
-        {:ok, DateTime.to_date(dt)}
-
-      {:error, _} ->
-        {:error,
-         "cannot parse #{inspect(value)} as a date. " <>
-           "Expected an ISO 8601 date string."}
-    end
-  end
-
-  defp ensure_datetime(value) when is_binary(value) do
-    case NaiveDateTime.from_iso8601(value) do
-      {:ok, ndt} -> {:ok, ndt}
-      {:error, _} -> datetime_from_datetime_string(value)
-    end
-  end
-
-  defp ensure_datetime(%NaiveDateTime{} = value), do: {:ok, value}
-  defp ensure_datetime(%DateTime{} = value), do: {:ok, value}
-  defp ensure_datetime(%Date{} = value), do: {:ok, NaiveDateTime.new!(value, ~T[00:00:00])}
-
-  defp ensure_datetime(value) do
-    {:error,
-     "cannot format #{inspect(value)} as a datetime. " <>
-       "Expected a NaiveDateTime, DateTime, Date, or ISO 8601 datetime string."}
-  end
-
-  defp datetime_from_datetime_string(value) do
-    case DateTime.from_iso8601(value) do
-      {:ok, dt, _offset} -> {:ok, dt}
-      {:error, _} -> datetime_from_date_string(value)
-    end
-  end
-
-  defp datetime_from_date_string(value) do
-    case Date.from_iso8601(value) do
-      {:ok, date} ->
-        {:ok, NaiveDateTime.new!(date, ~T[00:00:00])}
-
-      {:error, _} ->
-        {:error,
-         "cannot parse #{inspect(value)} as a datetime. " <>
-           "Expected an ISO 8601 datetime string."}
-    end
-  end
+  defp operand_kind("date"), do: "a date"
+  defp operand_kind(_name), do: "a datetime"
 
   # ── Variable and binding helpers ───────────────────────────────
 

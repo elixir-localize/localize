@@ -140,6 +140,15 @@ defmodule Localize.DateTime.TestData do
     length(field_list) == 1
   end
 
+  # CLDR's generator joins a standard date format and time format with the
+  # `atTime` pattern unless the case says `dateTimeFormatType: standard`, but
+  # joins the date and time halves of a skeleton match with the standard
+  # pattern, as its skeleton suites show too: `en` `MMMMdjmsz` is "January 1,
+  # 12:00:00 AM GMT", not "January 1 at 12:00:00 AM GMT".
+  defp ensure_style_for_date_time(%{test_module: Localize.DateTime, skeleton: _} = test) do
+    Map.put_new(test, :style, :standard)
+  end
+
   defp ensure_style_for_date_time(%{test_module: Localize.DateTime} = test) do
     Map.put_new(test, :style, :at)
   end

@@ -190,7 +190,7 @@ defmodule Localize.DateTime do
         # Semantic skeleton — resolve to a classical skeleton, then take the
         # skeleton path from there.
         match?(%Localize.DateTime.SemanticSkeleton{}, format) ->
-          format_with_semantic_skeleton(datetime, options, locale_id, format, output)
+          format_with_semantic_skeleton(datetime, options, locale_id, format, output, shape)
 
         # Standard or separate date and time formats on a partial value —
         # each half derives its own skeleton, then the wrapper joins them.
@@ -426,10 +426,57 @@ defmodule Localize.DateTime do
     end
   end
 
-  defp format_with_semantic_skeleton(datetime, options, locale_id, semantic_skeleton, output) do
-    case Localize.DateTime.SemanticSkeleton.to_classical_skeleton(
+  # A complete value whose semantic date resolves to one of the locale's
+  # standard date formats formats with that format, joined to any time as a
+  # standard date is, by the date-time pattern of its length. The time half
+  # stays semantic, so its precision and hour cycle hold.
+  defp format_with_semantic_skeleton(
+         datetime,
+         options,
+         locale_id,
+         semantic_skeleton,
+         output,
+         shape
+       ) do
+    calendar = cldr_calendar_for(datetime)
+
+    case Localize.DateTime.SemanticSkeleton.standard_date_format(
            semantic_skeleton,
-           cldr_calendar_for(datetime)
+           locale_id,
+           calendar
+         ) do
+      {:ok, date_format, nil} when shape == :complete ->
+        with {:ok, pattern} <-
+               Localize.DateTime.Format.resolve_format(
+                 :date,
+                 date_format,
+                 locale_id,
+                 calendar,
+                 options
+               ) do
+          invoke_formatter(output, datetime, pattern, locale_id, Map.new(options))
+        end
+
+      {:ok, date_format, %{fields: [:time | _zone]} = time_skeleton} when shape == :complete ->
+        options =
+          options
+          |> Keyword.put(:date_format, date_format)
+          |> Keyword.put(:time_format, time_skeleton)
+
+        style = Keyword.get(options, :style, :at)
+        format_with_wrapper(datetime, options, locale_id, date_format, style, output)
+
+      _other ->
+        format_with_classical_skeleton(datetime, options, locale_id, semantic_skeleton, output)
+    end
+  end
+
+  defp format_with_classical_skeleton(datetime, options, locale_id, semantic_skeleton, output) do
+    case Localize.DateTime.SemanticSkeleton.classical_skeleton(
+           semantic_skeleton,
+           locale_id,
+           cldr_calendar_for(datetime),
+           datetime
          ) do
       {:ok, skeleton} ->
         # Carried through so `format_resolved_pattern/6` can substitute an
@@ -924,8 +971,14 @@ defmodule Localize.DateTime do
   # short otherwise. A standard format is its own length.
   defp wrapper_length(format) when format in @standard_formats, do: format
 
+  # The input skeleton symbols `j`, `J` and `C` ask for the locale's own hour
+  # and are no pattern symbols, so the tokenizer rejects them — which sent
+  # every such skeleton to the medium glue whatever its month. Only the date
+  # fields decide the length, so any hour symbol will do in their place.
   defp wrapper_length(format) when is_atom(format) or is_binary(format) do
-    case Localize.DateTime.Format.Compiler.tokenize(Kernel.to_string(format)) do
+    fields = format |> Kernel.to_string() |> String.replace(["j", "J", "C"], "h")
+
+    case Localize.DateTime.Format.Compiler.tokenize(fields) do
       {:ok, tokens, _end_line} -> length_for_date_fields(tokens)
       _error -> :medium
     end

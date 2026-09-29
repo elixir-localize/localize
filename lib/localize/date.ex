@@ -119,6 +119,7 @@ defmodule Localize.Date do
     format = Keyword.get(options, :format, @default_format)
 
     with {:ok, locale_id} <- resolve_locale_id(locale),
+         format = effective_format(date, format, locale_id),
          {:ok, pattern} <- find_format(date, format, locale_id, options) do
       overrides = number_system_overrides_for(date, format, locale_id)
 
@@ -302,8 +303,24 @@ defmodule Localize.Date do
   # skeleton. `Localize.DateTime` resolves the `{1}` half of a date-time
   # wrapper here.
   def resolve_pattern(date, format, locale_id, options) do
-    find_format(date, format, locale_id, options)
+    find_format(date, effective_format(date, format, locale_id), locale_id, options)
   end
+
+  # A semantic skeleton whose date fields resolve to one of the locale's
+  # standard date formats is that format from here on, number systems and
+  # all; any other goes on as a semantic skeleton.
+  defp effective_format(date, %Localize.DateTime.SemanticSkeleton{} = semantic, locale_id) do
+    case Localize.DateTime.SemanticSkeleton.standard_date_format(
+           semantic,
+           locale_id,
+           cldr_calendar_for(date)
+         ) do
+      {:ok, standard, nil} -> standard
+      _other -> semantic
+    end
+  end
+
+  defp effective_format(_date, format, _locale_id), do: format
 
   defp find_format(_date, format, _locale_id, _options) when is_binary(format) do
     {:ok, format}
@@ -315,7 +332,12 @@ defmodule Localize.Date do
     cldr_calendar = cldr_calendar_for(date)
 
     with {:ok, skeleton} <-
-           Localize.DateTime.SemanticSkeleton.to_classical_skeleton(semantic, cldr_calendar) do
+           Localize.DateTime.SemanticSkeleton.classical_skeleton(
+             semantic,
+             locale_id,
+             cldr_calendar,
+             date
+           ) do
       [skeleton: skeleton, locale_id: locale_id, calendar: cldr_calendar, options: options]
       |> resolve_skeleton()
       |> Localize.DateTime.Formatter.explain_unresolved(date, skeleton)

@@ -12,9 +12,15 @@ Outstanding work on Localize. The design detail behind these items lives under [
 
 * [ ] **Audit `cldr-49`-only code for map-order dependence** — the 2026-09-26 audit covered `main`. [plans/map-order.md](plans/map-order.md).
 
-* [ ] **The inflection engine keeps a locale's extensions** — `Localize.Inflection.Locale.normalize/1` gives `"ar_u_nu_arab"` for `ar-u-nu-arab`, so `Localize.Inflection.Quantify` misses the Arabic rules and joins as the generic factory does.
+* [ ] **Choose a fixed-offset representation that `DateTime` functions honour** — Localize and Calendrical carry an offset such as `-05:00` under `Etc/UTC`, so `DateTime.shift_zone(parsed, "Etc/UTC")` returns it unchanged. The MF2 interpreter converts from the instant instead; `Etc/GMT+5` or an offset string would need both libraries to change together.
 
-* [ ] **MF2 `:date` and `:datetime` ignore the spec's field options** — TR35 49 defines `fields` on `:date` (for example `month-day`) and `dateFields` on `:datetime`, but `lib/localize/message/interpreter.ex` reads only `style`, `length`, `dateStyle` and `dateLength`, so `{$d :date fields=month-day}` renders the medium default "14 Jun 2026" where `en-AU` should give "14 June". Found through the `localize_person_names` message formatting guide.
+* [ ] **`Localize.Unit.parse/1` raises on invalid UTF-8** — `Localize.Unit.parse(<<255>>)` raises `ArgumentError`; it should return an error, as the date and time parsers now do.
+
+* [ ] **`he`'s localized GMT format doubles its left-to-right mark** — `Localize.DateTime.Timezone.gmt_format/3` ends `he`'s "GMT-5" with two U+200E marks, where ICU gives one.
+
+* [ ] **`SemanticSkeleton` validates `:alignment` without applying it** — TR35 conformance needs every option implemented; `:column` should pad the numeric fields to two digits.
+
+* [ ] **`SemanticSkeleton` accepts field sets TR35 does not define** — TR35 conformance needs an error for a set such as `YD` or `MT`; `new/2` accepts any combination of the six fields.
 
 ## In progress
 
@@ -33,6 +39,10 @@ Outstanding work on Localize. The design detail behind these items lives under [
 * [ ] **`localize_emoji` sibling library** — plan item 11, a separate package on its own schedule. A Phoenix LiveView picker (`localize_emoji_live`) is out of scope for its 0.1.0.
 
 ## Done
+
+* [x] **MF2 `:date`, `:time` and `:datetime` take TR35's options** — `fields`, `length`, `precision`, `timeZoneStyle`, `dateFields`, `dateLength` and `timePrecision` choose a semantic skeleton, and `timeZone`, `hour12` and `calendar` act on the operand. `en-AU` `fields=month-day` is "14 Jun" at TR35's default medium length; "14 June" is `length=long`. 2026-09-29, v1.4.0.
+
+* [x] **The inflection engine keeps a locale's extensions** — `Localize.Inflection.Locale.normalize/1` drops `-u-`, `-t-` and `-x-` extensions, so quantities, lists and units in `ar-u-nu-arab`, `es-u-co-trad` or `tr-u-ca-gregory` keep their language's rules. 2026-09-29, v1.4.0.
 
 * [x] **`Localize.Locale.parent/1` keeps the child's `cldr_locale_id`** — a parent found by dropping a subtag resolves its own CLDR locale, so regional locales spell numbers out with their language's RBNF rules as ICU does; a validated `und` walks to root, not English. 2026-09-29, v1.4.0.
 

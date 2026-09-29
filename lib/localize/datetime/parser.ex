@@ -523,6 +523,15 @@ defmodule Localize.DateTime.Parser do
 
   # ── ISO 8601 ─────────────────────────────────────────────────
 
+  @doc false
+  # The ISO 8601 reading `parse/2` tries first, for a caller that takes ISO
+  # 8601 alone: MessageFormat 2's date/time literals. An offset is kept with
+  # the wall time it was written with, as `parse/2` keeps it.
+  @spec from_iso8601(String.t()) :: {:ok, DateTime.t() | NaiveDateTime.t()} | :error
+  def from_iso8601(input) when is_binary(input) do
+    if String.valid?(input), do: try_iso(input), else: :error
+  end
+
   defp try_iso(input) do
     # Shape `YYYY-MM-DD<sep>HH:MM:SS[…]` where <sep> is `T`
     # (RFC 3339 / ISO 8601) or a space (Elixir stdlib also

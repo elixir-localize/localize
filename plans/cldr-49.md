@@ -8,7 +8,7 @@
 
 **Owner:** Localize maintainers
 
-**Release:** the CLDR 49 base data and every closed item sit unreleased in [CHANGELOG.md](../CHANGELOG.md) under `[Unreleased]`, above Localize 1.2.0 (2026-08-16). The plan originally targeted 0.26+; the 0.x → 1.x transition happened during the cycle.
+**Release:** the CLDR 49 base data and every closed item sit unreleased in [CHANGELOG.md](../CHANGELOG.md) under `[1.4.0]`, the release that ships them, above Localize 1.3.0 (2026-09-21). The plan originally targeted 0.26+; the 0.x → 1.x transition happened during the cycle.
 
 **Source:** CLDR 49. `release-49-alpha1` (2026-08-14) and `release-49-alpha2` have both been merged on branch `cldr-49`, and `priv/localize/version` already reads 49. Track upstream at <https://cldr.unicode.org/downloads/cldr-49>.
 

@@ -1,6 +1,8 @@
 # Semantic skeletons design plan
 
-**Status:** draft, 2026-05-05
+**Status:** implemented (v1.4.0), 2026-09-29
+
+The implementation departs from this draft where TR35 49 settled the questions: CLDR ships no semantic skeleton data, so a skeleton resolves to a classical one, taking the year, month and day widths from the locale's own date format at its length and rendering with that standard format when its date fields are exactly that format's, and it carries `:time_precision` and `:zone_length`, the latter for MessageFormat 2's `timeZoneStyle`. `Localize.DateTime.SemanticSkeleton` is the reference.
 
 **Owner:** Localize maintainers
 
@@ -366,3 +368,4 @@ CLDR ships its own semantic-skeleton test data alongside the spec; we should ing
 
 * 2026-05-05 — Initial design draft. Resolves the seven open questions from item 4 of `plans/cldr-49.md`. Implementation deferred to the CLDR 49 cycle (Localize 0.27).
 
+* 2026-09-29 — Implemented as `Localize.DateTime.SemanticSkeleton`, with the widths TR35 takes from the locale's date formats, time precision and zone length, and used by MessageFormat 2's `:date`, `:time` and `:datetime`.

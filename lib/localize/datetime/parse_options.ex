@@ -40,7 +40,12 @@ defmodule Localize.DateTime.ParseOptions do
     end
   end
 
-  defp validate_input(input) when is_binary(input), do: :ok
+  # A binary that is not UTF-8 is no string at all, and the parsers' Unicode
+  # regular expressions raise on it rather than fail to match.
+  defp validate_input(input) when is_binary(input) do
+    if String.valid?(input), do: :ok, else: invalid(input, "a UTF-8 string to parse")
+  end
+
   defp validate_input(input), do: invalid(input, "a string to parse")
 
   defp validate_options(options) do

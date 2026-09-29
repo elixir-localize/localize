@@ -20,6 +20,46 @@ defmodule Localize.DateTime.SemanticSkeletonTest do
 
   alias Localize.DateTime.SemanticSkeleton, as: Skeleton
 
+  # Localize has no calendar but `Calendar.ISO`; the others are Calendrical's,
+  # which depends on Localize. A calendar selects its CLDR data by naming its
+  # CLDR calendar type, which is all these stand-ins do.
+  defmodule Japanese do
+    @moduledoc false
+    def cldr_calendar_type, do: :japanese
+    defdelegate date_to_string(year, month, day), to: Calendar.ISO
+  end
+
+  defmodule Buddhist do
+    @moduledoc false
+    def cldr_calendar_type, do: :buddhist
+    defdelegate date_to_string(year, month, day), to: Calendar.ISO
+  end
+
+  defmodule IslamicCivil do
+    @moduledoc false
+    def cldr_calendar_type, do: :islamic_civil
+    defdelegate date_to_string(year, month, day), to: Calendar.ISO
+  end
+
+  defmodule Hebrew do
+    @moduledoc false
+    def cldr_calendar_type, do: :hebrew
+    defdelegate date_to_string(year, month, day), to: Calendar.ISO
+  end
+
+  defmodule Chinese do
+    @moduledoc false
+    def cldr_calendar_type, do: :chinese
+    defdelegate date_to_string(year, month, day), to: Calendar.ISO
+  end
+
+  @calendars %{
+    "gregorian" => Calendar.ISO,
+    "japanese" => Japanese,
+    "buddhist" => Buddhist,
+    "islamic-civil" => IslamicCivil
+  }
+
   @data_path Path.join([__DIR__, "..", "..", "support", "data", "date_time_formatting.json"])
 
   defp conformance_cases do
@@ -66,9 +106,7 @@ defmodule Localize.DateTime.SemanticSkeletonTest do
   defp put_option(options, _key, nil, _cast), do: options
   defp put_option(options, key, value, cast), do: Keyword.put(options, key, cast.(value))
 
-  defp calendar(name) do
-    name |> String.replace("-", "_") |> Localize.Utils.Helpers.existing_atom() || :gregorian
-  end
+  defp calendar(name), do: Map.fetch!(@calendars, name)
 
   describe "CLDR conformance" do
     test "every semantic skeleton resolves to the classical skeleton CLDR names" do
@@ -77,7 +115,10 @@ defmodule Localize.DateTime.SemanticSkeletonTest do
           skeleton = Skeleton.semantic(test_case["semanticSkeleton"], options(test_case))
           expected = test_case["classicalSkeleton"]
 
-          case Skeleton.to_classical_skeleton(skeleton, calendar(test_case["calendar"])) do
+          case Skeleton.to_classical_skeleton(skeleton,
+                 locale: test_case["locale"],
+                 calendar: calendar(test_case["calendar"])
+               ) do
             {:ok, resolved} when is_atom(resolved) ->
               if to_string(resolved) == expected do
                 failures
@@ -107,6 +148,10 @@ defmodule Localize.DateTime.SemanticSkeletonTest do
     # otherwise routed through their classical skeleton by the parser — so
     # without this, the semantic formatting path, hour cycle included, is
     # never compared with CLDR at all.
+    #
+    # CLDR's generator joins the date and time halves with the standard
+    # pattern rather than TR35's default `atTime` one, as its skeleton suites
+    # do, so the cases format with `style: :standard`.
     test "every Gregorian semantic skeleton formats its input as CLDR expects" do
       cases = gregorian_semantic_cases()
 
@@ -116,6 +161,7 @@ defmodule Localize.DateTime.SemanticSkeletonTest do
 
           case Localize.DateTime.to_string(test_case.input,
                  format: skeleton,
+                 style: :standard,
                  locale: test_case.locale
                ) do
             {:ok, formatted} when formatted == test_case.expected -> failures
@@ -228,9 +274,15 @@ defmodule Localize.DateTime.SemanticSkeletonTest do
       assert {:ok, %Skeleton{fields: [:time, :zone]}} = Skeleton.new([:time, :zone])
     end
 
-    test "defaults are medium length, automatic year, specific zone" do
-      assert {:ok, %Skeleton{length: :medium, year_style: :auto, zone_style: :specific}} =
-               Skeleton.new("YMD")
+    test "defaults are medium length, automatic year and zone form, specific zone, seconds" do
+      assert {:ok,
+              %Skeleton{
+                length: :medium,
+                year_style: :auto,
+                zone_style: :specific,
+                zone_length: :auto,
+                time_precision: :second
+              }} = Skeleton.new("YMD")
     end
 
     test "an unknown field code is returned, not raised" do
@@ -240,6 +292,17 @@ defmodule Localize.DateTime.SemanticSkeletonTest do
     test "an unknown option value is returned, not raised" do
       assert {:error, %Localize.InvalidValueError{}} = Skeleton.new("YMD", length: :enormous)
       assert {:error, %Localize.InvalidValueError{}} = Skeleton.new("YMDZ", zone_style: :bogus)
+      assert {:error, %Localize.InvalidValueError{}} = Skeleton.new("TZ", zone_length: :medium)
+
+      for precision <- [
+            :fortnight,
+            {:fractional_second, 0},
+            {:fractional_second, 10},
+            {:fractional_second, 1.5}
+          ] do
+        assert {:error, %Localize.InvalidValueError{value: ^precision}} =
+                 Skeleton.new("T", time_precision: precision)
+      end
     end
 
     test "semantic/2 raises where new/2 returns" do
@@ -247,45 +310,205 @@ defmodule Localize.DateTime.SemanticSkeletonTest do
     end
   end
 
+  # The expected skeletons are TR35's mapping applied by hand. The year, month
+  # and day widths are each locale's `dateSkeletons` in cldr-json's
+  # `ca-*.json`: `en` Gregorian short `yyMd`, medium `yMMMd`, long `yMMMMd`;
+  # `de` medium `yMMdd`, short `yyMMdd`; `ja` Japanese long `GyMMMd`; `en`
+  # Japanese long `GyMMMMd`, short `GGGGGyMd`; `en` Hebrew short `yMMMd`;
+  # `en` Chinese medium `rMMMd`. The weekday, time and zone come from TR35's
+  # table and its time precision variations.
   describe "to_classical_skeleton/2" do
-    test "a two-digit year appears only where no era does" do
-      assert {:ok, :yyMdEEE} =
-               Skeleton.to_classical_skeleton(
-                 Skeleton.semantic("YMDE", length: :short),
-                 :gregorian
-               )
-
-      assert {:ok, :GyMdEEE} =
-               Skeleton.to_classical_skeleton(
-                 Skeleton.semantic("YMDE", length: :short, year_style: :with_era),
-                 :gregorian
-               )
+    test "the year, month and day take the locale's widths" do
+      assert classical("YMD", locale: :en) == {:ok, :yMMMd}
+      assert classical("YMD", length: :long, locale: :en) == {:ok, :yMMMMd}
+      assert classical("YMD", locale: :de) == {:ok, :yMMdd}
+      assert classical("YMD", length: :short, locale: :de) == {:ok, :yyMMdd}
+      assert classical("MD", locale: :de) == {:ok, :MMdd}
+      assert classical("YMD", locale: :zh, calendar: Chinese) == {:ok, :rMMMd}
     end
 
-    test "calendars whose year count restarts always carry an era" do
-      assert {:ok, :GGGGGyMdEEE} =
-               Skeleton.to_classical_skeleton(
-                 Skeleton.semantic("YMDE", length: :short),
-                 :japanese
-               )
+    test "a calendar's date formats bring its era and month widths" do
+      assert classical("YMDE", length: :long, locale: :ja, calendar: Japanese) ==
+               {:ok, :GyMMMdEEEE}
 
-      assert {:ok, :GyMMMdEEEE} =
-               Skeleton.to_classical_skeleton(Skeleton.semantic("YMDE", length: :long), :japanese)
+      assert classical("YMDE", length: :long, locale: :en, calendar: Japanese) ==
+               {:ok, :GyMMMMdEEEE}
+
+      assert classical("YMD", length: :short, locale: :en, calendar: Japanese) ==
+               {:ok, :GGGGGyMd}
+
+      # TR35's own example: English has no numeric Hebrew month.
+      assert classical("YMD", length: :short, locale: :en, calendar: Hebrew) == {:ok, :yMMMd}
     end
 
-    test "a zone alone takes the long form, a trailing zone the short" do
-      assert {:ok, :zzzz} = Skeleton.to_classical_skeleton(Skeleton.semantic("Z"), :gregorian)
+    test "the year style adjusts the locale's year" do
+      assert classical("YMDE", length: :short) == {:ok, :yyMdEEE}
+      assert classical("YMDE", length: :short, year_style: :full) == {:ok, :yMdEEE}
+      assert classical("YMDE", length: :short, year_style: :with_era) == {:ok, :GyMdEEE}
 
-      assert {:ok, :MMMMdjmsz} =
-               Skeleton.to_classical_skeleton(
-                 Skeleton.semantic("MDTZ", length: :long),
-                 :gregorian
-               )
+      assert classical("YMD", length: :short, year_style: :with_era, calendar: Japanese) ==
+               {:ok, :GGGGGyMd}
     end
 
-    test "a skeleton naming no fields is an error" do
+    test "a month or weekday on its own takes the standalone form" do
+      assert classical("M", length: :long) == {:ok, :LLLL}
+      assert classical("M") == {:ok, :LLL}
+      assert classical("M", length: :short) == {:ok, :L}
+      assert classical("E", length: :long) == {:ok, :EEEE}
+      assert classical("E") == {:ok, :EEE}
+      assert classical("E", length: :short) == {:ok, :EEEEE}
+      assert classical("DE", length: :short) == {:ok, :dEEE}
+    end
+
+    test "the time precision sets the time fields" do
+      assert classical("T") == {:ok, :jms}
+      assert classical("T", time_precision: :hour) == {:ok, :j}
+      assert classical("T", time_precision: :minute) == {:ok, :jm}
+      assert classical("T", time_precision: {:fractional_second, 3}) == {:ok, :jmsSSS}
+      assert classical("T", time_precision: :hour, hour_cycle: :clock24) == {:ok, :H}
+      assert classical("T", time_precision: :minute, hour_cycle: :h11) == {:ok, :hm}
+      assert classical("YMDT", time_precision: :minute) == {:ok, :yMMMdjm}
+    end
+
+    test "an optional minute is shown unless the value's minute is zero" do
+      skeleton = Skeleton.semantic("T", time_precision: :minute_optional)
+
+      assert Skeleton.to_classical_skeleton(skeleton, value: ~T[15:00:00]) == {:ok, :j}
+      assert Skeleton.to_classical_skeleton(skeleton, value: ~T[15:04:00]) == {:ok, :jm}
+      assert Skeleton.to_classical_skeleton(skeleton) == {:ok, :jm}
+    end
+
+    test "a zone alone takes the long form except at short length, a trailing zone the short" do
+      assert classical("Z") == {:ok, :zzzz}
+      assert classical("Z", length: :long) == {:ok, :zzzz}
+      assert classical("Z", length: :short) == {:ok, :z}
+      assert classical("Z", zone_style: :generic) == {:ok, :vvvv}
+      assert classical("Z", length: :short, zone_style: :generic) == {:ok, :v}
+      assert classical("Z", length: :long, zone_style: :offset) == {:ok, :O}
+      assert classical("MDTZ", length: :long) == {:ok, :MMMMdjmsz}
+    end
+
+    test "the zone length chooses the zone's form" do
+      assert classical("TZ", zone_length: :long) == {:ok, :jmszzzz}
+      assert classical("Z", zone_length: :short) == {:ok, :z}
+      assert classical("TZ", zone_style: :generic, zone_length: :long) == {:ok, :jmsvvvv}
+      assert classical("TZ", zone_style: :offset) == {:ok, :jmsO}
+      assert classical("TZ", zone_style: :offset, zone_length: :long) == {:ok, :jmsOOOO}
+      assert classical("TZ", zone_style: :location, zone_length: :short) == {:ok, :jmsVVVV}
+    end
+
+    test "a calendar is a module, never a CLDR calendar type" do
+      skeleton = Skeleton.semantic("YMD")
+
+      for calendar <- [:japanese, "japanese", :gregorian, nil, 42] do
+        assert {:error, %Localize.UnknownCalendarError{}} =
+                 Skeleton.to_classical_skeleton(skeleton, calendar: calendar)
+      end
+    end
+
+    test "invalid input is returned, not raised" do
+      skeleton = Skeleton.semantic("YMD")
+
+      assert {:error, %{__exception__: true}} =
+               Skeleton.to_classical_skeleton(skeleton, locale: "xx-!!-bogus")
+
       assert {:error, %Localize.InvalidValueError{}} =
-               Skeleton.to_classical_skeleton(%Skeleton{fields: []}, :gregorian)
+               Skeleton.to_classical_skeleton(skeleton, :gregorian)
+
+      assert {:error, %Localize.InvalidValueError{}} =
+               Skeleton.to_classical_skeleton(%Skeleton{fields: []}, locale: :en)
+    end
+  end
+
+  defp classical(code, options \\ []) do
+    {skeleton_options, options} =
+      Keyword.split(options, [
+        :length,
+        :year_style,
+        :zone_style,
+        :zone_length,
+        :hour_cycle,
+        :time_precision
+      ])
+
+    code
+    |> Skeleton.semantic(skeleton_options)
+    |> Skeleton.to_classical_skeleton(Keyword.put_new(options, :locale, :en))
+  end
+
+  # TR35 counts the standard date formats among the patterns a skeleton is
+  # matched against, and a semantic year, month and day resolves to exactly
+  # the skeleton of the standard format at its length. The expected strings
+  # are CLDR 49's standard patterns: be medium "d MMM y 'г'." (whose
+  # own skeleton, `yMMd`, says numeric), da full "EEEE 'den' d. MMMM y", de
+  # long "d. MMMM y" joined by "{1} 'um' {0}".
+  describe "a date that resolves to a standard format" do
+    test "formats with that format" do
+      date = ~D[2006-01-02]
+
+      assert Localize.Date.to_string(date, format: Skeleton.semantic("YMD"), locale: :be) ==
+               {:ok, "2 сту 2006 г."}
+
+      assert Localize.Date.to_string(date,
+               format: Skeleton.semantic("YMDE", length: :long),
+               locale: :da
+             ) == {:ok, "mandag den 2. januar 2006"}
+
+      datetime = ~N[2006-01-02 15:04:06]
+      skeleton = Skeleton.semantic("YMDT", length: :long, time_precision: :minute)
+
+      assert Localize.DateTime.to_string(datetime, format: skeleton, locale: :de) ==
+               {:ok, "2. Januar 2006 um 15:04"}
+    end
+
+    test "only a year, month and day at the skeleton's length, or a weekday at long" do
+      assert Skeleton.standard_date_format(Skeleton.semantic("YMD"), :en, :gregorian) ==
+               {:ok, :medium, nil}
+
+      assert Skeleton.standard_date_format(
+               Skeleton.semantic("YMDE", length: :long),
+               :en,
+               :gregorian
+             ) ==
+               {:ok, :full, nil}
+
+      assert {:ok, :short, %Skeleton{fields: [:time, :zone]}} =
+               Skeleton.standard_date_format(
+                 Skeleton.semantic("YMDTZ", length: :short),
+                 :en,
+                 :gregorian
+               )
+
+      for code <- ["YMDE", "MD", "YM", "E", "T"] do
+        assert Skeleton.standard_date_format(Skeleton.semantic(code), :en, :gregorian) == :error
+      end
+
+      with_era = Skeleton.semantic("YMD", year_style: :with_era)
+      assert Skeleton.standard_date_format(with_era, :en, :gregorian) == :error
+
+      # en `GyMMMd` "MMM d, y G".
+      assert Localize.Date.to_string(~D[2006-01-02], format: with_era, locale: :en) ==
+               {:ok, "Jan 2, 2006 AD"}
+    end
+
+    test "every length of every preloaded locale" do
+      date = ~D[2006-01-02]
+
+      failures =
+        for locale <-
+              ~w(am ar bal be bn cy da de en en-AU es fa fi fr he hi hu it ja ko ky mr my pt ru th uk zh zh-Hant)a,
+            length <- [:short, :medium, :long],
+            semantic =
+              Localize.Date.to_string(date,
+                format: Skeleton.semantic("YMD", length: length),
+                locale: locale
+              ),
+            standard = Localize.Date.to_string(date, format: length, locale: locale),
+            semantic != standard do
+          {locale, length, semantic, standard}
+        end
+
+      assert failures == []
     end
   end
 
