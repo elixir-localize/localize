@@ -326,7 +326,12 @@ defmodule Localize.DateTime.Parser do
   end
 
   defp try_locale_glue(input, locale, options, as) do
-    case glue_separators(locale) do
+    cldr_calendar =
+      options
+      |> Keyword.get(:calendar, Calendar.ISO)
+      |> Localize.Date.Parser.cldr_calendar_type()
+
+    case glue_separators(locale, cldr_calendar) do
       [] ->
         {:error, no_match_error(input, locale)}
 
@@ -337,9 +342,10 @@ defmodule Localize.DateTime.Parser do
         # candidate separator and accept the first that yields
         # parseable date + time halves.
         candidates =
-          for sep <- separators,
-              {left, right} <- enumerate_splits(input, sep) do
-            {sep, left, right}
+          for {prefix, sep, suffix, order} <- separators,
+              body <- strip_glue_affixes(input, prefix, suffix),
+              {left, right} <- enumerate_splits(body, sep) do
+            date_and_time(order, left, right)
           end
 
         finder =
@@ -356,14 +362,32 @@ defmodule Localize.DateTime.Parser do
     end
   end
 
-  defp try_split_as_struct({_sep, left, right}, options) do
+  # A glue pattern with the time first, as `vi`'s "{0} {1}", has its date
+  # on the right of the split.
+  defp date_and_time(:date_first, left, right), do: {left, right}
+  defp date_and_time(:time_first, left, right), do: {right, left}
+
+  # The input inside the literal text a glue pattern puts before its first
+  # half and after its second, as `vi`'s "'lúc' {0} {1}" puts "lúc ", or
+  # nothing when the input does not carry it.
+  defp strip_glue_affixes(input, prefix, suffix) do
+    if String.starts_with?(input, prefix) and String.ends_with?(input, suffix) do
+      body = binary_part(input, byte_size(prefix), byte_size(input) - byte_size(prefix))
+      body = binary_part(body, 0, byte_size(body) - byte_size(suffix))
+      if body == "", do: [], else: [body]
+    else
+      []
+    end
+  end
+
+  defp try_split_as_struct({date_text, time_text}, options) do
     # Check the time half first: it is cheaper to parse and far more
-    # selective (a time needs an hour), so a failing right half
+    # selective (a time needs an hour), so a failing time half
     # short-circuits the expensive date parse on every non-time split.
     with {:ok, time, zone} <-
-           Localize.Time.Parser.parse_with_zone(right, options),
-         {:ok, date} <- Localize.Date.parse(left, options),
-         {:ok, ndt} <- NaiveDateTime.new(date, time) do
+           Localize.Time.Parser.parse_with_zone(time_text, options),
+         {:ok, date} <- Localize.Date.parse(date_text, options),
+         {:ok, ndt} <- naive_datetime(date, time) do
       case zone do
         nil -> {:ok, ndt}
         _ -> {:ok, resolve_zone(zone, ndt, options)}
@@ -371,6 +395,24 @@ defmodule Localize.DateTime.Parser do
     else
       _ -> nil
     end
+  end
+
+  # The date is in the calendar the input is read in and the time in
+  # `Calendar.ISO`, while `NaiveDateTime.new/2` takes the two in one
+  # calendar, so the fields are joined in the date's. Each half has been
+  # validated by its own parser, as `NaiveDateTime.new/2` relies on.
+  defp naive_datetime(%Date{} = date, %Time{} = time) do
+    {:ok,
+     %NaiveDateTime{
+       calendar: date.calendar,
+       year: date.year,
+       month: date.month,
+       day: date.day,
+       hour: time.hour,
+       minute: time.minute,
+       second: time.second,
+       microsecond: time.microsecond
+     }}
   end
 
   # A fixed UTC offset — ISO 8601 (`+05:30`, `Z`) or the localized GMT
@@ -457,15 +499,15 @@ defmodule Localize.DateTime.Parser do
   defp pad_offset(value) when value < 10, do: "0#{value}"
   defp pad_offset(value), do: "#{value}"
 
-  defp try_split_as_map({_sep, left, right}, options) do
+  defp try_split_as_map({date_text, time_text}, options) do
     date_opts = Keyword.put(options, :as, :map)
     time_opts = Keyword.put(options, :as, :map)
 
-    # Time half first — cheaper and more selective — so a failing right
+    # Time half first — cheaper and more selective — so a failing time
     # half short-circuits the expensive date parse (see try_split_as_struct).
     with {:ok, %{} = time_map, zone} <-
-           Localize.Time.Parser.parse_with_zone(right, time_opts),
-         {:ok, %{} = date_map} <- Localize.Date.parse(left, date_opts) do
+           Localize.Time.Parser.parse_with_zone(time_text, time_opts),
+         {:ok, %{} = date_map} <- Localize.Date.parse(date_text, date_opts) do
       # Date map carries `:calendar`; time map carries the time
       # fields plus the zone fields if any. Merge — date's
       # `:calendar` wins (the time map has no calendar key) — and
@@ -596,14 +638,29 @@ defmodule Localize.DateTime.Parser do
   # gets to try.
   @fallback_glue_separators [" - ", " @ ", " "]
 
-  # The CLDR date-time glue pattern is always `{1}<sep>{0}` —
-  # `{1}` is the date portion and `{0}` is the time portion.
-  # Extract `<sep>` from each standard glue pattern; the
-  # caller backtracks through every split point in the input
-  # to find one where both halves parse.
-  defp glue_separators(locale) do
+  # A CLDR date-time glue pattern joins `{1}`, the date, and `{0}`, the
+  # time, usually date first (`{1}, {0}`) but time first in some locales
+  # (`vi`'s `{0} {1}`), and may put literal text around them (`vi`'s
+  # `'lúc' {0} {1}`). Each glue pattern of the calendar the input is read
+  # in, which the formatter joins with, and of the Gregorian calendar,
+  # whose glue was the only one read before, gives a
+  # `{prefix, separator, suffix, order}` entry; the caller backtracks
+  # through every split point in the input to find one where both halves
+  # parse.
+  defp glue_separators(locale, cldr_calendar) do
+    fallback = Enum.map(@fallback_glue_separators, &{"", &1, "", :date_first})
+
+    [cldr_calendar, :gregorian]
+    |> Enum.uniq()
+    |> Enum.flat_map(&calendar_glue_separators(locale, &1))
+    |> Kernel.++(fallback)
+    |> Enum.uniq()
+    |> Enum.sort_by(fn {_prefix, separator, _suffix, _order} -> -byte_size(separator) end)
+  end
+
+  defp calendar_glue_separators(locale, cldr_calendar) do
     cldr =
-      case Format.date_time_formats(locale, :gregorian) do
+      case Format.date_time_formats(locale, cldr_calendar) do
         {:ok, glue_map} ->
           @standard_formats
           |> Enum.map(&Map.get(glue_map, &1))
@@ -617,7 +674,7 @@ defmodule Localize.DateTime.Parser do
     # separators differ from the standard set — fr's full/long glue
     # is `{1} 'à' {0}` there, for example.
     at_time =
-      case Format.date_time_at_formats(locale, :gregorian) do
+      case Format.date_time_at_formats(locale, cldr_calendar) do
         {:ok, %{standard: at_map}} when is_map(at_map) ->
           @standard_formats
           |> Enum.map(&Map.get(at_map, &1))
@@ -627,18 +684,23 @@ defmodule Localize.DateTime.Parser do
           []
       end
 
-    (cldr ++ at_time ++ @fallback_glue_separators)
-    |> Enum.uniq()
-    |> Enum.sort_by(&(-byte_size(&1)))
+    cldr ++ at_time
   end
 
-  # Pattern shape is `{1}<sep>{0}`; pull <sep> via regex.
-  # Returns the separator(s) as a list (most patterns yield
-  # one; we wrap in a list for `flat_map` ergonomics).
+  # A pattern's literal text before, between and after its two halves,
+  # and which half comes first, as a list for `flat_map` ergonomics.
   defp extract_separator(pattern) when is_binary(pattern) do
-    case Regex.run(~r/\{1\}(.*?)\{0\}/u, pattern) do
-      [_, sep] when sep != "" -> [unquote_cldr_literal(sep)]
-      _ -> []
+    case Regex.run(~r/^(.*?)\{([01])\}(.*?)\{([01])\}(.*)$/su, pattern) do
+      [_, prefix, first, sep, second, suffix] when sep != "" and first != second ->
+        order = if first == "1", do: :date_first, else: :time_first
+
+        [
+          {unquote_cldr_literal(prefix), unquote_cldr_literal(sep), unquote_cldr_literal(suffix),
+           order}
+        ]
+
+      _ ->
+        []
     end
   end
 

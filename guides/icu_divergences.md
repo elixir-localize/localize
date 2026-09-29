@@ -63,7 +63,7 @@ TR35 is CLDR's specification, and the rule applies to it as to the data. Its Dat
 
 ### Date parsing
 
-TR35 makes `y` the year of the era `G` names, and leaves the reading of a two-digit year to the implementation. ICU4C 78.3 reads any two-digit year as one within 80 years before and 20 after today, even beside an era, so it cannot read back the "44 BC" it formats itself. Localize takes a year its era qualifies as written, and applies the pivot only to a year written without one; asserted in `test/localize/date_parse_era_test.exs`.
+TR35 makes `y` the year of the era `G` names, and leaves the reading of a two-digit year to the implementation. ICU4C 78.3 reads any two-digit year as one within 80 years before and 20 after today, even beside an era, so it cannot read back the "44 BC" it formats itself. Localize takes a year its era qualifies as written where the format writes the year in full (`y`), and applies the pivot to a year written without an era and, as ICU does, to one the format writes as `yy`, its two low-order digits; asserted in `test/localize/date_parse_era_test.exs` and `test/localize/date_parse_lunisolar_test.exs`.
 
 | Input in `en` | TR35 and Localize | ICU4C parses |
 |---|---|---|
@@ -71,6 +71,22 @@ TR35 makes `y` the year of the era `G` names, and leaves the reading of a two-di
 | "Jun 1, 44 AD" | AD 44, `~D[0044-06-01]` | 2044 |
 
 The two agree on everything else here: "Jun 1, 1 BC" is year 0, and "Jun 1, 44", with no era, is 2044.
+
+### Interval formatting
+
+An interval takes the formats of its endpoints' calendar. ICU4C 78.3 differs from Localize in three places, asserted in `test/localize/interval_calendar_test.exs`; the first two follow TR35 and the third ECMA-402.
+
+| Interval | Localize | ICU4C renders |
+|---|---|---|
+| `nl` Buddhist date and time range, `style: :standard` | "1 apr 2566 BE 10:00:00 – 10:30:00" | "1 apr 2566 BE, 10:00:00 – 10:30:00" |
+| `en` Chinese medium, `rMMMd` | "Mo2bis 11 – 20, 2023" | "Mo2bis 11, 2023 – Mo2bis 20, 2023" |
+| `am` medium, equal endpoints | "1 ኤፕሪ 2023" | "ኤፕሪ 1 2023" |
+
+* **The date-time pattern.** TR35 joins a date to a time range with the calendar's `dateTimeFormat`. ICU's `DateIntervalFormat` reads `calendar/gregorian/DateTimePatterns` whatever the calendar, though its single date-time formatter uses the calendar's own.
+
+* **Year symbols.** TR35 gives skeleton symbols of one field type a small distance, so the related year `r` and the cyclic year `U` of a Chinese or Dangi format match the `y`-keyed interval items. ICU's interval matcher compares letters one for one, finds no item, and writes both dates in full.
+
+* **Equal endpoints.** Localize writes the requested standard format, as ECMA-402's `formatRange` and `Localize.Date.to_string/2` do. ICU writes its pattern generator's pattern for the style's skeleton, which prefers an `availableFormats` entry with that skeleton over the standard format.
 
 ## Not divergences
 

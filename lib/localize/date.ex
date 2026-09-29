@@ -619,7 +619,8 @@ defmodule Localize.Date do
     `"gregorian"`, returns a `t:Localize.UnknownCalendarError.t/0`.
 
   * `:reference_date` is the `t:Date.t/0` that partial input is completed
-    against. The default is today.
+    against, taken in the calendar the input is read in. The default is
+    today.
 
   * `:as` is `:struct` or `:map`. `:map` returns only the fields the input
     actually carried, rather than completing them. They must still be

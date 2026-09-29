@@ -41,8 +41,9 @@ defmodule Localize.Date.Parser do
   # under `en-GB`'s `dd/MM/y`).
   #
   # * Any 2-digit typed year pivots into the 80-back/20-forward
-  # window relative to the reference year (overridable via
-  # `:reference_date`).
+  # window relative to the reference year, the year of the
+  # reference date in the calendar the input is read in
+  # (overridable via `:reference_date`).
   #
   # * Literal separators in the format pattern expand to the
   # locale's CLDR `lenient-scope-date` equivalence class —
@@ -57,6 +58,21 @@ defmodule Localize.Date.Parser do
   # * Non-Latin digits are transliterated to Latin before
   # integer parsing using the locale's default number system.
   # `٢٤` (Arabic-Indic 24) and `24` both parse identically.
+  # A pattern that writes its fields in another numbering
+  # reads them in it: `ja`'s Chinese calendar writes 16 as
+  # 一六 (`hanidec`) and `zh`'s writes day 21 as 廿一
+  # (`hanidays`).
+  #
+  # ### Lunisolar dates
+  #
+  # A lunisolar date is read as the formatter writes it: its
+  # related Gregorian year (`r`), its cyclic year name (`U`,
+  # the year of that name nearest the reference year), a leap
+  # month in the locale's leap-month pattern ("Mo2bis",
+  # "闰二月", "2bis"), and a month written as a number as its
+  # traditional number. Where a locale writes the year both as
+  # the calendar's year and as the related year, the reading
+  # nearer the reference year is taken.
   #
   # ### Era handling
   #
@@ -69,6 +85,10 @@ defmodule Localize.Date.Parser do
   # the Japanese calendar, and in any other as the year the
   # formatter writes that way, so "1 BC" is year 0. A year
   # its era qualifies is taken as written, never pivoted.
+  # Era names come from the calendar's `era_calendar_type/0`
+  # where it has one, and in a calendar that writes its
+  # years as years of an era, a year written without one is
+  # of the reference date's era, as ICU reads it.
   #
 
   alias Localize.Calendar, as: LCalendar
@@ -110,7 +130,7 @@ defmodule Localize.Date.Parser do
 
   defp do_parse(input, options, calendar_module) do
     locale = Keyword.get(options, :locale) || Localize.get_locale()
-    reference_year = (Keyword.get(options, :reference_date) || Date.utc_today()).year
+    reference = reference_date(options, calendar_module)
     as = Keyword.get(options, :as, :struct)
 
     normalised = normalise_input(input)
@@ -122,7 +142,7 @@ defmodule Localize.Date.Parser do
           {:ok, finalise_date(date, as)}
 
         nil ->
-          try_locale_patterns(inputs, locale, calendar_module, reference_year, as)
+          try_locale_patterns(inputs, locale, calendar_module, reference, as)
       end
     end
 
@@ -140,6 +160,33 @@ defmodule Localize.Date.Parser do
       {:ok, _date} = ok -> ok
       :error -> nil
     end
+  end
+
+  # The date partial input is completed against: the reference date in
+  # the calendar the input is read in, so a Hebrew date without a year is
+  # in this Hebrew year rather than the Hebrew year 2026.
+  defp reference_date(options, calendar_module) do
+    case Keyword.get(options, :reference_date) || Date.utc_today() do
+      %{calendar: ^calendar_module} = date -> date
+      %Date{} = date -> date_in_calendar(date, calendar_module)
+      %{year: _year} = date -> date
+    end
+  end
+
+  defp date_in_calendar(date, calendar_module) do
+    with true <- convertible?(calendar_module),
+         {:ok, converted} <- Date.convert(date, calendar_module) do
+      converted
+    else
+      _not_convertible -> date
+    end
+  end
+
+  # Whether `Date.convert/2` can bring a date into a calendar, which needs
+  # its day rollover and its conversion from ISO days.
+  defp convertible?(calendar_module) do
+    function_exported?(calendar_module, :day_rollover_relative_to_midnight_utc, 0) and
+      function_exported?(calendar_module, :naive_datetime_from_iso_days, 1)
   end
 
   # Retry with ordinal affixes stripped. Only fires if the
@@ -371,7 +418,7 @@ defmodule Localize.Date.Parser do
 
   defp do_parse_range(input, options, calendar_module) do
     locale = Keyword.get(options, :locale) || Localize.get_locale()
-    reference_year = (Keyword.get(options, :reference_date) || Date.utc_today()).year
+    reference = reference_date(options, calendar_module)
     allow_inverted = Keyword.get(options, :allow_inverted, false)
     as = Keyword.get(options, :as, :struct)
 
@@ -394,7 +441,7 @@ defmodule Localize.Date.Parser do
     # 2. Fall back to a naive split-then-parse-each-side. Catches
     #    inputs the interval patterns don't cover (e.g. mixed
     #    formats, ISO endpoints).
-    case match_interval_candidates(candidates, locale, calendar_module, reference_year, as) do
+    case match_interval_candidates(candidates, locale, calendar_module, reference, as) do
       {:ok, from, to} ->
         finalise_range(from, to, allow_inverted, as)
 
@@ -414,9 +461,9 @@ defmodule Localize.Date.Parser do
     end
   end
 
-  defp match_interval_candidates(inputs, locale, calendar_module, reference_year, as) do
+  defp match_interval_candidates(inputs, locale, calendar_module, reference, as) do
     Enum.find_value(inputs, :error, fn input ->
-      case match_any_interval_pattern(input, locale, calendar_module, reference_year, as) do
+      case match_any_interval_pattern(input, locale, calendar_module, reference, as) do
         {:ok, _from, _to} = ok -> ok
         :error -> nil
       end
@@ -447,14 +494,13 @@ defmodule Localize.Date.Parser do
   # fields not present in the pattern inherit from endpoint-2
   # (and vice versa), which is how `"May 5 – May 10, 2026"`
   # parses correctly even though the left side has no year.
-  defp match_any_interval_pattern(input, locale, calendar_module, reference_year, as) do
+  defp match_any_interval_pattern(input, locale, calendar_module, reference, as) do
     cldr_calendar = cldr_calendar_type(calendar_module)
 
     with {:ok, intervals} <- Format.interval_formats(locale, cldr_calendar),
          {:ok, months_data} <- LCalendar.months(locale, cldr_calendar) do
-      lenient = load_lenient_date(locale)
       transliterated = transliterate_digits(input, locale)
-      eras_data = maybe_load_eras(locale, cldr_calendar)
+      ctx = field_context(locale, calendar_module, reference, months_data)
 
       cldr_patterns =
         for {skeleton, by_field} <- intervals,
@@ -484,15 +530,7 @@ defmodule Localize.Date.Parser do
 
       Enum.find_value(patterns, :error, fn pattern ->
         transliterated
-        |> match_interval_pattern(
-          pattern,
-          months_data,
-          eras_data,
-          lenient,
-          reference_year,
-          calendar_module,
-          as
-        )
+        |> match_interval_pattern(pattern, ctx, as)
         |> nil_when_no_match()
       end)
     else
@@ -503,16 +541,7 @@ defmodule Localize.Date.Parser do
   defp nil_when_no_match(:error), do: nil
   defp nil_when_no_match(match), do: match
 
-  defp match_interval_pattern(
-         input,
-         pattern,
-         months_data,
-         eras_data,
-         lenient,
-         reference_year,
-         calendar_module,
-         as
-       ) do
+  defp match_interval_pattern(input, pattern, ctx, as) do
     {tokens_l, tokens_r} = split_interval_tokens(tokenize_pattern(pattern))
 
     if tokens_r == [] do
@@ -520,25 +549,28 @@ defmodule Localize.Date.Parser do
       # pattern (would parse only a single endpoint).
       :error
     else
-      with {:ok, regex} <-
-             compile_interval_regex(tokens_l, tokens_r, months_data, eras_data, lenient),
+      ctx = %{ctx | two_digit_year: two_digit_year?(tokens_l ++ tokens_r)}
+
+      with {:ok, regex} <- compile_interval_regex(tokens_l, tokens_r, ctx),
            %{} = caps <- Regex.named_captures(regex, input),
-           {:ok, left_partial} <- extract_partial(caps, "left_", reference_year, calendar_module),
-           {:ok, right_partial} <-
-             extract_partial(caps, "right_", reference_year, calendar_module) do
-        interval_endpoints_for(as, left_partial, right_partial, calendar_module, reference_year)
+           {:ok, left_partial} <- extract_partial(caps, "left_", ctx),
+           {:ok, right_partial} <- extract_partial(caps, "right_", ctx) do
+        interval_endpoints_for(
+          as,
+          left_partial,
+          right_partial,
+          ctx.calendar_module,
+          ctx.reference_year
+        )
       else
         _ -> :error
       end
     end
   end
 
-  defp compile_interval_regex(tokens_l, tokens_r, months_data, eras_data, lenient) do
-    left_regex =
-      compile_capture_regex(tokens_l, months_data, eras_data, lenient, "left_")
-
-    right_regex =
-      compile_capture_regex(tokens_r, months_data, eras_data, lenient, "right_")
+  defp compile_interval_regex(tokens_l, tokens_r, ctx) do
+    left_regex = compile_capture_regex(tokens_l, ctx, "left_")
+    right_regex = compile_capture_regex(tokens_r, ctx, "right_")
 
     Regex.compile("\\A" <> left_regex <> right_regex <> "\\z", "u")
   end
@@ -601,8 +633,17 @@ defmodule Localize.Date.Parser do
   # specific) patterns within each group, then the pattern itself,
   # so the order never depends on the order the patterns arrived in.
   defp pattern_specificity(pattern) do
-    {if(pattern_has_day?(pattern), do: 0, else: 1), -String.length(pattern), pattern}
+    text = pattern_text(pattern)
+    {if(pattern_has_day?(text), do: 0, else: 1), -String.length(text), pattern}
   end
+
+  # A pattern is its text, or its text and the numbering it writes its
+  # fields in.
+  defp pattern_text({text, _numbers}), do: text
+  defp pattern_text(text), do: text
+
+  defp pattern_numbers({_text, numbers}), do: numbers
+  defp pattern_numbers(_text), do: %{}
 
   # Quoted literals are stripped so a literal "d" in text does not
   # count as a field.
@@ -794,7 +835,7 @@ defmodule Localize.Date.Parser do
     |> Enum.reverse()
     |> Enum.reduce_while({length(tokens), false}, fn token, {idx, saw_field} ->
       cond do
-        match?({:y, _}, token) -> {:cont, {idx - 1, true}}
+        match?({letter, _} when letter in [:y, :r, :U], token) -> {:cont, {idx - 1, true}}
         match?({:lit, _}, token) -> {:cont, {idx - 1, saw_field}}
         saw_field -> {:halt, {idx, true}}
         true -> {:halt, {length(tokens), false}}
@@ -810,9 +851,9 @@ defmodule Localize.Date.Parser do
   # left/right halves of the interval pattern produce
   # distinguishable captures in the same regex). Lenient-gap
   # injection between adjacent field tokens applies here too.
-  defp compile_capture_regex(tokens, months_data, eras_data, lenient, prefix, ctx \\ %{}) do
+  defp compile_capture_regex(tokens, ctx, prefix) do
     tokens
-    |> build_regex_parts(months_data, eras_data, lenient, prefix, ctx)
+    |> build_regex_parts(ctx.months, ctx.eras, ctx.lenient, prefix, ctx)
     |> Enum.join()
   end
 
@@ -830,85 +871,187 @@ defmodule Localize.Date.Parser do
   # endpoint's portion of the pattern); represented as `nil`
   # so `materialise/3` can fill from the other side. A year
   # written with its era is the year of that era.
-  defp extract_partial(caps, prefix, reference_year, calendar_module) do
+  defp extract_partial(caps, prefix, ctx) do
     era_index = extract_partial_era_index(caps, prefix)
-    month = extract_partial_month(caps, prefix)
-    day = extract_partial_day(caps, prefix)
+    month = extract_month(caps, prefix)
+    day = extract_day(caps, prefix)
 
-    with {:ok, year} <-
-           caps
-           |> extract_partial_year(prefix, era_index, reference_year, calendar_module)
-           |> resolve_calendar_year(era_index, calendar_module, {month, day}) do
+    with {:ok, year} <- extract_calendar_year(caps, prefix, nil, era_index, ctx, {month, day}) do
       reject_invalid(%{year: year, month: month, day: day})
     end
   end
 
-  defp extract_partial_year(caps, prefix, era_index, reference_year, calendar_module) do
-    case Map.get(caps, prefix <> "year") do
-      nil ->
-        nil
+  # The calendar's year the captures give: `y` resolved through its era,
+  # else `r` (the related Gregorian year), else `U` (the cyclic year
+  # name), else `year_fallback`. A related year or cyclic name written
+  # beside the year it was not taken from must agree with that year.
+  defp extract_calendar_year(caps, prefix, year_fallback, era_index, ctx, month_day) do
+    with {:ok, year} <- written_year(caps, prefix, era_index, ctx, month_day),
+         {:ok, year} <- with_related_year(year, capture(caps, prefix <> "related_year"), ctx),
+         {:ok, year} <- with_cyclic_year(year, named_capture_index(caps, prefix <> "__u"), ctx) do
+      {:ok, year || year_fallback}
+    end
+  end
 
-      "" ->
-        nil
+  # The year `y` (or, reading a whole date, `Y`) writes, as the calendar's
+  # year: of the era written beside it, or in a calendar that writes its
+  # years as years of an era, of the implied era.
+  defp written_year(caps, prefix, era_index, ctx, month_day) do
+    case year_capture(caps, prefix) do
+      nil ->
+        {:ok, nil}
 
       raw ->
         case parse_year(raw) do
-          {n, ""} ->
-            maybe_pivot_two_digit_year(n, raw, era_index, reference_year, calendar_module)
+          {year, ""} ->
+            era_index = era_index || ctx.implied_era
 
-          _ ->
-            :invalid
+            year
+            |> maybe_pivot_two_digit_year(raw, era_index, ctx)
+            |> resolve_calendar_year(era_index, ctx.calendar_module, month_day)
+
+          _other ->
+            :error
         end
+    end
+  end
+
+  defp year_capture(caps, ""), do: capture(caps, "year") || capture(caps, "week_based_year")
+  defp year_capture(caps, prefix), do: capture(caps, prefix <> "year")
+
+  defp capture(caps, key) do
+    case Map.get(caps, key) do
+      value when is_binary(value) and value != "" -> value
+      _absent -> nil
     end
   end
 
   defp parse_year(raw), do: raw |> String.replace("−", "-") |> Integer.parse()
 
-  # The 2-digit-year pivot is a Gregorian convention (see the
-  # note on `extract_year_field/4`) for a year written without
-  # its era. Non-Gregorian years, and a year its era qualifies
-  # ("44 BC", "44 AD"), are taken literally.
-  defp maybe_pivot_two_digit_year(n, raw, nil = _era_index, reference_year, calendar_module) do
-    if cldr_calendar_type(calendar_module) == :gregorian and two_digits?(raw) do
-      pivot_year(n, reference_year)
-    else
-      n
-    end
-  end
+  # A two-digit year is read in the century window around the reference
+  # year, in any calendar, when no era qualifies it, or when the pattern
+  # writes it as `yy` — a year's two low-order digits, so the Chinese year
+  # 4660 is "60" and the Buddhist 2566 in "01.04.66 BE" is "66" — in a
+  # calendar that shows its years as they are numbered. A year `y` writes
+  # beside its era ("44 BC", "44 AD") is taken as written, as is a `yy`
+  # year of an era in a calendar that shows years of an era: "01.04.05 R"
+  # is Reiwa 5.
+  defp maybe_pivot_two_digit_year(year, raw, era_index, ctx) do
+    truncated? = ctx.two_digit_year and is_nil(ctx.implied_era)
 
-  defp maybe_pivot_two_digit_year(n, _raw, _era_index, _reference_year, _calendar_module), do: n
+    if two_digits?(raw) and (truncated? or is_nil(era_index)),
+      do: pivot_year(year, ctx.reference_year),
+      else: year
+  end
 
   # Two unsigned digits: "-4" is two characters, but a signed year is
   # written in full.
   defp two_digits?(raw), do: String.match?(raw, ~r/\A\d{2}\z/)
 
-  defp extract_partial_month(caps, prefix) do
-    case Map.get(caps, prefix <> "month") do
-      raw when is_binary(raw) and raw != "" ->
-        case Integer.parse(raw) do
-          {n, ""} when n in 1..13 -> n
-          _ -> :invalid
-        end
+  # `r`, the related Gregorian year: in a calendar whose year follows the
+  # solar year it is a fixed number of years from the calendar's year
+  # (TR35).
+  defp with_related_year(year, nil, _ctx), do: {:ok, year}
 
-      _ ->
-        # No numeric-month capture (nil or ""), so look for a
-        # name-based month capture (`__mN__` with the prefix).
-        extract_month_by_name(caps, prefix)
+  defp with_related_year(year, raw, ctx) do
+    case parse_year(raw) do
+      {related, ""} -> year_with_related(year, related, ctx)
+      _other -> :error
     end
   end
 
-  defp extract_partial_day(caps, prefix) do
-    case Map.get(caps, prefix <> "day") do
-      nil ->
-        nil
+  defp year_with_related(nil, related, ctx) do
+    %{calendar_module: calendar_module, reference_year: reference_year} = ctx
+    year = related - (related_year_of(reference_year, calendar_module) - reference_year)
 
-      "" ->
-        nil
+    case Enum.find([year, year - 1, year + 1], &(related_year_of(&1, calendar_module) == related)) do
+      nil -> :error
+      year -> {:ok, year}
+    end
+  end
+
+  defp year_with_related(year, related, ctx) do
+    if related_year_of(year, ctx.calendar_module) == related, do: {:ok, year}, else: :error
+  end
+
+  # A calendar year's related Gregorian year, as the formatter writes `r`.
+  defp related_year_of(year, calendar_module) do
+    if function_exported?(calendar_module, :related_gregorian_year, 3),
+      do: calendar_module.related_gregorian_year(year, 1, 1),
+      else: year
+  end
+
+  # `U`, the cyclic year name: the year of that name nearest the
+  # reference year, as the name recurs every sixty years.
+  defp with_cyclic_year(year, nil, _ctx), do: {:ok, year}
+
+  defp with_cyclic_year(nil, position, ctx) do
+    %{calendar_module: calendar_module, reference_year: reference_year} = ctx
+
+    offset =
+      Integer.mod(position - cyclic_position(reference_year, calendar_module) + 30, 60) - 30
+
+    {:ok, reference_year + offset}
+  end
+
+  defp with_cyclic_year(year, position, ctx) do
+    if cyclic_position(year, ctx.calendar_module) == position, do: {:ok, year}, else: :error
+  end
+
+  # A calendar year's place in the sexagenary cycle, as the formatter
+  # finds it for `U`.
+  defp cyclic_position(year, calendar_module) do
+    number =
+      if function_exported?(calendar_module, :cyclic_year, 3),
+        do: calendar_module.cyclic_year(year, 1, 1),
+        else: year
+
+    Localize.Utils.Math.amod(number, 60)
+  end
+
+  # The month the captures give: a number, which is the month's place in
+  # its year, or a lunisolar month's traditional number (`2bis`, `闰2`)
+  # or a month name, which are `{:named, month}` until the year places
+  # them (`named_month/3`).
+  defp extract_month(caps, prefix) do
+    case {capture(caps, prefix <> "month"), capture(caps, prefix <> "traditional_month")} do
+      {nil, nil} -> named_month_capture(caps, prefix)
+      {nil, raw} -> traditional_month(raw, leap_marked?(caps, prefix))
+      {raw, _traditional} -> month_number(raw)
+    end
+  end
+
+  defp month_number(raw) do
+    case Integer.parse(raw) do
+      {month, ""} when month in 1..13 -> month
+      _other -> :invalid
+    end
+  end
+
+  defp traditional_month(raw, leap?) do
+    case Integer.parse(raw) do
+      {month, ""} when month in 1..12 and leap? -> {:named, {month, :leap}}
+      {month, ""} when month in 1..12 -> {:named, month}
+      _other -> :invalid
+    end
+  end
+
+  defp leap_marked?(caps, prefix) do
+    capture(caps, prefix <> "month_leap_before") != nil or
+      capture(caps, prefix <> "month_leap_after") != nil
+  end
+
+  # The day the captures give, as a number or as the numeral an
+  # algorithmic numbering writes (`hanidays`: 初一, 廿一).
+  defp extract_day(caps, prefix) do
+    case capture(caps, prefix <> "day") do
+      nil ->
+        named_capture_index(caps, prefix <> "__h")
 
       raw ->
         case Integer.parse(raw) do
-          {n, ""} when n in 1..31 -> n
-          _ -> :invalid
+          {day, ""} when day in 1..31 -> day
+          _other -> :invalid
         end
     end
   end
@@ -919,13 +1062,12 @@ defmodule Localize.Date.Parser do
     prefixed_indexed_capture(caps, prefix, "__e", ~r/__e(\d+)__$/)
   end
 
-  defp extract_month_by_name(caps, prefix), do: named_month_capture(caps, prefix)
-
   # The month a `<prefix>__mN__` capture names. A month name gives CLDR's
   # number for the month, `{:named, n}`, or `{:named, {n, :leap}}` for
   # CLDR's leap-year name of month `n` (the `7_yeartype_leap` capture,
-  # Hebrew "Adar II"). It becomes the month of the date only once the year
-  # is known (`named_month/3`).
+  # Hebrew "Adar II") or a name in the leap-month pattern (the `2_leap`
+  # capture, "Mo2bis"). It becomes the month of the date only once the
+  # year is known (`named_month/3`).
   defp named_month_capture(caps, prefix) do
     marker = prefix <> "__m"
 
@@ -945,6 +1087,7 @@ defmodule Localize.Date.Parser do
     case Integer.parse(index) do
       {n, ""} when n in 1..13 -> {:named, n}
       {n, "_yeartype_leap"} when n in 1..13 -> {:named, {n, :leap}}
+      {n, "_leap"} when n in 1..13 -> {:named, {n, :leap}}
       _other -> nil
     end
   end
@@ -1202,33 +1345,31 @@ defmodule Localize.Date.Parser do
   # then with a leading weekday stripped. A pass tries every spelling
   # before the next pass starts, so a strict match on either is
   # preferred to a lax one.
-  defp try_locale_patterns(inputs, locale, calendar_module, reference_year, as) do
+  defp try_locale_patterns(inputs, locale, calendar_module, reference, as) do
     cldr_calendar = cldr_calendar_type(calendar_module)
 
     with {:ok, available} <- Format.available_formats(locale, cldr_calendar),
          {:ok, months_data} <- LCalendar.months(locale, cldr_calendar) do
-      eras_data = maybe_load_eras(locale, cldr_calendar)
-      quarters_data = maybe_load_quarters(locale, cldr_calendar)
-      days_data = maybe_load_days(locale, cldr_calendar)
-      lenient = load_lenient_date(locale)
       transliterated = inputs |> Enum.map(&transliterate_digits(&1, locale)) |> Enum.uniq()
 
-      patterns =
+      # The first pattern to read the input wins, so they are taken in a
+      # fixed order: the locale's standard formats, which the formatter
+      # writes, then the available formats, which come from a map whose
+      # order varies between VM runs, the most specific first. So `de`'s
+      # "01.04.66 BE" is its short "dd.MM.yy G", not "d.M.y G" with the year
+      # 66, and `pl`'s Chinese "1 12 jia-chen" its medium "d MMM U".
+      available_patterns =
         available
-        |> Enum.concat(Format.standard_format_entries(locale, cldr_calendar))
         |> collect_patterns()
+        |> Enum.sort_by(fn {_skeleton, pattern} -> pattern_specificity(pattern) end)
 
-      ctx = %{
-        quarters: quarters_data,
-        days: days_data,
-        locale: locale,
-        months: months_data,
-        eras: eras_data,
-        lenient: lenient,
-        reference_year: reference_year,
-        calendar_module: calendar_module,
-        week_config: Localize.DateTime.Week.config(locale)
-      }
+      patterns =
+        Format.standard_format_entries(locale, cldr_calendar)
+        |> collect_patterns()
+        |> Enum.concat(available_patterns)
+        |> Enum.uniq_by(fn {_skeleton, pattern} -> pattern end)
+
+      ctx = field_context(locale, calendar_module, reference, months_data)
 
       # The compiled regex for each pattern is a pure function of
       # (locale, calendar) — the CLDR name data and lenient rules are
@@ -1236,6 +1377,7 @@ defmodule Localize.Date.Parser do
       # cached. Without this every parse (especially a *failing* one,
       # which exhausts all ~60 patterns) rebuilds and recompiles them.
       ctx = Map.put(ctx, :regexes, pattern_regexes(patterns, ctx))
+      ctx = Map.put(ctx, :mixed_years, mixed_year_fields?(patterns, ctx))
 
       result =
         case as do
@@ -1277,7 +1419,9 @@ defmodule Localize.Date.Parser do
   # tries no pattern without one, so "June 31" is not June 2031.
   defp run_locale_pass(patterns, input, ctx, {:map, :lax}) do
     {day_patterns, other_patterns} =
-      Enum.split_with(patterns, fn {_skeleton, pattern} -> pattern_has_day?(pattern) end)
+      Enum.split_with(patterns, fn {_skeleton, pattern} ->
+        pattern_has_day?(pattern_text(pattern))
+      end)
 
     case first_lax_match(day_patterns, input, ctx) do
       {:ok, map} ->
@@ -1294,6 +1438,22 @@ defmodule Localize.Date.Parser do
     end
   end
 
+  # Where the patterns write a year both as the calendar's year and as
+  # its related Gregorian year, the same digits read as years far apart
+  # (`ko`'s Chinese "4657. 5. 1." is "y. M. d." and "r. M. d."), so the
+  # reading nearest the reference year is taken.
+  defp run_locale_pass(patterns, input, %{mixed_years: true} = ctx, pass_as) do
+    patterns
+    |> Enum.flat_map(fn {_kind, pattern} ->
+      case match_pattern(input, pattern, ctx, pass_as) do
+        {:ok, %Date{} = date} -> [{:ok, convert_to(date, ctx.calendar_module)}]
+        {:ok, %{} = map} -> [{:ok, map}]
+        _no_match_or_error -> []
+      end
+    end)
+    |> Enum.min_by(&reading_distance(&1, ctx.reference_year), fn -> nil end)
+  end
+
   defp run_locale_pass(patterns, input, ctx, pass_as) do
     Enum.find_value(patterns, fn {_kind, pattern} ->
       case match_pattern(input, pattern, ctx, pass_as) do
@@ -1302,6 +1462,33 @@ defmodule Localize.Date.Parser do
         _no_match_or_error -> nil
       end
     end)
+  end
+
+  defp reading_distance({:ok, %{year: year}}, reference_year) when is_integer(year),
+    do: abs(year - reference_year)
+
+  defp reading_distance(_reading, _reference_year), do: 0
+
+  # Whether the patterns write the year both as the calendar's year (`y`)
+  # and as its related Gregorian year (`r`). Cached with the regexes.
+  defp mixed_year_fields?(patterns, ctx) do
+    key = {__MODULE__, :mixed_year_fields, ctx.locale, ctx.calendar_module}
+
+    case :persistent_term.get(key, nil) do
+      nil ->
+        letters =
+          for {_skeleton, pattern} <- patterns,
+              {letter, _count} when letter in [:y, :r] <- tokenize_pattern(pattern_text(pattern)),
+              into: MapSet.new(),
+              do: letter
+
+        mixed = MapSet.size(letters) == 2
+        :persistent_term.put(key, mixed)
+        mixed
+
+      mixed ->
+        mixed
+    end
   end
 
   # The first possible reading among `patterns` as `{:ok, map}`, else
@@ -1448,6 +1635,81 @@ defmodule Localize.Date.Parser do
     end
   end
 
+  # The locale's names and rules the fields of the calendar's patterns
+  # are read with, shared by date and interval patterns. `:numbers` is
+  # the numbering a pattern writes its fields in, set as each pattern is
+  # compiled.
+  defp field_context(locale, calendar_module, reference, months_data) do
+    cldr_calendar = cldr_calendar_type(calendar_module)
+    month_patterns = maybe_load_month_patterns(locale, cldr_calendar)
+
+    %{
+      quarters: maybe_load_quarters(locale, cldr_calendar),
+      days: maybe_load_days(locale, cldr_calendar),
+      locale: locale,
+      months: months_data,
+      eras: maybe_load_eras(locale, era_calendar_type(calendar_module)),
+      cyclic_years: maybe_load_cyclic_years(locale, cldr_calendar),
+      month_patterns: month_patterns,
+      traditional_months: traditional_months?(calendar_module, month_patterns),
+      numbers: %{},
+      two_digit_year: false,
+      lenient: load_lenient_date(locale),
+      reference_year: reference.year,
+      implied_era: implied_era(reference, calendar_module),
+      mixed_years: false,
+      calendar_module: calendar_module,
+      week_config: Localize.DateTime.Week.config(locale)
+    }
+  end
+
+  # The era a year written without one is of, in a calendar that writes
+  # its years as years of an era (the Japanese calendars): the reference
+  # date's, as ICU takes the current era. `nil` where the calendar's years
+  # are written as they are numbered.
+  defp implied_era(%{calendar: calendar_module} = reference, calendar_module) do
+    with {:ok, shown} when shown != reference.year <- LCalendar.displayed_year(reference),
+         {:ok, {_year_of_era, era}} <- LCalendar.year_of_era(reference) do
+      era
+    else
+      _year_as_numbered -> nil
+    end
+  end
+
+  defp implied_era(_reference, _calendar_module), do: nil
+
+  # The CLDR calendar a calendar names its eras from: its
+  # `era_calendar_type/0` where it has one (Calendrical's lunisolar
+  # Japanese calendar names its months from the Chinese calendar and its
+  # eras from the Japanese one), else its CLDR calendar type.
+  defp era_calendar_type(calendar_module) do
+    if function_exported?(calendar_module, :era_calendar_type, 0),
+      do: calendar_module.era_calendar_type(),
+      else: cldr_calendar_type(calendar_module)
+  end
+
+  # A lunisolar calendar writes a month as a number in its traditional
+  # numbering when the locale gives the calendar a numeric leap-month
+  # pattern, as the formatter does ("2bis", "闰2").
+  defp traditional_months?(calendar_module, month_patterns) do
+    function_exported?(calendar_module, :month_of_year, 3) and
+      match?([_ | _], get_in(month_patterns, [:numeric, :all, :leap]))
+  end
+
+  defp maybe_load_month_patterns(locale, calendar) do
+    case LCalendar.month_patterns(locale, calendar) do
+      {:ok, data} -> data
+      _ -> %{}
+    end
+  end
+
+  defp maybe_load_cyclic_years(locale, calendar) do
+    case LCalendar.cyclic_years(locale, calendar) do
+      {:ok, data} -> data
+      _ -> %{}
+    end
+  end
+
   defp maybe_load_quarters(locale, calendar) do
     case LCalendar.quarters(locale, calendar) do
       {:ok, data} -> data
@@ -1515,6 +1777,10 @@ defmodule Localize.Date.Parser do
   #   Match `"01-Feb-18"`, `"01/Jun./2018"`, `"01.Feb.2018"` etc.
   #   These forms are common in admin UIs, log lines, and ad-hoc
   #   input but aren't shipped as CLDR patterns.
+  defp swap_month_day_variants({pattern, numbers}) do
+    for swapped <- swap_month_day_variants(pattern), do: {swapped, numbers}
+  end
+
   defp swap_month_day_variants(pattern) do
     case swap_month_day(pattern) do
       nil ->
@@ -1590,9 +1856,9 @@ defmodule Localize.Date.Parser do
   defp detokenize_token({:lit, ""}), do: ""
 
   defp detokenize_token({:lit, text}) when is_binary(text) do
-    if Regex.match?(~r/[yYMdEGLcQqwWDeF]/u, text) do
-      # CLDR letters inside the literal need quoting so the
-      # re-tokenizer treats them as text, not field letters.
+    if Regex.match?(~r/[A-Za-z]/u, text) do
+      # ASCII letters, reserved as pattern letters (TR35), need
+      # quoting so the re-tokenizer treats them as text.
       # Escape internal single quotes with `''` per CLDR.
       "'" <> String.replace(text, "'", "''") <> "'"
     else
@@ -1610,6 +1876,12 @@ defmodule Localize.Date.Parser do
   defp resolve_pattern_variants(%{variant: variant, standard: standard})
        when is_binary(variant) and is_binary(standard),
        do: [variant, standard]
+
+  # A pattern that writes its fields in another numbering (`d=hanidays`
+  # in `zh`'s Chinese calendar) keeps it, so the fields are read in it.
+  defp resolve_pattern_variants(%{format: pattern, number_system: numbers})
+       when is_binary(pattern) and is_map(numbers),
+       do: [{pattern, numbers}]
 
   defp resolve_pattern_variants(%{format: pattern}) when is_binary(pattern),
     do: [pattern]
@@ -1667,7 +1939,7 @@ defmodule Localize.Date.Parser do
 
   defp field_token({char, count}), do: {String.to_atom(char), count}
 
-  defp cldr_letter?(char) when char in ~w(y Y M d E G L c Q q w W D e F), do: true
+  defp cldr_letter?(char) when char in ~w(y Y M d E G L c Q q w W D e F r U), do: true
   defp cldr_letter?(_), do: false
 
   defp compile_regex(tokens, months_data, eras_data, lenient, ctx) do
@@ -1718,11 +1990,13 @@ defmodule Localize.Date.Parser do
   # A calendar without a before era writes a year below 1 with its
   # sign (`-456 BE`), as ASCII hyphen-minus or U+2212 MINUS SIGN; the
   # two low-order digits of `yy` carry none.
-  defp field_regex({:y, count}, _months, _eras, _lenient, _ctx) do
+  defp field_regex({:y, count}, _months, _eras, _lenient, ctx) do
+    digit = digit_class(ctx, "y")
+
     regex =
       case count do
-        2 -> "(?P<year>\\d{2})"
-        _ -> "(?P<year>[-−]?\\d{1,4})"
+        2 -> "(?P<year>#{digit}{2})"
+        _ -> "(?P<year>[-−]?#{digit}{1,4})"
       end
 
     {:capture, :year, regex}
@@ -1742,19 +2016,54 @@ defmodule Localize.Date.Parser do
     {:capture, :week_based_year, regex}
   end
 
-  defp field_regex({:M, count}, _months, _eras, _lenient, _ctx) when count <= 2 do
-    {:capture, :month, "(?P<month>\\d{1,2})"}
+  # `r`, the related Gregorian year, is written in Latin digits (TR35).
+  defp field_regex({:r, _count}, _months, _eras, _lenient, _ctx) do
+    {:capture, :related_year, "(?P<related_year>[-−]?\\d{1,4})"}
   end
 
-  defp field_regex({:M, count}, months, _eras, _lenient, _ctx) when count in 3..5 do
-    {:capture, :month, month_name_regex(months, @month_name_widths[count])}
+  # `U`, the cyclic year name (甲子, "jia-zi"), or the year as `y`
+  # writes it where the locale has no cyclic names (TR35).
+  defp field_regex({:U, count}, months, eras, lenient, ctx) do
+    case cyclic_year_regex(Map.get(ctx, :cyclic_years), cyclic_width(count)) do
+      {:branches, regex} -> {:capture, :cyclic_year, regex}
+      :none -> field_regex({:y, count}, months, eras, lenient, ctx)
+    end
+  end
+
+  # A lunisolar calendar's month written as a number is its traditional
+  # number, a leap month in the locale's numeric leap pattern ("2bis",
+  # "闰2").
+  defp field_regex({:M, count}, _months, _eras, lenient, ctx) when count <= 2 do
+    digit = digit_class(ctx, "M")
+
+    case numeric_leap_affixes(ctx) do
+      nil ->
+        {:capture, :month, "(?P<month>#{digit}{1,2})"}
+
+      {prefix, suffix} ->
+        {:capture, :traditional_month,
+         optional_capture("month_leap_before", prefix, lenient) <>
+           "(?P<traditional_month>#{digit}{1,2})" <>
+           optional_capture("month_leap_after", suffix, lenient)}
+    end
+  end
+
+  defp field_regex({:M, count}, months, _eras, _lenient, ctx) when count in 3..5 do
+    month_patterns = Map.get(ctx, :month_patterns, %{})
+    {:capture, :month, month_name_regex(months, @month_name_widths[count], month_patterns)}
   end
 
   defp field_regex({:L, count}, months, eras, lenient, ctx),
     do: field_regex({:M, count}, months, eras, lenient, ctx)
 
-  defp field_regex({:d, _count}, _months, _eras, _lenient, _ctx) do
-    {:capture, :day, "(?P<day>\\d{1,2})"}
+  # A day written in an algorithmic numbering (`hanidays` in `zh`'s
+  # Chinese calendar: 初一, 十一, 廿一) is read as the formatter writes
+  # it.
+  defp field_regex({:d, _count}, _months, _eras, _lenient, ctx) do
+    case numeral_names(ctx, "d", 1..31) do
+      [] -> {:capture, :day, "(?P<day>#{digit_class(ctx, "d")}{1,2})"}
+      numerals -> {:capture, :day, numeral_regex(numerals, "__h")}
+    end
   end
 
   # `D` — day of year. 1..366 across the standard range.
@@ -1840,6 +2149,97 @@ defmodule Localize.Date.Parser do
     end
   end
 
+  # The digits a numeric field is written with: Latin (or the locale's
+  # own, read as Latin before matching) and those of the numbering the
+  # pattern writes the field in (`hanidec` 〇一二… in `ja`'s Chinese
+  # calendar).
+  defp digit_class(ctx, field) do
+    case numbering_digits(field_numbering(ctx, field)) do
+      [digits] -> "[\\d" <> Regex.escape(digits) <> "]"
+      [] -> "\\d"
+    end
+  end
+
+  defp field_numbering(ctx, field) do
+    numbers = Map.get(ctx, :numbers, %{})
+    Map.get(numbers, field) || Map.get(numbers, "all")
+  end
+
+  defp numbering_digits(system) do
+    case Map.get(Localize.Number.System.number_systems(), system) do
+      %{type: :numeric, digits: digits} when is_binary(digits) -> [digits]
+      _algorithmic_or_none -> []
+    end
+  end
+
+  # The numerals an algorithmic numbering (`hanidays`) writes for each
+  # of `values` of `field`, as the formatter writes them.
+  defp numeral_names(ctx, field, values) do
+    with system when not is_nil(system) <- field_numbering(ctx, field),
+         %{type: :algorithmic} <- Map.get(Localize.Number.System.number_systems(), system) do
+      for value <- values,
+          {:ok, numeral} <-
+            [Localize.DateTime.Formatter.number_in_system(value, system, ctx.locale)],
+          do: {value, numeral}
+    else
+      _numeric_or_none -> []
+    end
+  end
+
+  defp numeral_regex(numerals, marker) do
+    branches =
+      numerals
+      |> Enum.sort_by(fn {_value, numeral} -> -byte_size(numeral) end)
+      |> Enum.map_join("|", fn {value, numeral} ->
+        "(?P<#{marker}#{value}__>#{Regex.escape(numeral)})"
+      end)
+
+    "(?:" <> branches <> ")"
+  end
+
+  # The text before and after a month's number in the locale's numeric
+  # leap-month pattern, in a calendar that writes its months in their
+  # traditional numbering: `{"", "bis"}` in `en`, `{"闰", ""}` in `zh`.
+  defp numeric_leap_affixes(%{traditional_months: true, month_patterns: month_patterns}) do
+    case Enum.split_while(get_in(month_patterns, [:numeric, :all, :leap]), &(&1 != 0)) do
+      {prefix, [0 | suffix]} -> {Enum.join(prefix), Enum.join(suffix)}
+      _no_placeholder -> nil
+    end
+  end
+
+  defp numeric_leap_affixes(_ctx), do: nil
+
+  defp optional_capture(_name, "", _lenient), do: ""
+
+  defp optional_capture(name, text, lenient),
+    do: "(?P<#{name}>" <> expand_literal(text, lenient) <> ")?"
+
+  # The locale's cyclic year names, by place in the cycle. CLDR gives
+  # abbreviated names; a name of any width is read.
+  defp cyclic_year_regex(cyclic_years, width) when is_map(cyclic_years) do
+    names_by_width = get_in(cyclic_years, [:years, :format]) || %{}
+
+    declared =
+      indexed_names(Map.get(names_by_width, width) || Map.get(names_by_width, :abbreviated))
+
+    lenient =
+      Enum.flat_map([:wide, :abbreviated, :narrow], &indexed_names(Map.get(names_by_width, &1)))
+
+    grouped_name_regex(declared, lenient, "__u")
+  end
+
+  defp cyclic_year_regex(_cyclic_years, _width), do: :none
+
+  defp cyclic_width(count) when count in 1..3, do: :abbreviated
+  defp cyclic_width(4), do: :wide
+  defp cyclic_width(_count), do: :narrow
+
+  defp indexed_names(names) when is_map(names) do
+    for {index, name} when is_integer(index) and is_binary(name) <- names, do: {index, name}
+  end
+
+  defp indexed_names(_names), do: []
+
   defp expand_literal(text, lenient) do
     text
     |> String.graphemes()
@@ -1890,7 +2290,7 @@ defmodule Localize.Date.Parser do
   defp space_char?("　"), do: true
   defp space_char?(_), do: false
 
-  defp month_name_regex(months_data, _declared_width) do
+  defp month_name_regex(months_data, _declared_width, month_patterns) do
     # CLDR TR35 §6.5 (lenient parsing): the pattern declares a
     # width (`MMM` = abbreviated, `MMMM` = wide), but real-world
     # input may use any of them. We accept both wide and
@@ -1932,7 +2332,34 @@ defmodule Localize.Date.Parser do
     # `(?i:...)` per CLDR TR35 §6.5 — month-name matching is
     # case-insensitive, so French "Mai" matches lowercase "mai"
     # in CLDR data, English "MAY" matches "May", etc.
-    "(?i:" <> Enum.join(branches, "|") <> ")"
+    "(?i:" <> Enum.join(leap_month_branches(months_data, month_patterns) ++ branches, "|") <> ")"
+  end
+
+  # A lunisolar calendar's leap months: each month's name in the
+  # locale's leap-month pattern for its context and width ("Mo2bis",
+  # "闰二月"), tried before the plain names they contain.
+  defp leap_month_branches(months_data, month_patterns) do
+    for context <- [:format, :stand_alone],
+        width <- [:wide, :abbreviated],
+        [_ | _] = pattern <- [get_in(month_patterns, [context, width, :leap])],
+        {index, name} when is_integer(index) and is_binary(name) <-
+          get_in(months_data, [context, width]) || %{} do
+      {index, leap_month_name(name, pattern), width}
+    end
+    |> Enum.group_by(&elem(&1, 0), fn {_index, name, width} -> {name, width} end)
+    |> Enum.map(fn {index, name_widths} ->
+      forms =
+        name_widths
+        |> Enum.uniq_by(fn {name, _width} -> name end)
+        |> Enum.sort_by(fn {name, _width} -> -byte_size(name) end)
+        |> Enum.map_join("|", &name_form/1)
+
+      "(?P<__m#{index}_leap__>#{forms})"
+    end)
+  end
+
+  defp leap_month_name(name, pattern) do
+    [name] |> Localize.Substitution.substitute(pattern) |> IO.iodata_to_binary()
   end
 
   # The literal form one branch contributes to the alternation
@@ -2095,10 +2522,12 @@ defmodule Localize.Date.Parser do
   # `:lenient`, `:reference_year`, `:calendar_module`, plus the
   # `:days`/`:quarters`/`:locale` keys read by `field_regex/5`.
   # Returns %{pattern => compiled_regex_or_nil} for every pattern, cached
-  # in :persistent_term keyed by {locale, calendar}. One write per cold
-  # (locale, calendar); every later parse reads precompiled regexes.
+  # in :persistent_term keyed by {locale, calendar module}: calendars that
+  # share a CLDR type can name their eras or number their months
+  # differently. One write per cold (locale, calendar); every later parse
+  # reads precompiled regexes.
   defp pattern_regexes(patterns, ctx) do
-    key = {__MODULE__, :pattern_regexes, ctx.locale, cldr_calendar_type(ctx.calendar_module)}
+    key = {__MODULE__, :pattern_regexes, ctx.locale, ctx.calendar_module}
 
     case :persistent_term.get(key, nil) do
       nil ->
@@ -2116,7 +2545,8 @@ defmodule Localize.Date.Parser do
   end
 
   defp build_pattern_regex(pattern, ctx) do
-    tokens = tokenize_pattern(pattern)
+    ctx = %{ctx | numbers: pattern_numbers(pattern)}
+    tokens = tokenize_pattern(pattern_text(pattern))
     regex_string = compile_regex(tokens, ctx.months, ctx.eras, ctx.lenient, ctx)
 
     case Regex.compile(regex_string, "u") do
@@ -2130,18 +2560,38 @@ defmodule Localize.Date.Parser do
   defp match_pattern(input, pattern, ctx, as) do
     with %Regex{} = regex <- Map.get(ctx.regexes, pattern),
          %{} = caps <- Regex.named_captures(regex, input) do
-      match_captures(caps, ctx, as)
+      tokens = pattern |> pattern_text() |> tokenize_pattern()
+
+      caps
+      |> latin_digits(pattern_numbers(pattern))
+      |> match_captures(%{ctx | two_digit_year: two_digit_year?(tokens)}, as)
     else
       _ -> :no_match
     end
+  end
+
+  # Whether a pattern writes its year as `yy`, its two low-order digits.
+  defp two_digit_year?(tokens), do: Enum.member?(tokens, {:y, 2})
+
+  # Fields the pattern writes in a numbering with digits of its own
+  # (`hanidec` 〇一二…) are read as Latin digits.
+  defp latin_digits(caps, numbers) when map_size(numbers) == 0, do: caps
+
+  defp latin_digits(caps, numbers) do
+    numbers
+    |> Map.values()
+    |> Enum.uniq()
+    |> Enum.flat_map(&numbering_digits/1)
+    |> Enum.reduce(caps, fn digits, caps ->
+      Map.new(caps, fn {key, value} -> {key, digit_translate(value, digits)} end)
+    end)
   end
 
   defp match_captures(caps, ctx, as) do
     year_fallback = year_fallback_for(as, ctx.reference_year)
 
     with {:ok, era_index} <- extract_era(caps),
-         {:ok, fields} <-
-           extract_fields(caps, year_fallback, era_index, ctx.calendar_module, ctx.week_config) do
+         {:ok, fields} <- extract_fields(caps, year_fallback, era_index, ctx) do
       match_result_for(as, fields, caps, ctx)
     else
       _ -> :error
@@ -2197,7 +2647,8 @@ defmodule Localize.Date.Parser do
   end
 
   defp year_captured?(caps) do
-    non_empty?(caps, "year") or non_empty?(caps, "week_based_year")
+    non_empty?(caps, "year") or non_empty?(caps, "week_based_year") or
+      non_empty?(caps, "related_year") or not is_nil(named_capture_index(caps, "__u"))
   end
 
   defp non_empty?(caps, key) do
@@ -2237,14 +2688,13 @@ defmodule Localize.Date.Parser do
   # strategy. Most patterns supply only a subset; the
   # strategy table below resolves which combination yields a
   # full Date.
-  defp extract_fields(caps, reference_year, era_index, calendar_module, week_config) do
-    month = extract_optional_month(caps)
-    day = extract_optional_day(caps)
+  defp extract_fields(caps, year_fallback, era_index, ctx) do
+    %{calendar_module: calendar_module, week_config: week_config} = ctx
+    month = extract_month(caps, "")
+    day = extract_day(caps, "")
 
-    with {:ok, year_of_era} <-
-           extract_year_field(caps, reference_year, era_index, calendar_module),
-         {:ok, calendar_year} <-
-           resolve_calendar_year(year_of_era, era_index, calendar_module, {month, day}) do
+    with {:ok, calendar_year} <-
+           extract_calendar_year(caps, "", year_fallback, era_index, ctx, {month, day}) do
       reject_invalid(%{
         year: calendar_year,
         month: named_month(month, calendar_year, calendar_module),
@@ -2272,48 +2722,11 @@ defmodule Localize.Date.Parser do
       else: {:ok, fields}
   end
 
-  # The 2-digit-year pivot is a Gregorian convention. For era-
-  # aware calendars (Japanese imperial, ROC, etc.) the year
-  # value is meant literally (`平成12年` = Heisei year 12,
-  # not "the year '12 ≈ 2012"), so pivoting would corrupt the
-  # input, as it would a year its era qualifies ("44 BC").
-  # Year field is required by `extract_fields`. Falls back to
-  # `year_fallback` when no `y`/`Y` was captured: in `:struct`
-  # mode this is the reference year (so patterns like `MMM d`
-  # parse against the current year); in `:map` mode it's `nil`
-  # (so the year stays absent from the result map).
-  defp extract_year_field(caps, year_fallback, era_index, calendar_module) do
-    case Map.get(caps, "year") || Map.get(caps, "week_based_year") do
-      raw when is_binary(raw) and raw != "" ->
-        case parse_year(raw) do
-          {n, ""} ->
-            reference_year = year_fallback || Date.utc_today().year
-
-            {:ok, maybe_pivot_two_digit_year(n, raw, era_index, reference_year, calendar_module)}
-
-          _ ->
-            :error
-        end
-
-      _ ->
-        {:ok, year_fallback}
-    end
-  end
-
   defp pivot_year(two_digit, reference_year) do
     century_base = div(reference_year - 80, 100) * 100
     candidate = century_base + two_digit
     if candidate < reference_year - 80, do: candidate + 100, else: candidate
   end
-
-  defp extract_optional_month(%{"month" => raw}) when raw != "" do
-    case Integer.parse(raw) do
-      {n, ""} when n in 1..13 -> n
-      _ -> :invalid
-    end
-  end
-
-  defp extract_optional_month(caps), do: named_month_capture(caps, "")
 
   # A month name gives CLDR's number for the month. It is the month of the
   # date only in a calendar that numbers its months that way; the month is
@@ -2365,15 +2778,6 @@ defmodule Localize.Date.Parser do
         Enum.find(months, &(calendar_module.month_of_year(year, &1, 1) == {month, :leap}))
     end
   end
-
-  defp extract_optional_day(%{"day" => raw}) when raw != "" do
-    case Integer.parse(raw) do
-      {n, ""} when n in 1..31 -> n
-      _ -> :invalid
-    end
-  end
-
-  defp extract_optional_day(_), do: nil
 
   # Quarter capture comes in two flavors: numeric capture
   # under `quarter`, or one of the named branches
@@ -2509,14 +2913,16 @@ defmodule Localize.Date.Parser do
   # The calendar's year that the formatter writes as `year` of era
   # `era_index`. A forward era counts years as they are and a before era
   # counts back, from year 0 in a calendar that has one (1 BC) and from
-  # year -1 in one that does not, so those are the candidates, each asked
-  # of the calendar through the functions the formatter uses. The month and
+  # year -1 in one that does not; an era that begins before the calendar's
+  # first year counts from the calendar year it begins in, so Amete Alem
+  # 5495 is the Ethiopic year -5. Those are the candidates, each asked of
+  # the calendar through the functions the formatter uses. The month and
   # day, where the input has them as numbers, settle an era that begins
   # mid-year.
   defp year_in_era(year, era_index, calendar_module, {month, day}) do
     probe = era_probe(calendar_module, era_month(month), era_day(day))
 
-    [year, -year, 1 - year]
+    ([year, -year, 1 - year] ++ counted_from_era_start(year, era_index, calendar_module))
     |> Enum.uniq()
     |> Enum.find(&written_as?(Map.put(probe, :year, &1), year, era_index))
     |> case do
@@ -2525,9 +2931,46 @@ defmodule Localize.Date.Parser do
     end
   end
 
+  # The year of era `era_index` counted from the calendar year the era
+  # begins in, where the calendar's eras have more than one beginning.
+  defp counted_from_era_start(year, era_index, calendar_module) do
+    starts = era_starts(calendar_module)
+
+    with true <- map_size(starts) > 1 and convertible?(calendar_module),
+         {:ok, [start_year, start_month, start_day]} <- Map.fetch(starts, era_index),
+         {:ok, start} <- Date.new(start_year, start_month, start_day),
+         {:ok, %{year: first_year}} <- Date.convert(start, calendar_module) do
+      [first_year + year - 1]
+    else
+      _no_era_start -> []
+    end
+  end
+
+  defp era_starts(calendar_module) do
+    Localize.SupplementalData.calendars()
+    |> get_in([era_calendar_type(calendar_module), :eras])
+    |> List.wrap()
+    |> Enum.flat_map(fn
+      [era, %{start: start}] -> [{era, start}]
+      _before_era -> []
+    end)
+    |> Map.new()
+  end
+
+  # A candidate year the calendar does not hold is not asked about: a
+  # calendar may raise for a year outside the range it computes, as
+  # Calendrical's Persian calendar does outside Gregorian 1001 to 3000.
   defp written_as?(date, year, era_index) do
-    Localize.Calendar.displayed_year(date) == {:ok, year} and
+    calendar_holds?(date) and
+      Localize.Calendar.displayed_year(date) == {:ok, year} and
       match?({:ok, {_year_of_era, ^era_index}}, Localize.Calendar.year_of_era(date))
+  end
+
+  # Asked of the year's first day: the probe's month may be a lunisolar
+  # month's traditional number, where the calendar counts months by their
+  # place in the year.
+  defp calendar_holds?(%{calendar: calendar, year: year}) do
+    not function_exported?(calendar, :valid_date?, 3) or calendar.valid_date?(year, 1, 1)
   end
 
   defp era_probe(calendar_module, nil, _day), do: %{calendar: calendar_module}

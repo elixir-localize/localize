@@ -88,6 +88,26 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+* `Localize.Interval.to_string/3` and `to_parts/3` format with the formats of the endpoints' calendar — its interval patterns, date and time formats and date-time pattern — where they used the Gregorian calendar's, and return an error for endpoints in two calendars.
+
+* An interval across a change of era shows each endpoint's era, as ICU does: "Dec 31, 1 BC – Jan 1, 1 AD", and "Apr 30, 31 Heisei – May 1, 1 Reiwa" across the Japanese era change within 2019.
+
+* An interval whose endpoints differ in no field it shows is the date in the requested standard format, as `Localize.Date.to_string/2` and ECMA-402 write it (`ko` "2023. 4. 1." where it was "2023/4/1"), and a date-time interval formatted whole honours `:style`.
+
+* `Localize.DateTime.parse/2` returns the date-time where it raised for every calendar but `Calendar.ISO`, and reads a date-time pattern that puts the time first, as `vi`'s "{0} {1}" does.
+
+* The date parser tries the locale's standard formats first and then its available formats most specific first, where their order varied between runs, and reads a `yy` year beside the era of a calendar numbering its years as they are in the century around the reference year ("01.04.66 BE" is 2566 BE).
+
+* `Localize.DateTime.to_string/2` and `Localize.Time.to_string/2` resolve formats in the value's calendar — its date-time pattern, available formats and append items — where they used the Gregorian calendar's, and `Localize.DateTime.parse/2` reads the calendar's date-time pattern as well as the Gregorian one.
+
+* The date and interval parsers read a lunisolar date as the formatter and ICU4C write it: `r`, `U` (the year of that name nearest the reference date), leap months ("Mo2bis", "闰二月", "2bis") in their traditional numbering, and `zh`'s `hanidays` and `ja`'s `hanidec` numerals. Where a locale writes the year both as the calendar's and as the related year (`ko`'s "y. M. d." and "r. M. d."), the nearer reading is taken.
+
+* A date read without its year is completed with the reference date's year in the calendar it is read in, so "15 Nisan" in the Hebrew calendar is in 5786 where it was in the Hebrew year 2026, and a two-digit year is read in the century around it in every calendar.
+
+* Era names come from a calendar's `era_calendar_type/0` where it has one, so Calendrical's lunisolar Japanese calendar names its eras (令和) where it returned an error, and the parser reads a year written without its era in such a calendar as a year of the reference date's era, as ICU reads one.
+
+* The date parser reads a year of an era that begins before the calendar's first year from the calendar year it begins in, so "Hedar 15, 5495 AA" is the Ethiopic year -5, as Calendrical numbers it.
+
 * A lunisolar month written as a number is its traditional number, and a leap month is in CLDR's numeric leap pattern, as ICU4C writes them — the Chinese leap second month is "2bis" in `en` and "闰2" in `zh` where it was its place in the year. A partial lunisolar date writes its related and cyclic year.
 
 * The date parser reads a year written with its sign, as a calendar without a before era writes one below 1 — "Mar 15, -456 BE" in the Buddhist calendar — and never pivots a signed year.

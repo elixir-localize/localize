@@ -79,4 +79,23 @@ defmodule Localize.DateTime.ParserTest do
                )
     end
   end
+
+  # ICU4C 78.3 writes `vi`'s short, medium and long date-times
+  # "HH:mm d/M/yy", "HH:mm:ss d MMM, y" and "'lúc' HH:mm:ss z d MMMM, y":
+  # CLDR's `vi` date-time patterns are "{0} {1}" and "'lúc' {0} {1}", the
+  # time first.
+  describe "Localize.DateTime.parse/2 — a date-time pattern with the time first" do
+    test "reads the time before the date" do
+      assert Localize.DateTime.parse("10:05 1/4/23", locale: :vi) ==
+               {:ok, ~N[2023-04-01 10:05:00]}
+
+      assert Localize.DateTime.parse("10:05:00 1 thg 4, 2023", locale: :vi) ==
+               {:ok, ~N[2023-04-01 10:05:00]}
+    end
+
+    test "reads the literal text the pattern puts before the time" do
+      assert Localize.DateTime.parse("lúc 10:05:00 UTC 1 tháng 4, 2023", locale: :vi) ==
+               {:ok, ~U[2023-04-01 10:05:00Z]}
+    end
+  end
 end

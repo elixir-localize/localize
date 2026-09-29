@@ -835,6 +835,18 @@ defmodule Localize.DateTime.Formatter do
     Map.get(overrides, field) || Map.get(overrides, "all")
   end
 
+  @doc false
+  # `n` as a date field writes it in the numbering system `system`
+  # (`hanidays` writes 21 as "廿一"), for the parser to read the
+  # numerals the formatter writes.
+  @spec number_in_system(integer(), atom(), Localize.locale()) :: {:ok, String.t()} | :error
+  def number_in_system(n, system, locale_id) when is_integer(n) do
+    case transliterate_to_number_system(Integer.to_string(n), system, locale_id) do
+      string when is_binary(string) -> {:ok, string}
+      nil -> :error
+    end
+  end
+
   # Resolve a CLDR number-system atom (`:hebr`, `:jpanyear`,
   # `:arab`, …) to a renderer. Numeric systems get a digit
   # table; algorithmic systems get a CLDR RBNF rule name that
@@ -955,11 +967,11 @@ defmodule Localize.DateTime.Formatter do
   # Counts 1..3 select the abbreviated width, 4 wide and 5 narrow
   # per TR35. When the calendar module exports `cyclic_year/3`
   # (the Calendrical protocol, probed like `cldr_calendar_type/0`)
-  # its elapsed cyclic year is used; otherwise the date's year is
-  # assumed to already be an elapsed year. CLDR keys cyclic names
-  # by cycle position 1..60, so the elapsed year reduces via
-  # `amod/2` before lookup. Without a cyclic name for the year and
-  # width, TR35 formats the year exactly as `y` would.
+  # it gives the year's place in the cycle; otherwise the date's
+  # year is taken as a count of years from a cycle's start. CLDR
+  # keys cyclic names by cycle position 1..60, so the number reduces
+  # via `amod/2` before lookup. Without a cyclic name for the year
+  # and width, TR35 formats the year exactly as `y` would.
   @doc false
   def cyclic_year(%{year: year} = date, count, locale_id, options)
       when is_integer(year) and count in 1..5 do

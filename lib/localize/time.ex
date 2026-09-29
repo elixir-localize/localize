@@ -508,20 +508,20 @@ defmodule Localize.Time do
   # `:medium`/`:long`/`:full`); arbitrary maps with `:hour`/`:minute`/
   # `:second` may carry zone data the caller wants honoured, and
   # explicit skeletons are the user's deliberate choice.
-  defp strip_zone_for_time_struct(format, %Time{}, original, locale_id)
+  defp strip_zone_for_time_struct(format, %Time{} = time, original, locale_id)
        when original in @standard_formats do
-    do_strip_zone_chars(format, locale_id)
+    do_strip_zone_chars(format, {locale_id, cldr_calendar_for(time)})
   end
 
-  defp strip_zone_for_time_struct(format, %NaiveDateTime{}, original, locale_id)
+  defp strip_zone_for_time_struct(format, %NaiveDateTime{} = time, original, locale_id)
        when original in @standard_formats do
-    do_strip_zone_chars(format, locale_id)
+    do_strip_zone_chars(format, {locale_id, cldr_calendar_for(time)})
   end
 
   defp strip_zone_for_time_struct(format, _time, _original, _locale_id), do: format
 
-  defp do_strip_zone_chars(format, locale_id) when format in @standard_formats do
-    case Localize.DateTime.Format.time_formats(locale_id) do
+  defp do_strip_zone_chars(format, {locale_id, calendar}) when format in @standard_formats do
+    case Localize.DateTime.Format.time_formats(locale_id, calendar) do
       {:ok, %{} = formats} ->
         case Map.get(formats, format) do
           skeleton when is_atom(skeleton) -> strip_zone_chars_from_atom(skeleton, format)
@@ -533,11 +533,11 @@ defmodule Localize.Time do
     end
   end
 
-  defp do_strip_zone_chars(format, _locale_id) when is_atom(format) do
+  defp do_strip_zone_chars(format, _lookup) when is_atom(format) do
     strip_zone_chars_from_atom(format, format)
   end
 
-  defp do_strip_zone_chars(format, _locale_id), do: format
+  defp do_strip_zone_chars(format, _lookup), do: format
 
   # A rewrite of an atom the caller or the locale data already holds, so it
   # adds at most one atom per skeleton.
@@ -585,26 +585,32 @@ defmodule Localize.Time do
   # A semantic skeleton names the meaning wanted rather than the fields; it
   # resolves to a classical skeleton and takes the same path from there.
   defp find_format(time, %Localize.DateTime.SemanticSkeleton{} = semantic, locale_id, options) do
+    calendar = cldr_calendar_for(time)
+
     with {:ok, skeleton} <-
            Localize.DateTime.SemanticSkeleton.classical_skeleton(
              semantic,
              locale_id,
-             :gregorian,
+             calendar,
              time
            ) do
       skeleton
-      |> resolve_skeleton(locale_id, options)
+      |> resolve_skeleton({locale_id, calendar}, options)
       |> apply_semantic_variations(semantic)
       |> Localize.DateTime.Formatter.explain_unresolved(time, skeleton)
     end
   end
 
+  # A time takes the formats of its calendar, as a date does: CLDR gives
+  # each calendar its own `availableFormats`.
   defp find_format(time, format, locale_id, options) when is_atom(format) do
+    calendar = cldr_calendar_for(time)
+
     if format in @standard_formats and is_full_time(time) do
-      Localize.DateTime.Format.resolve_format(:time, format, locale_id, :gregorian, options)
+      Localize.DateTime.Format.resolve_format(:time, format, locale_id, calendar, options)
     else
       format
-      |> resolve_skeleton(locale_id, options)
+      |> resolve_skeleton({locale_id, calendar}, options)
       |> Localize.DateTime.Formatter.explain_unresolved(time, format)
     end
   end
@@ -625,11 +631,12 @@ defmodule Localize.Time do
   # Fractional seconds (S) never participate in skeleton matching
   # per TR35: the S field is stripped before resolution and appended
   # to the seconds field of the resolved pattern afterwards.
-  defp resolve_skeleton(skeleton, locale_id, options) when is_atom(skeleton) do
+  defp resolve_skeleton(skeleton, {locale_id, _calendar} = lookup, options)
+       when is_atom(skeleton) do
     {skeleton, fraction_count} =
       Localize.DateTime.Format.Match.split_fractional_seconds(skeleton)
 
-    with {:ok, pattern} <- do_resolve_skeleton(skeleton, locale_id, options) do
+    with {:ok, pattern} <- do_resolve_skeleton(skeleton, lookup, options) do
       {:ok,
        Localize.DateTime.Format.Match.append_fractional_seconds(
          pattern,
@@ -639,13 +646,13 @@ defmodule Localize.Time do
     end
   end
 
-  defp do_resolve_skeleton(skeleton, locale_id, options)
+  defp do_resolve_skeleton(skeleton, {locale_id, calendar} = lookup, options)
        when is_atom(skeleton) or is_binary(skeleton) do
     with {:ok, available} <-
-           Localize.DateTime.Format.available_formats(locale_id, :gregorian) do
+           Localize.DateTime.Format.available_formats(locale_id, calendar) do
       case Map.get(available, skeleton) do
         nil ->
-          resolve_skeleton_via_best_match(skeleton, locale_id, options)
+          resolve_skeleton_via_best_match(skeleton, lookup, options)
 
         %{} = variant_map ->
           variant_map
@@ -661,10 +668,10 @@ defmodule Localize.Time do
   # Ask `best_match` for the nearest skeleton when the exact
   # skeleton is not in `available_formats`. A combined date+time
   # match is not applicable for time-only formatting.
-  defp resolve_skeleton_via_best_match(skeleton, locale_id, options) do
-    case Localize.DateTime.Format.Match.best_match(skeleton, locale_id) do
+  defp resolve_skeleton_via_best_match(skeleton, {locale_id, calendar} = lookup, options) do
+    case Localize.DateTime.Format.Match.best_match(skeleton, locale_id, calendar) do
       {:ok, matched_id} when is_atom(matched_id) ->
-        with {:ok, pattern} <- resolve_skeleton(matched_id, locale_id, options) do
+        with {:ok, pattern} <- resolve_skeleton(matched_id, lookup, options) do
           # See the note in `Localize.Date`: TR35 adjusts the matched
           # format's field widths to those requested.
           {:ok, tokens} = Localize.DateTime.Format.Match.tokenize_skeleton(skeleton)
@@ -684,7 +691,7 @@ defmodule Localize.Time do
         case Localize.DateTime.Format.AppendItems.augment(
                skeleton,
                locale_id,
-               :gregorian,
+               calendar,
                options
              ) do
           {:ok, pattern} -> {:ok, pattern}
@@ -704,6 +711,23 @@ defmodule Localize.Time do
   defp variant_pattern_result(pattern, _skeleton, _locale_id) do
     {:ok, pattern}
   end
+
+  # Mirrors the same helper in `Localize.Date`: a calendar module opts in by
+  # exposing `cldr_calendar_type/0`, probed rather than depended on. A time
+  # map without a calendar is a `Calendar.ISO` time.
+  defp cldr_calendar_for(%{calendar: Calendar.ISO}), do: :gregorian
+
+  defp cldr_calendar_for(%{calendar: module}) when is_atom(module) do
+    Code.ensure_loaded?(module)
+
+    if function_exported?(module, :cldr_calendar_type, 0) do
+      module.cldr_calendar_type()
+    else
+      :gregorian
+    end
+  end
+
+  defp cldr_calendar_for(_time), do: :gregorian
 
   @doc false
   # The skeleton is built from three fixed symbols, so at most seven atoms

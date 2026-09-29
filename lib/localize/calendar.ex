@@ -783,7 +783,8 @@ defmodule Localize.Calendar do
   def localize(datetime, :era, options) when is_keyword_list(options) do
     with {:ok, era} <- era_of(datetime) do
       era_key = if options[:era] == :variant, do: -era - 1, else: era
-      display_name(:era, era_key, localize_options(datetime, options))
+      options = Keyword.put_new(options, :calendar, era_calendar_type_from(datetime))
+      display_name(:era, era_key, options)
     end
   end
 
@@ -1233,6 +1234,18 @@ defmodule Localize.Calendar do
   end
 
   defp calendar_type_from(_), do: @default_calendar_type
+
+  # A calendar may name its eras from another CLDR calendar than its
+  # months: Calendrical's lunisolar Japanese calendar takes its month
+  # names from the Chinese calendar and its eras (元号) from the
+  # Japanese one, through its `era_calendar_type/0`.
+  defp era_calendar_type_from(%{calendar: calendar} = datetime) when is_atom(calendar) do
+    if Code.ensure_loaded?(calendar) and function_exported?(calendar, :era_calendar_type, 0),
+      do: calendar.era_calendar_type(),
+      else: calendar_type_from(datetime)
+  end
+
+  defp era_calendar_type_from(datetime), do: calendar_type_from(datetime)
 
   @doc false
   # The year of era and the era of a date, whole or partial, from its

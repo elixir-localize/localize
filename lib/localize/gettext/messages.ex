@@ -108,7 +108,7 @@ defmodule Localize.Gettext.Messages do
         Localize.Gettext,
         "localize",
         "datetime",
-        "Unknown interval style {$style} or format {$format}."
+        "Unknown interval fields {$fields} or format {$format}."
       ),
       Gettext.Macros.dpgettext_noop_with_backend(
         Localize.Gettext,
@@ -127,6 +127,12 @@ defmodule Localize.Gettext.Messages do
         "localize",
         "datetime",
         "Interval endpoints must be the same kind of value. Found {$detail}."
+      ),
+      Gettext.Macros.dpgettext_noop_with_backend(
+        Localize.Gettext,
+        "localize",
+        "datetime",
+        "Interval endpoints must be in the same calendar. Found {$detail}."
       ),
 
       # Language tag

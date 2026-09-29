@@ -67,4 +67,12 @@ defmodule Localize.DateTimeIntervalFormatError do
       detail: detail
     )
   end
+
+  def message(%__MODULE__{reason: :mixed_calendars, detail: detail}) do
+    Localize.Exception.safe_message(
+      "datetime",
+      "Interval endpoints must be in the same calendar. Found {$detail}.",
+      detail: detail
+    )
+  end
 end

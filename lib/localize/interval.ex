@@ -7,6 +7,8 @@ defmodule Localize.Interval do
   The format is selected based on the greatest calendar field
   difference between the start and end values.
 
+  An interval is formatted with the formats of its endpoints' calendar: its interval patterns, its date and time formats, and the date-time pattern joining a date to a time range. Both endpoints must therefore be in the same calendar. An era is a calendar field like any other, so endpoints in different eras show their eras where the locale has a pattern for them, as ICU does: "Dec 31, 1 BC – Jan 1, 1 AD".
+
   """
 
   import Kernel, except: [to_string: 1]
@@ -68,11 +70,13 @@ defmodule Localize.Interval do
   ("1/2022" … "3/2022") and spelled out for `format: :long`
   ("January" … "March 2022").
 
+  Endpoints that differ in no field the interval shows are formatted once: whole dates in the requested standard format, exactly as `Localize.Date.to_string/2` renders them.
+
   ### Returns
 
   * `{:ok, formatted_string}` on success.
 
-  * `{:error, exception}` on failure.
+  * `{:error, exception}` on failure, including endpoints in different calendars.
 
   ### Examples
 
@@ -194,8 +198,17 @@ defmodule Localize.Interval do
     end
   end
 
+  # An interval is formatted with the formats of its endpoints' calendar, so
+  # endpoints in two calendars have none to share, as for ICU.
   defp format_closed_interval(from, to, options, output) do
     cond do
+      calendar_of(from) != calendar_of(to) ->
+        {:error,
+         Localize.DateTimeIntervalFormatError.exception(
+           reason: :mixed_calendars,
+           detail: "#{inspect(calendar_of(from))} and #{inspect(calendar_of(to))}"
+         )}
+
       datetime_value?(from) and datetime_value?(to) ->
         format_datetime_interval(from, to, options, output)
 
@@ -238,6 +251,31 @@ defmodule Localize.Interval do
   defp time_value?(%{hour: _} = map), do: not Map.has_key?(map, :year)
   defp time_value?(_), do: false
 
+  # A value's calendar module; a map without one is taken as `Calendar.ISO`,
+  # as the formatters take it.
+  defp calendar_of(value) when is_map(value), do: Map.get(value, :calendar, Calendar.ISO)
+  defp calendar_of(_value), do: Calendar.ISO
+
+  # The CLDR calendar whose formats a value is formatted with. Mirrors the
+  # same helper in `Localize.Date`: a calendar module opts in by exposing
+  # `cldr_calendar_type/0`, probed rather than depended on.
+  defp cldr_calendar_for(%{calendar: Calendar.ISO}), do: :gregorian
+
+  defp cldr_calendar_for(%{calendar: module}) when is_atom(module) do
+    Code.ensure_loaded?(module)
+
+    if function_exported?(module, :cldr_calendar_type, 0) do
+      module.cldr_calendar_type()
+    else
+      :gregorian
+    end
+  end
+
+  defp cldr_calendar_for(_value), do: :gregorian
+
+  defp interval_formats(locale_id, value),
+    do: Localize.DateTime.Format.interval_formats(locale_id, cldr_calendar_for(value))
+
   # ── Date-only interval (the original path) ──────────────────
 
   defp format_date_interval(from, to, options, output) do
@@ -255,7 +293,7 @@ defmodule Localize.Interval do
     fields = Keyword.get(options, :fields, @default_fields)
 
     with {:ok, locale_id} <- resolve_locale_id(locale) do
-      case resolve_fields(fields, format, locale_id) do
+      case resolve_fields(fields, format, locale_id, cldr_calendar_for(from)) do
         {:ok, {:fallback_style, fallback_format}} ->
           # CLDR ships no skeleton-keyed interval-format data for the
           # per-locale skeleton (e.g. ja's `:yMMdd` for `:short`,
@@ -266,18 +304,22 @@ defmodule Localize.Interval do
           format_date_interval_fallback(from, to, fallback_format, locale, options, output)
 
         {:ok, {format_key, requested_skeleton}} ->
+          skeletons = {format_key, requested_skeleton}
+          whole_format = whole_date_format(fields, format, requested_skeleton)
+          format_date_interval_styled(from, to, skeletons, whole_format, locale, options, output)
+
+        {:ok, format_key} ->
+          whole_format = whole_date_format(fields, format, format_key)
+
           format_date_interval_styled(
             from,
             to,
-            format_key,
-            requested_skeleton,
+            {format_key, nil},
+            whole_format,
             locale,
             options,
             output
           )
-
-        {:ok, format_key} ->
-          format_date_interval_styled(from, to, format_key, nil, locale, options, output)
 
         {:error, _} = error ->
           error
@@ -285,27 +327,34 @@ defmodule Localize.Interval do
     end
   end
 
-  defp format_date_interval_styled(
-         from,
-         to,
-         format_key,
-         requested_skeleton,
-         locale,
-         options,
-         output
-       ) do
+  # The format of a date formatted whole — alone, when the values differ in
+  # no unit the interval shows, or in full around the fallback pattern. For
+  # whole dates it is the requested standard format, so a date reads exactly
+  # as `Localize.Date.to_string/2` renders it, as ECMA-402's `formatRange`
+  # renders it; for other fields it is their skeleton.
+  defp whole_date_format(:date, format, _skeleton) when format in [:short, :medium, :long, :full],
+    do: format
+
+  defp whole_date_format(_fields, _format, skeleton), do: skeleton
+
+  defp format_date_interval_styled(from, to, skeletons, whole_format, locale, options, output) do
+    {format_key, requested_skeleton} = skeletons
     skeleton = requested_skeleton || format_key
 
     with {:ok, locale_id} <- resolve_locale_id(locale),
-         {:ok, formats} <- Localize.DateTime.Format.interval_formats(locale_id) do
+         {:ok, formats} <- interval_formats(locale_id, from) do
       options_map = options |> Map.new() |> Map.put_new(:locale, locale)
+      lookup = {locale_id, cldr_calendar_for(from)}
 
-      case date_interval_plan(formats, format_key, requested_skeleton, from, to, options) do
+      case date_interval_plan(formats, skeletons, {from, to}, lookup, options) do
         :single ->
-          format_single(output, Localize.Date, from, Keyword.put(options, :format, skeleton))
+          format_single(output, Localize.Date, from, Keyword.put(options, :format, whole_format))
 
         {:split, left, right} ->
           format_split(output, from, to, left, right, locale_id, options_map)
+
+        {:fallback, ^skeleton} ->
+          format_in_full(output, Localize.Date, {from, to}, whole_format, formats, options)
 
         {:fallback, fallback_skeleton} ->
           format_in_full(output, Localize.Date, {from, to}, fallback_skeleton, formats, options)
@@ -319,10 +368,13 @@ defmodule Localize.Interval do
   # TR35 §Interval Formats steps 4 to 7, as ICU implements them. Values that
   # differ in no unit the skeleton displays format as one. A year difference
   # for a skeleton without a year takes the pattern of the skeleton widened
-  # with one, so an interval across a year boundary keeps both years. Any
-  # other difference takes the item's pattern for it, or failing that the
-  # fallback pattern around both values in full.
-  defp date_interval_plan(formats, format_key, requested_skeleton, from, to, options) do
+  # with one, so an interval across a year boundary keeps both years, and an
+  # era difference for a skeleton without an era takes the closest item's
+  # pattern for the skeleton widened with one, so each value shows its era:
+  # "Apr 30, 31 Heisei – May 1, 1 Reiwa". Any other difference takes the
+  # item's pattern for it, or failing that the fallback pattern around both
+  # values in full.
+  defp date_interval_plan(formats, {format_key, requested_skeleton}, {from, to}, lookup, options) do
     skeleton = requested_skeleton || format_key
     difference = calendar_difference(from, to)
 
@@ -334,15 +386,39 @@ defmodule Localize.Interval do
         widened = Map.get(@year_widened_skeletons, format_key)
         interval_split(formats, widened, nil, :y, options, widened)
 
+      difference == :era and is_nil(item_pattern(Map.get(formats, format_key), :G)) and
+          not String.contains?(Kernel.to_string(skeleton), "G") ->
+        era_widened_split(formats, {format_key, requested_skeleton}, lookup, options)
+
       true ->
         key = difference_key(difference, skeleton, Map.get(formats, format_key))
         interval_split(formats, format_key, requested_skeleton, key, options, skeleton)
     end
   end
 
+  # The era pattern of the matched item widened with `G`, found as ICU finds
+  # it: the item keyed by `G` and the matched skeleton, or, when the skeleton
+  # matched its item exactly, the item closest to that. The pattern takes the
+  # requested widths, so `yMMMM` takes `GyMMM`'s with the month spelled out.
+  # Without one, both values are formatted in full.
+  defp era_widened_split(formats, {format_key, requested_skeleton}, lookup, options) do
+    {locale_id, calendar} = lookup
+    skeleton = requested_skeleton || format_key
+    widened = "G" <> Kernel.to_string(format_key)
+
+    with {:ok, widened_key} <-
+           Localize.DateTime.Format.Match.best_interval_match(widened, locale_id, calendar),
+         true <- is_nil(requested_skeleton) or Kernel.to_string(widened_key) == widened do
+      requested = "G" <> Kernel.to_string(skeleton)
+      interval_split(formats, widened_key, requested, :G, options, skeleton)
+    else
+      _no_era_pattern -> {:fallback, skeleton}
+    end
+  end
+
   defp format_date_interval_fallback(from, to, format, locale, options, output) do
     with {:ok, locale_id} <- resolve_locale_id(locale),
-         {:ok, formats} <- Localize.DateTime.Format.interval_formats(locale_id) do
+         {:ok, formats} <- interval_formats(locale_id, from) do
       if calendar_difference(from, to) do
         format_in_full(output, Localize.Date, {from, to}, format, formats, options)
       else
@@ -399,11 +475,11 @@ defmodule Localize.Interval do
   # time, and a difference the item has no pattern for glues both in full.
   defp format_time_interval_styled(from, to, format_key, locale, options, output) do
     with {:ok, locale_id} <- resolve_locale_id(locale),
-         {:ok, formats} <- Localize.DateTime.Format.interval_formats(locale_id) do
+         {:ok, formats} <- interval_formats(locale_id, from) do
       difference = calendar_difference(from, to)
 
       if difference_visible?(format_key, difference) do
-        locale_data = {locale, locale_id, formats}
+        locale_data = {locale, locale_id, cldr_calendar_for(from), formats}
         format_time_difference(output, {from, to}, format_key, difference, locale_data, options)
       else
         format_single(output, Localize.Time, from, Keyword.put(options, :format, format_key))
@@ -412,8 +488,8 @@ defmodule Localize.Interval do
   end
 
   defp format_time_difference(output, {from, to}, format_key, difference, locale_data, options) do
-    {locale, locale_id, formats} = locale_data
-    item_key = time_interval_key(formats, format_key, locale, locale_id)
+    {locale, locale_id, calendar, formats} = locale_data
+    item_key = time_interval_key(formats, format_key, locale, locale_id, calendar)
     key = difference_key(difference, item_key, Map.get(formats, item_key))
 
     case interval_split(formats, item_key, nil, key, options, format_key) do
@@ -433,13 +509,13 @@ defmodule Localize.Interval do
   # takes the closest item (TR35 §Interval Formats step 2) once its `j` is
   # resolved to a `-u-hc-` override's hour symbol or, without one, to the
   # locale's preferred hour cycle.
-  defp time_interval_key(formats, format_key, locale, locale_id) do
+  defp time_interval_key(formats, format_key, locale, locale_id, calendar) do
     if Map.has_key?(formats, format_key) do
       format_key
     else
       requested = Localize.Time.hour_cycle_skeleton(format_key, locale)
 
-      case Localize.DateTime.Format.Match.best_interval_match(requested, locale_id) do
+      case Localize.DateTime.Format.Match.best_interval_match(requested, locale_id, calendar) do
         {:ok, matched_key} -> matched_key
         _no_match -> format_key
       end
@@ -464,7 +540,7 @@ defmodule Localize.Interval do
   # binary `:format`.
   defp format_time_interval_literal(from, to, time_format, locale, options, output) do
     with {:ok, locale_id} <- resolve_locale_id(locale),
-         {:ok, formats} <- Localize.DateTime.Format.interval_formats(locale_id) do
+         {:ok, formats} <- interval_formats(locale_id, from) do
       if difference_visible?(time_format, calendar_difference(from, to)) do
         format_in_full(output, Localize.Time, {from, to}, time_format, formats, options)
       else
@@ -491,12 +567,13 @@ defmodule Localize.Interval do
     format = Keyword.get(options, :format, @default_format)
     date_format = Keyword.get(options, :date_format) || format
     time_format = Keyword.get(options, :time_format) || format
+    calendar = cldr_calendar_for(from)
 
     with {:ok, locale_id} <- resolve_locale_id(locale),
-         {:ok, formats} <- Localize.DateTime.Format.interval_formats(locale_id),
+         {:ok, formats} <- interval_formats(locale_id, from),
          {:ok, fallback} <- get_fallback_pattern(formats),
-         {:ok, date_skeleton} <- format_skeleton(:date, date_format, locale_id),
-         {:ok, time_skeleton} <- format_skeleton(:time, time_format, locale_id) do
+         {:ok, date_skeleton} <- format_skeleton(:date, date_format, locale_id, calendar),
+         {:ok, time_skeleton} <- format_skeleton(:time, time_format, locale_id, calendar) do
       difference = calendar_difference(from, to)
       units = displayed_units(date_skeleton) ++ displayed_units(time_skeleton)
       in_full = {Localize.DateTime, to, datetime_options}
@@ -506,12 +583,12 @@ defmodule Localize.Interval do
         not units_show?(units, difference) ->
           format_single(output, Localize.DateTime, from, datetime_options)
 
-        difference in [:year, :month, :day] ->
+        difference in [:era, :year, :month, :day] ->
           format_fallback(output, {Localize.DateTime, from, datetime_options}, in_full, fallback)
 
         true ->
           formats
-          |> time_range_split(time_skeleton, difference, locale, locale_id, options)
+          |> time_range_split(time_skeleton, difference, locale, {locale_id, calendar}, options)
           |> format_time_range(output, {from, to}, date_format, options, {
             {Localize.DateTime, from, datetime_options},
             time_only,
@@ -543,27 +620,37 @@ defmodule Localize.Interval do
   # The skeleton a date or time format displays: a standard format's
   # skeleton in the locale, or the skeleton or pattern given. A format of any
   # other shape is `nil`, taken to display every unit.
-  defp format_skeleton(:date, format, locale_id) when format in [:short, :medium, :long, :full] do
-    with {:ok, skeletons} <- Localize.DateTime.Format.date_formats(locale_id) do
+  defp format_skeleton(:date, format, locale_id, calendar)
+       when format in [:short, :medium, :long, :full] do
+    with {:ok, skeletons} <- Localize.DateTime.Format.date_formats(locale_id, calendar) do
       {:ok, Map.get(skeletons, format)}
     end
   end
 
-  defp format_skeleton(:time, format, locale_id) when format in [:short, :medium, :long, :full] do
-    with {:ok, skeletons} <- Localize.DateTime.Format.time_formats(locale_id) do
+  defp format_skeleton(:time, format, locale_id, calendar)
+       when format in [:short, :medium, :long, :full] do
+    with {:ok, skeletons} <- Localize.DateTime.Format.time_formats(locale_id, calendar) do
       {:ok, Map.get(skeletons, format)}
     end
   end
 
-  defp format_skeleton(_type, format, _locale_id) when is_atom(format) or is_binary(format),
-    do: {:ok, format}
+  defp format_skeleton(_type, format, _locale_id, _calendar)
+       when is_atom(format) or is_binary(format),
+       do: {:ok, format}
 
-  defp format_skeleton(_type, _format, _locale_id), do: {:ok, nil}
+  defp format_skeleton(_type, _format, _locale_id, _calendar), do: {:ok, nil}
 
   # The interval CLDR ships for the time fields of a datetime format, split in
   # two. A 12-hour hour implies its day period, so `a` is dropped before
   # matching; left in, `ahmm` would match the flexible-period `Bhm` item.
-  defp time_range_split(formats, time_skeleton, difference, locale, locale_id, options)
+  defp time_range_split(
+         formats,
+         time_skeleton,
+         difference,
+         locale,
+         {locale_id, calendar},
+         options
+       )
        when is_atom(time_skeleton) and not is_nil(time_skeleton) do
     requested =
       time_skeleton
@@ -572,7 +659,7 @@ defmodule Localize.Interval do
       |> String.replace("a", "")
 
     with {:ok, matched_key} <-
-           Localize.DateTime.Format.Match.best_interval_match(requested, locale_id) do
+           Localize.DateTime.Format.Match.best_interval_match(requested, locale_id, calendar) do
       key = difference_key(difference, matched_key, Map.get(formats, matched_key))
       interval_split(formats, matched_key, requested, key, options, :none)
     end
@@ -593,8 +680,11 @@ defmodule Localize.Interval do
       |> Keyword.take([:locale, :prefer])
       |> Keyword.put(:format, date_format)
 
+    calendar = cldr_calendar_for(from)
+
     with {:ok, locale_id} <- resolve_locale_id(locale),
-         {:ok, wrapper} <- Localize.DateTime.date_time_wrapper(date_format, locale_id, style),
+         {:ok, wrapper} <-
+           Localize.DateTime.date_time_wrapper(date_format, locale_id, style, calendar),
          {:ok, tokens, _end_line} <- Localize.DateTime.Format.Compiler.tokenize(wrapper),
          {:ok, date_value} <- date_half(output, from, date_options),
          {:ok, time_value} <- format_split(output, from, to, left, right, locale_id, options_map) do
@@ -624,11 +714,13 @@ defmodule Localize.Interval do
   defp join_pieces(:parts, pieces), do: Enum.concat(pieces)
 
   # Derive the datetime-format options from the interval options,
-  # applying `:date_format` and `:time_format` overrides if present.
+  # applying `:date_format` and `:time_format` overrides if present. The
+  # `:style` of date-time pattern goes along, so a datetime formatted whole
+  # is joined as a date joined to a time range is.
   defp datetime_sub_options(options) do
     base =
       options
-      |> Keyword.take([:locale, :prefer])
+      |> Keyword.take([:locale, :prefer, :style])
       |> Map.new()
 
     format = Keyword.get(options, :format, @default_format)
@@ -664,13 +756,16 @@ defmodule Localize.Interval do
   # ── The difference an interval displays ────────────────────
 
   # Units from largest to smallest. AM/PM sits above the hour: two times on
-  # either side of noon differ in it first.
-  @unit_order [:year, :month, :day, :am_pm, :hour, :minute, :second]
+  # either side of noon differ in it first. The era sits above the year, as
+  # ICU's `UCAL_ERA` does: it changes with the year in most calendars but
+  # mid-year in the Japanese one, whose years count from each era.
+  @unit_order [:era, :year, :month, :day, :am_pm, :hour, :minute, :second]
 
   # The pattern symbols that display each unit. A 12-hour hour displays the
   # day period too.
   @unit_symbols [
-    year: ~w(G y Y u U r),
+    era: ~w(G),
+    year: ~w(y Y u U r),
     month: ~w(M L Q q),
     day: ~w(d D F g E e c),
     am_pm: ~w(a b B h K),
@@ -689,6 +784,18 @@ defmodule Localize.Interval do
   end
 
   defp differs?(_from, _to, :am_pm), do: false
+
+  # Values whose era cannot be settled, such as times and a Japanese year
+  # holding two eras, are compared by their other units.
+  defp differs?(from, to, :era) do
+    with {:ok, {_from_year, from_era}} <- Localize.Calendar.year_of_era(from),
+         {:ok, {_to_year, to_era}} <- Localize.Calendar.year_of_era(to) do
+      from_era != to_era
+    else
+      _unsettled -> false
+    end
+  end
+
   defp differs?(from, to, unit), do: Map.get(from, unit) != Map.get(to, unit)
 
   # A difference shows only when the format displays its unit or a smaller
@@ -722,6 +829,7 @@ defmodule Localize.Interval do
   # the skeleton's own hour symbol. An AM/PM difference takes the `a` entry,
   # or the `B` entry of a flexible-day-period item, and otherwise the hour
   # entry, as ICU does for 24-hour items that ship no `a`.
+  defp difference_key(:era, _skeleton, _item), do: :G
   defp difference_key(:year, _skeleton, _item), do: :y
   defp difference_key(:month, _skeleton, _item), do: :M
   defp difference_key(:day, _skeleton, _item), do: :d
@@ -815,7 +923,7 @@ defmodule Localize.Interval do
     locale = Keyword.get(options, :locale, Localize.get_locale())
 
     with {:ok, locale_id} <- resolve_locale_id(locale),
-         {:ok, formats} <- Localize.DateTime.Format.interval_formats(locale_id),
+         {:ok, formats} <- interval_formats(locale_id, value),
          {:ok, pattern} <- get_fallback_pattern(formats),
          {:ok, formatted} <- format_single_value(value, options) do
       {a, b} =
@@ -1131,12 +1239,14 @@ defmodule Localize.Interval do
   # Other styles (`:month`, `:month_and_day`, `:year_and_month`)
   # remain locale-independent — they describe a deliberate field
   # selection unrelated to single Date's standard styles.
-  defp resolve_fields(:date, format, locale_id) when format in [:short, :medium, :long, :full] do
-    with {:ok, date_formats} <- Localize.DateTime.Format.date_formats(locale_id),
-         {:ok, interval_formats} <- Localize.DateTime.Format.interval_formats(locale_id) do
+  defp resolve_fields(:date, format, locale_id, calendar)
+       when format in [:short, :medium, :long, :full] do
+    with {:ok, date_formats} <- Localize.DateTime.Format.date_formats(locale_id, calendar),
+         {:ok, interval_formats} <-
+           Localize.DateTime.Format.interval_formats(locale_id, calendar) do
       case Map.get(date_formats, format) do
         skeleton when is_atom(skeleton) ->
-          skeleton_or_fallback_style(skeleton, interval_formats, format, locale_id)
+          skeleton_or_fallback_style(skeleton, interval_formats, format, {locale_id, calendar})
 
         _ ->
           {:error,
@@ -1149,7 +1259,8 @@ defmodule Localize.Interval do
     end
   end
 
-  defp resolve_fields(fields, format, _locale_id) when is_atom(fields) and is_atom(format) do
+  defp resolve_fields(fields, format, _locale_id, _calendar)
+       when is_atom(fields) and is_atom(format) do
     case get_in(@field_skeletons, [fields, format]) do
       nil ->
         {:error,
@@ -1164,7 +1275,7 @@ defmodule Localize.Interval do
     end
   end
 
-  defp resolve_fields(fields, format, _locale_id) do
+  defp resolve_fields(fields, format, _locale_id, _calendar) do
     {:error,
      Localize.DateTimeIntervalFormatError.exception(
        reason: :unknown_fields,
@@ -1180,11 +1291,11 @@ defmodule Localize.Interval do
   # glues two whole dates together: `de` renders "03.–05.05.2026" from
   # `yMd`, not "03.05.2026 – 05.05.2026", because its `yMMdd` style
   # skeleton is a width adjustment away from a pattern CLDR ships.
-  defp skeleton_or_fallback_style(skeleton, interval_formats, format, locale_id) do
+  defp skeleton_or_fallback_style(skeleton, interval_formats, format, {locale_id, calendar}) do
     if Map.has_key?(interval_formats, skeleton) do
       {:ok, skeleton}
     else
-      case Localize.DateTime.Format.Match.best_interval_match(skeleton, locale_id) do
+      case Localize.DateTime.Format.Match.best_interval_match(skeleton, locale_id, calendar) do
         {:ok, matched_skeleton} -> {:ok, {matched_skeleton, skeleton}}
         :error -> {:ok, {:fallback_style, format}}
       end

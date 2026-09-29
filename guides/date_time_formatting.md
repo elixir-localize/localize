@@ -371,7 +371,7 @@ Parsing is the inverse of formatting and reads the same CLDR data, so a locale t
 
 ### Dates and times
 
-Input is matched against the locale's own short, medium, long and full patterns, so each locale accepts what it produces:
+Input is matched against the locale's own short, medium, long and full patterns, and then its other available formats, so each locale accepts what it produces and an ambiguous numeric date is read the way the locale writes it:
 
 ```elixir
 iex> Localize.Date.parse("March 22, 2026", locale: :en)
@@ -391,7 +391,7 @@ iex> Localize.Date.parse("2026-03-22", locale: :de)
 {:ok, ~D[2026-03-22]}
 ```
 
-Parsing is lenient about the decoration a locale allows. A weekday is read wherever the locale's formats place it, and a leading one is stripped from a format that has none. An era is read and its year counts from it, so 1 BC is year 0 and a two-digit year beside an era is taken as written, where ICU would move it into this century (see [ICU divergences](icu_divergences.md#date-parsing)); stand-alone and format month names are both accepted, and week and quarter forms resolve to the date they begin. Weeks are numbered by the locale's own rules, so an `en` week begins on a Sunday:
+Parsing is lenient about the decoration a locale allows. A weekday is read wherever the locale's formats place it, and a leading one is stripped from a format that has none. An era is read and its year counts from it, so 1 BC is year 0 and a two-digit year a format writes in full beside an era is taken as written, where ICU would move it into this century (see [ICU divergences](icu_divergences.md#date-parsing)). A format that writes the year as `yy`, its two low-order digits, is read in the century around the reference year even beside an era, as ICU reads it: `de`'s Buddhist "01.04.66 BE" is 2566 BE, and in a calendar that shows years of an era the digits are the year of that era, so `de`'s Japanese "01.04.05 R" is Reiwa 5. Stand-alone and format month names are both accepted, and week and quarter forms resolve to the date they begin. Weeks are numbered by the locale's own rules, so an `en` week begins on a Sunday:
 
 ```elixir
 iex> Localize.Date.parse("Saturday, May 16, 2026", locale: :en)
@@ -410,6 +410,10 @@ iex> Localize.Date.parse("Q2 2026", locale: :en)
 {:ok, ~D[2026-04-01]}
 ```
 
+A lunisolar date parses as it is written, in the calendar the `:calendar` option names: its related Gregorian year (`r`), its cyclic year name (`U`, read as the year of that name nearest the reference date), a leap month in the locale's pattern ("Mo2bis", "闰二月", "2bis") and `zh`'s day numerals ("初一", "廿一"). Where a locale writes the year both as the calendar's own and as the related Gregorian year, the reading nearer the reference date is taken. A string that is also an ISO 8601 date is read as ISO 8601. In a calendar that writes its years as years of an era, as the Japanese calendars do, a year written without its era is a year of the reference date's era, as ICU reads one.
+
+A date-time is read with the date-time patterns of the calendar it is read in, in the order the locale writes the two halves: `vi` puts the time first, as in "10:05 1/4/23".
+
 Times follow the locale's hour cycle, so a 12-hour locale accepts a day period and a 24-hour locale does not need one:
 
 ```elixir
@@ -422,7 +426,7 @@ iex> Localize.Time.parse("14:30", locale: :de)
 
 ### Partial input
 
-Input that omits the year is completed from a reference date, today by default, with `:reference_date` setting a different one:
+Input that omits the year is completed from a reference date, today by default, with `:reference_date` setting a different one. The reference date is taken in the calendar the input is read in, so a Hebrew date without a year is in the current Hebrew year, and a two-digit year is read in the century around the reference year in every calendar:
 
 ```elixir
 # The year comes from today, so this result moves with the calendar

@@ -245,8 +245,8 @@ Two areas are explicitly out of scope:
 | Quarter names | Implemented | `Localize.Calendar.quarters/2`. |
 | Era names | Implemented | `Localize.Calendar.eras/2`. |
 | Day period names (AM/PM, flexible) | Implemented | `Localize.Calendar.day_periods/2`. |
-| Cyclic name sets (Chinese/Dangi) | Not implemented | |
-| Month patterns (leap months) | Not implemented | |
+| Cyclic name sets (Chinese/Dangi) | Implemented | `Localize.Calendar.cyclic_years/2`; `U` formats and parses the cyclic year name. |
+| Month patterns (leap months) | Implemented | `Localize.Calendar.month_patterns/2`; a leap month formats and parses in the locale's pattern. |
 
 ### Date/Time Formatting
 
@@ -260,14 +260,14 @@ Two areas are explicitly out of scope:
 | Hour cycle (h, H, k, K) | Implemented | Including territory and locale preferences (`hi_IN` allows `hB`), the `-u-hc-` override, and the skeleton symbols `j`, `J` and `C`. |
 | Day periods (a, b, B) | Implemented | `a` renders AM/PM; `b` renders noon/midnight at the exact points and AM/PM otherwise; `B` selects flexible day periods ("in the morning", "mittags") from the CLDR day-period rules, falling back to AM/PM for languages without rules. Noon and midnight are judged at the precision the pattern shows, so "h B" renders 12:05 as "12 noon". |
 | Available formats (skeletons) | Implemented | `Localize.DateTime.Format.Match` for skeleton matching. |
-| Interval formats | Implemented | `Localize.Interval.to_string/3` for date/time/datetime intervals. |
+| Interval formats | Implemented | `Localize.Interval.to_string/3` for date/time/datetime intervals, in the formats of the endpoints' calendar, with an era difference shown as ICU shows it. |
 | Append items (missing fields) | Implemented | `Localize.DateTime.Format.AppendItems` matches the closest format that is a subset of the request and appends the fields it lacks, so `en` renders `:yMMMdQ` as "Jul 6, 2024 (quarter: 3)". |
 
 ### Date/Time Parsing
 
 | Feature | Status | Notes |
 |---------|--------|-------|
-| String to date/time parsing | Not implemented | |
+| String to date/time parsing | Implemented | `Localize.Date.parse/2`, `Localize.Time.parse/2`, `Localize.DateTime.parse/2` and `Localize.Interval.parse/2` read the locale's patterns in any calendar module, and ISO 8601. |
 
 ### Calendar Fields
 
@@ -515,6 +515,7 @@ The MessageFormat working group conformance suite — including the WG `:test:fu
 * Number formatting (decimal, percent, currency, accounting, compact, scientific, RBNF)
 * Number parsing
 * Date, time, and datetime formatting
+* Date, time, datetime and interval parsing
 * Interval formatting
 * Relative date/time formatting
 * Unit formatting, conversion, and preferences (also include basic math functions)
@@ -535,13 +536,11 @@ The MessageFormat working group conformance suite — including the WG `:test:fu
 
 ### Not implemented
 
-* Date/time parsing (string to date)
 * Context-dependent capitalization
 * Collation alphabetic index (UI bucketing)
 * Coordinate unit formatting (N/S/E/W)
 * Layout direction data
 * Coverage level assessment
-* Cyclic name sets (Chinese/Dangi calendars)
 
 ### Not in scope for Localize
 

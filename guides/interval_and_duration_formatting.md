@@ -121,13 +121,26 @@ iex> String.contains?(result, "10:30")
 true
 ```
 
+### Calendars and eras
+
+An interval is formatted with the formats of its endpoints' calendar: its interval patterns, its date and time formats, and the date-time pattern that joins a date to a time range. Two dates in Calendrical's Hebrew calendar take the Hebrew calendar's CLDR formats, as a single Hebrew date does in `Localize.Date.to_string/2`. Endpoints in two different calendars are an error, because there is no one calendar to take the formats from.
+
+When the endpoints are in different eras, the era is the greatest difference, and each endpoint shows its era wherever the locale has an era pattern for the interval's fields, as ICU does:
+
+```elixir
+iex> Localize.Interval.to_string(~D[0000-12-31], ~D[0001-01-01], locale: :en)
+{:ok, "Dec 31, 1 BC\u2009–\u2009Jan 1, 1 AD"}
+```
+
+The Japanese calendar changes era within a year, so its interval from 30 April to 1 May 2019 reads "Apr 30, 31 Heisei – May 1, 1 Reiwa" although both dates fall in the same Gregorian year.
+
 ### How interval formatting works
 
-1. The greatest difference between the two endpoints is identified (year, month, day, hour, or minute).
+1. The greatest difference between the two endpoints is identified (era, year, month, day, hour, or minute). Endpoints that differ in no field the format shows are formatted once; whole dates then take the requested standard format, exactly as `Localize.Date.to_string/2` renders it.
 
-2. The `:fields` and `:format` options resolve to a CLDR skeleton atom.
+2. The `:fields` and `:format` options resolve to a CLDR skeleton atom, from the endpoints' calendar.
 
-3. That skeleton is looked up in the locale's interval table. If CLDR ships no entry under it, the closest entry carrying the same fields is taken and its pattern adjusted to the requested widths — TR35 matches on fields, not widths, so a `yMMMd` pattern answering a requested `yMMMMd` still has to spell "June" rather than "Jun". A candidate with different fields can never win.
+3. That skeleton is looked up in the interval table of the locale and calendar. If CLDR ships no entry under it, the closest entry carrying the same fields is taken and its pattern adjusted to the requested widths — TR35 matches on fields, not widths, so a `yMMMd` pattern answering a requested `yMMMMd` still has to spell "June" rather than "Jun". A candidate with different fields can never win.
 
 4. The matched pattern splits at the field that differs, which is why two dates in the same month produce "Apr 22 – 25, 2024" rather than repeating the month and year. German at `:medium` gives "03.–05.05.2026" for the same reason, even though its style skeleton is not itself a key in the table.
 

@@ -365,7 +365,8 @@ defmodule Localize.DateTime do
     date_options = Keyword.put(options, :format, date_format)
     time_options = Keyword.put(options, :format, time_format)
 
-    with {:ok, wrapper} <- resolve_wrapper(wrapper_format, locale_id, style) do
+    with {:ok, wrapper} <-
+           resolve_wrapper(wrapper_format, locale_id, style, cldr_calendar_for(datetime)) do
       compose_partial(output, wrapper, date_only, time_only, date_options, time_options)
     end
   end
@@ -424,7 +425,8 @@ defmodule Localize.DateTime do
       |> Map.put(:date_format, date_format)
       |> Map.put(:time_format, time_format)
 
-    with {:ok, wrapper} <- resolve_wrapper(wrapper_format, locale_id, style) do
+    with {:ok, wrapper} <-
+           resolve_wrapper(wrapper_format, locale_id, style, cldr_calendar_for(datetime)) do
       invoke_formatter(output, datetime, wrapper, locale_id, options_map)
     end
   end
@@ -477,7 +479,12 @@ defmodule Localize.DateTime do
           |> Map.put(:time_format, time_skeleton)
 
         with {:ok, wrapper} <-
-               resolve_wrapper(date_format, locale_id, Keyword.get(options, :style, :at)) do
+               resolve_wrapper(
+                 date_format,
+                 locale_id,
+                 Keyword.get(options, :style, :at),
+                 calendar
+               ) do
           invoke_formatter(output, datetime, wrapper, locale_id, options_map)
         end
 
@@ -509,7 +516,8 @@ defmodule Localize.DateTime do
       |> Localize.Time.hour_cycle_skeleton(Keyword.get(options, :locale, locale_id))
       |> Localize.DateTime.Format.Match.split_fractional_seconds()
 
-    with {:ok, available} <- Localize.DateTime.Format.available_formats(locale_id) do
+    with {:ok, available} <-
+           Localize.DateTime.Format.available_formats(locale_id, cldr_calendar_for(datetime)) do
       # A skeleton naming only zone fields is its own pattern: there is one
       # field, so nothing to order, and `availableFormats` carries no
       # zone-only entry for the matcher to find.
@@ -577,7 +585,11 @@ defmodule Localize.DateTime do
          fraction_count,
          output
        ) do
-    case Localize.DateTime.Format.Match.best_match(skeleton, locale_id) do
+    case Localize.DateTime.Format.Match.best_match(
+           skeleton,
+           locale_id,
+           cldr_calendar_for(datetime)
+         ) do
       {:ok, matched_skeleton} when is_atom(matched_skeleton) ->
         format_matched_skeleton(
           {matched_skeleton, Map.get(available, matched_skeleton)},
@@ -639,7 +651,7 @@ defmodule Localize.DateTime do
         |> format_halves(datetime, options, locale_id, fraction_count, output)
 
       nil ->
-        case AppendItems.augment(skeleton, locale_id, :gregorian, options) do
+        case AppendItems.augment(skeleton, locale_id, cldr_calendar_for(datetime), options) do
           {:ok, pattern} ->
             pattern
             |> Localize.DateTime.Format.Match.append_fractional_seconds(
@@ -668,10 +680,12 @@ defmodule Localize.DateTime do
     alias Localize.DateTime.Format.AppendItems
     alias Localize.DateTime.Format.Match
 
+    calendar = cldr_calendar_for(datetime)
+
     with {:ok, date_pattern} <-
-           AppendItems.resolve_pattern(date_skeleton, locale_id, :gregorian, options),
+           AppendItems.resolve_pattern(date_skeleton, locale_id, calendar, options),
          {:ok, time_pattern} <-
-           AppendItems.resolve_pattern(time_skeleton, locale_id, :gregorian, options) do
+           AppendItems.resolve_pattern(time_skeleton, locale_id, calendar, options) do
       time_pattern = Match.append_fractional_seconds(time_pattern, fraction_count, locale_id)
 
       format_combined_patterns(
@@ -725,8 +739,11 @@ defmodule Localize.DateTime do
        ) do
     alias Localize.DateTime.Format.AppendItems
 
-    with {:ok, zero, one} <- glue_parts(kind, date_skeleton, time_skeleton, locale_id, options),
-         {:ok, pattern} <- AppendItems.glue(kind, zero, one, locale_id, :gregorian) do
+    calendar = cldr_calendar_for(datetime)
+
+    with {:ok, zero, one} <-
+           glue_parts(kind, date_skeleton, time_skeleton, {locale_id, calendar}, options),
+         {:ok, pattern} <- AppendItems.glue(kind, zero, one, locale_id, calendar) do
       invoke_formatter(output, datetime, pattern, locale_id, Map.new(options))
     else
       _unresolvable -> unresolved_skeleton(skeleton, locale_id)
@@ -735,11 +752,11 @@ defmodule Localize.DateTime do
 
   # A zone-only skeleton is its own pattern, as `format_with_skeleton/5`
   # already treats it; the date half resolves as any date does.
-  defp glue_parts(:date_timezone, date_skeleton, time_skeleton, locale_id, options) do
+  defp glue_parts(:date_timezone, date_skeleton, time_skeleton, {locale_id, calendar}, options) do
     alias Localize.DateTime.Format.AppendItems
 
     with {:ok, date_pattern} <-
-           AppendItems.resolve_pattern(date_skeleton, locale_id, :gregorian, options) do
+           AppendItems.resolve_pattern(date_skeleton, locale_id, calendar, options) do
       {:ok, date_pattern, Kernel.to_string(time_skeleton)}
     end
   end
@@ -747,11 +764,11 @@ defmodule Localize.DateTime do
   # A lone weekday resolves through the available formats where it can and
   # is otherwise its own single-field pattern. The time half takes a
   # `-u-hc-` override exactly as the wrapper path does.
-  defp glue_parts(:time_day_of_week, date_skeleton, time_skeleton, locale_id, options) do
+  defp glue_parts(:time_day_of_week, date_skeleton, time_skeleton, {locale_id, calendar}, options) do
     alias Localize.DateTime.Format.AppendItems
 
     with {:ok, time_pattern} <-
-           AppendItems.resolve_pattern(time_skeleton, locale_id, :gregorian, options) do
+           AppendItems.resolve_pattern(time_skeleton, locale_id, calendar, options) do
       time_pattern =
         Localize.Time.apply_hour_cycle(
           time_pattern,
@@ -760,7 +777,7 @@ defmodule Localize.DateTime do
         )
 
       weekday_pattern =
-        case AppendItems.resolve_pattern(date_skeleton, locale_id, :gregorian, options) do
+        case AppendItems.resolve_pattern(date_skeleton, locale_id, calendar, options) do
           {:ok, pattern} -> pattern
           _unresolved -> Kernel.to_string(date_skeleton)
         end
@@ -846,7 +863,8 @@ defmodule Localize.DateTime do
 
     style = Keyword.get(options, :style, :at)
 
-    with {:ok, wrapper} <- resolve_wrapper(skeleton, locale_id, style) do
+    with {:ok, wrapper} <-
+           resolve_wrapper(skeleton, locale_id, style, cldr_calendar_for(datetime)) do
       time_pattern =
         Localize.Time.apply_hour_cycle(
           time_pattern,
@@ -936,39 +954,42 @@ defmodule Localize.DateTime do
   end
 
   @doc false
-  # The pattern joining a date and a time for `date_format` in the locale, as
-  # `to_string/2` chooses it for `style`. `Localize.Interval` joins a date to
-  # a time range through it (TR35 §Interval Formats step 3).
-  def date_time_wrapper(date_format, locale_id, style) do
-    resolve_wrapper(date_format, locale_id, style)
+  # The pattern joining a date and a time for `date_format` in the locale and
+  # CLDR calendar, as `to_string/2` chooses it for `style`.
+  # `Localize.Interval` joins a date to a time range through it (TR35
+  # §Interval Formats step 3).
+  def date_time_wrapper(date_format, locale_id, style, calendar_type) do
+    resolve_wrapper(date_format, locale_id, style, calendar_type)
   end
 
-  defp resolve_wrapper(format, locale_id, style) do
+  # The date-time glue is the calendar's own: CLDR gives each calendar its
+  # `dateTimeFormats`.
+  defp resolve_wrapper(format, locale_id, style, calendar_type) do
     standard_format = wrapper_length(format)
 
     case style do
       :at ->
         # Use at-style format (e.g., "{1} 'at' {0}")
-        case Localize.DateTime.Format.date_time_at_formats(locale_id) do
+        case Localize.DateTime.Format.date_time_at_formats(locale_id, calendar_type) do
           {:ok, at_formats} ->
             pattern =
               get_in(at_formats, [:standard, standard_format]) ||
-                fallback_wrapper(standard_format, locale_id)
+                fallback_wrapper(standard_format, locale_id, calendar_type)
 
             {:ok, pattern}
 
           _ ->
-            {:ok, fallback_wrapper(standard_format, locale_id)}
+            {:ok, fallback_wrapper(standard_format, locale_id, calendar_type)}
         end
 
       _ ->
         # Use standard wrapper format (e.g., "{1}, {0}")
-        {:ok, fallback_wrapper(standard_format, locale_id)}
+        {:ok, fallback_wrapper(standard_format, locale_id, calendar_type)}
     end
   end
 
-  defp fallback_wrapper(standard_format, locale_id) do
-    case Localize.DateTime.Format.date_time_formats(locale_id) do
+  defp fallback_wrapper(standard_format, locale_id, calendar_type) do
+    case Localize.DateTime.Format.date_time_formats(locale_id, calendar_type) do
       {:ok, dt_formats} -> Map.get(dt_formats, standard_format, "{1}, {0}")
       _ -> "{1}, {0}"
     end
@@ -1049,7 +1070,8 @@ defmodule Localize.DateTime do
     `"gregorian"`, returns a `t:Localize.UnknownCalendarError.t/0`.
 
   * `:reference_date` is the `t:Date.t/0` that partial input is completed
-    against. The default is today.
+    against, taken in the calendar the input is read in. The default is
+    today.
 
   * `:as` is `:struct` or `:map`. `:map` returns only the fields the input
     actually carried, rather than completing them; a field no date or

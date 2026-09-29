@@ -16,9 +16,17 @@ Outstanding work on Localize. The design detail behind these items lives under [
 
 * [ ] **Report `pt`'s `GyMMMM` to CLDR** — CLDR gives it as "MMMM 'de' Y G", with the week-based year `Y` where every sibling format has `y`, so 2025-12-29 renders "dezembro de 2026 d.C.".
 
-* [ ] **Lunisolar dates do not parse back** — `Calendrical.Chinese`, `Korean`, `Vietnamese` and `LunarJapanese` dates formatted with `:GyMMMd` in `en` ("Mo2 16, 2025") fail to parse, whatever the year: the parser has no `r` or `U` field, no leap-month pattern ("Mo2bis", "闰二月") and no `hanidays` day numerals (`zh`'s "初一").
+* [ ] **The time parser's pattern order** — `Localize.Time.parse/2` takes the first pattern that reads the input, in the order of a map, so `ms` "11:59 PTG" is 23:59 or 11:59 in a zone "PTG" depending on the VM run; take the patterns most specific first, as the date parser now does.
 
-* [ ] **Calendrical callbacks that raise or disagree reach Localize's formatting** — Coptic and Ethiopic `year_of_era/3` raise for year 0, which `valid_date?/3` accepts; the Japanese calendars raise before their first era; `Reform.Japan`'s `calendar_year/3` gives the raw year (1000) where its era year is 21; and the Julian calendars whose year begins in March, September or on December 25 write two years alike ("Mar 17, 1 AD" for years 0 and 1), so those dates cannot parse back. The fixes are Calendrical's.
+* [ ] **Native digits in the time parser** — `Localize.Time.parse/2` reads Latin digits only, so `bn` "১০:০৫ AM" and `fa` "۱۰:۰۵" are errors and their date-times do not parse back, while the date parser transliterates them.
+
+* [ ] **Numeric widths in interval patterns** — TR35's `availableFormats` adjustment pads an interval item's `d/M` to a style's `dd/MM` (`vi` short "01/04/2023 – 10/04/2023"); ICU4C and V8 normalise the skeleton's numeric widths away and write "1/4/2023 – 10/4/2023". Decide which to follow; it predates the calendar work and shows in Gregorian `vi`, `id`, `ms`, `te`, `am` and `sw`.
+
+* [ ] **The hour cycle of a short time interval** — `format: :short` takes `hm` or `Hm` from the locale's preferred hour cycle, so in 18 locales, such as `ady-JO`, whose short time format is "HH:mm", a time interval is 12-hour and its single value "10:05 AM" where `Localize.Time.to_string/2` writes "10:05".
+
+* [ ] **`y` in the Chinese and Dangi calendars** — ICU4C writes the year of the sixty-year cycle ("40. 2. 30." in `ko`), Localize the sequential year ("4660. 2. 30."), which CLDR's era data calls the year; TR35's `U` falling back to `y` suggests the cycle year. Decide which to follow and record it.
+
+* [ ] **An ISO 8601 date that is also a locale's pattern** — root's Chinese and Dangi short pattern `r-MM-dd` writes "2020-05-01", which the parser reads as ISO 8601 first, so those dates do not parse back; decide whether a non-Gregorian calendar's own patterns come first.
 
 * [ ] **`Localize.Calendar.localize/3` names the first value of a part the date lacks** — a map without a month is January, the first quarter and a Monday, and one without a year the current era; characterization tests pin this. Decide whether they should be errors.
 
@@ -41,6 +49,12 @@ Outstanding work on Localize. The design detail behind these items lives under [
 * [ ] **`localize_emoji` sibling library** — plan item 11, a separate package on its own schedule. A Phoenix LiveView picker (`localize_emoji_live`) is out of scope for its 0.1.0.
 
 ## Done
+
+* [x] **Interval formats of non-Gregorian calendars** — intervals, date-times and times take their calendar's formats and date-time pattern, an era change shows both eras, equal endpoints take the standard format, and date-times parse back in every calendar; checked against ICU4C 78.3 and V8 in 17 calendars and 36 locales. 2026-09-29, v1.4.0.
+
+* [x] **Lunisolar dates parse back** — the parsers read `r`, `U`, leap months, traditional month numbers and `hanidays`/`hanidec` numerals, checked against ICU4C 78.3; of 29,640 lunisolar round trips the 701 left are ISO 8601 look-alikes, two-digit years outside the window and era years written without their era. 2026-09-29, v1.4.0.
+
+* [x] **Calendrical's era and year answers reach Localize whole** — Calendrical no longer raises before a first era, and Localize names eras from `era_calendar_type/0`, completes a year-less date in the calendar's own year and reads Amete Alem years. 2026-09-29, v1.4.0.
 
 * [x] **Lunisolar numeric months match ICU4C** — a numeric month is its traditional number, a leap month in CLDR's numeric leap pattern, and a partial date writes its related and cyclic year; every fifth day of 2020–2026 in the Chinese and Dangi calendars formats as ICU4C does (477 differed). 2026-09-29, v1.4.0.
 
