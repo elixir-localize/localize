@@ -88,6 +88,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+* `Localize.Time.parse/2` tries the locale's standard formats first, then its available formats with those carrying a zone or a flexible day period last, where their order followed a map, so `ms` "11:59 PTG" is 23:59 rather than 11:59 in a zone "PTG".
+
+* A flexible day period is read as the period of that name its hour falls in (`fr` "9:05 matin" is 09:05, not 21:05), as midnight or noon at their hour, and as AM or PM where the locale names none, as the formatter then writes it. A word the locale does not name is no longer read as one, where any word was read as the morning.
+
 * `Localize.Interval.to_string/3` and `to_parts/3` format with the formats of the endpoints' calendar — its interval patterns, date and time formats and date-time pattern — where they used the Gregorian calendar's, and return an error for endpoints in two calendars.
 
 * An interval across a change of era shows each endpoint's era, as ICU does: "Dec 31, 1 BC – Jan 1, 1 AD", and "Apr 30, 31 Heisei – May 1, 1 Reiwa" across the Japanese era change within 2019.

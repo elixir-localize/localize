@@ -128,13 +128,24 @@ defmodule Localize.Time.Parser do
 
   # ── Locale patterns (stubbed; filled out by subsequent edits)─
 
+  # The first pattern to read the input wins, so they are taken in a fixed
+  # order (see `pattern_specificity/2`) rather than the order of the map
+  # the available formats come from. So `ms` "11:59 PTG" is its short
+  # "h:mm a", 23:59, not "HH:mm v" in a zone "PTG", and "11:59:59 PM" is
+  # not read by a `B` pattern whose locale names no flexible day periods.
   defp try_locale_patterns(input, locale, as) do
     with {:ok, available} <- Format.available_formats(locale, :gregorian),
          {:ok, day_periods} <- LCalendar.day_periods(locale, :gregorian) do
+      standard = collect_patterns(Format.standard_format_entries(locale, :gregorian))
+      standard_patterns = MapSet.new(standard, fn {_skeleton, pattern} -> pattern end)
+
       patterns =
-        available
-        |> Enum.concat(Format.standard_format_entries(locale, :gregorian))
-        |> collect_patterns()
+        standard
+        |> Enum.concat(collect_patterns(available))
+        |> Enum.uniq_by(fn {_skeleton, pattern} -> pattern end)
+        |> Enum.sort_by(fn {_skeleton, pattern} ->
+          pattern_specificity(pattern, standard_patterns)
+        end)
         |> with_hour_cycle(locale)
 
       day_periods = Map.put(day_periods, :rules, day_period_rules(locale))
@@ -165,6 +176,23 @@ defmodule Localize.Time.Parser do
         patterns
     end
   end
+
+  # A pattern with a zone reads free text into it, so every pattern without
+  # one comes first. Among each, the locale's standard formats, which the
+  # formatter writes, come before its available formats; a flexible day
+  # period, which reads any words where its locale names none, after a
+  # pattern without one; then the longest first, and the text keeps the
+  # order fixed.
+  defp pattern_specificity(pattern, standard_patterns) do
+    fields = String.replace(pattern, ~r/'[^']*'/u, "")
+
+    {rank(String.match?(fields, ~r/[zZvVxXO]/)),
+     rank(not MapSet.member?(standard_patterns, pattern)), rank(String.contains?(fields, "B")),
+     -String.length(pattern), pattern}
+  end
+
+  defp rank(true), do: 1
+  defp rank(false), do: 0
 
   # The dayPeriodRules a flexible day period's 12-hour hour is resolved
   # against, keyed by the locale's language as the formatter keys them.
@@ -610,42 +638,26 @@ defmodule Localize.Time.Parser do
     :midnight
   ]
 
+  # A name can name more than one period — `fr`'s "matin" is morning1 and
+  # night1 — so it is captured whole, longest first, and resolved against
+  # each period it names (see `flex_periods/2`). The formatter writes a
+  # period the locale gives no name, and every period in a locale without
+  # day-period rules, as AM or PM, so those names are read as `a` reads
+  # them. Case-insensitive per CLDR TR35 §6.5.
   defp flex_period_regex(day_periods) do
-    pairs = collect_flex_period_pairs(day_periods)
+    am_pm = day_period_regex(day_periods, :a)
 
-    case pairs do
+    case day_periods |> collect_flex_period_pairs() |> Enum.map(&elem(&1, 1)) |> Enum.uniq() do
       [] ->
-        # Locale carries no flex period data — fall back to a
-        # permissive match so the pattern still matches but
-        # contributes no AM/PM information.
-        "[\\p{L}\\.\\s]+?"
+        am_pm
 
-      pairs ->
-        # Regex requires named groups to be unique. Group all
-        # name variants for the same period key under a
-        # single capture so `__bp_morning1` matches "in the
-        # morning" OR "morning" without duplicating the
-        # named group.
-        names_by_key =
-          pairs
-          |> Enum.group_by(fn {key, _name} -> key end, fn {_key, name} -> name end)
-          |> Enum.map(fn {key, names} ->
-            sorted = names |> Enum.uniq() |> Enum.sort_by(&(-byte_size(&1)))
-            {key, sorted}
-          end)
-          # Sort groups by their longest name so e.g. "midnight"
-          # is tried before "mi" (preventing premature short
-          # matches on locales with very short narrow forms).
-          |> Enum.sort_by(fn {_key, names} -> -byte_size(hd(names)) end)
+      names ->
+        alternation =
+          names
+          |> Enum.sort_by(&(-byte_size(&1)))
+          |> Enum.map_join("|", &escape_with_flexible_spaces/1)
 
-        branches =
-          Enum.map(names_by_key, fn {key, names} ->
-            alternation = Enum.map_join(names, "|", &Regex.escape/1)
-            # Case-insensitive per CLDR TR35 §6.5.
-            "(?P<__bp_#{key}>(?i:#{alternation}))"
-          end)
-
-        "(?:" <> Enum.join(branches, "|") <> ")"
+        "(?:(?P<flex_period>(?i:#{alternation}))(?![\\p{L}])|#{am_pm})"
     end
   end
 
@@ -694,12 +706,12 @@ defmodule Localize.Time.Parser do
     base = if letter == :h, do: rem(n, 12), else: n
 
     period = caps |> Map.get("day_period", "") |> String.downcase()
-    flex = flex_period_from_caps(caps)
+    flexes = flex_periods(caps, day_periods)
 
-    case day_period_half(period, flex, day_periods) do
+    case day_period_half(period, flexes, day_periods) do
       :pm -> {:ok, base + 12}
       :am -> {:ok, base}
-      :flex -> resolve_flex_period_hour(base, flex, day_periods)
+      :flex -> resolve_flex_period_hour(base, flexes, day_periods)
     end
   end
 
@@ -707,7 +719,7 @@ defmodule Localize.Time.Parser do
 
   # Which half of the day a captured day-period name puts the hour in, or
   # `:flex` when only a flexible day period (B) can decide.
-  defp day_period_half(period, flex, day_periods) do
+  defp day_period_half(period, flexes, day_periods) do
     locale_kind = locale_period_kind(period, day_periods)
 
     cond do
@@ -720,7 +732,7 @@ defmodule Localize.Time.Parser do
       locale_kind in [:am, :pm] ->
         locale_kind
 
-      period in ["am", "a.m.", ""] and flex == nil ->
+      period in ["am", "a.m.", ""] and flexes == [] ->
         :am
 
       # Locale-specific day-period name — look up via heuristic.
@@ -735,15 +747,22 @@ defmodule Localize.Time.Parser do
   # No explicit AM/PM marker but a flex period (B) was captured. TR35
   # §Parsing Day Periods checks the day period for consistency with the
   # hour, so the hour is whichever of its two 12-hour readings falls within
-  # the period's dayPeriodRule: ja "夜中0:30" (night2, 23:00–04:00) is 00:30
-  # and en "1 at night" (night1, 21:00–06:00) is 01:00. Where both readings
-  # or neither fall within it, the period's name decides.
-  defp resolve_flex_period_hour(base, flex, day_periods) do
-    rule = get_in(day_periods, [:rules, flex])
+  # the dayPeriodRule of a period the name names: ja "夜中0:30" (night2,
+  # 23:00–04:00) is 00:30, en "1 at night" (night1, 21:00–06:00) is 01:00,
+  # and fr "9:05 matin" (morning1, 04:00–12:00, not night1, 00:00–04:00) is
+  # 09:05. Where both readings or neither fall within one, the first
+  # period's name decides.
+  defp resolve_flex_period_hour(base, flexes, day_periods) do
+    readings =
+      for flex <- flexes,
+          hour <- [base, base + 12],
+          hour_in_period?(hour, get_in(day_periods, [:rules, flex])),
+          uniq: true,
+          do: hour
 
-    case Enum.filter([base, base + 12], &hour_in_period?(&1, rule)) do
+    case readings do
       [hour] -> {:ok, hour}
-      _both_or_neither -> named_period_hour(base, flex)
+      _both_or_neither -> named_period_hour(base, List.first(flexes))
     end
   end
 
@@ -754,6 +773,10 @@ defmodule Localize.Time.Parser do
   defp hour_in_period?(hour, %{from: from, before: before}) do
     hour * 60 >= from or hour * 60 < before
   end
+
+  # Noon and midnight name an instant, so the hour is theirs: `gl`'s
+  # "12 da noite" names midnight as well as night1, and is 00:00.
+  defp hour_in_period?(hour, %{at: at}), do: hour * 60 == at
 
   defp hour_in_period?(_hour, _rule), do: false
 
@@ -807,20 +830,22 @@ defmodule Localize.Time.Parser do
     String.replace(text, ~r/[\s\x{00A0}\x{202F}]+/u, " ")
   end
 
-  # The `B` regex emits one branch per `(period_key, name)`
-  # tuple, named `__bp_<key>`. Find which one fired and
-  # return its key atom.
-  defp flex_period_from_caps(caps) do
-    case Enum.find(caps, fn
-           {"__bp_" <> _, value} -> value != ""
-           _ -> false
-         end) do
-      # Every group name is built from `@flex_period_keys`, so the atom exists.
-      {"__bp_" <> key_str, _} ->
-        String.to_existing_atom(key_str)
+  # The flexible periods a captured `B` name names, in `@flex_period_keys`
+  # order, or none when the field read an AM/PM name or nothing.
+  defp flex_periods(caps, day_periods) do
+    case Map.get(caps, "flex_period", "") do
+      "" ->
+        []
 
-      _ ->
-        nil
+      name ->
+        name = name |> String.downcase() |> normalize_period_spaces()
+
+        named =
+          for {key, candidate} <- collect_flex_period_pairs(day_periods),
+              candidate |> String.downcase() |> normalize_period_spaces() == name,
+              do: key
+
+        Enum.filter(@flex_period_keys, &(&1 in named))
     end
   end
 

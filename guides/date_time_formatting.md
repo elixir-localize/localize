@@ -424,6 +424,16 @@ iex> Localize.Time.parse("14:30", locale: :de)
 {:ok, ~T[14:30:00]}
 ```
 
+A day period is read by the locale's own names, before any pattern with a zone could take it for one, and a flexible day period is the period of that name the hour falls in, where a locale gives two periods one name:
+
+```elixir
+iex> Localize.Time.parse("11:59 PTG", locale: :ms)
+{:ok, ~T[23:59:00]}
+
+iex> Localize.Time.parse("9:05 matin", locale: :fr)
+{:ok, ~T[09:05:00]}
+```
+
 ### Partial input
 
 Input that omits the year is completed from a reference date, today by default, with `:reference_date` setting a different one. The reference date is taken in the calendar the input is read in, so a Hebrew date without a year is in the current Hebrew year, and a two-digit year is read in the century around the reference year in every calendar:

@@ -72,6 +72,10 @@ TR35 makes `y` the year of the era `G` names, and leaves the reading of a two-di
 
 The two agree on everything else here: "Jun 1, 1 BC" is year 0, and "Jun 1, 44", with no era, is 2044.
 
+### Time parsing
+
+TR35 has a flexible day period (`B`) the locale gives no name formatted with its AM and PM names, and ICU4C 78.3 formats it so, but it does not read those names back in a `B` field: `oc`, which has no day-period rules, writes 23:59 in its `Bhm` pattern "h:mm B" as "11:59 PM", which ICU cannot parse. Localize reads a `B` field's AM and PM names as `a` reads them, so the time parses back; asserted in `test/localize/time_parse_test.exs`.
+
 ### Interval formatting
 
 An interval takes the formats of its endpoints' calendar. ICU4C 78.3 differs from Localize in three places, asserted in `test/localize/interval_calendar_test.exs`; the first two follow TR35 and the third ECMA-402.

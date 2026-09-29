@@ -16,7 +16,9 @@ Outstanding work on Localize. The design detail behind these items lives under [
 
 * [ ] **Report `pt`'s `GyMMMM` to CLDR** — CLDR gives it as "MMMM 'de' Y G", with the week-based year `Y` where every sibling format has `y`, so 2025-12-29 renders "dezembro de 2026 d.C.".
 
-* [ ] **The time parser's pattern order** — `Localize.Time.parse/2` takes the first pattern that reads the input, in the order of a map, so `ms` "11:59 PTG" is 23:59 or 11:59 in a zone "PTG" depending on the VM run; take the patterns most specific first, as the date parser now does.
+* [ ] **Report 12-hour patterns without a day period to CLDR** — `fr-CM`'s `h`, `hm` and `hms`, `bal-Latn`'s `hm` and `es-AR`'s `hms` are 12-hour patterns with no day period, which TR35 forbids, so the "12:30" and "1:45" they write each name two times.
+
+* [ ] **The time parser reads only the Gregorian calendar's time formats** — `Localize.DateTime.parse/2` in another calendar reads its time with the Gregorian patterns, so `de`'s Chinese `Bh` "10 vorm." does not parse where its Gregorian "10 Uhr vorm." does; take the calendar's time formats when `:calendar` is given, as the formatter now does.
 
 * [ ] **Native digits in the time parser** — `Localize.Time.parse/2` reads Latin digits only, so `bn` "১০:০৫ AM" and `fa` "۱۰:۰۵" are errors and their date-times do not parse back, while the date parser transliterates them.
 
@@ -49,6 +51,8 @@ Outstanding work on Localize. The design detail behind these items lives under [
 * [ ] **`localize_emoji` sibling library** — plan item 11, a separate package on its own schedule. A Phoenix LiveView picker (`localize_emoji_live`) is out of scope for its 0.1.0.
 
 ## Done
+
+* [x] **The time parser's pattern order** — standard formats first and patterns with a zone or a flexible day period last, and a flexible day period read against every period of its name; of 59,787 times formatted in every locale, every one in Latin digits parses back but 15 from the patterns CLDR gives no day period. 2026-09-30, v1.4.0.
 
 * [x] **Interval formats of non-Gregorian calendars** — intervals, date-times and times take their calendar's formats and date-time pattern, an era change shows both eras, equal endpoints take the standard format, and date-times parse back in every calendar; checked against ICU4C 78.3 and V8 in 17 calendars and 36 locales. 2026-09-29, v1.4.0.
 

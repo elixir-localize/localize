@@ -902,8 +902,18 @@ defmodule Localize.ParsingCoverageTest do
                Localize.Date.parse("0 2026", locale: :cy)
     end
 
+    # `aa` names no flexible day periods, so its `B` patterns are written
+    # with its AM and PM names (TR35) and read with them; a word it does not
+    # name is no day period.
     test "day-period name without flex-period data in :aa" do
-      assert Localize.Time.parse("11:30 saaku", locale: :aa) == {:ok, ~T[11:30:00]}
+      assert Localize.Time.to_string(~T[23:30:00], locale: :aa, format: :Bhm) ==
+               {:ok, "11:30 PM"}
+
+      assert Localize.Time.parse("11:30 PM", locale: :aa) == {:ok, ~T[23:30:00]}
+      assert Localize.Time.parse("11:30 AM", locale: :aa) == {:ok, ~T[11:30:00]}
+
+      assert {:error, %Localize.TimeParseError{}} =
+               Localize.Time.parse("11:30 saaku", locale: :aa)
 
       assert {:error, %Localize.TimeParseError{}} =
                Localize.Time.parse("qqq", locale: :aa)
