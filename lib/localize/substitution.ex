@@ -70,6 +70,9 @@ defmodule Localize.Substitution do
       iex> Localize.Substitution.substitute("x", [0, "!"])
       ["x", "!"]
 
+      iex> Localize.Substitution.substitute(["Canada", "Pacific Time"], ["[", 1, " (", 0, ")]"])
+      ["[", "Pacific Time", " (", "Canada", ")]"]
+
   """
   @spec substitute(term() | [term()], [String.t() | integer()]) :: [term()]
 
@@ -143,6 +146,17 @@ defmodule Localize.Substitution do
   def substitute([item_0, item_1, item_2], [0, string_1, 1, string_2, 2])
       when is_binary(string_1) and is_binary(string_2) do
     [item_0, string_1, item_1, string_2, item_2]
+  end
+
+  # Any other shape, such as `el`'s zone fallback format "[{1} ({0})]": each
+  # index is replaced by the item at that position and each literal kept.
+  def substitute(items, tokens) when is_list(tokens) do
+    items = List.wrap(items)
+
+    Enum.map(tokens, fn
+      index when is_integer(index) -> Enum.at(items, index)
+      literal -> literal
+    end)
   end
 
   @doc """

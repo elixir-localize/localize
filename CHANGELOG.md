@@ -50,6 +50,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Changed
 
+* **Breaking.** The generic zone format (`v`, `vvvv`) qualifies a metazone name with the zone's country or city unless the zone is the metazone's preferred zone for the locale's country, as TR35 and CLDR's own formatter give it: "Central European Time (Germany)" for Berlin in `en`, "Mountain Time (Phoenix)". A standard name stands in for a generic one only where the zone keeps one offset for 184 days either side, so London's summer is no longer "Greenwich Mean Time" in a locale naming no British daylight time.
+
 * **Breaking.** A named zone in a parsed date-time resolves to a `DateTime` in Localize, through the configured time zone database, where it was dropped unless `calendrical` was installed, and an abbreviation is read where the locale's CLDR names hold it (`en` reads "EST", not "JST"). A zone field reads only a zone the locale writes, so "2:30 PM XQZV" is an error.
 
 * **Breaking.** MessageFormat 2's `{$t :time}` and `{$d :datetime}` give the time to the minute, as TR35 specifies, where they gave seconds; `precision=second` and `timePrecision=second` restore them. A date or time option other than `timeZone`, `hour12` and `calendar` set by a variable is an error, as TR35 requires.
@@ -92,7 +94,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
-* A zone in a parsed date or time is read in the locale's own words and spelling — "heure d’été de l’Est nord-américain", "UTC−4", "غرينتش-4", "heure : New York" — and a name of standard or daylight time keeps its own offset, as ICU reads it. Of 52,560 zoned date-times formatted in every locale, 51,903 now round-trip, where 14,099 did.
+* `Localize.Substitution.substitute/2` substitutes into a template of any shape, where it raised on one it did not list, such as `el`'s zone fallback format "[{1} ({0})]".
+
+* A zone in a parsed date or time is read in the locale's own words and spelling — "heure d’été de l’Est nord-américain", "UTC−4", "غرينتش-4", "heure : New York" — and a name of standard or daylight time keeps its own offset, as ICU reads it. Of 52,560 zoned date-times formatted in every locale, all but `nnh`'s 80 now round-trip, where 14,099 did.
 
 * `Localize.Time.parse/2` reads a time written in the digits of the locale's number system, as the date parser does, so `bn` "১০:০৫ AM" and `fa` "۱۰:۰۵" parse, and with them the date-times of 67 locales that write their own digits.
 

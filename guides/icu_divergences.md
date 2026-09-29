@@ -83,6 +83,17 @@ TR35's time zone parsing reads a zone written in any form — a specific or gene
 | "10:00:00 AM Eastern Time" in `h:mm:ss a zzzz` | 10:00 in New York | an error |
 | "10:00:00 AM New York Time" in `h:mm:ss a z` | 10:00 in New York | an error |
 
+### Time zone formatting
+
+TR35's generic non-location format (`v`, `vvvv`) qualifies a metazone name, unless the zone is the metazone's preferred zone for the locale's country, with the zone's country where it is that country's preferred zone and with its city otherwise; CLDR's own `TimezoneFormatter` does exactly that. ICU4C 78.3 qualifies a metazone name only where the zone's offset at that moment differs from the preferred zone's, and writes a zone keeping no daylight time within 184 days by its standard name, so even TR35's worked example "Pacific Time (Canada)" for Vancouver in `en_MX` is "Pacific Time" in ICU. Localize follows TR35, and both read back to the same instant; asserted in `test/localize/datetime/generic_zone_format_test.exs`.
+
+| `vvvv` in `en`, July 2023 | TR35 and Localize | ICU4C formats |
+|---|---|---|
+| `Europe/Berlin` | Central European Time (Germany) | Central European Time |
+| `America/Vancouver` | Pacific Time (Canada) | Pacific Time |
+| `America/Phoenix` | Mountain Time (Phoenix) | Mountain Standard Time |
+| `America/New_York` in `en-JM`, January | Eastern Time (United States) | Eastern Time |
+
 ### Interval formatting
 
 An interval takes the formats of its endpoints' calendar. ICU4C 78.3 differs from Localize in three places, asserted in `test/localize/interval_calendar_test.exs`; the first two follow TR35 and the third ECMA-402.

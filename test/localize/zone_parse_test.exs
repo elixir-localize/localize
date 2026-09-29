@@ -100,6 +100,25 @@ defmodule Localize.ZoneParseTest do
       end
     end
 
+    # `en`'s short names "ET", "MT" and "PT" are also the codes of Ethiopia,
+    # Malta and Portugal; a code is read only in a qualifier, where TR35's
+    # composition writes one for a country the locale does not name.
+    test "a short name that is also a country's code" do
+      for {text, time_zone} <- [
+            {"ET", "America/New_York"},
+            {"MT", "America/Denver"},
+            {"PT", "America/Los_Angeles"},
+            {"MT (Phoenix)", "America/Phoenix"},
+            {"PT (Canada)", "America/Vancouver"}
+          ] do
+        assert Timezone.parse_zone(text, locale: :en) == {:ok, {:zone, time_zone, :generic}},
+               text
+      end
+
+      assert Timezone.parse_zone("Waktu Pasifik (CA)", locale: :su) ==
+               {:ok, {:zone, "America/Vancouver", :generic}}
+    end
+
     # "Greenwich Mean Time" names the GMT, British and Irish metazones.
     test "a name several metazones share" do
       for {locale, time_zone} <- [
@@ -126,6 +145,14 @@ defmodule Localize.ZoneParseTest do
 
       assert Timezone.parse_zone("שעון אזור ההרים בארה״ב", locale: :he) ==
                {:ok, {:zone, "America/Denver", :generic}}
+    end
+
+    # CLDR 49's `uk.xml` names Eastern time "за східним часом (ET)", itself
+    # in the fallback format's shape, with a country's code in parentheses;
+    # ICU4C 78.3's CLDR 48 data names it otherwise.
+    test "a name in parentheses that is itself a name" do
+      assert Timezone.parse_zone("за східним часом (ET)", locale: :uk) ==
+               {:ok, {:zone, "America/New_York", :generic}}
     end
 
     test "text that is no zone" do

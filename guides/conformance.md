@@ -292,9 +292,9 @@ Two areas are explicitly out of scope:
 |---------|--------|-------|
 | Timezone format symbols (z, Z, O, v, V, X, x) | Implemented | `Localize.DateTime.Formatter` handles all timezone symbols. |
 | GMT offset formatting | Implemented | `gmtFormat` with `hourFormat` for every known offset, zero included ("GMT+00:00", "GMT+0"), and `gmtUnknownFormat` ("GMT+?") when the offset is unknown — the two styles TR35 defines. `gmtZeroFormat` is still in the data but no TR35 formatting rule uses it. |
-| Metazone names | Implemented | The `z` and `v` symbols render the metazone's names — "Eastern Daylight Time" and "EDT", "Eastern Time" and "ET". |
+| Metazone names | Implemented | The `z` and `v` symbols render the metazone's names — "Eastern Daylight Time" and "EDT", "Eastern Time" and "ET". The generic format qualifies a metazone name with the zone's country or city unless the zone is the metazone's preferred zone for the locale's country, as TR35's steps give it: "Pacific Time (Canada)" for Vancouver in `en`. |
 | Exemplar cities | Implemented | `VVV` renders the exemplar city ("New York") and `VVVV` the generic location format ("New York Time"). |
-| Timezone fallback formatting | Partial | Offset-based fallback works; metazone name fallback chain not implemented. |
+| Timezone fallback formatting | Implemented | The generic format falls back from the zone's or metazone's name to the generic location format and then the localized GMT format, taking a standard name for a zone that keeps one offset for 184 days either side; the specific format falls back to the localized GMT format. |
 
 ### Semantic Skeletons
 

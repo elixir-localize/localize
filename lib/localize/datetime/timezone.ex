@@ -622,8 +622,12 @@ defmodule Localize.DateTime.Timezone do
     with {:ok, type} <- non_location_type(Keyword.get(options, :type, :specific)),
          {:ok, tz_data} <- Localize.Locale.get(locale_id, [:dates, :time_zone_names]) do
       result =
-        zone_name(time_zone, tz_data, format, type, datetime) ||
-          metazone_name(metazone_for(time_zone, datetime), tz_data, format, type, datetime)
+        if type == :generic do
+          generic_name(time_zone, tz_data, format, datetime, locale_id)
+        else
+          zone_name(time_zone, tz_data, format, type, datetime) ||
+            metazone_name(metazone_for(time_zone, datetime), tz_data, format, type, datetime)
+        end
 
       cond do
         result ->
@@ -682,6 +686,14 @@ defmodule Localize.DateTime.Timezone do
   end
 
   defp zone_name(time_zone, tz_data, format, type, datetime) when is_binary(time_zone) do
+    time_zone
+    |> zone_data(tz_data)
+    |> metazone_data_name(format, type, datetime)
+  end
+
+  defp zone_name(_time_zone, _tz_data, _format, _type, _datetime), do: nil
+
+  defp zone_data(time_zone, tz_data) do
     keys =
       @zone_canonical_names
       |> Map.get(time_zone, time_zone)
@@ -689,26 +701,8 @@ defmodule Localize.DateTime.Timezone do
       |> String.split("/")
       |> Enum.map(&Localize.Utils.Helpers.existing_atom/1)
 
-    zone_data = get_in(tz_data[:zone], keys)
-
-    metazone_data_name(zone_data, format, type, datetime) ||
-      standard_for_generic(zone_data, format, type)
+    get_in(tz_data[:zone], keys)
   end
-
-  defp zone_name(_time_zone, _tz_data, _format, _type, _datetime), do: nil
-
-  # TR35 **Type Fallback**: a zone or metazone with no daylight type does not
-  # require daylight support, so a request for the generic type resolves to the
-  # standard name. This is how `Etc/GMT` reaches "Greenwich Mean Time" for
-  # `vvvv` — the `gmt` metazone carries a standard name and nothing else.
-  defp standard_for_generic(%{} = name_data, format, :generic) do
-    unless get_in(name_data, [:long, :daylight]) || get_in(name_data, [:short, :daylight]) do
-      format_key = if format == :short, do: :short, else: :long
-      get_in(name_data, [format_key, :standard])
-    end
-  end
-
-  defp standard_for_generic(_name_data, _format, _type), do: nil
 
   # Look up the non-location name for a metazone. Returns `nil`
   # when the zone has no metazone mapping or the locale has no
@@ -716,10 +710,7 @@ defmodule Localize.DateTime.Timezone do
   defp metazone_name(nil, _tz_data, _format, _type, _datetime), do: nil
 
   defp metazone_name(metazone_key, tz_data, format, type, datetime) do
-    metazone_data = tz_data[:metazone][metazone_key]
-
-    metazone_data_name(metazone_data, format, type, datetime) ||
-      standard_for_generic(metazone_data, format, type)
+    metazone_data_name(tz_data[:metazone][metazone_key], format, type, datetime)
   end
 
   defp metazone_data_name(nil, _format, _type, _datetime), do: nil
@@ -728,6 +719,145 @@ defmodule Localize.DateTime.Timezone do
     format_key = if format == :short, do: :short, else: :long
     type_key = resolve_type(type, datetime)
     get_in(metazone_data, [format_key, type_key])
+  end
+
+  # TR35's generic non-location format, as CLDR's own `TimezoneFormatter`
+  # gives it: the zone's own generic name; else its metazone's, qualified in
+  # the locale's fallback format by the zone's country, or else its city,
+  # unless the zone is the metazone's preferred zone for the locale's
+  # country — "Pacific Time" for Los Angeles in `en`, "Pacific Time (Canada)"
+  # for Vancouver, "Mountain Time (Phoenix)" for Phoenix. Without either
+  # name the caller falls back to the location format.
+  defp generic_name(time_zone, tz_data, format, datetime, locale_id)
+       when is_binary(time_zone) do
+    metazone = metazone_for(time_zone, datetime)
+
+    case generic_or_standard(zone_data(time_zone, tz_data), format, time_zone, datetime) do
+      nil ->
+        metazone_names = metazone && tz_data[:metazone][metazone]
+
+        case generic_or_standard(metazone_names, format, time_zone, datetime) do
+          nil -> nil
+          name -> qualified_metazone_name(name, metazone, time_zone, tz_data, locale_id)
+        end
+
+      name ->
+        name
+    end
+  end
+
+  defp generic_name(_time_zone, _tz_data, _format, _datetime, _locale_id), do: nil
+
+  # A generic name, or where there is none the standard one when the zone
+  # keeps a single offset for 184 days either side of the time, as TR35's
+  # type fallback has it: `Etc/GMT` is "Greenwich Mean Time". London's
+  # summer, which a locale with no British daylight name gives no generic
+  # name either, is not.
+  defp generic_or_standard(%{} = names, format, time_zone, datetime) do
+    width = if format == :short, do: :short, else: :long
+
+    cond do
+      name = get_in(names, [width, :generic]) -> name
+      keeps_one_offset?(names, time_zone, datetime) -> get_in(names, [width, :standard])
+      true -> nil
+    end
+  end
+
+  defp generic_or_standard(_names, _format, _time_zone, _datetime), do: nil
+
+  # Whether the zone keeps one offset for 184 days either side of the time,
+  # as the time zone database the application configures says. Without a
+  # database that can say, TR35's own test stands: names with no daylight
+  # time are for a zone that keeps none.
+  defp keeps_one_offset?(names, time_zone, datetime) do
+    case offset_changes_near(time_zone, datetime) do
+      {:ok, changes?} ->
+        not changes?
+
+      :unknown ->
+        is_nil(get_in(names, [:long, :daylight])) and is_nil(get_in(names, [:short, :daylight]))
+    end
+  end
+
+  # The zone's offsets from 184 days before the time to 184 days after it,
+  # read a week apart and at either end.
+  @offset_sample_days Enum.to_list(-184..184//7) ++ [184]
+
+  defp offset_changes_near(time_zone, datetime) do
+    with %NaiveDateTime{} = instant <- metazone_instant(datetime),
+         {:ok, offsets} <- sampled_offsets(instant, time_zone, Calendar.get_time_zone_database()) do
+      {:ok, length(Enum.uniq(offsets)) > 1}
+    else
+      _no_offsets -> :unknown
+    end
+  end
+
+  defp sampled_offsets(instant, time_zone, database) do
+    Enum.reduce_while(@offset_sample_days, {:ok, []}, fn days, {:ok, offsets} ->
+      with {:ok, utc} <- DateTime.from_naive(NaiveDateTime.add(instant, days * 86_400), "Etc/UTC"),
+           {:ok, local} <- DateTime.shift_zone(utc, time_zone, database) do
+        {:cont, {:ok, [{local.utc_offset, local.std_offset} | offsets]}}
+      else
+        _no_offset -> {:halt, :error}
+      end
+    end)
+  end
+
+  # TR35's steps for a metazone name: bare for the metazone's preferred zone
+  # in the locale's country (else its golden zone), and for a zone with no
+  # place to name; with the zone's country when it is that country's
+  # preferred zone; with its exemplar city otherwise.
+  defp qualified_metazone_name(name, metazone, time_zone, tz_data, locale_id) do
+    canonical = Map.get(@zone_canonical_names, time_zone, time_zone)
+    zones = Map.get(@metazone_mapzones, metazone, %{})
+    golden_zone = Map.get(zones, :"001")
+    country = Map.get(@territories_by_timezone, canonical)
+
+    cond do
+      is_nil(country) ->
+        name
+
+      canonical == (Map.get(zones, locale_territory_id(locale_id)) || golden_zone) ->
+        name
+
+      canonical == (Map.get(zones, country) || golden_zone) ->
+        with_place(name, country_name(country, locale_id), tz_data)
+
+      true ->
+        with_place(name, city_name(canonical, locale_id), tz_data)
+    end
+  end
+
+  defp locale_territory_id(locale_id) do
+    case Localize.Territory.territory_from_locale(locale_id) do
+      {:ok, territory} -> territory
+      _no_territory -> :"001"
+    end
+  end
+
+  # The country a metazone name is qualified with, by its full name as
+  # CLDR's formatter and ICU write it ("Eastern Time (United States)"); by
+  # TR35's composition, a country the locale does not name is its code.
+  defp country_name(country, locale_id) do
+    with {:ok, language_tag} <- Localize.validate_locale(locale_id),
+         {:ok, territories} <- Localize.Locale.get(language_tag, [:territories]),
+         %{standard: name} when is_binary(name) <- Map.get(territories, country) do
+      name
+    else
+      _no_name -> Atom.to_string(country)
+    end
+  end
+
+  defp city_name(time_zone, locale_id) do
+    case exemplar_city(time_zone, locale_id) do
+      {:ok, city} -> city
+      {:error, _reason} -> derive_city_from_id(time_zone) || time_zone
+    end
+  end
+
+  defp with_place(name, place, tz_data) do
+    template = Map.get(tz_data, :fallback_format) || [1, " (", 0, ")"]
+    [place, name] |> Localize.Substitution.substitute(template) |> IO.iodata_to_binary()
   end
 
   @doc """
@@ -1269,15 +1399,23 @@ defmodule Localize.DateTime.Timezone do
   # TR35's sample process. A string in the shape of the locale's fallback
   # format whose part in parentheses is a place is read as a name N and that
   # place P ("Pacific Time (Canada)"), and else, or when that reading names
-  # no zone, as a name alone: `he`'s standard names are written "… (חורף)",
-  # "(winter)", which is no place.
+  # no zone, as a name alone. A string that is itself a name is read as that
+  # name first, as ICU takes the longest match: `uk` names Eastern time "за
+  # східним часом (ET)", and `he` a standard time "… (חורף)", "(winter)".
   defp place_zone(key, index, language_tag) do
     readings =
       case index.fallback_format && Regex.named_captures(index.fallback_format, key) do
         %{"name" => name, "place" => place} ->
-          if Map.has_key?(index.countries, place) or Map.has_key?(index.cities, place),
-            do: [{name, place}, {key, nil}],
-            else: [{key, nil}]
+          cond do
+            Map.has_key?(index.names, key) ->
+              [{key, nil}, {name, place}]
+
+            qualifier_country(place, index) || Map.has_key?(index.cities, place) ->
+              [{name, place}, {key, nil}]
+
+            true ->
+              [{key, nil}]
+          end
 
         _no_place ->
           [{key, nil}]
@@ -1296,7 +1434,10 @@ defmodule Localize.DateTime.Timezone do
   defp reading_zone(name, place, index, language_tag) do
     {located, region_type} = region_place(name, index)
     type = region_type || name_type(name, index) || :generic
-    country = Enum.find_value([place, name, located], &Map.get(index.countries, &1))
+
+    country =
+      qualifier_country(place, index) ||
+        Enum.find_value([name, located], &Map.get(index.countries, &1))
 
     [
       fn -> country_zone(country, type) end,
@@ -1310,6 +1451,13 @@ defmodule Localize.DateTime.Timezone do
     ]
     |> Enum.find_value(fn step -> step.() end)
   end
+
+  # The country the fallback format's qualifier names, by the locale's name
+  # for it or by its code.
+  defp qualifier_country(nil, _index), do: nil
+
+  defp qualifier_country(place, index),
+    do: Map.get(index.countries, place) || Map.get(index.country_codes, place)
 
   # The place a region format ("{0} Time", "heure : {0}") names, and the
   # type of time that format is for.
@@ -1456,6 +1604,7 @@ defmodule Localize.DateTime.Timezone do
       names: zone_names(zones, Map.get(names, :metazone, %{})),
       cities: city_names(zones),
       countries: country_names(territories),
+      country_codes: country_codes(),
       region_formats: region_format_regexes(Map.get(names, :region_format, %{})),
       fallback_format: template_regex(Map.get(names, :fallback_format))
     }
@@ -1544,6 +1693,15 @@ defmodule Localize.DateTime.Timezone do
         is_binary(name),
         into: %{},
         do: {name_key(name), territory}
+  end
+
+  # The code of every country with a zone, which TR35's composition writes
+  # as the qualifier for a country the locale does not name ("Pacific Time
+  # (CA)"). It is read only there: "MT" alone is Mountain Time, not Malta.
+  defp country_codes do
+    for territory <- Map.values(@territories_by_timezone),
+        into: %{},
+        do: {name_key(Atom.to_string(territory)), territory}
   end
 
   defp region_format_regexes(region_formats) do
