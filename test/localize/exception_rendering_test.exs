@@ -182,11 +182,14 @@ defmodule Localize.ExceptionRenderingTest do
       exception =
         Localize.FormatError.exception(reason: :missing_selector_annotation, detail: "x")
 
-      {message, log} = ExUnit.CaptureLog.with_log(fn -> Exception.message(exception) end)
+      # An async test's captured log can hold another test's warnings, so each
+      # line is tagged with its process and only this one's count.
+      {message, log} =
+        ExUnit.CaptureLog.with_log([metadata: [:pid]], fn -> Exception.message(exception) end)
 
       assert message =~ "the selector x has no annotation"
       assert message =~ ".input {$x :number}"
-      assert log == ""
+      refute log =~ "pid=#{:erlang.pid_to_list(self())}"
     end
 
     test "mismatched_close includes the closing tag detail" do
