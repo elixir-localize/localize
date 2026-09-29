@@ -1,8 +1,12 @@
 defmodule Localize.FormatCache do
-  # An ETS-backed cache for compiled format patterns.
+  # An ETS-backed cache for compiled format patterns and data
+  # derived from locale data.
   #
-  # Number format metadata and datetime format tokens are cached
-  # here after first compilation. The cache is hard-bounded: when
+  # Number format metadata, datetime format tokens and the
+  # currency strings of a locale are cached here after they are
+  # first built. `Localize.Locale.store/3` clears the cache, so no
+  # entry outlives the locale data it came from. The cache is
+  # hard-bounded: when
   # inserting an entry would exceed the configured maximum, an
   # existing entry is evicted synchronously, keeping the cache at
   # or below the cap at all times.
@@ -75,17 +79,35 @@ defmodule Localize.FormatCache do
 
   * `value` is the compiled artifact to cache.
 
+  * `generation` is the value `generation/0` returned before the
+    value was built from locale data. The value is dropped when
+    `clear/0` ran since then, so it cannot outlive the data it came
+    from. The default `:any` always stores.
+
   ### Returns
 
   * `:ok`.
 
   """
-  @spec store(term(), term()) :: :ok
-  def store(key, value) do
+  @spec store(term(), term(), non_neg_integer() | :any) :: :ok
+  def store(key, value, generation \\ :any) do
     if Process.whereis(__MODULE__) do
-      GenServer.call(__MODULE__, {:store, key, value})
+      GenServer.call(__MODULE__, {:store, key, value, generation})
     else
       :ok
+    end
+  end
+
+  @doc """
+  Returns the number of times the cache was cleared, for `store/3`.
+
+  """
+  @spec generation() :: non_neg_integer()
+  def generation do
+    if Process.whereis(__MODULE__) do
+      GenServer.call(__MODULE__, :generation)
+    else
+      0
     end
   end
 
@@ -141,11 +163,12 @@ defmodule Localize.FormatCache do
   @impl true
   def init(_options) do
     ensure_table()
-    {:ok, []}
+    {:ok, 0}
   end
 
   @impl true
-  def handle_call({:store, key, value}, _from, state) do
+  def handle_call({:store, key, value, generation}, _from, current)
+      when generation in [:any, current] do
     cap = max_entries()
     size = :ets.info(@table, :size)
 
@@ -163,16 +186,23 @@ defmodule Localize.FormatCache do
         :ets.insert(@table, {key, value})
     end
 
-    {:reply, :ok, state}
+    {:reply, :ok, current}
   end
 
-  @impl true
-  def handle_call(:clear, _from, state) do
+  def handle_call({:store, _key, _value, _stale_generation}, _from, current) do
+    {:reply, :ok, current}
+  end
+
+  def handle_call(:generation, _from, current) do
+    {:reply, current, current}
+  end
+
+  def handle_call(:clear, _from, current) do
     if :ets.whereis(@table) != :undefined do
       :ets.delete_all_objects(@table)
     end
 
-    {:reply, :ok, state}
+    {:reply, :ok, current + 1}
   end
 
   defp ensure_table do
