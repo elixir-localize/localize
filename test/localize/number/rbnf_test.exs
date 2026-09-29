@@ -77,6 +77,26 @@ defmodule Localize.Number.RbnfTest do
     end
   end
 
+  # Expected values from ICU4C 78.3's RuleBasedNumberFormat, which
+  # inherits a regional locale's rules from its language.
+  describe "a regional locale with no rules of its own" do
+    test "spells out with its language's rules" do
+      for {locale, number, expected} <- [
+            {:"ar-SA", 4, "أربعة"},
+            {:"ar-EG", 21, "واحد وعشرون"},
+            {:"fr-CA", 21, "vingt-et-un"},
+            {:"zh-Hant-HK", 1234, "一千二百三十四"}
+          ] do
+        assert Rbnf.to_string(number, "spellout-numbering", locale: locale) == {:ok, expected}
+      end
+
+      assert Rbnf.to_string(3, "spellout-cardinal-feminine", locale: :"ar-SA") == {:ok, "ثلاثة"}
+
+      assert Localize.Number.to_string(21, format: :spellout, locale: :"fr-CA") ==
+               {:ok, "vingt-et-un"}
+    end
+  end
+
   describe "algorithmic number systems" do
     test "Roman numerals" do
       assert {:ok, "XLII"} = Localize.Number.System.to_system(42, :roman)

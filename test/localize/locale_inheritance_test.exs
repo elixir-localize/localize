@@ -118,4 +118,60 @@ defmodule Localize.LocaleInheritanceTest do
       assert chain == ["es-419", "es", "und"]
     end
   end
+
+  # A validated tag names the CLDR locale whose data it uses, so each
+  # ancestor must name its own, following CLDR's locale inheritance:
+  # ar-SA's parent is ar, not ar-SA again.
+  describe "parent/1 of a validated tag" do
+    test "a parent found by dropping a subtag resolves its own CLDR locale" do
+      for {locale, expected} <- [
+            {"ar-SA", [:ar, :ar, :und]},
+            {"de-AT", [:de, :de, :und]},
+            {"fr-CA", [:fr, :fr, :und]},
+            {"es-419", [:es, :es, :und]},
+            {"zh-Hant-HK", [:"zh-Hant", :und]},
+            {"ca-ES-valencia", [:ca, :ca, :ca, :und]},
+            {"ar-SA-u-nu-latn", [:ar, :ar, :und]}
+          ] do
+        {:ok, tag} = Localize.validate_locale(locale)
+        assert cldr_chain(tag) == expected, locale
+      end
+    end
+
+    test "a parent from CLDR's parent locales is unchanged" do
+      for {locale, expected} <- [
+            {"es-MX", [:"es-419", :es, :und]},
+            {"en-AU", [:"en-001", :en, :und]},
+            {"pt-AO", [:"pt-PT", :pt, :und]},
+            {"zh-Hant-MO", [:"zh-Hant-HK", :"zh-Hant", :und]}
+          ] do
+        {:ok, tag} = Localize.validate_locale(locale)
+        assert cldr_chain(tag) == expected, locale
+      end
+    end
+
+    test "a tag whose data is root's walks to root, not to its likely subtags" do
+      # A validated und carries the likely subtags en-Latn-US.
+      for locale <- ["und", "root", "tlh"] do
+        {:ok, tag} = Localize.validate_locale(locale)
+        assert cldr_chain(tag) == [:und], locale
+      end
+    end
+  end
+
+  # The CLDR locale of each ancestor of a tag, up to the root.
+  defp cldr_chain(tag) do
+    tag
+    |> Stream.unfold(fn tag ->
+      case Locale.parent(tag) do
+        {:ok, parent} ->
+          {:ok, locale_id} = Locale.cldr_locale_id_from(parent)
+          {locale_id, parent}
+
+        {:error, _reason} ->
+          nil
+      end
+    end)
+    |> Enum.to_list()
+  end
 end

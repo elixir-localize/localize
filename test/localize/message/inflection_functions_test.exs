@@ -648,6 +648,18 @@ defmodule Localize.Message.InflectionFunctionsTest do
       end
     end
 
+    test "a regional locale speaks with its language's words (upstream)" do
+      # Upstream's QuantifyTest quantifies Arabic in ar-SA, which has no
+      # spellout rules of its own and inherits ar's.
+      assert {:ok, ssml} =
+               Message.format("{$unit :i:quantify withValue=$n}", %{unit: "رسالة", n: 3},
+                 locale: :"ar-SA",
+                 output: :ssml
+               )
+
+      assert print_and_speak(ssml) == {"٣ رسائل", "ثلاثة رسائل"}
+    end
+
     test "regional digits speak as the language's own digits or words (upstream)" do
       for {locale, number, expected} <- [
             {:"de-AT", 1234, {"1 234", "1.234"}},

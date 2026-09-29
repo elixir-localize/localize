@@ -12,9 +12,9 @@ Outstanding work on Localize. The design detail behind these items lives under [
 
 * [ ] **Audit `cldr-49`-only code for map-order dependence** — the 2026-09-26 audit covered `main`. [plans/map-order.md](plans/map-order.md).
 
-* [ ] **`Localize.Locale.parent/1` keeps the child's `cldr_locale_id`** — a parent found by dropping a subtag (`ar-SA` → `ar-Arab`, and `de-AT`, `fr-CA`, `es-419`, `zh-Hant-HK`) still names the child's data, so `Localize.Number.Rbnf` finds no rules where ICU inherits the language's, and the `i:` functions speak numbers there as digits.
-
 * [ ] **The inflection engine keeps a locale's extensions** — `Localize.Inflection.Locale.normalize/1` gives `"ar_u_nu_arab"` for `ar-u-nu-arab`, so `Localize.Inflection.Quantify` misses the Arabic rules and joins as the generic factory does.
+
+* [ ] **MF2 `:date` and `:datetime` ignore the spec's field options** — TR35 49 defines `fields` on `:date` (for example `month-day`) and `dateFields` on `:datetime`, but `lib/localize/message/interpreter.ex` reads only `style`, `length`, `dateStyle` and `dateLength`, so `{$d :date fields=month-day}` renders the medium default "14 Jun 2026" where `en-AU` should give "14 June". Found through the `localize_person_names` message formatting guide.
 
 ## In progress
 
@@ -33,6 +33,8 @@ Outstanding work on Localize. The design detail behind these items lives under [
 * [ ] **`localize_emoji` sibling library** — plan item 11, a separate package on its own schedule. A Phoenix LiveView picker (`localize_emoji_live`) is out of scope for its 0.1.0.
 
 ## Done
+
+* [x] **`Localize.Locale.parent/1` keeps the child's `cldr_locale_id`** — a parent found by dropping a subtag resolves its own CLDR locale, so regional locales spell numbers out with their language's RBNF rules as ICU does; a validated `und` walks to root, not English. 2026-09-29, v1.4.0.
 
 * [x] **Print and speak output for the `i:` functions** — `output: :ssml` writes a message as SSML with upstream's `<sub alias>` spoken forms, and `:i:quantify` speaks its number in agreement with the noun, as upstream's factories do. 2026-09-29, v1.4.0.
 

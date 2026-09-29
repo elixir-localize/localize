@@ -134,6 +134,10 @@ defmodule Localize.Locale do
   to the parent so that calendar, numbering system, and other
   preferences are preserved across the inheritance chain.
 
+  The parent's `:cldr_locale_id` is left unset, and
+  `cldr_locale_id_from/1` resolves it from the parent's own subtags, so
+  data looked up through the parent is the parent's, never the child's.
+
   ### Arguments
 
   * `locale` is a `%Localize.LanguageTag{}` struct or a BCP 47
@@ -183,6 +187,14 @@ defmodule Localize.Locale do
          %LanguageTag{language: :und, script: nil, territory: nil, language_variants: []} = _tag
        ) do
     {:error, Localize.NoParentError.exception(locale: "und")}
+  end
+
+  # A tag whose data is root's but whose subtags are not has root as its
+  # parent. A validated `und` carries the subtags likely-subtag
+  # resolution gives it, `en-Latn-US`, so dropping them would walk
+  # English data from the root locale.
+  defp tag_parent(%LanguageTag{cldr_locale_id: :und} = tag) do
+    {:ok, transfer_extensions(root_tag(), tag)}
   end
 
   defp tag_parent(%LanguageTag{} = tag) do
@@ -258,19 +270,25 @@ defmodule Localize.Locale do
 
   # Progressively strip subtags to find the parent.
   # Order: drop variants → drop territory → drop script → und (root).
+  # The child's ids name the child, so the parent keeps neither: a
+  # validated `ar-SA` carrying `cldr_locale_id: :"ar-SA"` into its
+  # parent `ar-Arab` made every lookup through the parent read `ar-SA`'s
+  # data again, and RBNF found no rules where `ar` has them.
   defp find_parent(%LanguageTag{language_variants: [_ | _]} = tag) do
-    %{tag | language_variants: [], canonical_locale_id: nil}
+    %{tag | language_variants: [], canonical_locale_id: nil, cldr_locale_id: nil}
   end
 
   defp find_parent(%LanguageTag{territory: territory} = tag) when not is_nil(territory) do
-    %{tag | territory: nil, canonical_locale_id: nil}
+    %{tag | territory: nil, canonical_locale_id: nil, cldr_locale_id: nil}
   end
 
   defp find_parent(%LanguageTag{script: script} = tag) when not is_nil(script) do
-    %{tag | script: nil, canonical_locale_id: nil}
+    %{tag | script: nil, canonical_locale_id: nil, cldr_locale_id: nil}
   end
 
-  defp find_parent(%LanguageTag{} = _tag) do
+  defp find_parent(%LanguageTag{} = _tag), do: root_tag()
+
+  defp root_tag do
     {:ok, parsed} = LanguageTag.parse("und")
     {:ok, canonical} = LanguageTag.canonicalize(parsed)
     canonical

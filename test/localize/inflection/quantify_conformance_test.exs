@@ -485,17 +485,17 @@ defmodule Localize.Inflection.QuantifyConformanceTest do
   # The same expectations reached from the number, as upstream's tests
   # reach them: `Quantify.quantify/4` writes the number itself, spoken
   # in the rule set that agrees with the noun. Upstream formats Arabic
-  # in ar-SA, whose digits are Arabic-Indic; CLDR's ar writes Latin
-  # digits, so the Arabic expectations are compared in Latin digits.
-  for {locale, rows} <- @cases do
-    test "upstream #{locale} quantify expectations from the number" do
-      locale = unquote(locale)
+  # in ar-SA, whose digits are Arabic-Indic (CLDR's ar writes Latin
+  # ones), and whose words come from ar's rules by inheritance.
+  @number_locales %{ar: :"ar-SA"}
+
+  for {language, rows} <- @cases do
+    test "upstream #{language} quantify expectations from the number" do
+      locale = unquote(Map.get(@number_locales, language, language))
 
       failures =
         unquote(Macro.escape(rows))
         |> Enum.map(fn {index, string, constraints, _, category, number, expected, mode} ->
-          expected = if locale == :ar, do: latin_digits(expected), else: expected
-
           result =
             with {:ok, concept} <- Concept.new(locale, string, constraints: constraints) do
               Quantify.quantify(locale, number, concept, plural: category)
@@ -516,14 +516,6 @@ defmodule Localize.Inflection.QuantifyConformanceTest do
 
       assert failures == []
     end
-  end
-
-  defp latin_digits({print, speak}), do: {latin_digits(print), latin_digits(speak)}
-
-  defp latin_digits(text) do
-    String.replace(text, ~r/[٠-٩]/u, fn <<digit::utf8>> ->
-      Integer.to_string(digit - 0x0660)
-    end)
   end
 
   defp run_case(

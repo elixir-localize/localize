@@ -68,6 +68,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+* `Localize.Locale.parent/1` gives a parent found by dropping a subtag its own CLDR locale rather than the child's, so `ar-SA`, `de-AT`, `fr-CA`, `es-419` and `zh-Hant-HK` spell numbers out with their language's RBNF rules instead of failing. A validated `und` walks to root rather than to English.
+
 * `Localize.DateTime.parse/2` and `Localize.Time.parse/2` with `as: :map` give a fixed offset such as "GMT+5" the `DateTime` zone fields the struct form resolves, where the map kept `time_zone: "GMT+5"` with no offset; a named zone resolves too when the input gives its full date.
 
 * `Localize.Time.parse/2` and `Localize.DateTime.parse/2` read a time in the locale's `-u-hc-` hour cycle ("24:30" under h24) and resolve a flexible day period's hour by CLDR's day period rules. Japanese "夜中0:30" is 00:30, where it parsed as 12:30.
