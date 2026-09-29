@@ -14,8 +14,6 @@ Outstanding work on Localize. The design detail behind these items lives under [
 
 * [ ] **Choose a fixed-offset representation that `DateTime` functions honour** — Localize and Calendrical carry an offset such as `-05:00` under `Etc/UTC`, so `DateTime.shift_zone(parsed, "Etc/UTC")` returns it unchanged. The MF2 interpreter converts from the instant instead; `Etc/GMT+5` or an offset string would need both libraries to change together.
 
-* [ ] **`he`'s localized GMT format doubles its left-to-right mark** — `Localize.DateTime.Timezone.gmt_format/3` ends `he`'s "GMT-5" with two U+200E marks, where ICU gives one.
-
 * [ ] **`SemanticSkeleton` validates `:alignment` without applying it** — TR35 conformance needs every option implemented; `:column` should pad the numeric fields to two digits.
 
 * [ ] **`SemanticSkeleton` accepts field sets TR35 does not define** — TR35 conformance needs an error for a set such as `YD` or `MT`; `new/2` accepts any combination of the six fields.
@@ -37,6 +35,8 @@ Outstanding work on Localize. The design detail behind these items lives under [
 * [ ] **`localize_emoji` sibling library** — plan item 11, a separate package on its own schedule. A Phoenix LiveView picker (`localize_emoji_live`) is out of scope for its 0.1.0.
 
 ## Done
+
+* [x] **`he`'s short GMT format of a whole hour carries one left-to-right mark** — the short form keeps the offset pattern up to its hour field, as ICU's `truncateOffsetPattern` does, so "GMT-5" no longer repeats the mark its negative pattern ends with. The long form and the short form with minutes keep both marks, as ICU's do. 2026-09-29, v1.4.0.
 
 * [x] **Invalid UTF-8 is an error, not a raise** — number and unit parsing, number, date/time and interval patterns, semantic skeleton codes, territory names, collation and inflection return their errors for a binary that is not UTF-8. A sweep of every documented function, with the text in each argument and in options and MF2 bindings, finds no other raise. 2026-09-29, v1.4.0.
 

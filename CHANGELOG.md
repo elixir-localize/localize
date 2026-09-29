@@ -88,6 +88,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+* The short localized GMT format of a whole hour keeps the offset pattern up to its hour field, as ICU does, so `he`'s "GMT-5" carries one left-to-right mark where it carried two.
+
 * A binary that is not UTF-8 is an error wherever Localize reads text — number and unit parsing, number and date/time patterns, territory names, collation and inflection — where it raised `ArgumentError` or `UnicodeConversionError`. `Localize.Unit.parse(<<255>>)` returns `Localize.InvalidValueError`.
 
 * A MessageFormat 2 date/time literal keeps the UTC offset it carries, where `|2006-01-02T15:04:06-05:00|` was read as a floating time and its offset dropped.

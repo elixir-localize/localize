@@ -208,6 +208,35 @@ defmodule Localize.DateTime.TimezoneFormatTest do
       assert {:ok, "UTC−5"} =
                Timezone.gmt_format(%{utc_offset: -18_000, std_offset: 0}, :fr, format: :short)
     end
+
+    # `he` puts a left-to-right mark before its positive pattern and after its
+    # negative one ("+HH:mm;-HH:mm" with the marks), and its GMT format adds
+    # one after the offset. ICU drops the minutes of a whole hour's short form
+    # by keeping the pattern up to its hour field, so that form carries one
+    # mark after a negative offset and every other form two. The expected
+    # strings are ICU 77's, through `Intl.DateTimeFormat` with `timeZoneName`
+    # `shortOffset` and `longOffset`.
+    test "he's marks are placed as ICU places them" do
+      lrm = <<0x200E::utf8>>
+
+      for {offset, format, expected} <- [
+            {-18_000, :short, "GMT-5" <> lrm},
+            {-18_000, :long, "GMT-05:00" <> lrm <> lrm},
+            {-12_600, :short, "GMT-3:30" <> lrm <> lrm},
+            {-12_600, :long, "GMT-03:30" <> lrm <> lrm},
+            {19_800, :short, "GMT" <> lrm <> "+5:30" <> lrm},
+            {19_800, :long, "GMT" <> lrm <> "+05:30" <> lrm},
+            {32_400, :short, "GMT" <> lrm <> "+9" <> lrm},
+            {32_400, :long, "GMT" <> lrm <> "+09:00" <> lrm}
+          ] do
+        datetime = %{utc_offset: offset, std_offset: 0}
+
+        assert Timezone.gmt_format(datetime, :he, format: format) == {:ok, expected},
+               "#{offset} #{format}"
+
+        assert Timezone.parse_offset(expected, locale: :he) == {:ok, offset}
+      end
+    end
   end
 
   describe "iso_format/2" do

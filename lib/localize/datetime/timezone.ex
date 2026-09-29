@@ -1153,7 +1153,7 @@ defmodule Localize.DateTime.Timezone do
     {sign_format, hour_digits} =
       case format do
         :short when minutes == 0 ->
-          {Regex.replace(~r/[:.]?mm/, sign_format, ""), Integer.to_string(hours)}
+          {hour_field_pattern(sign_format), Integer.to_string(hours)}
 
         :short ->
           {sign_format, Integer.to_string(hours)}
@@ -1166,6 +1166,21 @@ defmodule Localize.DateTime.Timezone do
     |> String.replace("HH", hour_digits)
     |> String.replace("H", Integer.to_string(hours))
     |> String.replace("mm", pad(minutes, 2))
+  end
+
+  # The short format of a whole hour is the pattern up to its hour field, as
+  # ICU's `truncateOffsetPattern` derives it: the minutes, their separator and
+  # anything after them go. That drops the left-to-right mark `he` ends its
+  # negative pattern with, which its GMT format then repeated after the
+  # offset. A pattern without minutes or hours is kept as it is.
+  defp hour_field_pattern(sign_format) do
+    with {minutes_at, _length} <- :binary.match(sign_format, "mm"),
+         [_ | _] = hours <- :binary.matches(binary_part(sign_format, 0, minutes_at), "H") do
+      {hour_at, _length} = List.last(hours)
+      binary_part(sign_format, 0, hour_at + 1)
+    else
+      _no_minutes_or_hours -> sign_format
+    end
   end
 
   defp parse_hour_format(format_string) do
