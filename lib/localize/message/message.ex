@@ -69,6 +69,13 @@ defmodule Localize.Message do
     `config :localize, :mf2_functions`. See
     `Localize.Message.Function` for details.
 
+  * `:output` is `:plain` or `:ssml`. With `:ssml` the message is
+    written as SSML for a speech synthesizer: an `:i:` function's
+    result whose spoken form differs from its printed one becomes
+    `<sub alias="spoken">printed</sub>`, and all other text is
+    XML-escaped. SSML output is formatted by the Elixir interpreter
+    whatever the `:backend`. The default is `:plain`.
+
   ### Returns
 
   * `{:ok, formatted_message}` on success.
@@ -82,6 +89,10 @@ defmodule Localize.Message do
       iex> Localize.Message.format("{{Hello {$name}!}}", %{"name" => "World"})
       {:ok, "Hello World!"}
 
+      iex> Localize.Message.format("You have {$count :i:numeral withStyle=asSpokenWords} messages",
+      ...>   %{"count" => 4}, locale: :en, output: :ssml)
+      {:ok, "You have <sub alias=\\"four\\">4</sub> messages"}
+
   """
 
   @type backend :: :nif | :elixir
@@ -93,8 +104,9 @@ defmodule Localize.Message do
 
   def format(message, bindings, options)
       when is_binary(message) and is_bindings(bindings) and is_keyword_list(options) do
-    with :ok <- validate_bindings(bindings) do
-      case Localize.Backend.resolve(options) do
+    with :ok <- validate_bindings(bindings),
+         :ok <- validate_output(options) do
+      case backend(options) do
         :nif -> format_nif(message, bindings, Keyword.delete(options, :backend))
         :elixir -> format_elixir(message, bindings, Keyword.delete(options, :backend))
       end
@@ -120,6 +132,20 @@ defmodule Localize.Message do
   end
 
   defp validate_bindings(_bindings), do: :ok
+
+  defp validate_output(options) do
+    case Keyword.get(options, :output, :plain) do
+      output when output in [:plain, :ssml] -> :ok
+      output -> {:error, Localize.Utils.Helpers.invalid_value(output, ":plain or :ssml")}
+    end
+  end
+
+  # The ICU NIF has neither the `:i:` functions nor SSML output.
+  defp backend(options) do
+    if Keyword.get(options, :output) == :ssml,
+      do: :elixir,
+      else: Localize.Backend.resolve(options)
+  end
 
   defp invalid_bindings(bindings) do
     {:error, Localize.Utils.Helpers.invalid_value(bindings, "a map or keyword list of bindings")}
@@ -358,6 +384,9 @@ defmodule Localize.Message do
     of whitespace before formatting. The default is
     `false`.
 
+  * `:output` is `:plain` or `:ssml`, as for `format/3`. The
+    default is `:plain`.
+
   ### Returns
 
   * `{:ok, iolist, bound, unbound}` on success.
@@ -383,6 +412,7 @@ defmodule Localize.Message do
   def format_to_iolist(message, bindings, options)
       when is_binary(message) and is_bindings(bindings) and is_keyword_list(options) do
     with :ok <- validate_bindings(bindings),
+         :ok <- validate_output(options),
          {:ok, message} <- maybe_trim(message, options[:trim]),
          {:ok, parsed} <- parse_and_validate(message, :format_to_iolist) do
       Interpreter.format_list(parsed, bindings, options)

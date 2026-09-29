@@ -38,8 +38,9 @@ defmodule Localize.Inflection.Quantify.Finnish do
   end
 
   # Plural when explicitly constrained plural, or when the bare
-  # head word is a plurale tantum or dictionary-marked plural.
-  defp use_plural?(concept) do
+  # head word is a plurale tantum or dictionary-marked plural. The
+  # number of a quantity takes its plural rule set by the same test.
+  def use_plural?(concept) do
     case Map.get(concept.constraints, "number") do
       "plural" ->
         true

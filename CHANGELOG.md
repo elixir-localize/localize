@@ -8,9 +8,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
-* `Localize.Inflection` inflects words for grammatical constraints from CLDR's inflection data — `inflect("Haus", :de, %{case: "dative", number: "plural"})` gives "Häusern" — with `pronoun/2,3`, `quantify/4`, and concepts that carry forms of their own as `:display_data`. Data for 48 languages comes from `mix localize.download_inflection`.
+* `Localize.Inflection` inflects words for grammatical constraints from CLDR's inflection data — `inflect("Haus", :de, %{case: "dative", number: "plural"})` gives "Häusern" — with `pronoun/2,3`, `quantify/4` (whose numbers are spoken in agreement with the noun), and concepts that carry forms of their own as `:display_data`. Data for 48 languages comes from `mix localize.download_inflection`.
 
-* MessageFormat 2 gains inflection functions in the Unicode inflection project's `i:` namespace, with its option names, `to` and `withReferent`, and selection — `{$w :i:inflect case=dative}`, `:i:pronoun`, `:i:quantify`, `:i:list` and `:i:numeral`. `Localize.Message.Namespace` lets an application own a custom namespace with one handler, registered with `:namespaces` or `:mf2_namespaces`.
+* MessageFormat 2 gains inflection functions in the Unicode inflection project's `i:` namespace, with its option names, `to` and `withReferent`, selection and SSML output (`output: :ssml`) — `{$w :i:inflect case=dative}`, `:i:pronoun`, `:i:quantify`, `:i:list` and `:i:numeral`. `Localize.Message.Namespace` lets an application own a custom namespace with one handler, registered with `:namespaces` or `:mf2_namespaces`.
 
 * `Localize.Unit.to_string/2` takes `:inflect`, synthesizing a pattern when the requested `:grammatical_case` has no CLDR one — `:safe` uses attested paths only, `:always` also guesses from suffixes. `Localize.Unit.grammatical_gender/2` returns a unit's gender.
 

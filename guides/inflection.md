@@ -306,7 +306,7 @@ Inflection is available inside MF2 messages through the `i:` namespace, with the
 
 * **`:i:pronoun`** — selects or re-inflects a pronoun. `withReferent` chooses the pronoun that agrees with a referent, and `to` gives the pronoun's value for a feature.
 
-* **`:i:quantify`** — joins the `withValue` number with a noun operand so the noun agrees with the number.
+* **`:i:quantify`** — joins the `withValue` number with a noun operand so the noun agrees with the number. The number is written as the language writes a count: spoken in the gender (and case) of the noun, and in Italian and Hebrew written as a word for the smallest numbers (Italian *una settimana*).
 
 * **`:i:list`** — joins a list operand as a plain list, or with `withType=and` or `withType=or` as a list with the locale's grammatical conjunctions. `withBeforeFirst`, `withAfterFirst`, `withItemDelimiter`, `withBeforeLast`, `withAfterLast`, `withItemPrefix`, `withItemSuffix` and `withAvoidItemAffixRedundancy` set the separators and item affixes.
 
@@ -360,7 +360,14 @@ iex> Localize.Message.format("{theirs :i:pronoun gender=$p}", %{p: he}, locale: 
 {:ok, "his"}
 ```
 
-The functions need the locale's inflection data present, except `:i:numeral`, which uses the locale's RBNF rules; a missing locale or absent data resolves to an error rather than crashing the format. The functions give the printed form; upstream's speak output is not supported yet.
+Results can have a spoken form as well as a printed one: *4* spoken as *four*, *1 niño* as *un niño*. A message formatted with `output: :ssml` is written as SSML for a speech synthesizer, as upstream's SSML output mode writes it: a result whose spoken form differs becomes a `<sub>` element with the spoken form as its alias, and all other text is escaped. Plain output, the default, gives the printed form.
+
+```elixir
+iex> Localize.Message.format("Hay {$unit :i:quantify withValue=$n} en el video", %{unit: "niño", n: 3}, locale: :es, output: :ssml)
+{:ok, "Hay <sub alias=\"tres niños\">3 niños</sub> en el video"}
+```
+
+The functions need the locale's inflection data present, except `:i:numeral`, which uses the locale's RBNF rules; a missing locale or absent data resolves to an error rather than crashing the format.
 
 ## Error handling
 

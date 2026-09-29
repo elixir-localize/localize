@@ -21,7 +21,7 @@ defmodule Localize.Inflection.Quantify do
   import Localize.Utils.Helpers, only: [is_keyword_list: 1]
 
   alias Localize.Inflection.{Concept, Locale, SpeakableString}
-  alias Localize.Inflection.Quantify.{Arabic, Base, Finnish, Hebrew, Join, Slavic}
+  alias Localize.Inflection.Quantify.{Arabic, Base, Finnish, Hebrew, Join, Numeral, Slavic}
 
   # Locale (internal form) to quantify implementation. Languages
   # not listed use the base implementation, as upstream. The zh_HK
@@ -152,6 +152,74 @@ defmodule Localize.Inflection.Quantify do
 
   def quantify_formatted(_locale, _formatted_number, concept, _options),
     do: {:error, Localize.Utils.Helpers.invalid_value(concept, "a Localize.Inflection.Concept")}
+
+  @doc """
+  Quantifies a concept with a number, writing the number as the
+  language writes the number of a quantity.
+
+  The number is written in the locale's digits. Where the language's
+  numbers agree with the noun (in gender, and in case in German,
+  Finnish and the Slavic languages), its spoken form is the words that
+  agree; Hebrew and Italian write the smallest numbers as words. The
+  result is then joined as `quantify_formatted/4` joins it.
+
+  ### Arguments
+
+  * `locale` is a locale atom or string; it selects the language's
+    quantification rules.
+
+  * `number` is an integer, a float or a `Decimal`.
+
+  * `concept` is a `Localize.Inflection.Concept`.
+
+  * `options` is a keyword list of options.
+
+  ### Options
+
+  * `:plural` is the CLDR plural category of the number; when absent
+    it is selected from `number` by Localize's plural rules.
+
+  ### Returns
+
+  * `{:ok, speakable}` with the quantified phrase, or
+    `{:error, reason}`.
+
+  ### Examples
+
+      iex> {:ok, concept} = Localize.Inflection.Concept.new(:es, "niña")
+      iex> Localize.Inflection.Quantify.quantify(:es, 1, concept)
+      {:ok, {"1 niña", "una niña"}}
+
+      iex> {:ok, concept} = Localize.Inflection.Concept.new(:en, "kilometer")
+      iex> Localize.Inflection.Quantify.quantify(:en, 2, concept)
+      {:ok, "2 kilometers"}
+
+  """
+  def quantify(locale, number, concept, options \\ [])
+
+  def quantify(locale, number, %Concept{} = concept, options)
+      when (is_number(number) or is_struct(number, Decimal)) and is_keyword_list(options) do
+    with {:ok, formatted} <- formatted_number(locale, number, concept) do
+      quantify_formatted(locale, formatted, concept, Keyword.put(options, :number, number))
+    end
+  end
+
+  def quantify(_locale, number, %Concept{}, options) when is_keyword_list(options),
+    do: {:error, Localize.Utils.Helpers.invalid_value(number, "a number")}
+
+  def quantify(_locale, _number, %Concept{}, options),
+    do: {:error, Localize.Utils.Helpers.invalid_options(options)}
+
+  def quantify(_locale, _number, concept, _options),
+    do: {:error, Localize.Utils.Helpers.invalid_value(concept, "a Localize.Inflection.Concept")}
+
+  @doc false
+  # The number as the language writes the number of a quantity of the
+  # concept, as a speakable string.
+  def formatted_number(locale, number, %Concept{} = concept) do
+    language = locale |> Locale.normalize() |> String.split("_") |> hd()
+    Numeral.formatted(language, locale, number, concept)
+  end
 
   @categories [:zero, :one, :two, :few, :many, :other]
 

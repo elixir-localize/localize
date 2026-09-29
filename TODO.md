@@ -12,9 +12,9 @@ Outstanding work on Localize. The design detail behind these items lives under [
 
 * [ ] **Audit `cldr-49`-only code for map-order dependence** — the 2026-09-26 audit covered `main`. [plans/map-order.md](plans/map-order.md).
 
-### Upstream parity for the MF2 `i:` functions
+* [ ] **`Localize.Locale.parent/1` keeps the child's `cldr_locale_id`** — a parent found by dropping a subtag (`ar-SA` → `ar-Arab`, and `de-AT`, `fr-CA`, `es-419`, `zh-Hant-HK`) still names the child's data, so `Localize.Number.Rbnf` finds no rules where ICU inherits the language's, and the `i:` functions speak numbers there as digits.
 
-* [ ] **Print and speak output for the `i:` functions** — upstream can emit a result's speak line (`:i:numeral withStyle=asSpokenWords` speaks "four", `:i:quantify` speaks "un niño"); our MF2 output carries only the print form. The oracle is unicode-org/inflection's `test/resources/inflection/message2/*.xml`; see [plans/mf2-namespace-inflection.md](plans/mf2-namespace-inflection.md).
+* [ ] **The inflection engine keeps a locale's extensions** — `Localize.Inflection.Locale.normalize/1` gives `"ar_u_nu_arab"` for `ar-u-nu-arab`, so `Localize.Inflection.Quantify` misses the Arabic rules and joins as the generic factory does.
 
 ## In progress
 
@@ -33,6 +33,8 @@ Outstanding work on Localize. The design detail behind these items lives under [
 * [ ] **`localize_emoji` sibling library** — plan item 11, a separate package on its own schedule. A Phoenix LiveView picker (`localize_emoji_live`) is out of scope for its 0.1.0.
 
 ## Done
+
+* [x] **Print and speak output for the `i:` functions** — `output: :ssml` writes a message as SSML with upstream's `<sub alias>` spoken forms, and `:i:quantify` speaks its number in agreement with the noun, as upstream's factories do. 2026-09-29, v1.4.0.
 
 * [x] **Semantic concepts as `i:` operands** — `Localize.Inflection.Concept` takes `:display_data`, forms of its own for sets of constraints as upstream's semantic concepts have, so all 49 upstream MF2 fixtures pass on their print lines. 2026-09-29, v1.4.0.
 

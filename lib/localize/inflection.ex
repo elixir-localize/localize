@@ -310,6 +310,9 @@ defmodule Localize.Inflection do
   Quantifies a word or phrase with a pre-formatted number so the
   noun agrees grammatically with the count.
 
+  `Localize.Inflection.Quantify.quantify/4` takes the number itself
+  and writes it as the language writes a count.
+
   ### Arguments
 
   * `formatted_number` is the formatted number as a speakable

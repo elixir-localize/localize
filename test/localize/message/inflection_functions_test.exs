@@ -414,6 +414,21 @@ defmodule Localize.Message.InflectionFunctionsTest do
       end
     end
 
+    test "Italian and Hebrew write the smallest numbers as words (upstream)" do
+      for {locale, unit, number, expected} <- [
+            {:it, "settimana", 1, "una settimana"},
+            {:it, "ora", 1, "un’ora"},
+            {:it, "settimana", 2, "2 settimane"},
+            {:he, "מכונית", 1, "מכונית אחת"},
+            {:he, "מכונית", 2, "שתי מכוניות"},
+            {:he, "מכונית", 3, "3 מכוניות"}
+          ] do
+        assert Message.format("{$unit :i:quantify withValue=$n}", %{unit: unit, n: number},
+                 locale: locale
+               ) == {:ok, expected}
+      end
+    end
+
     test "a non-string operand is an error, not a crash" do
       assert {:error, _} =
                Message.format("{$n :i:quantify withValue=2}", %{n: 5}, locale: :en)
@@ -575,6 +590,163 @@ defmodule Localize.Message.InflectionFunctionsTest do
                  )
       end
     end
+  end
+
+  describe "SSML output" do
+    test "a number spoken as words (upstream)" do
+      assert {:ok, ssml} =
+               Message.format(
+                 "You have {$count :i:numeral withStyle=asSpokenWords} messages",
+                 %{count: 4},
+                 locale: :en,
+                 output: :ssml
+               )
+
+      assert ssml == "You have <sub alias=\"four\">4</sub> messages"
+      assert print_and_speak(ssml) == {"You have 4 messages", "You have four messages"}
+    end
+
+    test "a quantity speaks its number in agreement with the noun (upstream)" do
+      message = "Hay {$unit :i:quantify withValue=$n} en el video"
+
+      for {unit, number, print, speak} <- [
+            {"niño", 1, "Hay 1 niño en el video", "Hay un niño en el video"},
+            {"niña", 1, "Hay 1 niña en el video", "Hay una niña en el video"},
+            {"niño", 3, "Hay 3 niños en el video", "Hay tres niños en el video"}
+          ] do
+        assert {:ok, ssml} =
+                 Message.format(message, %{unit: unit, n: number}, locale: :es, output: :ssml)
+
+        assert print_and_speak(ssml) == {print, speak}
+      end
+    end
+
+    test "a Russian number speaks in the gender and case of a concept's forms (upstream)" do
+      message =
+        "{$unit :i:quantify withValue=$number} {$unit :i:quantify withValue=$number case=genitive} " <>
+          "{$unit :i:quantify withValue=$number case=accusative} {$unit :i:quantify withValue=$number case=dative} " <>
+          "{$unit :i:quantify withValue=$number case=instrumental} {$unit :i:quantify withValue=$number case=prepositional}"
+
+      for {number, speak} <- [
+            {1,
+             "одно nominative,singular одного genitive,singular одно accusative,singular " <>
+               "одному dative,singular одним instrumental,singular одном prepositional,singular"},
+            {2,
+             "два genitive,singular двух genitive,plural два genitive,plural " <>
+               "двум dative,plural двумя instrumental,plural двух prepositional,plural"},
+            {5,
+             "пять genitive,plural пяти genitive,plural пять genitive,plural " <>
+               "пяти dative,plural пятью instrumental,plural пяти prepositional,plural"}
+          ] do
+        assert {:ok, ssml} =
+                 Message.format(message, %{unit: ru_semantic_concept(), number: number},
+                   locale: :ru,
+                   output: :ssml
+                 )
+
+        assert {_print, ^speak} = print_and_speak(ssml)
+      end
+    end
+
+    test "regional digits speak as the language's own digits or words (upstream)" do
+      for {locale, number, expected} <- [
+            {:"de-AT", 1234, {"1 234", "1.234"}},
+            {:"de-CH", 1234, {"1'234", "1.234"}},
+            {:"fr-CH", 75, {"75", "septante-cinq"}}
+          ] do
+        assert {:ok, ssml} =
+                 Message.format("{$n :i:numeral}", %{n: number}, locale: locale, output: :ssml)
+
+        assert print_and_speak(ssml) == expected
+      end
+    end
+
+    test "a result spoken as it is printed is written as text" do
+      assert {:ok, "four"} =
+               Message.format("{$n :i:numeral withStyle=asWords}", %{n: 4},
+                 locale: :en,
+                 output: :ssml
+               )
+
+      assert {:ok, "The lights are on."} =
+               Message.format(
+                 "The {$object} {is :i:inflect number=$object} on.",
+                 %{object: "lights"},
+                 locale: :en,
+                 output: :ssml
+               )
+    end
+
+    test "text and every placeholder are escaped" do
+      assert {:ok, "Tom &amp; a&lt;b &gt; <sub alias=\"four\">4</sub>"} =
+               Message.format(
+                 "Tom & {$x} > {$n :i:numeral withStyle=asSpokenWords}",
+                 %{x: "a<b", n: 4},
+                 locale: :en,
+                 output: :ssml
+               )
+
+      assert {:ok, "<sub alias=\"say &quot;x&quot;\">x&amp;y</sub>"} =
+               Message.format("{$w :i:inflect speak=|say \"x\"|}", %{w: "x&y"},
+                 locale: :en,
+                 output: :ssml
+               )
+    end
+
+    test "a placeholder naming a declaration speaks as the declaration does" do
+      message =
+        ".local $q = {$unit :i:quantify withValue=$n} .local $r = {$q} {{Hay {$q}; {$r}}}"
+
+      assert {:ok, ssml} =
+               Message.format(message, %{unit: "niña", n: 3}, locale: :es, output: :ssml)
+
+      assert print_and_speak(ssml) == {"Hay 3 niñas; 3 niñas", "Hay tres niñas; tres niñas"}
+    end
+
+    test "plain output is the default, and another output is an error" do
+      message = "You have {$count :i:numeral withStyle=asSpokenWords} messages"
+
+      assert {:ok, "You have 4 messages"} = Message.format(message, %{count: 4}, locale: :en)
+
+      assert {:ok, "You have 4 messages"} =
+               Message.format(message, %{count: 4}, locale: :en, output: :plain)
+
+      assert {:error, _} = Message.format(message, %{count: 4}, locale: :en, output: :html)
+    end
+
+    test "format_to_iolist writes SSML, and format_to_safe_list stays plain" do
+      message = "You have {$count :i:numeral withStyle=asSpokenWords} messages"
+
+      assert {:ok, iolist, _bound, []} =
+               Message.format_to_iolist(message, %{count: 4}, locale: :en, output: :ssml)
+
+      assert IO.iodata_to_binary(iolist) == "You have <sub alias=\"four\">4</sub> messages"
+
+      assert {:ok, [{:text, "You have 4 messages"}]} =
+               Message.format_to_safe_list(message, %{count: 4}, locale: :en, output: :ssml)
+    end
+  end
+
+  # The print and speak lines of SSML output, derived as upstream's MF2
+  # test harness derives them: text is both, and each
+  # <sub alias="speak">print</sub> gives each its own.
+  defp print_and_speak(ssml) do
+    ~r/<sub alias="[^"]*">.*?<\/sub>/s
+    |> Regex.split(ssml, include_captures: true)
+    |> Enum.reduce({"", ""}, fn part, {print, speak} ->
+      case Regex.run(~r/\A<sub alias="([^"]*)">(.*?)<\/sub>\z/s, part, capture: :all_but_first) do
+        [spoken, printed] -> {print <> xml_unescape(printed), speak <> xml_unescape(spoken)}
+        nil -> {print <> xml_unescape(part), speak <> xml_unescape(part)}
+      end
+    end)
+  end
+
+  defp xml_unescape(text) do
+    text
+    |> String.replace("&lt;", "<")
+    |> String.replace("&gt;", ">")
+    |> String.replace("&quot;", "\"")
+    |> String.replace("&amp;", "&")
   end
 
   # The semantic concept of upstream's ru fixtures: a neuter noun whose

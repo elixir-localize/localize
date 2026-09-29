@@ -263,7 +263,10 @@ defmodule Localize.Message.Interpreter do
         case operand_select_conflict(operand, func, sel_meta) do
           :ok ->
             selector_func = merge_test_function(func, operand, sel_meta)
-            bind_declaration(name, value, func, selector_func, accumulator, options)
+
+            name
+            |> bind_declaration(value, func, selector_func, accumulator, options)
+            |> carry_spoken(name, operand, func)
 
           {:error, reason} ->
             {:halt, {:format_error, {:formatter_failed, reason}}}
@@ -334,7 +337,7 @@ defmodule Localize.Message.Interpreter do
         sel_value = declaration_selector_value(value, func, bindings_acc, options)
         plural_operand = plural_operand(value, func, bindings_acc, options, sel_value)
         sel_meta = Map.put(sel_meta, name, {sel_value, selector_func, plural_operand})
-        bindings_acc = Map.put(bindings_acc, name, formatted)
+        bindings_acc = bind_output(bindings_acc, name, formatted)
         {:cont, {bindings_acc, [name | bound_acc], sel_meta}}
 
       {:unbound, var_name} ->
@@ -347,6 +350,31 @@ defmodule Localize.Message.Interpreter do
         {:halt, {:format_error, {:formatter_failed, reason}}}
     end
   end
+
+  # A declaration binds the printed form, as in plain output, so the
+  # expressions and selectors that use it see the same value; in SSML
+  # output it also keeps its speakable result for a placeholder that
+  # names it (see `output_value/5`). No binding name is a tuple.
+  defp bind_output(bindings, name, {print, _speak} = speakable) when is_binary(print) do
+    bindings
+    |> Map.put(name, print)
+    |> Map.put({:spoken, name}, speakable)
+  end
+
+  defp bind_output(bindings, name, formatted), do: Map.put(bindings, name, formatted)
+
+  # `.local $b = {$a}` speaks as `$a` does.
+  defp carry_spoken({:cont, {bindings, bound, sel_meta}}, name, {:variable, operand}, nil) do
+    case Map.fetch(bindings, {:spoken, operand}) do
+      {:ok, speakable} ->
+        {:cont, {Map.put(bindings, {:spoken, name}, speakable), bound, sel_meta}}
+
+      :error ->
+        {:cont, {bindings, bound, sel_meta}}
+    end
+  end
+
+  defp carry_spoken(result, _name, _operand, _func), do: result
 
   # ── Pattern formatting ──────────────────────────────────────────
 
@@ -411,9 +439,10 @@ defmodule Localize.Message.Interpreter do
     format_structured(ast, bindings_map(bindings), options)
   end
 
+  # Structured output is plain text nodes; SSML is a string format.
   def format_structured(ast, bindings, options) when is_map(bindings) do
     bindings = normalize_binding_keys(bindings)
-    do_format_structured(ast, bindings, options)
+    do_format_structured(ast, bindings, Keyword.delete(options, :output))
   end
 
   defp do_format_structured([{:complex, _, _} = complex], bindings, options) do
@@ -733,17 +762,18 @@ defmodule Localize.Message.Interpreter do
     |> Enum.reverse()
   end
 
-  defp format_part({:text, text}, _bindings, _options) do
-    {:ok, text, []}
+  defp format_part({:text, text}, _bindings, options) do
+    {:ok, output_text(text, options), []}
   end
 
-  defp format_part({:escape, char}, _bindings, _options) do
-    {:ok, char, []}
+  defp format_part({:escape, char}, _bindings, options) do
+    {:ok, output_text(char, options), []}
   end
 
   defp format_part({:expression, operand, func, attrs}, bindings, options) do
     case format_expression(operand, func, bindings, options) do
       {:ok, formatted, bound_names} ->
+        formatted = output_value(formatted, operand, func, bindings, options)
         bidi_mode = Keyword.get(options, :bidi, :none)
         dir_override = extract_dir_attribute(attrs)
         wrapped = apply_bidi_isolation(formatted, bidi_mode, dir_override, options)
@@ -764,6 +794,59 @@ defmodule Localize.Message.Interpreter do
 
   defp format_part({:markup_standalone, _name, _options, _attrs}, _bindings, _options_kw) do
     {:ok, "", []}
+  end
+
+  # ── SSML output ──────────────────────────────────────────────
+  #
+  # With `output: :ssml` the message is written as SSML, as upstream's
+  # SSML output mode writes the `i:` functions' results: a result whose
+  # spoken form differs from its printed one becomes
+  # `<sub alias="spoken">printed</sub>`, and all other text is escaped,
+  # which upstream leaves to the message, so the output is well formed.
+  # The `i:` functions give their speakable results in this mode (see
+  # `emit/2`).
+
+  defp output_text(text, options) do
+    if ssml?(options), do: xml_escape(text, false), else: text
+  end
+
+  defp output_value(formatted, operand, func, bindings, options) do
+    if ssml?(options),
+      do: formatted |> spoken_declaration(operand, func, bindings) |> ssml(),
+      else: formatted
+  end
+
+  # A placeholder that names a declaration speaks as the declaration does.
+  defp spoken_declaration(formatted, {:variable, name}, nil, bindings),
+    do: Map.get(bindings, {:spoken, name}, formatted)
+
+  defp spoken_declaration(formatted, _operand, _func, _bindings), do: formatted
+
+  defp ssml({print, speak}) when is_binary(print) and is_binary(speak) and print != speak do
+    ["<sub alias=\"", xml_escape(speak, true), "\">", xml_escape(print, false), "</sub>"]
+  end
+
+  defp ssml({print, _speak}) when is_binary(print), do: xml_escape(print, false)
+  defp ssml(text), do: text |> IO.iodata_to_binary() |> xml_escape(false)
+
+  defp xml_escape(text, attribute?) do
+    escaped =
+      text
+      |> String.replace("&", "&amp;")
+      |> String.replace("<", "&lt;")
+      |> String.replace(">", "&gt;")
+
+    if attribute?, do: String.replace(escaped, "\"", "&quot;"), else: escaped
+  end
+
+  defp ssml?(options), do: Keyword.get(options, :output) == :ssml
+
+  # An `i:` function's speakable result: its printed form, or in SSML
+  # output the speakable itself.
+  defp emit(speakable, options) do
+    if ssml?(options),
+      do: {:ok, speakable},
+      else: {:ok, Localize.Inflection.SpeakableString.print(speakable)}
   end
 
   # ── Expression formatting ───────────────────────────────────────
@@ -1020,10 +1103,8 @@ defmodule Localize.Message.Interpreter do
   defp format_with_function("i:inflect", value, func_opts, options) do
     locale = Keyword.get(options, :locale, Localize.get_locale())
 
-    # Speakable results collapse to the print form for MF2's single
-    # output channel.
     with {:ok, projected} <- inflect_projection(value, func_opts, locale, :format) do
-      {:ok, Localize.Inflection.SpeakableString.print(projected)}
+      emit(projected, options)
     end
   end
 
@@ -1031,33 +1112,33 @@ defmodule Localize.Message.Interpreter do
     locale = Keyword.get(options, :locale, Localize.get_locale())
 
     with {:ok, projected} <- pronoun_projection(value, func_opts, locale) do
-      {:ok, Localize.Inflection.SpeakableString.print(projected)}
+      emit(projected, options)
     end
   end
 
   defp format_with_function("i:quantify", value, func_opts, options) do
     locale = Keyword.get(options, :locale, Localize.get_locale())
 
-    # The number formats through Localize's own number formatter (so
-    # the joined number is locale-aware) and is also passed as
-    # `:number` so the engine selects the plural category from it.
+    # The number is written as the language writes the number of a
+    # quantity (in the locale's digits, spoken in agreement with the
+    # noun) and selects the plural category.
     with {:ok, number} <- quantify_value(func_opts),
          {:ok, constraints} <-
            inflection_constraints("quantify", func_opts, ["withValue"], locale, :direct),
          {:ok, concept} <- inflection_concept("quantify", value, locale),
          {:ok, concept} <-
            put_concept_constraints(Localize.Inflection.Concept, concept, constraints),
-         {:ok, formatted} <- Localize.Number.to_string(number, locale: locale),
-         {:ok, quantified} <-
-           Localize.Inflection.Quantify.quantify_formatted(locale, formatted, concept,
-             number: number
-           ) do
-      {:ok, Localize.Inflection.SpeakableString.print(quantified)}
+         {:ok, quantified} <- Localize.Inflection.Quantify.quantify(locale, number, concept) do
+      emit(quantified, options)
     end
   end
 
   defp format_with_function("i:list", items, func_opts, options) when is_list(items) do
-    format_inflection_list(items, func_opts, Keyword.get(options, :locale, Localize.get_locale()))
+    locale = Keyword.get(options, :locale, Localize.get_locale())
+
+    with {:ok, speakable} <- format_inflection_list(items, func_opts, locale) do
+      emit(speakable, options)
+    end
   end
 
   defp format_with_function("i:list", value, _func_opts, _options) do
@@ -1065,7 +1146,11 @@ defmodule Localize.Message.Interpreter do
   end
 
   defp format_with_function("i:numeral", value, func_opts, options) do
-    format_numeral(value, func_opts, Keyword.get(options, :locale, Localize.get_locale()))
+    locale = Keyword.get(options, :locale, Localize.get_locale())
+
+    with {:ok, speakable} <- format_numeral(value, func_opts, locale) do
+      emit(speakable, options)
+    end
   end
 
   # ── MF2 WG test registry functions ───────────────────────────────
@@ -2240,7 +2325,7 @@ defmodule Localize.Message.Interpreter do
            put_concept_constraints(Localize.Inflection.ConceptList, list, constraints) do
       case Localize.Inflection.ConceptList.to_speakable_string(list) do
         nil -> {:error, "the :i:list function requires at least one item"}
-        speakable -> {:ok, Localize.Inflection.SpeakableString.print(speakable)}
+        speakable -> {:ok, speakable}
       end
     end
   end
@@ -2423,42 +2508,31 @@ defmodule Localize.Message.Interpreter do
     end
   end
 
-  # A number as the upstream `NumberConcept` writes it: the locale's
-  # decimal digits by default and for spoken words (whose words are the
-  # spoken form, which MF2's single output channel does not carry),
-  # words from a `spellout-` rule set and ordinal digits from a
-  # `digits-` rule set. The variant names the rule set; one the locale
-  # lacks falls back to the default, `spellout-numbering` or
-  # `digits-ordinal` as in ICU, and that to the locale's best available
-  # rules.
-  defp numeral(number, style, _variant, locale) when style in [nil, "asSpokenWords"] do
-    Localize.Number.to_string(number, locale: locale)
-  end
+  # A number as the upstream `NumberConcept` writes it for a style, as a
+  # speakable string: the locale's digits by default and as `asDigits`;
+  # digits spoken as words as `asSpokenWords`; words from a `spellout-`
+  # rule set as `asWords`; and ordinal digits from a `digits-` rule set
+  # as `asOrdinalDigits`, or `asDigits` with a variant. The variant
+  # names the rule set; one the locale lacks falls back to the default,
+  # `spellout-numbering` or `digits-ordinal` as in ICU, and that to the
+  # locale's best available rules.
+  defp numeral(number, nil, _variant, locale),
+    do: Localize.Inflection.NumberConcept.digits(number, locale)
 
-  defp numeral(number, "asDigits", nil, locale) do
-    Localize.Number.to_string(number, locale: locale)
-  end
+  defp numeral(number, "asDigits", nil, locale),
+    do: Localize.Inflection.NumberConcept.digits(number, locale)
 
-  defp numeral(number, "asWords", variant, locale) do
-    format_with_rule_sets(number, rule_sets("spellout-", variant, "numbering", :spellout), locale)
-  end
+  defp numeral(number, "asSpokenWords", variant, locale),
+    do: Localize.Inflection.NumberConcept.spoken_words(number, locale, variant)
 
-  defp numeral(number, style, variant, locale) when style in ["asDigits", "asOrdinalDigits"] do
-    format_with_rule_sets(number, rule_sets("digits-", variant, "ordinal", :ordinal), locale)
-  end
+  defp numeral(number, "asWords", variant, locale),
+    do: Localize.Inflection.NumberConcept.words(number, locale, variant)
+
+  defp numeral(number, style, variant, locale) when style in ["asDigits", "asOrdinalDigits"],
+    do: Localize.Inflection.NumberConcept.ordinal_digits(number, locale, variant)
 
   defp numeral(_number, style, _variant, _locale) do
     {:error, "the :i:numeral function has no style #{inspect(style)}"}
-  end
-
-  defp rule_sets(prefix, nil, default, best), do: [prefix <> default, best]
-  defp rule_sets(prefix, variant, default, best), do: [prefix <> variant, prefix <> default, best]
-
-  defp format_with_rule_sets(number, [rule_set | fallbacks], locale) do
-    case Localize.Number.Rbnf.to_string(number, rule_set, locale: locale) do
-      {:error, _reason} when fallbacks != [] -> format_with_rule_sets(number, fallbacks, locale)
-      result -> result
-    end
   end
 
   # ── List option mapping ────────────────────────────────────────
