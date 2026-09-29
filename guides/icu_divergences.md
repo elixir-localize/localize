@@ -61,6 +61,17 @@ TR35 is CLDR's specification, and the rule applies to it as to the data. Its Dat
 | Other zone widths TR35 does not list: `OO`, `vv`, `xxxxxx` | U+FFFD | nothing |
 | An undefined letter such as `n` | an error | nothing |
 
+### Date parsing
+
+TR35 makes `y` the year of the era `G` names, and leaves the reading of a two-digit year to the implementation. ICU4C 78.3 reads any two-digit year as one within 80 years before and 20 after today, even beside an era, so it cannot read back the "44 BC" it formats itself. Localize takes a year its era qualifies as written, and applies the pivot only to a year written without one; asserted in `test/localize/date_parse_era_test.exs`.
+
+| Input in `en` | TR35 and Localize | ICU4C parses |
+|---|---|---|
+| "Jun 1, 44 BC" | 44 BC, `~D[-0043-06-01]` | 2044 BC |
+| "Jun 1, 44 AD" | AD 44, `~D[0044-06-01]` | 2044 |
+
+The two agree on everything else here: "Jun 1, 1 BC" is year 0, and "Jun 1, 44", with no era, is 2044.
+
 ## Not divergences
 
 These also appear as exclusions in the test suites and should not be read as deliberate differences:

@@ -391,7 +391,7 @@ iex> Localize.Date.parse("2026-03-22", locale: :de)
 {:ok, ~D[2026-03-22]}
 ```
 
-Parsing is lenient about the decoration a locale allows. A weekday is read wherever the locale's formats place it, and a leading one is stripped from a format that has none. An era is read and its year counts from it, so 1 BC is year 0 and a two-digit year beside an era is taken as written; stand-alone and format month names are both accepted, and week and quarter forms resolve to the date they begin. Weeks are numbered by the locale's own rules, so an `en` week begins on a Sunday:
+Parsing is lenient about the decoration a locale allows. A weekday is read wherever the locale's formats place it, and a leading one is stripped from a format that has none. An era is read and its year counts from it, so 1 BC is year 0 and a two-digit year beside an era is taken as written, where ICU would move it into this century (see [ICU divergences](icu_divergences.md#date-parsing)); stand-alone and format month names are both accepted, and week and quarter forms resolve to the date they begin. Weeks are numbered by the locale's own rules, so an `en` week begins on a Sunday:
 
 ```elixir
 iex> Localize.Date.parse("Saturday, May 16, 2026", locale: :en)
