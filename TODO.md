@@ -4,7 +4,7 @@ Outstanding work on Localize. The design detail behind these items lives under [
 
 ## Open
 
-* [ ] **Decide whether root's `arab` and `arabext` blocks become a pipeline source** — plan item 38: CLDR JSON does not carry them, so `en-u-nu-arab` formats with the locale's `latn` symbols until `common/main/root.xml` is read directly.
+* [ ] **Report cldr-json's missing number data to CLDR** — cldr-json publishes a locale's symbols and patterns only for the numbering systems it uses, dropping 1,012 contributed or approved blocks in 49 locales that ICU uses for `-u-nu-` (`fa`'s `arab` "٪" and "E", `ur`'s `arab` decimal "،", `mn`'s `mong`); reading every locale's XML instead was declined (user, 2026-09-30). `fa-u-nu-arab` is asserted as a known gap.
 
 * [ ] **Settle the location format of a non-location zone with CLDR** — TR35 49 says a zone with no region (`PST8PDT`, `Etc/GMT+5`) falls back to the offset format, then gives "PST8PDT, generic → Unknown Location Time" as its worked example. Localize follows the first; the conformance data has no case. Worth a CLDR ticket.
 
@@ -59,6 +59,8 @@ Outstanding work on Localize. The design detail behind these items lives under [
 * [ ] **`localize_emoji` sibling library** — plan item 11, a separate package on its own schedule. A Phoenix LiveView picker (`localize_emoji_live`) is out of scope for its 0.1.0.
 
 ## Done
+
+* [x] **Root's `arab` and `arabext` blocks are a pipeline source** — `und` carries them from `common/main/root.xml` at the pinned ref and a locale without its own inherits them, as ICU does (168 ICU4C cases added); the long currency format no longer raises in `sd` and `ckb`. 2026-09-30, v1.4.0.
 
 * [x] **Relative time counts calendar periods** — every unit is counted with the value's calendar arithmetic, never seconds over a mean month or year (user, 2026-09-30), so `:quarter` and the weekday units no longer format seconds; months and years match ICU4C's `fieldDifference` in eight calendars. 2026-09-30, v1.4.0.
 

@@ -180,12 +180,15 @@ defmodule Localize.Message.NumberOptionsTest do
              ) == {:ok, "\u{0E55}"}
     end
 
-    test "a foreign numberingSystem keeps the locale's symbols" do
+    # `numberingSystem` names a system as the `nu` locale key does, and `en`
+    # has no `arab` symbols of its own, so it takes root's: ICU4C 78.3
+    # formats 1234.5 in `en-u-nu-arab` as "١٬٢٣٤٫٥".
+    test "a foreign numberingSystem takes root's symbols for it" do
       assert Localize.Message.format(
                "{$n :number numberingSystem=arab}",
                %{"n" => 1234.5},
                locale: :en
-             ) == {:ok, "\u{0661},\u{0662}\u{0663}\u{0664}.\u{0665}"}
+             ) == {:ok, "\u{0661}\u{066C}\u{0662}\u{0663}\u{0664}\u{066B}\u{0665}"}
     end
 
     test "a foreign numberingSystem works with :currency" do

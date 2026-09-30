@@ -55,14 +55,29 @@ defmodule Localize.Number.CurrencyLongCoverageTest do
     end
 
     test "a number system the locale does not list formats with that system's digits" do
-      # Per TR35/ICU any CLDR numbering system is honoured; formats
-      # and symbols inherit from the locale's default system.
-      assert {:ok, "$١٢٣.٠٠ US dollars"} =
+      # Per TR35/ICU any CLDR numbering system is honoured, and `en` takes
+      # root's `arab` symbols and currency pattern: ICU4C 78.3 formats 123
+      # US dollars in `en-u-nu-arab` as "١٢٣٫٠٠ $".
+      assert {:ok, "١٢٣٫٠٠\u00A0$ US dollars"} =
                Number.to_string(123,
                  format: :currency_long_with_symbol,
                  currency: :USD,
                  number_system: :arab
                )
+    end
+
+    # ICU4C 78.3's currency plural format (`UNUM_CURRENCY_PLURAL`). `sd` and
+    # `ckb` have no unit patterns of their own for `arab`, their default
+    # system, and take their `latn` ones; `ckb` has no name for the US
+    # dollar, so TR35 writes the code.
+    test "a long currency format in a locale whose default system has no unit patterns" do
+      assert {:ok, "٣.٠٠ آمريڪي ڊالر"} =
+               Number.to_string(3, format: :long, currency: :USD, locale: :sd)
+
+      assert {:ok, "٣٫٠٠ USD"} = Number.to_string(3, format: :long, currency: :USD, locale: :ckb)
+
+      assert {:ok, "٣٫٠٠ US dollars"} =
+               Number.to_string(3, format: :long, currency: :USD, locale: "en-u-nu-arab")
     end
 
     test "string input returns an InvalidValueError" do

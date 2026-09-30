@@ -128,7 +128,11 @@ Without `:unit`, `Localize.DateTime.Relative` takes the largest unit of which a 
 These also appear as exclusions in the test suites and should not be read as deliberate differences:
 
 * **Unimplemented features.** `test/localize/locale/locale_display_test.exs` excludes line 47, the `uu` attribute in the `-u-` extension. That is a gap, not a decision.
+
+* **Number data cldr-json leaves out.** cldr-json publishes a locale's symbols and patterns only for the numbering systems it uses, so the 1,012 blocks that 49 locales define for other systems, such as `fa`'s own `arab` percent sign "٪" and exponent "E", are not in Localize's data, and those locales take root's, as a locale with no data of its own does. `test/localize/number_system_matrix_test.exs` asserts `fa-u-nu-arab` as a known gap until cldr-json publishes them.
+
 * **Calendars that are not enabled.** `test/localize/datetime/conformance_test.exs` keeps a `@wrong_format` list of non-Gregorian cases that never run; they are held for whenever the other calendars are switched on. The timezone-resolution and skeleton-matching exclusions that used to sit here are gone: zone name resolution landed, the date/time split path now adjusts the matched pattern's field widths, and `:tz` is a test dependency so a real offset is available.
+
 * **Upstream fixture issues.** The same file's `@invalid_test_results` and the locale-display suite's `@invalid_test_results` mark cases where the conformance data disagrees with CLDR's own data.
 
 Collation carries no exclusions at all: all 210,155 pairs in both CLDR conformance files pass under both strengths.

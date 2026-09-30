@@ -45,6 +45,7 @@ defmodule Mix.Tasks.Localize.FetchSources do
   @repository_paths [
     "/common/bcp47/",
     "/common/collation/",
+    "/common/main/root.xml",
     "/common/subdivisions/",
     "/common/supplemental/",
     "/common/testData/",

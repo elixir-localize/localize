@@ -290,7 +290,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 * `Localize.Number.Rbnf.rule_names_for_locale/1` returns its names sorted. On OTP 26 and later their order followed the order the VM had created the atoms, so it varied between runs.
 
-* `Localize.Number` formats in a non-default numbering system with that system's symbols, or `latn` where CLDR's root aliases them, so `fa-u-nu-latn` is "1,000.5" not "1٬000٫5". Locale data now carries every numbering system a locale defines.
+* `Localize.Number` formats in a non-default numbering system with that system's symbols, root's own for `arab` and `arabext` (which `und` now carries from CLDR's `root.xml`), or `latn` where root aliases them, so `fa-u-nu-latn` is "1,000.5" not "1٬000٫5" and `en-u-nu-arab` "١٬٠٠٠٫٥" not "١,٠٠٠.٥". Locale data now carries every numbering system a locale defines.
+
+* The long currency format no longer raises in `sd` and `ckb`, whose `arab` has no unit patterns and now takes their `latn` ones, and writes a currency with no display name by its code, as TR35 specifies ("٣٫٠٠ USD" in `ckb`).
 
 * Number patterns give each currency sign width its TR35 meaning — `¤¤` the ISO code, `¤¤¤` the plural name, `¤¤¤¤¤` the narrow symbol — and take the currency's decimal places and CLDR's currency spacing, so `¤#,##0.00` gives "CHF 1,234.56" and "¥1,235".
 

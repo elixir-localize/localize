@@ -243,13 +243,13 @@ defmodule Localize.Number.System do
     end
   end
 
-  # The numbering systems whose symbols and formats stand in, in order, for
-  # a system the locale has no data for. CLDR's root aliases every system's
-  # data to `latn` except `arab` and `arabext`, which have symbols and some
-  # formats of their own; those are not in the CLDR JSON, so for them the
-  # locale's default system stands in. The default is read from the locale
-  # data, not from a `-u-nu-` extension, which names the very system a
-  # fallback is being found for.
+  # The numbering systems of the locale whose symbols and formats stand in,
+  # in order, for a system it has no data for, after root's own data for
+  # that system: CLDR's root aliases every system's data to the locale's
+  # `latn`, except the symbols and some formats of `arab` and `arabext`,
+  # which root defines itself and `und` carries. The default is read from
+  # the locale data, not from a `-u-nu-` extension, which names the very
+  # system a fallback is being found for.
   @doc false
   @spec fallback_systems(Localize.LanguageTag.t() | atom() | String.t(), atom()) :: [atom()]
   def fallback_systems(locale, system_name) do
@@ -259,9 +259,7 @@ defmodule Localize.Number.System do
         _error -> []
       end
 
-    inherited = if system_name in [:arab, :arabext], do: default, else: [:latn | default]
-
-    Enum.uniq(inherited) -- [system_name]
+    Enum.uniq([:latn | default]) -- [system_name]
   end
 
   @doc """

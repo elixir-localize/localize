@@ -106,8 +106,10 @@ defmodule Localize.Number.SystemTest do
   end
 
   describe "Localize.Number.to_string with a number system the locale does not list" do
-    test "formats with the requested system's digits" do
-      assert {:ok, "١,٢٣٤"} = Localize.Number.to_string(1234, locale: :en, number_system: :arab)
+    # `en` has no `arab` symbols, so it takes root's, as ICU4C 78.3 does:
+    # "١٬٢٣٤", with the Arabic group separator.
+    test "formats with the requested system's digits and root's symbols for it" do
+      assert {:ok, "١٬٢٣٤"} = Localize.Number.to_string(1234, locale: :en, number_system: :arab)
     end
 
     test "returns UnknownNumberSystemError for an unknown system" do

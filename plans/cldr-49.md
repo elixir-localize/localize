@@ -94,7 +94,7 @@ This package is widely used. The following invariants apply to every item in thi
 | 35 | Interval patterns inherited from a different locale level than the single date | None | None yet — Open. 141 of 656 locales disagree in field order; ICU agrees with us; tracking CLDR-14207 |
 | 36 | `fields: :month_and_day` drops the year across a year boundary | None | Done — widened as ICU does; interval defects found alongside fixed |
 | 37 | Relative time ignores the locale's number format and misreads fractional counts | None | **Output changes** — ✅ Fixed. "in 1,000 days", native digits, "in 1.5 hours"; checked against 9,576 ICU4C cases |
-| 38 | Numbering systems other than a locale's default format with the default's symbols | Internal (ETF) | **Output changes** — ✅ Fixed where CLDR has the data: `fa-u-nu-latn` is "1,000.5". Open: root's `arab` and `arabext` symbols are not in the CLDR JSON |
+| 38 | Numbering systems other than a locale's default format with the default's symbols | Internal (ETF) | **Output changes** — ✅ Fixed: `fa-u-nu-latn` is "1,000.5", and `en-u-nu-arab` "١٬٠٠٠٫٥" from root's blocks in `root.xml`. Open: 49 locales' own blocks cldr-json omits, to report |
 | 39 | MF2 plural selection ignores the digits a numeric function displays | None | **Output changes** — ✅ Fixed. Russian `{2 :number minimumFractionDigits=1}` selects `other` |
 | 40 | `-u-hc-h11` and `-u-hc-h24` never render `K` or `k`, and parsing cannot read them back | None | **Output changes** — ✅ Fixed. `en-u-hc-h24` is "24:30" and parses back; 1,470 ICU4C cases, 40 documented exceptions |
 | 41 | Public functions raise on options or values of the wrong type | None | **Error instead of raise** — ✅ Fixed across the public API: options that are not a keyword list, and arguments and option values of the wrong type, return `{:error, exception}`. Open: an options list whose later entries are not pairs still raises where it is rebuilt, and `SemanticSkeleton.semantic/2` and `format_to_metadata!/1` raise by design |
@@ -1787,7 +1787,7 @@ The number is formatted with the locale's number format, honouring a `-u-nu-` nu
 
 * **Output changes**: relative times localize their numbers, a fractional count formats as given, and `to_parts/2` splits the number into its parts.
 
-## 38. Numbering systems other than a locale's default format with the default's symbols — Fixed where CLDR has the data; root's data Open
+## 38. Numbering systems other than a locale's default format with the default's symbols — Fixed, with root's data; other locales' omitted data Open
 
 Found by the relative-time sweep's `-u-nu-` cases, then measured across number formatting.
 
@@ -1797,11 +1797,17 @@ Found by the relative-time sweep's `-u-nu-` cases, then measured across number f
 
 ### Resolution
 
-`data/normalize/number.ex` keeps every numbering system a locale has symbols or formats for, and `Localize.Number.System.fallback_systems/2` gives symbols and formats CLDR's inheritance: the locale's `latn` data for a system it lacks, except `arab` and `arabext`, which keep the default system's as before. All 657 locales were regenerated, and the decoded terms of the sampled locales differ from the previous set only by the added systems. `test/localize/number_system_matrix_test.exs` checks 1,365 decimal, percent and scientific cases from ICU4C 78.3 through both a `-u-nu-` locale and the `:number_system` option; four `ur` percent cases take CLDR 49's "٪" where CLDR 48 had "%".
+`data/normalize/number.ex` keeps every numbering system a locale has symbols or formats for, and `Localize.Number.System.fallback_systems/2` gives symbols and formats CLDR's inheritance: the locale's `latn` data for a system it lacks, except `arab` and `arabext`, which kept the default system's until root's own data arrived (below). All 657 locales were regenerated, and the decoded terms of the sampled locales differ from the previous set only by the added systems. `test/localize/number_system_matrix_test.exs` checks 1,365 decimal, percent and scientific cases from ICU4C 78.3 through both a `-u-nu-` locale and the `:number_system` option; four `ur` percent cases take CLDR 49's "٪" where CLDR 48 had "%".
+
+### Root's own data
+
+Root defines `arab` and `arabext` symbols of its own, and `arab` percent and currency formats, while CLDR JSON carries a locale's symbols only for the numbering systems it uses. The vendoring policy settles the source: CLDR's repository is read in place at the pinned ref, so `common/main/root.xml` joined the pipeline's sources (and `mix localize.fetch_sources`' sparse paths). `Localize.Data.XmlExtractors.root_number_systems/0` reads root's blocks for systems other than `latn`, raising on any structure it does not know, and `und` carries them; a locale without its own inherits them at runtime, before its `latn`. `en-u-nu-arab` is now "١٬٠٠٠٫٥", as ICU gives it, and the fixture gained the 168 ICU cases of `arab` and `arabext` in the thirteen locales without them. No locale lacking them has an ancestor with them, so root is the whole inheritance, and root's blocks are the same in CLDR 48, 48.2 and 49.
+
+Two defects surfaced on the way and were fixed: `sd` and `ckb`, whose `arab` has no unit patterns, raised `FunctionClauseError` in the long currency format (an empty set of patterns stood in for their `latn` ones), and a currency with no display name was written as nothing rather than its code.
 
 ### Open
 
-Root defines `arab` and `arabext` symbols of its own, and `arab` percent and currency formats, while CLDR JSON carries a locale's symbols only for the numbering systems it uses. So `en-u-nu-arab` still formats "١,٠٠٠.٥" where ICU gives "١٬٠٠٠٫٥"; the 154 ICU cases that need root's data are left out of the fixture. Closing it needs root's blocks from `common/main/root.xml` as a pipeline source, which is a vendoring decision.
+The same cldr-json gap is wider: 49 locales define 1,012 contributed or approved blocks for systems they do not use, such as `fa`'s own `arab` percent sign and exponent, which ICU uses and cldr-json drops. Reading every locale's XML (94 MB, 182 locales' data changing) was declined (user, 2026-09-30): the gap is to be reported to CLDR (`TODO.md`), and `fa-u-nu-arab` is asserted as a known gap.
 
 ### API impact / breaking risk
 

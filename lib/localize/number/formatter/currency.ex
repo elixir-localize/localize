@@ -40,23 +40,9 @@ defmodule Localize.Number.Formatter.Currency do
     locale = options.locale
 
     with {:ok, number_system} <- System.system_name_from(options.number_system, locale),
-         {:ok, formats} <- Format.formats_for(locale, number_system) do
-      currency_long_formats = Map.get(formats, :currency_long)
-
-      # Believed unreachable with current CLDR data: every locale
-      # inherits `:currency_long` from root (verified against en, ja,
-      # ar, agq, kkj and und). Kept as a defensive guard in case a
-      # future data pipeline change drops the inherited formats.
-      if is_nil(currency_long_formats) do
-        {:error,
-         Localize.InvalidValueError.exception(
-           value: :currency_long,
-           expected: "a locale with currency_long formats",
-           context: "Localize.Number.Formatter.Currency"
-         )}
-      else
-        format_currency_long(number, currency_long_formats, options)
-      end
+         {:ok, formats} <- Format.formats_for(locale, number_system),
+         {:ok, currency_long_formats} <- fetch_currency_long_formats(formats, :currency_long) do
+      format_currency_long(number, currency_long_formats, options)
     end
   end
 
@@ -64,21 +50,10 @@ defmodule Localize.Number.Formatter.Currency do
     # The long plural pattern ("{0} US dollars") is filled with the
     # symbol-formatted number ("$123.00") instead of the bare number.
     with {:ok, number_system} <- System.system_name_from(options.number_system, options.locale),
-         {:ok, formats} <- Format.formats_for(options.locale, number_system) do
-      currency_long_formats = Map.get(formats, :currency_long)
-
-      # Believed unreachable — see the note in the :currency_long
-      # clause above. Kept as a defensive guard.
-      if is_nil(currency_long_formats) do
-        {:error,
-         Localize.InvalidValueError.exception(
-           value: :currency_long_with_symbol,
-           expected: "a locale with currency_long formats",
-           context: "Localize.Number.Formatter.Currency"
-         )}
-      else
-        format_long_with_symbol(number, formats, currency_long_formats, options)
-      end
+         {:ok, formats} <- Format.formats_for(options.locale, number_system),
+         {:ok, currency_long_formats} <-
+           fetch_currency_long_formats(formats, :currency_long_with_symbol) do
+      format_long_with_symbol(number, formats, currency_long_formats, options)
     end
   end
 
@@ -120,18 +95,22 @@ defmodule Localize.Number.Formatter.Currency do
 
   # Believed unreachable with current CLDR data — see the note in
   # `to_string/3`. Kept as a defensive guard.
+  # The long plural patterns, which every CLDR plural set completes with
+  # `:other`, the pattern `select_plural/3` falls back to. Every locale has
+  # them for `latn`, and a numbering system without its own inherits those;
+  # a set with no `:other` is data this formatter cannot use, and an error.
   defp fetch_currency_long_formats(formats, style) do
     case Map.get(formats, :currency_long) do
-      nil ->
+      %{other: _pattern} = currency_long_formats ->
+        {:ok, currency_long_formats}
+
+      _missing ->
         {:error,
          Localize.InvalidValueError.exception(
            value: style,
            expected: "a locale with currency_long formats",
            context: "Localize.Number.Formatter.Currency"
          )}
-
-      currency_long_formats ->
-        {:ok, currency_long_formats}
     end
   end
 
@@ -234,17 +213,21 @@ defmodule Localize.Number.Formatter.Currency do
   # the guard this first clause matched every `Currency` struct (the
   # field always exists), making the name fallback unreachable and
   # crashing `pluralize/3` when `count` was `nil`.
-  defp currency_display_name(number, %{currency: %Localize.Currency{count: count}, locale: locale})
-       when is_map(count) and map_size(count) > 0 do
-    select_plural(number, locale, count)
-  end
-
-  defp currency_display_name(_number, %{currency: %Localize.Currency{name: name}})
-       when is_binary(name) do
-    name
+  # TR35's display name for a currency in a long format: the name for the
+  # number's plural count, or for `other`, then the name with no count, and
+  # with no name at all the currency code itself, as `ckb` has none for the
+  # US dollar ("٣٫٠٠ USD").
+  defp currency_display_name(number, %{currency: %Localize.Currency{} = currency, locale: locale}) do
+    count_display_name(number, locale, currency.count) || currency.name ||
+      Kernel.to_string(currency.code)
   end
 
   defp currency_display_name(_number, _options), do: ""
+
+  defp count_display_name(number, locale, count) when is_map(count) and map_size(count) > 0,
+    do: select_plural(number, locale, count)
+
+  defp count_display_name(_number, _locale, _count), do: nil
 
   defp plural_format(number, formats, %{locale: locale}) do
     select_plural(number, locale, formats)

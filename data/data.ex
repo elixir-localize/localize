@@ -264,6 +264,24 @@ defmodule Localize.Data do
   end
 
   @doc """
+  Returns the path to the root locale's XML.
+
+  cldr-json publishes a locale's numbering systems only where the locale
+  uses them, so root's own `arab` and `arabext` symbols and formats, which
+  every locale without its own inherits, are read from the repository's
+  XML.
+
+  ### Returns
+
+  * The path, whether or not the file exists.
+
+  """
+  @spec root_locale_source_path() :: String.t()
+  def root_locale_source_path do
+    Path.join([cldr_repo_dir(), "common", "main", "root.xml"])
+  end
+
+  @doc """
   Returns the name of every locale the bundle has data for.
 
   ### Returns

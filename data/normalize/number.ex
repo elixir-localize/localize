@@ -181,16 +181,23 @@ defmodule Localize.Data.Normalize.Number do
 
   def currency_long_format(nil), do: nil
 
+  # A currency block with no unit patterns of its own, as root's `arab` and
+  # the `arab` of `ckb` and `sd` are, leaves them to be inherited from the
+  # locale's `latn`, as ICU's currency unit patterns are, rather than
+  # recording an empty set that would stand in for them.
   def currency_long_format(formats) do
     pattern_regex = Regex.compile!(@pattern_count)
 
-    formats
-    |> Enum.filter(fn {k, _v} -> Regex.match?(pattern_regex, k) end)
-    |> Enum.map(fn {k, v} ->
-      @pattern_count <> count = k
-      {count, Localize.Substitution.parse(v)}
-    end)
-    |> Map.new()
+    patterns =
+      formats
+      |> Enum.filter(fn {k, _v} -> Regex.match?(pattern_regex, k) end)
+      |> Enum.map(fn {k, v} ->
+        @pattern_count <> count = k
+        {count, Localize.Substitution.parse(v)}
+      end)
+      |> Map.new()
+
+    if patterns == %{}, do: nil, else: patterns
   end
 
   # The zero count fixes the compact divisor: `0` divides by the rule's range,
