@@ -60,6 +60,68 @@ defmodule Localize.DateTime.RelativeTest do
     def date_to_string(year, month, day), do: "#{year}-#{month}-#{day} Thirteen"
   end
 
+  # `Thirteen` with its months named as Calendrical's lunisolar calendars
+  # name them, by `month_of_year/3`: a year of thirteen has a leap month,
+  # `{5, :leap}`, after its fifth, so a month after it sits one place later
+  # than in a year of twelve.
+  defmodule Intercalary do
+    @moduledoc false
+
+    defdelegate months_in_year(year), to: Thirteen
+    defdelegate days_in_month(year, month), to: Thirteen
+    defdelegate valid_date?(year, month, day), to: Thirteen
+    defdelegate quarter_of_year(year, month, day), to: Thirteen
+    defdelegate day_of_week(year, month, day, starting_on), to: Thirteen
+
+    defdelegate naive_datetime_to_iso_days(year, month, day, hour, minute, second, microsecond),
+      to: Thirteen
+
+    defdelegate naive_datetime_from_iso_days(iso_days), to: Thirteen
+    defdelegate day_rollover_relative_to_midnight_utc, to: Thirteen
+    defdelegate date_to_string(year, month, day), to: Thirteen
+
+    def calendar_base, do: :month
+
+    def month_of_year(year, month, _day) do
+      cond do
+        months_in_year(year) == 12 or month <= 5 -> month
+        month == 6 -> {5, :leap}
+        true -> month - 1
+      end
+    end
+  end
+
+  # `Thirteen` with its months named as the Hebrew calendar's are: a year of
+  # thirteen has Adar I, 6, and Adar II, `{7, :leap}`, where a year of twelve
+  # has Adar, 7, alone.
+  defmodule Adar do
+    @moduledoc false
+
+    defdelegate months_in_year(year), to: Thirteen
+    defdelegate days_in_month(year, month), to: Thirteen
+    defdelegate valid_date?(year, month, day), to: Thirteen
+    defdelegate quarter_of_year(year, month, day), to: Thirteen
+    defdelegate day_of_week(year, month, day, starting_on), to: Thirteen
+
+    defdelegate naive_datetime_to_iso_days(year, month, day, hour, minute, second, microsecond),
+      to: Thirteen
+
+    defdelegate naive_datetime_from_iso_days(iso_days), to: Thirteen
+    defdelegate day_rollover_relative_to_midnight_utc, to: Thirteen
+    defdelegate date_to_string(year, month, day), to: Thirteen
+
+    def calendar_base, do: :month
+
+    def month_of_year(year, month, _day) do
+      cond do
+        month <= 5 -> month
+        months_in_year(year) == 12 -> month + 1
+        month == 7 -> {7, :leap}
+        true -> month
+      end
+    end
+  end
+
   # A calendar whose day begins at noon, which no date of another calendar
   # converts into.
   defmodule Noon do
@@ -436,6 +498,12 @@ defmodule Localize.DateTime.RelativeTest do
       assert Relative.to_string(next_january, relative_to: month_13, locale: :en) ==
                {:ok, "next month"}
 
+      assert Relative.to_string(month_13,
+               relative_to: Date.new!(3, 12, 20, Thirteen),
+               locale: :en
+             ) ==
+               {:ok, "next month"}
+
       assert Relative.to_string(Date.new!(4, 1, 15, Thirteen),
                relative_to: Date.new!(2, 12, 15, Thirteen),
                unit: :month,
@@ -519,6 +587,13 @@ defmodule Localize.DateTime.RelativeTest do
                unit: :day,
                locale: :en
              ) == {:ok, "today"}
+
+      # Noon on 2 July at GMT+5 is 26 hours after 10:00 on 1 July there: a
+      # whole day, with no change of offset to resolve a time across.
+      {:ok, east} = Localize.DateTime.parse("July 2, 2026 at 12:00:00 PM GMT+5", locale: :en)
+
+      assert Relative.to_string(east, relative_to: ~U[2026-07-01 05:00:00Z], locale: :en) ==
+               {:ok, "tomorrow"}
     end
 
     # On 8 March 2026 New York's clocks go from 02:00 to 03:00, and on 1
@@ -566,6 +641,81 @@ defmodule Localize.DateTime.RelativeTest do
                  locale: :en
                ) == {:ok, expected},
                "#{inspect(relative)} against #{inspect(relative_to)} in #{inspect(unit)}"
+      end
+    end
+
+    # The unit chosen across a change of UTC offset is the one ECMA-262
+    # Temporal's DifferenceZonedDateTime gives: a day is whole once the wall
+    # clock is at or past the earlier time and that time, resolved as
+    # `compatible` (a skipped time at the offset before the gap), has passed.
+    # 02:30 on 8 March 2026 is skipped in New York and taken as 03:30, so at
+    # 03:10 a day from 02:30 the day before is not yet whole (PT23H40M), and
+    # at 03:40 it is (P1DT10M). A month from 02:30 on 8 February is likewise
+    # short at 03:10 on 8 March, four weeks (P27DT23H40M). At 01:55 in the
+    # first occurrence of the repeated hour on 1 November, a day from 01:50
+    # has passed (P1DT5M); at 01:10 in the second, the wall clock is short of
+    # 01:50 (PT24H20M; ICU, which reaches the first 01:50, has a day). Samoa
+    # skipped 30 December 2011, so 10:00 on the 29th to 09:00 on the 31st is
+    # 23 hours (PT23H).
+    test "a whole unit across a change of UTC offset" do
+      new_york = fn date, time -> DateTime.new!(date, time, "America/New_York") end
+
+      before_fall_back = new_york.(~D[2026-10-31], ~T[01:50:00])
+
+      {:ambiguous, first_occurrence, _standard} =
+        DateTime.new(~D[2026-11-01], ~T[01:55:00], "America/New_York")
+
+      {:ambiguous, _daylight, after_fall_back} =
+        DateTime.new(~D[2026-11-01], ~T[01:10:00], "America/New_York")
+
+      samoa_before = DateTime.new!(~D[2011-12-29], ~T[10:00:00], "Pacific/Apia")
+      samoa_after = DateTime.new!(~D[2011-12-31], ~T[09:00:00], "Pacific/Apia")
+
+      for {relative, relative_to, unit, expected} <- [
+            {new_york.(~D[2026-03-08], ~T[03:10:00]), new_york.(~D[2026-03-07], ~T[02:30:00]),
+             nil, "in 24 hours"},
+            {new_york.(~D[2026-03-08], ~T[03:10:00]), new_york.(~D[2026-03-07], ~T[02:30:00]),
+             :day, "tomorrow"},
+            {new_york.(~D[2026-03-08], ~T[03:40:00]), new_york.(~D[2026-03-07], ~T[02:30:00]),
+             nil, "tomorrow"},
+            {new_york.(~D[2026-03-07], ~T[02:30:00]), new_york.(~D[2026-03-08], ~T[03:10:00]),
+             nil, "24 hours ago"},
+            {after_fall_back, before_fall_back, nil, "in 25 hours"},
+            {first_occurrence, before_fall_back, nil, "tomorrow"},
+            {new_york.(~D[2026-03-08], ~T[03:10:00]), new_york.(~D[2026-02-08], ~T[02:30:00]),
+             nil, "in 4 weeks"},
+            {samoa_after, samoa_before, nil, "in 23 hours"},
+            {samoa_after, samoa_before, :day, "in 2 days"}
+          ] do
+        assert Relative.to_string(relative, relative_to: relative_to, unit: unit, locale: :en) ==
+                 {:ok, expected},
+               "#{inspect(relative)} against #{inspect(relative_to)} in #{inspect(unit)}"
+      end
+    end
+
+    # A lunisolar year is whole on the month of the same name, as Temporal's
+    # month codes have it, not the month in the same place: a month after a
+    # leap month sits one place later. A leap month the next year lacks is the
+    # ordinary month it doubles (Temporal's skip-backward, M05L to M05), and
+    # Adar the leap year's Adar II (M06 in both). Year 3 has thirteen months.
+    test "a lunisolar year ends on the month of the same name" do
+      for {calendar, {relative_year, relative_month, relative_day}, {year, month, day}, expected} <-
+            [
+              {Intercalary, {4, 7, 10}, {3, 8, 10}, "next year"},
+              {Intercalary, {3, 8, 9}, {2, 7, 10}, "in 13 months"},
+              {Intercalary, {4, 5, 10}, {3, 6, 10}, "next year"},
+              {Intercalary, {4, 5, 9}, {3, 6, 10}, "in 12 months"},
+              {Adar, {4, 6, 15}, {3, 7, 10}, "next year"},
+              {Adar, {3, 6, 15}, {2, 6, 10}, "in 12 months"},
+              {Adar, {3, 7, 20}, {2, 7, 10}, "in 12 months"},
+              {Adar, {4, 6, 10}, {3, 6, 10}, "next year"}
+            ] do
+        relative = Date.new!(relative_year, relative_month, relative_day, calendar)
+        relative_to = Date.new!(year, month, day, calendar)
+
+        assert Relative.to_string(relative, relative_to: relative_to, locale: :en) ==
+                 {:ok, expected},
+               "#{inspect(relative)} against #{inspect(relative_to)}"
       end
     end
 

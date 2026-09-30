@@ -110,6 +110,19 @@ An interval takes the formats of its endpoints' calendar. ICU4C 78.3 differs fro
 
 * **Equal endpoints.** Localize writes the requested standard format, as ECMA-402's `formatRange` and `Localize.Date.to_string/2` do. ICU writes its pattern generator's pattern for the style's skeleton, which prefers an `availableFormats` entry with that skeleton over the standard format.
 
+### Relative time
+
+Without `:unit`, `Localize.DateTime.Relative` takes the largest unit of which a whole one lies between two moments, reckoned as ECMA-262 Temporal reckons it: its `DifferenceZonedDateTime` across a change of UTC offset, and its leap-to-common month rules in a lunisolar calendar. ICU4C 78.3's `Calendar::fieldDifference` differs in two places, asserted in `test/localize/datetime/relative_test.exs`. Localize agrees with a step-by-step implementation of the specification on 293,336 date-time pairs around 1,348 offset changes. On 42,035 date pairs in each of ten calendars it agrees with ICU except in the second case, 370 Chinese and 380 Dangi pairs, and in 39 Chinese pairs about the new year of 2027, which ICU starts on 7 February, a day after the Hong Kong Observatory and Calendrical.
+
+| From → to | Localize and Temporal | ICU4C |
+|---|---|---|
+| New York, 01:50 on 31 October 2026 → 01:10 EST on 1 November | 24 hours 20 minutes | 1 day |
+| Chinese, the 2nd of the leap fourth month of 2020 → the 2nd of the fourth month of 2021 | 1 year | 12 months |
+
+* **A repeated hour.** Temporal compares the wall clocks first, and 01:10 is short of 01:50. ICU reaches days and weeks by adding elapsed time, which lands on the first 01:50, but months and years through its fields, which resolve a repeated time at its second occurrence (`UCAL_WALLTIME_LAST`), so its answer turns on the unit.
+
+* **A leap month.** Temporal takes a leap month that the next year lacks as the ordinary month it doubles (its skip-backward rule for the Chinese and Dangi calendars). ICU takes the next new moon, the month after it.
+
 ## Not divergences
 
 These also appear as exclusions in the test suites and should not be read as deliberate differences:

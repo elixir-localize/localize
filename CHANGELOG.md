@@ -52,7 +52,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 * **Breaking.** `Localize.DateTime.Relative.to_string/2` and `to_parts/2` count a difference between dates in the calendar periods of the value's own calendar, where they divided seconds by a mean month or year, so 1 February is "next month" from 31 January and a Hebrew leap year has thirteen months. Hours, minutes and seconds count the clock periods of the time that passes, so 00:01 is "in 1 hour" from 23:59, across a change of UTC offset too.
 
-* **Breaking.** Without `:unit`, a relative time takes the largest unit of which a whole one lies between the two. A number of seconds has no calendar, so it is counted in weeks at most: 31,556,926 seconds is "in 52 weeks", not "in 1 year".
+* **Breaking.** Without `:unit`, a relative time takes the largest unit of which a whole one lies between the two, reckoned as ECMA-262 Temporal reckons it across a change of UTC offset and in lunisolar calendars. A number of seconds has no calendar, so it is counted in weeks at most: 31,556,926 seconds is "in 52 weeks", not "in 1 year".
 
 * **Breaking.** The generic zone format (`v`, `vvvv`) qualifies a metazone name with the zone's country or city unless the zone is the metazone's preferred zone for the locale's country, as TR35 and CLDR's own formatter give it: "Central European Time (Germany)" for Berlin in `en`, "Mountain Time (Phoenix)". A standard name stands in for a generic one only where the zone keeps one offset for 184 days either side, so London's summer is no longer "Greenwich Mean Time" in a locale naming no British daylight time.
 

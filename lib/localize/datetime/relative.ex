@@ -4,7 +4,7 @@ defmodule Localize.DateTime.Relative do
 
   A relative time is a number of units, or the difference between a `t:Date.t/0`, `t:Time.t/0`, `t:NaiveDateTime.t/0` or `t:DateTime.t/0` and a baseline. The number is formatted with the locale's digits and grouping, and the plural category of the number as displayed selects the unit's pattern. `to_string/2` returns the string and `to_parts/2` the same result as typed parts.
 
-  A difference is counted with the arithmetic of the value's own calendar, in the calendar periods between the two: the years, quarters, months, weeks and days between their dates, and the hours, minutes and seconds between their clocks. It is never a number of seconds divided by a mean length, so a month is a month of the value's calendar whatever its length, and a Hebrew leap year has thirteen of them.
+  A difference is counted with the arithmetic of the value's own calendar, in the calendar periods between the two: the years, quarters, months, weeks and days between their dates on the value's wall clock, and the hours, minutes and seconds between them on the value's clock at its UTC offset, so an hour that a change of offset skips or repeats is counted as the time that passes. It is never a number of seconds divided by a mean length, so a month is a month of the value's calendar whatever its length, and a Hebrew leap year has thirteen of them.
 
   """
 
@@ -38,7 +38,7 @@ defmodule Localize.DateTime.Relative do
 
   * `:format` is `:standard`, `:narrow`, or `:short`. The default is `:standard`.
 
-  * `:unit` is the time unit for formatting. One of `:second`, `:minute`, `:hour`, `:day`, `:week`, `:month`, `:quarter`, `:year`, `:mon`, `:tue`, `:wed`, `:thu`, `:fri`, `:sat` or `:sun`. A difference is the number of the unit's calendar periods from the baseline to the value: 1 February is "next month" from 31 January, and 00:01 is "in 1 hour" from 23:59 the day before. A week and a weekday unit count calendar weeks, each starting on the locale's first day of the week, so "next Monday" is the Monday of the week after the baseline's. Two times have no date, so no days or longer periods lie between them. If omitted, the unit is the largest of which a whole one lies between the two, from a year down to a day for dates and to a second for times. A number with no unit is a number of seconds, which has no calendar: it is counted, to the nearest, in the largest of weeks, days, hours, minutes and seconds it reaches, and never in months, quarters or years.
+  * `:unit` is the time unit for formatting. One of `:second`, `:minute`, `:hour`, `:day`, `:week`, `:month`, `:quarter`, `:year`, `:mon`, `:tue`, `:wed`, `:thu`, `:fri`, `:sat` or `:sun`. A difference is the number of the unit's calendar periods from the baseline to the value: 1 February is "next month" from 31 January, and 00:01 is "in 1 hour" from 23:59 the day before. A week and a weekday unit count calendar weeks, each starting on the locale's first day of the week, so "next Monday" is the Monday of the week after the baseline's. Two times have no date, so no days or longer periods lie between them. If omitted, the unit is the largest of which a whole one lies between the two, from a year down to a day for dates and to a second for times. A whole day, week, month or year is reckoned as ECMA-262 Temporal reckons it: across a change of UTC offset, a day is whole once the wall clock is at or past its time on the next day and that time has passed, a skipped time being taken at the offset before the gap, and in a lunisolar calendar a year is whole on the month of the same name, a leap month's year on the ordinary month it doubles. A number with no unit is a number of seconds, which has no calendar: it is counted, to the nearest, in the largest of weeks, days, hours, minutes and seconds it reaches, and never in months, quarters or years.
 
   * `:numeric` is `:auto` or `:always`, mirroring ECMA-402's `numeric` option. With `:auto` (the default), an offset of -2 to 2 takes the unit's named form, such as "yesterday" or "tomorrow", where the locale has one. With `:always`, output is always numeric: "1 day ago" instead of "yesterday".
 
@@ -338,13 +338,16 @@ defmodule Localize.DateTime.Relative do
   # instant at the value's UTC offset, and the hours, minutes and seconds are
   # counted from it: where the offset changes between the two, the wall clock
   # skips or repeats an hour that no time passes through. The two differ only
-  # for a date-time baseline of a date-time.
+  # for a date-time baseline of a date-time. `:zone` is the value's time zone,
+  # in which a wall-clock time between them is resolved, for a date-time in a
+  # zone whose offset can change.
   defp moments(%DateTime{} = relative, %DateTime{} = relative_to) do
     naive = DateTime.to_naive(relative)
+    zone = zone(relative)
 
     with {:ok, moment, baseline} <- moments(naive, wall_clock(relative_to, relative)),
          {:ok, _moment, elapsed} <- moments(naive, at_offset(relative_to, offset(relative))) do
-      {:ok, moment, %{baseline | clock: elapsed.clock}}
+      {:ok, %{moment | zone: zone}, %{baseline | clock: elapsed.clock, zone: zone}}
     end
   end
 
@@ -448,7 +451,14 @@ defmodule Localize.DateTime.Relative do
   defp date_only(%Date{} = date), do: fields(date, nil)
   defp time_only(%Time{} = time), do: fields(nil, time)
 
-  defp fields(date, time), do: %{date: date, time: time, clock: %{date: date, time: time}}
+  defp fields(date, time),
+    do: %{date: date, time: time, clock: %{date: date, time: time}, zone: nil}
+
+  defp zone(%DateTime{} = datetime) do
+    if fixed_offset?(datetime),
+      do: nil,
+      else: {datetime.time_zone, offset(datetime), Calendar.get_time_zone_database()}
+  end
 
   # ── Calendar arithmetic ───────────────────────────────────
 
@@ -554,33 +564,15 @@ defmodule Localize.DateTime.Relative do
   defp compare_dates(%{date: nil}, _baseline), do: :eq
   defp compare_dates(moment, baseline), do: Date.compare(moment.date, baseline.date)
 
-  # Whether a whole unit lies between two moments: more than one period of
-  # it apart, or one with the later at or past the earlier's place in its
-  # own period, a day of the month clamped to a shorter month and a month of
-  # the year to a shorter year. Days and longer are read from the wall
-  # clock, and hours and minutes from the clock.
+  # Whether a whole unit lies between two moments. Hours and minutes are read
+  # from the clock. A day, week, month or year is whole as ECMA-262 Temporal's
+  # `DifferenceZonedDateTime` reckons it: the later moment is at or past the
+  # earlier's wall-clock time on the anniversary, the date one unit on, and,
+  # in a zone whose offset can change, at or past that wall-clock time's
+  # instant. So a day is not yet whole where its time recurs in a skipped
+  # hour, nor where the later moment falls back to before it in a repeated
+  # hour.
   defp whole?(%{date: nil}, _later, unit) when unit in [:year, :month, :week, :day], do: false
-
-  defp whole?(earlier, later, :year) do
-    one_or_more?(later.date.year - earlier.date.year, fn ->
-      calendar = later.date.calendar
-      month = min(earlier.date.month, calendar.months_in_year(later.date.year))
-      day = min(earlier.date.day, calendar.days_in_month(later.date.year, month))
-      {later.date.month, later.date.day, time_of_day(later)} >= {month, day, time_of_day(earlier)}
-    end)
-  end
-
-  defp whole?(earlier, later, :month) do
-    one_or_more?(months_between(earlier.date, later.date), fn ->
-      days_in_month = later.date.calendar.days_in_month(later.date.year, later.date.month)
-
-      {later.date.day, time_of_day(later)} >=
-        {min(earlier.date.day, days_in_month), time_of_day(earlier)}
-    end)
-  end
-
-  defp whole?(earlier, later, :week), do: days_or_more?(earlier, later, 7)
-  defp whole?(earlier, later, :day), do: days_or_more?(earlier, later, 1)
 
   defp whole?(earlier, later, :hour) do
     one_or_more?(hours(later.clock, earlier.clock), fn ->
@@ -597,11 +589,124 @@ defmodule Localize.DateTime.Relative do
     end)
   end
 
-  defp days_or_more?(earlier, later, days) do
-    case Date.diff(later.date, earlier.date) do
-      span when span > days -> true
-      ^days -> time_of_day(later) >= time_of_day(earlier)
-      _fewer -> false
+  # Still in the earlier's year, or month, the later is short of the next.
+  defp whole?(%{date: %{year: year}}, %{date: %{year: year}}, :year), do: false
+
+  defp whole?(%{date: %{year: year, month: month}}, %{date: %{year: year, month: month}}, :month),
+    do: false
+
+  defp whole?(earlier, later, unit) do
+    anniversary = anniversary(earlier.date, unit)
+    on_or_after?(later, anniversary, earlier) and reached?(later, anniversary, earlier)
+  end
+
+  # The date one unit after `date` in its calendar: the next day, the same
+  # day a week on, or the same day of the next month or of the same month
+  # next year, clamped to that month's days as ICU clamps it.
+  defp anniversary(date, :day), do: Date.add(date, 1)
+  defp anniversary(date, :week), do: Date.add(date, 7)
+
+  defp anniversary(%{calendar: calendar} = date, :month) do
+    if date.month < calendar.months_in_year(date.year),
+      do: on_day(date, date.year, date.month + 1),
+      else: on_day(date, date.year + 1, 1)
+  end
+
+  defp anniversary(date, :year), do: on_day(date, date.year + 1, same_month(date, date.year + 1))
+
+  defp on_day(%{calendar: calendar} = date, year, month) do
+    %{date | year: year, month: month, day: min(date.day, calendar.days_in_month(year, month))}
+  end
+
+  # The month of `year` that is the date's month. A calendar that names its
+  # months by `month_of_year/3`, as Calendrical's lunisolar calendars do,
+  # has the month of that name wherever it falls in the year: Nisan is the
+  # eighth month of a Hebrew leap year and the seventh of an ordinary one. A
+  # leap month the year lacks is the ordinary month it doubles, and Adar the
+  # leap-year Adar II, as Temporal's leap-to-common rules have them. A name
+  # the year lacks otherwise, Adar I in an ordinary year, is the month in the
+  # same place, Adar, which is also the rule for a calendar that does not
+  # name its months: the same place, clamped to the year's months.
+  defp same_month(%{calendar: calendar, month: month} = date, year) do
+    months = calendar.months_in_year(year)
+
+    with true <- months_named?(calendar),
+         name when is_integer(name) or is_tuple(name) <-
+           calendar.month_of_year(date.year, month, date.day),
+         found when is_integer(found) <- month_named(calendar, year, months, month, name) do
+      found
+    else
+      _by_place -> min(month, months)
+    end
+  end
+
+  # As the date parser has it, a calendar names its months by
+  # `month_of_year/3` unless its dates carry a week, not a month.
+  defp months_named?(calendar) do
+    Code.ensure_loaded?(calendar) and function_exported?(calendar, :month_of_year, 3) and
+      function_exported?(calendar, :calendar_base, 0) and calendar.calendar_base() == :month
+  end
+
+  # A month moves at most one place from one year to the next, so the month
+  # of the same name is looked for there first: naming a month can take a
+  # lunisolar calendar an astronomical calculation.
+  defp month_named(calendar, year, months, month, name) do
+    nearby =
+      for place <- (month - 1)..(month + 1), place in 1..months//1 do
+        {place, calendar.month_of_year(year, place, 1)}
+      end
+
+    case Enum.find(nearby, fn {_place, other} -> other == name end) do
+      {place, _name} ->
+        place
+
+      nil ->
+        closest_month(Enum.map(1..months//1, &{&1, calendar.month_of_year(year, &1, 1)}), name)
+    end
+  end
+
+  defp closest_month(names, name) do
+    number = month_number(name)
+
+    Enum.find_value(names, fn {month, other} -> other == name && month end) ||
+      Enum.find_value(names, fn {month, other} -> month_number(other) == number && month end)
+  end
+
+  defp month_number({number, :leap}), do: number
+  defp month_number(number), do: number
+
+  defp on_or_after?(later, date, earlier) do
+    case Date.compare(later.date, date) do
+      :gt -> true
+      :eq -> time_of_day(later) >= time_of_day(earlier)
+      :lt -> false
+    end
+  end
+
+  # Whether the later moment is at or past the instant of the earlier's
+  # wall-clock time on `date` in the value's time zone, resolved as RFC 5545
+  # and Temporal resolve a local time: a repeated time at its first
+  # occurrence, and a skipped time at the offset before the gap. Without a
+  # zone, or where the database cannot resolve the time, the wall clock
+  # alone decides.
+  defp reached?(%{zone: nil}, _date, _earlier), do: true
+
+  defp reached?(%{zone: {time_zone, offset, database}} = later, date, earlier) do
+    with {:ok, wall} <- NaiveDateTime.new(date, earlier.time),
+         {:ok, resolved} <- offset_at(wall, time_zone, database),
+         {:ok, later_clock} <- NaiveDateTime.new(later.clock.date, later.clock.time) do
+      NaiveDateTime.compare(NaiveDateTime.add(wall, offset - resolved), later_clock) != :gt
+    else
+      _unresolved -> true
+    end
+  end
+
+  defp offset_at(wall, time_zone, database) do
+    case DateTime.from_naive(wall, time_zone, database) do
+      {:ok, datetime} -> {:ok, offset(datetime)}
+      {:ambiguous, first, _second} -> {:ok, offset(first)}
+      {:gap, before, _after} -> {:ok, offset(before)}
+      {:error, _reason} = error -> error
     end
   end
 
