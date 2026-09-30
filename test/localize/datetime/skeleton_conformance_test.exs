@@ -120,19 +120,26 @@ defmodule Localize.DateTime.SkeletonConformanceTest do
                   into: %{},
                   do: {{locale, skeleton}, true}
 
-  defp cases(file) do
-    [_header | rows] =
-      [@data_dir, file]
-      |> Path.join()
-      |> File.stream!()
-      |> Stream.map(&String.trim_trailing(&1, "\n"))
-      |> Stream.reject(&(&1 == "" or String.starts_with?(&1, "#")))
-      |> Enum.map(&String.split(&1, "\t"))
+  for file <- @files, do: @external_resource(Path.join(@data_dir, file))
 
-    for [locale, "gregorian", skeleton, pattern] <- rows do
-      {String.replace(locale, "_", "-"), skeleton, pattern}
+  # The cases are read as the module compiles, so that there can be a test
+  # per file and locale.
+  cases_by_file =
+    for file <- @files do
+      [_header | rows] =
+        [@data_dir, file]
+        |> Path.join()
+        |> File.stream!()
+        |> Stream.map(&String.trim_trailing(&1, "\n"))
+        |> Stream.reject(&(&1 == "" or String.starts_with?(&1, "#")))
+        |> Enum.map(&String.split(&1, "\t"))
+
+      cases =
+        for [locale, "gregorian", skeleton, pattern] <- rows,
+            do: {String.replace(locale, "_", "-"), skeleton, pattern}
+
+      {file, cases}
     end
-  end
 
   defp format_case({locale, skeleton, pattern}) do
     options = [locale: locale, style: :default]
@@ -152,47 +159,44 @@ defmodule Localize.DateTime.SkeletonConformanceTest do
   defp agrees?({{:ok, same}, {:ok, same}}), do: true
   defp agrees?(_formatted), do: false
 
-  for file <- @files do
-    test "#{file}: every Gregorian case agrees with CLDR but the recorded deviations" do
-      disagreeing =
-        unquote(file)
-        |> cases()
-        |> Enum.reject(fn {locale, skeleton, _pattern} ->
+  defp resolves?({locale, skeleton, _pattern}) do
+    not match?(
+      {:error, _reason},
+      Localize.DateTime.to_string(@datetime, format: skeleton_atom(skeleton), locale: locale)
+    )
+  end
+
+  # One test per file and locale, so that each loads only the locale it
+  # checks. A test over a whole file loaded as many as 104 locales and,
+  # where they had to be downloaded as in CI, ran past the test timeout.
+  for {file, cases} <- cases_by_file,
+      {locale, locale_cases} <- Enum.group_by(cases, &elem(&1, 0)) do
+    test "#{file} #{locale}: every Gregorian case resolves and agrees with CLDR but the recorded deviations" do
+      cases = unquote(Macro.escape(locale_cases))
+
+      {deviating, expected} =
+        Enum.split_with(cases, fn {locale, skeleton, _pattern} ->
           Map.has_key?(@deviations, {locale, skeleton})
         end)
+
+      unresolved = for cldr_case <- cases, not resolves?(cldr_case), uniq: true, do: cldr_case
+
+      disagreeing =
+        expected
         |> Enum.map(&{&1, format_case(&1)})
         |> Enum.reject(fn {_cldr_case, formatted} -> agrees?(formatted) end)
 
-      assert disagreeing == [], describe(disagreeing)
-    end
-
-    test "#{file}: every recorded deviation still deviates" do
       agreeing =
-        for {locale, skeleton, _pattern} = cldr_case <- cases(unquote(file)),
-            Map.has_key?(@deviations, {locale, skeleton}),
+        for {locale, skeleton, _pattern} = cldr_case <- deviating,
             agrees?(format_case(cldr_case)),
             do: {locale, skeleton}
+
+      assert unresolved == [], "these cases resolve to nothing: #{inspect(unresolved)}"
+      assert disagreeing == [], describe(disagreeing)
 
       assert agreeing == [],
              "these now agree with CLDR; remove them from @deviations: #{inspect(agreeing)}"
     end
-  end
-
-  test "every Gregorian case resolves to something" do
-    unresolved =
-      for file <- @files,
-          {locale, skeleton, _pattern} <- cases(file),
-          match?(
-            {:error, _reason},
-            Localize.DateTime.to_string(@datetime,
-              format: skeleton_atom(skeleton),
-              locale: locale
-            )
-          ),
-          uniq: true,
-          do: {locale, skeleton}
-
-    assert unresolved == []
   end
 
   defp describe(disagreeing) do
