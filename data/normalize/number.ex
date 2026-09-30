@@ -4,10 +4,48 @@ defmodule Localize.Data.Normalize.Number do
   alias Localize.Data.Normalize.Helpers
   alias Localize.Utils.Map, as: LMap
 
+  # The kinds of number data CLDR keys by numbering system, as the JSON
+  # names them once its keys are underscored.
+  @system_keyed_data ~w(symbols decimal_formats percent_formats currency_formats
+                        scientific_formats misc_patterns rational_formats)
+
   def normalize(content, locale) do
     content
+    |> drop_inherited_number_systems()
     |> normalize_formats(locale)
     |> normalize_symbols(locale)
+  end
+
+  # The CLDR JSON carries every numbering system's symbols and formats,
+  # resolved (`Localize.Data.CldrJson` converts with `fullnumbers`), so a
+  # system the locale has no data of its own for repeats the locale's
+  # `latn` data, to which CLDR's root aliases it. Outside the locale's own
+  # systems — `latn`, its default, and its native, traditional and finance
+  # systems — each kind of data is kept only where it differs from the
+  # locale's `latn`: the locale's own data for that system, or root's for
+  # `arab` and `arabext`. At runtime a system without data takes the
+  # locale's `latn`, as the aliases give it.
+  defp drop_inherited_number_systems(content) do
+    numbers = content["numbers"]
+
+    own_systems =
+      MapSet.new([
+        "latn",
+        numbers["default_numbering_system"] | Map.values(numbers["other_numbering_systems"])
+      ])
+
+    numbers =
+      Map.reject(numbers, fn {key, data} ->
+        case String.split(key, "_number_system_") do
+          [kind, system] when kind in @system_keyed_data ->
+            system not in own_systems and data == numbers["#{kind}_number_system_latn"]
+
+          _other ->
+            false
+        end
+      end)
+
+    Map.put(content, "numbers", numbers)
   end
 
   def normalize_formats(content, _locale) do
@@ -98,9 +136,6 @@ defmodule Localize.Data.Normalize.Number do
     )
     |> Map.new()
   end
-
-  @system_keyed_data ~w(symbols decimal_formats percent_formats currency_formats
-                        scientific_formats misc_patterns rational_formats)
 
   # The default and other numbering systems, and every other system the
   # locale has symbols or formats for: fa's default is arabext, and it also

@@ -33,8 +33,6 @@ defmodule Mix.Tasks.Localize.UploadLocale do
 
   use Mix.Task
 
-  @r2_endpoint "https://{account_id}.r2.cloudflarestorage.com"
-
   @impl Mix.Task
   def run(args) do
     Mix.Task.run("app.config")
@@ -52,7 +50,11 @@ defmodule Mix.Tasks.Localize.UploadLocale do
       Mix.raise("At least one locale argument is required")
     end
 
-    config = r2_config()
+    config =
+      case Localize.Data.R2.config() do
+        {:ok, config} -> config
+        {:error, message} -> Mix.raise(message)
+      end
 
     output_dir = Localize.Data.locales_output_dir()
     File.mkdir_p!(output_dir)
@@ -63,135 +65,16 @@ defmodule Mix.Tasks.Localize.UploadLocale do
 
       etf_path = Path.join(output_dir, "#{locale}.etf")
       object_key = "#{version}/#{locale}.etf"
+      body = File.read!(etf_path)
 
       Mix.shell().info("Uploading #{object_key} to R2 bucket #{bucket}...")
-      upload_to_r2(etf_path, bucket, object_key, config)
+
+      case Localize.Data.R2.put(config, bucket, object_key, body) do
+        :ok -> Mix.shell().info("  Uploaded #{object_key} (#{byte_size(body)} bytes)")
+        {:error, message} -> Mix.raise("R2 upload failed: #{message}")
+      end
     end)
 
     Mix.shell().info("Done. Uploaded #{length(locale_args)} locales.")
-  end
-
-  defp r2_config do
-    account_id = System.get_env("R2_ACCOUNT_ID") || Mix.raise("R2_ACCOUNT_ID not set")
-    access_key = System.get_env("R2_ACCESS_KEY_ID") || Mix.raise("R2_ACCESS_KEY_ID not set")
-
-    secret_key =
-      System.get_env("R2_SECRET_ACCESS_KEY") || Mix.raise("R2_SECRET_ACCESS_KEY not set")
-
-    endpoint = String.replace(@r2_endpoint, "{account_id}", account_id)
-
-    %{
-      endpoint: endpoint,
-      access_key: access_key,
-      secret_key: secret_key
-    }
-  end
-
-  defp upload_to_r2(file_path, bucket, object_key, config) do
-    body = File.read!(file_path)
-    url = "#{config.endpoint}/#{bucket}/#{object_key}"
-
-    headers = sign_request("PUT", bucket, object_key, body, config)
-
-    case :httpc.request(
-           :put,
-           {String.to_charlist(url), headers, ~c"application/octet-stream", body},
-           [ssl: ssl_options()],
-           []
-         ) do
-      {:ok, {{_http, status, _reason}, _headers, _body}} when status in 200..299 ->
-        Mix.shell().info("  Uploaded #{object_key} (#{byte_size(body)} bytes)")
-
-      {:ok, {{_http, status, reason}, _headers, resp_body}} ->
-        Mix.raise("R2 upload failed: HTTP #{status} #{reason}\n#{resp_body}")
-
-      {:error, reason} ->
-        Mix.raise("R2 upload failed: #{inspect(reason)}")
-    end
-  end
-
-  defp sign_request(method, bucket, object_key, body, config) do
-    now = DateTime.utc_now()
-    date_stamp = Calendar.strftime(now, "%Y%m%d")
-    amz_date = Calendar.strftime(now, "%Y%m%dT%H%M%SZ")
-    region = "auto"
-    service = "s3"
-
-    host =
-      config.endpoint
-      |> URI.parse()
-      |> Map.get(:host)
-
-    content_hash = hex_sha256(body)
-
-    canonical_uri = "/#{bucket}/#{object_key}"
-
-    canonical_headers =
-      "host:#{host}\nx-amz-content-sha256:#{content_hash}\nx-amz-date:#{amz_date}\n"
-
-    signed_headers = "host;x-amz-content-sha256;x-amz-date"
-
-    canonical_request =
-      Enum.join(
-        [
-          String.upcase(method),
-          canonical_uri,
-          "",
-          canonical_headers,
-          signed_headers,
-          content_hash
-        ],
-        "\n"
-      )
-
-    credential_scope = "#{date_stamp}/#{region}/#{service}/aws4_request"
-
-    string_to_sign =
-      Enum.join(
-        [
-          "AWS4-HMAC-SHA256",
-          amz_date,
-          credential_scope,
-          hex_sha256(canonical_request)
-        ],
-        "\n"
-      )
-
-    signing_key =
-      ("AWS4" <> config.secret_key)
-      |> hmac_sha256(date_stamp)
-      |> hmac_sha256(region)
-      |> hmac_sha256(service)
-      |> hmac_sha256("aws4_request")
-
-    signature = hmac_sha256(signing_key, string_to_sign) |> Base.encode16(case: :lower)
-
-    authorization =
-      "AWS4-HMAC-SHA256 Credential=#{config.access_key}/#{credential_scope}, " <>
-        "SignedHeaders=#{signed_headers}, Signature=#{signature}"
-
-    [
-      {~c"Authorization", String.to_charlist(authorization)},
-      {~c"x-amz-date", String.to_charlist(amz_date)},
-      {~c"x-amz-content-sha256", String.to_charlist(content_hash)}
-    ]
-  end
-
-  defp hex_sha256(data) do
-    :crypto.hash(:sha256, data) |> Base.encode16(case: :lower)
-  end
-
-  defp hmac_sha256(key, data) do
-    :crypto.mac(:hmac, :sha256, key, data)
-  end
-
-  defp ssl_options do
-    [
-      verify: :verify_peer,
-      cacerts: :public_key.cacerts_get(),
-      customize_hostname_check: [
-        match_fun: :public_key.pkix_verify_hostname_match_fun(:https)
-      ]
-    ]
   end
 end

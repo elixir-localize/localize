@@ -52,7 +52,6 @@ defmodule Localize.Data.Locale do
   def generate_locale(locale) do
     consolidate_locale_content(locale)
     |> level_up_locale(locale)
-    |> put_root_number_systems(locale)
     |> put_japanese_era_names(locale)
     |> put_localized_subdivisions(locale)
     |> LMap.underscore_keys(
@@ -99,7 +98,7 @@ defmodule Localize.Data.Locale do
 
   # ── Content consolidation ─────────────────────────────────────
 
-  # Reads every JSON source file for the locale, across the bundle's
+  # Reads every JSON source file for the locale, across the JSON's
   # packages, and merges them into a single map in the order
   # `Localize.Data.locale_source_files/1` gives.
   defp consolidate_locale_content(locale) do
@@ -122,21 +121,6 @@ defmodule Localize.Data.Locale do
   defp level_up_locale(content, locale) do
     get_in(content, ["main", locale])
   end
-
-  # cldr-json publishes a locale's numbering systems only where the locale
-  # uses them, so `und` lacks the symbols and formats root defines for
-  # `arab` and `arabext`. They are read from the repository's `root.xml`
-  # and put beside the JSON's, and a locale without its own inherits them
-  # from `und` at runtime, as CLDR's inheritance and ICU give them.
-  defp put_root_number_systems(content, "und") do
-    Map.update!(
-      content,
-      "numbers",
-      &Map.merge(Localize.Data.XmlExtractors.root_number_systems(), &1)
-    )
-  end
-
-  defp put_root_number_systems(content, _locale), do: content
 
   # CLDR 49 names the Japanese eras from Meiji onwards only. The earlier
   # names are Localize's own data, kept from CLDR 48, and they are merged

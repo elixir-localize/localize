@@ -11,18 +11,17 @@ defmodule Localize.Data do
 
   The sources are read where they sit, never copied into the project:
 
-  * `CLDR_PRODUCTION` — the cldr-json release bundle: locale and
-    supplemental JSON, and the RBNF rule files.
-
-  * `CLDR_REPO` — the CLDR repository: supplemental, bcp47, validity,
+  * `CLDR_REPO` — the CLDR repository, at the ref recorded in
+    `priv/localize/cldr_repo_ref`: supplemental, bcp47, validity,
     collation and subdivision XML, `FractionalUCA.txt` and
-    `Script_Metadata.csv`.
+    `Script_Metadata.csv`, and the tools the JSON is built with.
 
-  `priv/localize/cldr_json_version` and `priv/localize/cldr_repo_ref`
-  record the release and the ref the committed data was generated from,
-  and generation refuses sources that disagree with them. See
-  `cldr_source_dir/0` and `cldr_repo_dir/0` for where the two are looked
-  for.
+  * `CLDR_PRODUCTION` — the JSON `Localize.Data.CldrJson` builds from
+    that repository: locale and supplemental JSON, and the RBNF rule files.
+
+  Generation refuses a repository at another ref, and JSON that was not
+  built from it with the current options. See `cldr_source_dir/0` and
+  `cldr_repo_dir/0` for where the two are looked for.
 
   ## Outputs
 
@@ -43,10 +42,9 @@ defmodule Localize.Data do
   @supplemental_etf_dir "priv/localize/supplemental_data"
   @external_sources_dir "priv/external_sources"
   @version_file "priv/localize/version"
-  @cldr_json_version_file "priv/localize/cldr_json_version"
   @cldr_repo_ref_file "priv/localize/cldr_repo_ref"
 
-  # Supplemental JSON is read from the bundle's `cldr-core/supplemental/`,
+  # Supplemental JSON is read from the JSON's `cldr-core/supplemental/`,
   # except for the files named here, which sit elsewhere in it.
   @supplemental_json_paths %{
     "coverageLevels.json" => "cldr-core/coverageLevels.json"
@@ -139,8 +137,8 @@ defmodule Localize.Data do
 
   # ── Sources ─────────────────────────────────────────────────────
   #
-  # Everything is read where it sits: JSON from the cldr-json release bundle
-  # in `CLDR_PRODUCTION`, XML and text from the CLDR repository in
+  # Everything is read where it sits: the JSON built from the CLDR repository
+  # in `CLDR_PRODUCTION`, XML and text from the repository itself in
   # `CLDR_REPO`. The sources used to be copied into `priv/cldr` first; each
   # path here is the one its copy was taken from, so the generated data is
   # unchanged.
@@ -154,8 +152,8 @@ defmodule Localize.Data do
 
   ### Returns
 
-  * The path to the file in the bundle's `cldr-core/supplemental/`, or in
-    the one other place the bundle publishes it.
+  * The path to the file in the JSON's `cldr-core/supplemental/`, or in
+    the one other place the JSON has it.
 
   """
   @spec supplemental_json_path(String.t()) :: String.t()
@@ -171,7 +169,7 @@ defmodule Localize.Data do
   @doc """
   Returns a locale's JSON source files in the order they are merged.
 
-  A locale's data is spread across the bundle's `-full` packages. The files
+  A locale's data is spread across the JSON's `-full` packages. The files
   are ordered by `<package>__<file>`, with the locale's RBNF source taken as
   `rbnf.json`: the names and the order the copy into `priv/cldr` produced,
   which the merged data depends on.
@@ -182,7 +180,7 @@ defmodule Localize.Data do
 
   ### Returns
 
-  * A list of paths, empty for a locale the bundle has no data for.
+  * A list of paths, empty for a locale the JSON has no data for.
 
   """
   @spec locale_source_files(String.t()) :: [String.t()]
@@ -204,13 +202,13 @@ defmodule Localize.Data do
   end
 
   @doc """
-  Returns the path to a locale's source file in one cldr-json package.
+  Returns the path to a locale's source file in one JSON package.
 
   ### Arguments
 
   * `locale` is a CLDR locale name.
 
-  * `package` is a package in the bundle, such as `"cldr-units-full"`.
+  * `package` is a package in the JSON, such as `"cldr-units-full"`.
 
   * `file` is the file's name in the package's `main/<locale>/`.
 
@@ -227,7 +225,7 @@ defmodule Localize.Data do
   @doc """
   Returns the path to a locale's RBNF source.
 
-  The rule files it names sit beside it in the bundle's `cldr-rbnf/rbnf/`.
+  The rule files it names sit beside it in the JSON's `cldr-rbnf/rbnf/`.
 
   ### Arguments
 
@@ -246,8 +244,8 @@ defmodule Localize.Data do
   @doc """
   Returns the path to a locale's subdivision names.
 
-  cldr-json does not publish them, so they are read from the repository's
-  XML.
+  They are read from the repository's XML, which the JSON build does not
+  convert.
 
   ### Arguments
 
@@ -264,25 +262,7 @@ defmodule Localize.Data do
   end
 
   @doc """
-  Returns the path to the root locale's XML.
-
-  cldr-json publishes a locale's numbering systems only where the locale
-  uses them, so root's own `arab` and `arabext` symbols and formats, which
-  every locale without its own inherits, are read from the repository's
-  XML.
-
-  ### Returns
-
-  * The path, whether or not the file exists.
-
-  """
-  @spec root_locale_source_path() :: String.t()
-  def root_locale_source_path do
-    Path.join([cldr_repo_dir(), "common", "main", "root.xml"])
-  end
-
-  @doc """
-  Returns the name of every locale the bundle has data for.
+  Returns the name of every locale the JSON has data for.
 
   ### Returns
 
@@ -325,95 +305,136 @@ defmodule Localize.Data do
 
   # ── Source versions ─────────────────────────────────────────────
   #
-  # The bundle and the repository are two halves of one release with nothing
-  # tying them together, and neither names the other: cldr-json re-spins a
-  # release under a new name (`48.2.0-BETA0b`) and publishes packaging-only
-  # patches such as 48.2.1 that CLDR never tags. So the pair the committed
-  # data was generated from is recorded, in the way
-  # `priv/localize/localize_inflection_sha` pins the inflection sources.
+  # The JSON is built from the repository (`Localize.Data.CldrJson`), so the
+  # repository's ref is the one thing recorded, in the way
+  # `priv/localize/localize_inflection_sha` pins the inflection sources, and
+  # the JSON carries a stamp naming the commit and the options it was built
+  # with.
 
   @doc """
-  Returns the sources the committed data was generated from.
+  Returns the CLDR repository ref the committed data was generated from.
 
   ### Returns
 
-  * `{cldr_json_version, cldr_repo_ref}` as recorded in
-    `priv/localize/cldr_json_version` and `priv/localize/cldr_repo_ref`,
-    either `nil` when it has not been recorded.
+  * The tag or commit recorded in `priv/localize/cldr_repo_ref`.
+
+  * `nil` when none is recorded.
 
   """
-  @spec pinned_sources() :: {String.t() | nil, String.t() | nil}
-  def pinned_sources do
-    {read_pin(@cldr_json_version_file), read_pin(@cldr_repo_ref_file)}
+  @spec pinned_ref() :: String.t() | nil
+  def pinned_ref do
+    read_pin(@cldr_repo_ref_file)
   end
 
   @doc """
-  Returns the sources in `CLDR_PRODUCTION` and `CLDR_REPO`.
+  Returns the ref of the CLDR repository in `CLDR_REPO`.
 
   ### Returns
 
-  * `{cldr_json_version, cldr_repo_ref}`: the release named in the bundle's
-    `cldr-core/package.json`, and the repository's `release-*` tag at `HEAD`,
-    another tag there, or the commit. Either is `nil` when it cannot be read.
+  * The repository's `release-*` tag at `HEAD`, another tag there, or the
+    commit.
+
+  * `nil` when the repository cannot be read.
 
   """
-  @spec current_sources() :: {String.t() | nil, String.t() | nil}
-  def current_sources do
-    {bundle_version(), repository_ref()}
-  end
+  @spec repository_ref() :: String.t() | nil
+  def repository_ref do
+    directory = cldr_repo_dir()
 
-  @doc """
-  Records the sources in `CLDR_PRODUCTION` and `CLDR_REPO` as the ones the
-  data is generated from.
+    with true <- File.dir?(directory),
+         {:ok, tags} <- git(directory, ["tag", "--points-at", "HEAD"]) do
+      tags = tags |> String.split("\n", trim: true) |> Enum.sort()
 
-  ### Returns
-
-  * `{:ok, {cldr_json_version, cldr_repo_ref}}` when both were written.
-
-  * `{:error, message}` when either source cannot be read.
-
-  """
-  @spec record_sources() :: {:ok, {String.t(), String.t()}} | {:error, String.t()}
-  def record_sources do
-    case current_sources() do
-      {version, ref} when is_binary(version) and is_binary(ref) ->
-        File.write!(Path.join(File.cwd!(), @cldr_json_version_file), version)
-        File.write!(Path.join(File.cwd!(), @cldr_repo_ref_file), ref)
-        {:ok, {version, ref}}
-
-      {version, ref} ->
-        {:error, sources_message("Cannot read the CLDR sources to record them.", {version, ref})}
+      # A release tag names the ref most readably, so one is preferred when
+      # HEAD carries several tags.
+      Enum.find(tags, &String.starts_with?(&1, "release-")) || List.first(tags) ||
+        head_commit(directory)
+    else
+      _no_repository -> nil
     end
   end
 
   @doc """
-  Checks that `CLDR_PRODUCTION` and `CLDR_REPO` hold the recorded sources.
+  Records the ref of the CLDR repository in `CLDR_REPO` as the one the data
+  is generated from, in `priv/localize/cldr_repo_ref`.
 
   ### Returns
 
-  * `:ok` when both match what is recorded.
+  * `{:ok, ref}` when it was written.
+
+  * `{:error, message}` when the repository cannot be read.
+
+  """
+  @spec record_sources() :: {:ok, String.t()} | {:error, String.t()}
+  def record_sources do
+    case repository_ref() do
+      ref when is_binary(ref) ->
+        File.write!(Path.join(File.cwd!(), @cldr_repo_ref_file), ref)
+        {:ok, ref}
+
+      nil ->
+        {:error, sources_message("Cannot read the CLDR repository's ref to record it.")}
+    end
+  end
+
+  @doc """
+  Returns whether `CLDR_PRODUCTION` holds the JSON built from the CLDR
+  repository in `CLDR_REPO`, as it is checked out, with the current options.
+
+  ### Returns
+
+  * `true` when it does.
+
+  * `false` otherwise.
+
+  """
+  @spec json_built_from_repository?() :: boolean()
+  def json_built_from_repository? do
+    case Localize.Data.CldrJson.stamp(cldr_source_dir()) do
+      %{"commit" => commit} = stamp ->
+        commit == repository_commit() and Localize.Data.CldrJson.current_options?(stamp)
+
+      _no_build ->
+        false
+    end
+  end
+
+  @doc """
+  Checks that `CLDR_REPO` is at the recorded ref and that `CLDR_PRODUCTION`
+  holds the JSON built from it with the current options.
+
+  ### Returns
+
+  * `:ok` when both hold.
 
   * `{:error, message}` otherwise, saying which differs and how to fix it.
 
   """
   @spec verify_sources() :: :ok | {:error, String.t()}
   def verify_sources do
-    current = current_sources()
+    pinned = pinned_ref()
+    commit = repository_commit()
+    stamp = Localize.Data.CldrJson.stamp(cldr_source_dir())
 
-    case pinned_sources() do
-      ^current ->
-        :ok
+    cond do
+      is_nil(pinned) ->
+        {:error, sources_message("No CLDR repository ref is recorded.")}
 
-      {nil, _ref} ->
-        {:error, sources_message("No CLDR sources are recorded.", current)}
+      pinned not in [repository_ref(), commit] ->
+        {:error, sources_message("The CLDR repository is not at the recorded ref, #{pinned}.")}
 
-      {version, ref} ->
+      is_nil(stamp) ->
+        {:error, sources_message("CLDR_PRODUCTION holds no JSON built from the CLDR repository.")}
+
+      stamp["commit"] != commit ->
+        {:error, sources_message("The CLDR JSON was not built from the recorded ref, #{pinned}.")}
+
+      not Localize.Data.CldrJson.current_options?(stamp) ->
         {:error,
-         sources_message(
-           "The CLDR sources are not the recorded ones, cldr-json #{version} " <>
-             "with the CLDR repository at #{ref}.",
-           current
-         )}
+         sources_message("The CLDR JSON was built with other options than the current ones.")}
+
+      true ->
+        :ok
     end
   end
 
@@ -423,7 +444,8 @@ defmodule Localize.Data do
 
   ### Returns
 
-  * `true` when `CLDR_PRODUCTION` and `CLDR_REPO` hold the recorded sources.
+  * `true` when `CLDR_REPO` is at the recorded ref and `CLDR_PRODUCTION`
+    holds the JSON built from it.
 
   * `false` otherwise.
 
@@ -433,15 +455,22 @@ defmodule Localize.Data do
     File.dir?(cldr_source_dir()) and File.dir?(cldr_repo_dir()) and verify_sources() == :ok
   end
 
-  defp sources_message(problem, {version, ref}) do
+  defp sources_message(problem) do
+    json =
+      case Localize.Data.CldrJson.stamp(cldr_source_dir()) do
+        %{"describe" => describe} -> "the CLDR JSON built from #{describe}"
+        _no_build -> "no CLDR JSON built from the repository"
+      end
+
     """
     #{problem}
 
-      CLDR_PRODUCTION #{cldr_source_dir()} holds cldr-json #{version || "(unreadable)"}
-      CLDR_REPO #{cldr_repo_dir()} is at #{ref || "(unreadable)"}
+      CLDR_REPO #{cldr_repo_dir()} is at #{repository_ref() || "(unreadable)"}
+      CLDR_PRODUCTION #{cldr_source_dir()} holds #{json}
 
-    `mix localize.fetch_sources` fetches the recorded pair. To generate from
-    new sources instead, run `mix localize.update_cldr`, which records them.
+    `mix localize.fetch_sources` checks the recorded ref out and builds the
+    JSON from it. To generate from another CLDR ref, check it out and run
+    `mix localize.update_cldr`, which builds the JSON and records the ref.
     """
   end
 
@@ -452,31 +481,9 @@ defmodule Localize.Data do
     end
   end
 
-  defp bundle_version do
-    path = Path.join([cldr_source_dir(), "cldr-core", "package.json"])
-
-    with {:ok, contents} <- File.read(path),
-         %{"version" => version} when is_binary(version) <- :json.decode(contents) do
-      version
-    else
-      _unreadable -> nil
-    end
-  end
-
-  # A release tag names the ref most readably, so one is preferred when HEAD
-  # carries several tags; a checkout between tags is recorded by its commit.
-  defp repository_ref do
+  defp repository_commit do
     directory = cldr_repo_dir()
-
-    with true <- File.dir?(directory),
-         {:ok, tags} <- git(directory, ["tag", "--points-at", "HEAD"]) do
-      tags = tags |> String.split("\n", trim: true) |> Enum.sort()
-
-      Enum.find(tags, &String.starts_with?(&1, "release-")) || List.first(tags) ||
-        head_commit(directory)
-    else
-      _no_repository -> nil
-    end
+    if File.dir?(directory), do: head_commit(directory)
   end
 
   defp head_commit(directory) do
@@ -815,7 +822,7 @@ defmodule Localize.Data do
     :ok
   end
 
-  # Locale names come from the bundle's own directory names, a closed set,
+  # Locale names come from the JSON's own directory names, a closed set,
   # so converting them to atoms cannot grow the atom table without bound.
   defp derive_all_locale_names do
     Enum.map(source_locale_names(), &String.to_atom/1)
@@ -1153,9 +1160,8 @@ defmodule Localize.Data do
 
   * `../cldr_repo`, a sibling of this project.
 
-  * `../../cldr/cldr_repo`, the layout `scripts/build_cldr_production_data`
-    defaults to, where the CLDR checkouts sit in their own family
-    directory beside this one.
+  * `../../cldr/cldr_repo`, where the CLDR checkouts sit in their own
+    family directory beside this one.
 
   Neither existing returns the sibling path, so the caller reports a
   path rather than `nil`.
@@ -1167,9 +1173,7 @@ defmodule Localize.Data do
   end
 
   # The CLDR checkouts live either beside this project or in a `cldr`
-  # family directory beside it. The shell script defaults to the latter
-  # while these defaulted to the former, so a copy run that took the
-  # defaults failed partway through on a missing file.
+  # family directory beside it, so both are looked for.
   defp default_cldr_dir(name) do
     root = File.cwd!()
 

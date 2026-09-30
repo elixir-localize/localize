@@ -4,16 +4,16 @@ defmodule Mix.Tasks.Localize.GenerateSupplemental do
   @moduledoc """
   Generates all supplemental data ETF files from the CLDR sources.
 
-  Reads the supplemental JSON from the cldr-json release bundle in
-  `CLDR_PRODUCTION` and the XML from the CLDR repository in `CLDR_REPO`,
-  transforms them into the runtime format expected by the supplemental
-  data accessors, and writes ETF files to
+  Reads the supplemental JSON from `CLDR_PRODUCTION` and the XML from the
+  CLDR repository in `CLDR_REPO`, transforms them into the runtime format
+  expected by the supplemental data accessors, and writes ETF files to
   `priv/localize/supplemental_data/`.
 
-  The sources must be the ones recorded in `priv/localize/cldr_json_version`
-  and `priv/localize/cldr_repo_ref`: `mix localize.fetch_sources` fetches
-  them, and `mix localize.update_cldr` records new ones when moving to a
-  new CLDR release.
+  The repository must be at the ref recorded in
+  `priv/localize/cldr_repo_ref`, and the JSON built from it with the
+  current options: `mix localize.fetch_sources` puts both in place, and
+  `mix localize.update_cldr` records a new ref when moving to a new CLDR
+  release.
 
   ## Usage
 

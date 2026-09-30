@@ -1,0 +1,102 @@
+name: Check Locales on Cloudflare R2
+
+# Called synchronously from the CI workflow ahead of the test matrix. The
+# tests download locale data from R2 and verify it against the committed
+# hash manifest, so this checks first that R2 holds the data version in
+# priv/localize/localize_patch_version for that manifest, and fails early,
+# saying what to run, when it does not.
+#
+# The data is published from a maintainer's machine with
+# `mix localize.publish_locales`, not here: it is generated from the CLDR
+# JSON that CLDR's own converter builds, which needs more memory than a
+# runner has. Each publish records the manifest it uploaded the files for
+# at <data version>/manifest/locale_hashes, beside the files.
+on:
+  workflow_call:
+  workflow_dispatch:
+
+env:
+  R2_BUCKET: content
+  # Prefix within the bucket where locale ETF files are stored.
+  R2_PREFIX: locales
+  PUBLISHED_MANIFEST: manifest/locale_hashes
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: Check the published locale data
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      # The result must be the segment clients download from,
+      # `Localize.Locale.Provider.version_segment/0`, so this mirrors
+      # `Localize.read_version/0`: the CLDR version is padded to
+      # major.minor ("49" becomes "49.0"), and the patch comes from
+      # "{cldr_version}:{patch}", from a bare patch number, or is 0
+      # when the recorded CLDR version is stale.
+      - name: Read data version
+        id: version
+        run: |
+          cldr_version=$(tr -d '[:space:]' < priv/localize/version)
+          patch_raw=$(tr -d '[:space:]' < priv/localize/localize_patch_version)
+
+          case "${patch_raw}" in
+            "${cldr_version}":*) patch_version="${patch_raw#*:}" ;;
+            *:*) patch_version="0" ;;
+            *) patch_version="${patch_raw}" ;;
+          esac
+
+          IFS=. read -r major minor _rest <<< "${cldr_version}"
+          data_version="v${major}.${minor:-0}.${patch_version}"
+          echo "data_version=${data_version}" >> "$GITHUB_OUTPUT"
+          echo "Data version: ${data_version}"
+
+      - name: Install rclone
+        run: |
+          curl -fsSL https://rclone.org/install.sh | sudo bash
+
+      - name: Configure rclone for Cloudflare R2
+        env:
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
+        run: |
+          mkdir -p ~/.config/rclone
+          cat > ~/.config/rclone/rclone.conf << EOF
+          [r2]
+          type = s3
+          provider = Cloudflare
+          access_key_id = ${R2_ACCESS_KEY_ID}
+          secret_access_key = ${R2_SECRET_ACCESS_KEY}
+          endpoint = https://${R2_ACCOUNT_ID}.r2.cloudflarestorage.com
+          acl = private
+          no_check_bucket = true
+          EOF
+
+      # The publish task records the manifest only after every file is
+      # uploaded and the replaced URLs are purged from the Cloudflare
+      # cache, so a recorded manifest equal to the committed one means R2
+      # serves exactly the files the manifest pins.
+      - name: Check that R2 holds the committed data
+        env:
+          DATA_VERSION: ${{ steps.version.outputs.data_version }}
+        run: |
+          prefix="r2:${R2_BUCKET}/${R2_PREFIX}/${DATA_VERSION}"
+          published="${RUNNER_TEMP}/published_locale_hashes.etf"
+
+          if ! rclone copyto "${prefix}/${PUBLISHED_MANIFEST}" "${published}" 2>/dev/null; then
+            echo "::error::Data version ${DATA_VERSION} has no published manifest on R2. Generate the locales and publish them from a maintainer machine: 'mix localize.generate_locales' then 'mix localize.publish_locales'."
+            exit 1
+          fi
+
+          if cmp -s "${published}" priv/localize/locale_hashes.etf; then
+            echo "R2 holds data version ${DATA_VERSION} for the committed hash manifest."
+          else
+            echo "::error::R2 holds data version ${DATA_VERSION} for another hash manifest than the committed one. Publish the committed data from a maintainer machine with 'mix localize.publish_locales', or run 'mix localize.bump_patch_version' first if a release carries ${DATA_VERSION}."
+            exit 1
+          fi

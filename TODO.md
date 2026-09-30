@@ -4,7 +4,7 @@ Outstanding work on Localize. The design detail behind these items lives under [
 
 ## Open
 
-* [ ] **Report cldr-json's missing number data to CLDR** — cldr-json publishes a locale's symbols and patterns only for the numbering systems it uses, dropping 1,012 contributed or approved blocks in 49 locales that ICU uses for `-u-nu-` (`fa`'s `arab` "٪" and "E", `ur`'s `arab` decimal "،", `mn`'s `mong`); reading every locale's XML instead was declined (user, 2026-09-30). `fa-u-nu-arab` is asserted as a known gap.
+* [ ] **Publish the regenerated CLDR 49 data** — `mix localize.publish_locales` (after `--dry-run`) with the R2 and Cloudflare credentials, before pushing: CI's check fails until R2 records the committed manifest for `v49.0.0`. [plans/cldr-source-payload.md](plans/cldr-source-payload.md).
 
 * [ ] **Settle the location format of a non-location zone with CLDR** — TR35 49 says a zone with no region (`PST8PDT`, `Etc/GMT+5`) falls back to the offset format, then gives "PST8PDT, generic → Unknown Location Time" as its worked example. Localize follows the first; the conformance data has no case. Worth a CLDR ticket.
 
@@ -42,13 +42,17 @@ Outstanding work on Localize. The design detail behind these items lives under [
 
 * [ ] **Settle TR35's `Auto` zone style with CLDR** — TR35 makes it the default but its mapping table gives it no row, so Localize defaults to `:specific`; ICU4X offers no automatic style at all.
 
+* [ ] **Name standard and daylight time by a metazone's `stdOffset` and `dstOffset`** — TR35 lets `usesMetazone` say which offset is standard time and which daylight where the time zone database's flag is unreliable (`Europe/Dublin`, and in CLDR 49 `America/Winnipeg` for Manitoba's DST change); Localize ignores both attributes and decides from the datetime's `std_offset`.
+
+* [ ] **Format a week-based calendar's date by the day it names** — a `Date` in a week-based calendar (`calendar_base/0` of `:week`, as `Calendrical.ISOWeek` and `Calendrical.NRF` are) holds its week in `:month` and its day of the week in `:day`, and the formatter writes them as the month and the day of the month: `Localize.Date.to_string(Date.new!(2026, 25, 2, Calendrical.ISOWeek))` is "Jun 2, 2026" (short "25/2/26") for Tuesday 16 June 2026, week 20 day 3 of `Calendrical.NRF`'s 2026 is "May 3, 2026" for the same day, and ISO week 2026-W01-1 is "Jan 1, 2026" for 29 December 2025. Write such a date, in intervals and date-times too, as the civil day it names (its `Date.convert/2` to `Calendar.ISO`); found through Tempo, which hands Localize a week date in its own calendar (2026-10-01).
+
 ## In progress
 
-* [ ] **CLDR 49 upgrade** — the plan's items are closed bar those listed here; what remains is the beta2 refresh below. Work lives on the `cldr-49` branch, which does not merge to `main` until the final beta. [plans/cldr-49.md](plans/cldr-49.md).
+* [ ] **CLDR 49 upgrade** — the plan's items are closed bar item 11; the data is built from CLDR `main` pending beta3 (below), then the final release. [plans/cldr-49.md](plans/cldr-49.md).
 
 ## Blocked
 
-* [ ] **Refresh to CLDR 49 beta2 and re-run the conformance suites** — blocked on the CLDR 49 beta2 release, expected 2026-10. It brings the `scope="core"` display-name fix (CLDR-19774, which missed beta1), `datetime.json` in the Clock12/Clock24 labels, and CLDR-19066's skeleton test data, vendored from CLDR `main` ahead of it.
+* [ ] **Move the CLDR pin to beta3** — the data is built from CLDR `main` at `6198cae999`, `release-49-beta2` with the converter fix it lacks (CLDR-19774) and the Manitoba DST metazone change (user, 2026-09-30). Blocked on CLDR 49 beta3, expected 2026-10.
 
 * [ ] **Interval patterns inherited from a different locale level than the single date** — plan item 35: whether to glue or keep the inherited pattern. Blocked on CLDR-14207.
 
@@ -60,7 +64,13 @@ Outstanding work on Localize. The design detail behind these items lives under [
 
 ## Done
 
-* [x] **Root's `arab` and `arabext` blocks are a pipeline source** — `und` carries them from `common/main/root.xml` at the pinned ref and a locale without its own inherits them, as ICU does (168 ICU4C cases added); the long currency format no longer raises in `sd` and `ckb`. 2026-09-30, v1.4.0.
+* [x] **Menu names for key types** — `type_name/3` with `prefer: :menu` returns CLDR's `scope="core"` names now that the converter keeps them per value (CLDR-19774); all 11,195 in 160 locales reach the data. 2026-09-30, v1.4.0.
+
+* [x] **The CLDR JSON is built by Localize** — `mix localize.build_cldr_json` runs CLDR's converter from the pinned CLDR ref with `fullnumbers`, replacing cldr-json's release, so locales carry every numbering system's data CLDR gives them; nothing is vendored. 2026-09-30, v1.4.0.
+
+* [x] **Locale data is published from the maintainer's machine** — `mix localize.publish_locales` uploads the generated set, purges the Cloudflare cache and records the manifest, refusing a released data version; CI only checks R2 holds the committed data, since the converter needs more memory than a runner has. 2026-09-30.
+
+* [x] **Root's `arab` and `arabext` data reaches every locale** — first read from `root.xml` into `und`, then the same day carried by each locale's own JSON, as ICU gives it (168 ICU4C cases added); the long currency format no longer raises in `sd` and `ckb`. 2026-09-30, v1.4.0.
 
 * [x] **Relative time counts calendar periods** — every unit is counted with the value's calendar arithmetic, never seconds over a mean month or year (user, 2026-09-30), so `:quarter` and the weekday units no longer format seconds; months and years match ICU4C's `fieldDifference` in eight calendars. 2026-09-30, v1.4.0.
 

@@ -135,28 +135,17 @@ defmodule Localize.Number.Symbol do
     end
   end
 
-  # Symbols for a numbering system the locale carries no data for are root's
-  # own for that system, which `und` carries (`arab` and `arabext`), and
-  # otherwise the first of `Localize.Number.System.fallback_systems/2` the
-  # locale has: its `latn`, to which root aliases every other system. Only
-  # systems in the CLDR inventory inherit, so an unknown system name still
-  # errors.
+  # A locale carries symbols for every numbering system whose symbols
+  # differ from its `latn` ones, its own or root's (`arab` and `arabext`),
+  # so symbols for any other system are the first of
+  # `Localize.Number.System.fallback_systems/2` the locale has: its `latn`,
+  # to which root aliases them. Only systems in the CLDR inventory inherit,
+  # so an unknown system name still errors.
   defp inherited_symbols(symbols, locale_id, system_name) do
     if Map.has_key?(Localize.Number.System.number_systems(), system_name) do
-      root_symbols(system_name) ||
-        locale_id
-        |> Localize.Number.System.fallback_systems(system_name)
-        |> Enum.find_value(&Map.get(symbols, &1))
-    end
-  end
-
-  # Every locale has its own `latn` symbols, so root's stand in for no one.
-  defp root_symbols(:latn), do: nil
-
-  defp root_symbols(system_name) do
-    case number_symbols_for(:und) do
-      {:ok, symbols} -> Map.get(symbols, system_name)
-      {:error, _exception} -> nil
+      locale_id
+      |> Localize.Number.System.fallback_systems(system_name)
+      |> Enum.find_value(&Map.get(symbols, &1))
     end
   end
 

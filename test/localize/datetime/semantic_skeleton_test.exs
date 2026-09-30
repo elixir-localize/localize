@@ -712,7 +712,7 @@ defmodule Localize.DateTime.SemanticSkeletonTest do
   end
 
   # The expected skeletons are TR35's mapping applied by hand. The year, month
-  # and day widths are each locale's `dateSkeletons` in cldr-json's
+  # and day widths are each locale's `dateSkeletons` in the CLDR JSON's
   # `ca-*.json`: `en` Gregorian short `yyMd`, medium `yMMMd`, long `yMMMMd`;
   # `de` medium `yMMdd`, short `yyMMdd`; `ja` Japanese long `GyMMMd`; `en`
   # Japanese long `GyMMMMd`, short `GGGGGyMd`; `en` Hebrew short `yMMMd`;

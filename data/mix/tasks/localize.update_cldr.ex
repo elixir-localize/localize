@@ -7,12 +7,12 @@ defmodule Mix.Tasks.Localize.UpdateCldr do
   generated from, regenerates the supplemental and locale ETF data, and
   runs the verification gates between steps.
 
-  The upstream sources must already be in place before running this
-  task: unpack the cldr-json release zip into `CLDR_PRODUCTION` (or build
-  it with `scripts/build_cldr_production_data`) and check out the matching
-  release tag in `CLDR_REPO`. The task verifies both and reports the
-  source CLDR version before it starts. They are read where they sit;
-  nothing is copied into the project.
+  Check the CLDR release tag out in `CLDR_REPO` before running this task.
+  The first step builds the CLDR JSON from it into `CLDR_PRODUCTION`
+  (`mix localize.build_cldr_json`, which needs Maven and a JDK) and
+  records the ref; the task reports the source CLDR version before it
+  starts. The sources are read where they sit; nothing is copied into the
+  project.
 
   Each pipeline step and gate runs in a fresh VM (`mix` subprocess) so
   regenerated data is never read through a stale in-VM cache.
@@ -26,13 +26,13 @@ defmodule Mix.Tasks.Localize.UpdateCldr do
 
       mix localize.update_cldr
 
-  Runs the full pipeline: preflight, record sources, generate
-  supplemental data (gate: compile), generate all locales (gate:
-  full test suite).
+  Runs the full pipeline: preflight, build the JSON and record the ref,
+  generate supplemental data (gate: compile), generate all locales
+  (gate: full test suite).
 
       mix localize.update_cldr --check
 
-  Preflight only: verifies the source directories, reports the source
+  Preflight only: verifies the repository directory, reports the source
   and current CLDR versions, and prints the plan without changing
   anything.
 
@@ -54,11 +54,13 @@ defmodule Mix.Tasks.Localize.UpdateCldr do
 
   ## Configuration
 
-  * `CLDR_PRODUCTION` — path to the CLDR production data
-    directory (default: `../cldr_production_data`).
+  * `CLDR_REPO` — path to the Unicode CLDR repository checkout. Without
+    it, the first of `../cldr_repo` and `../../cldr/cldr_repo` that exists
+    is used.
 
-  * `CLDR_REPO` — path to the Unicode CLDR repository checkout
-    (default: `../cldr_repo`).
+  * `CLDR_PRODUCTION` — where the JSON is built. Without it, the first of
+    `../cldr_production_data` and `../../cldr/cldr_production_data` that
+    exists is used, or the former when neither does.
 
   """
 
@@ -85,25 +87,25 @@ defmodule Mix.Tasks.Localize.UpdateCldr do
   # ── Preflight ────────────────────────────────────────────────
 
   defp preflight(options) do
-    production_data = cldr_source_dir()
-    cldr_repo = cldr_repo_dir()
+    cldr_repo = Localize.Data.cldr_repo_dir()
 
-    verify_directory!(production_data, "CLDR_PRODUCTION", "scripts/build_cldr_production_data")
     verify_directory!(cldr_repo, "CLDR_REPO", "git clone github.com/unicode-org/cldr")
 
-    source_version = source_cldr_version(production_data)
+    source_version = source_cldr_version(cldr_repo)
     current_version = current_cldr_version()
 
-    Mix.shell().info("CLDR production data: #{production_data}")
-    Mix.shell().info("CLDR repository:      #{cldr_repo}")
+    Mix.shell().info(
+      "CLDR repository:      #{cldr_repo} at #{Localize.Data.repository_ref() || "an unreadable ref"}"
+    )
+
+    Mix.shell().info("CLDR JSON:            #{Localize.Data.cldr_source_dir()}")
     Mix.shell().info("Source CLDR version:  #{source_version || "NOT DETECTABLE"}")
     Mix.shell().info("Current data version: #{current_version || "none"}")
 
     if is_nil(source_version) do
       Mix.raise("""
-      Could not read the CLDR version from
-      #{aliases_json_path(production_data)}.
-      Is CLDR_PRODUCTION a cldr-json layout produced by scripts/build_cldr_production_data?
+      Could not read the CLDR version from #{supplemental_dtd_path(cldr_repo)}.
+      Is CLDR_REPO a checkout of the CLDR repository?
       """)
     end
 
@@ -118,7 +120,11 @@ defmodule Mix.Tasks.Localize.UpdateCldr do
     end
 
     Mix.shell().info("\nPlan:")
-    Mix.shell().info("  1. mix localize.prepare_sources")
+
+    Mix.shell().info(
+      "  1. mix localize.prepare_sources (builds the CLDR JSON unless current, records the ref)"
+    )
+
     Mix.shell().info("  2. mix localize.generate_supplemental")
     Mix.shell().info("  3. gate: mix compile --warnings-as-errors")
 
@@ -143,7 +149,7 @@ defmodule Mix.Tasks.Localize.UpdateCldr do
   # ── Execution ────────────────────────────────────────────────
 
   defp execute(options) do
-    step("Recording CLDR sources", ["localize.prepare_sources"])
+    step("Building the CLDR JSON and recording the ref", ["localize.prepare_sources"])
     step("Generating supplemental data", ["localize.generate_supplemental"])
 
     gate(
@@ -237,26 +243,18 @@ defmodule Mix.Tasks.Localize.UpdateCldr do
 
   # ── Source and version helpers ───────────────────────────────
 
-  defp cldr_source_dir do
-    System.get_env("CLDR_PRODUCTION") ||
-      Path.join([File.cwd!(), "..", "cldr_production_data"]) |> Path.expand()
+  defp supplemental_dtd_path(cldr_repo) do
+    Path.join([cldr_repo, "common", "dtd", "ldmlSupplemental.dtd"])
   end
 
-  defp cldr_repo_dir do
-    System.get_env("CLDR_REPO") ||
-      Path.join([File.cwd!(), "..", "cldr_repo"]) |> Path.expand()
-  end
-
-  defp aliases_json_path(production_data) do
-    Path.join([production_data, "cldr-core", "supplemental", "aliases.json"])
-  end
-
-  defp source_cldr_version(production_data) do
-    path = aliases_json_path(production_data)
-
-    with {:ok, binary} <- File.read(path),
-         decoded when is_map(decoded) <- :json.decode(binary) do
-      get_in(decoded, ["supplemental", "version", "_cldrVersion"])
+  # The CLDR version the supplemental DTD fixes, the one the JSON's
+  # `_cldrVersion` carries. It is read from the repository because the
+  # JSON may not be built yet.
+  defp source_cldr_version(cldr_repo) do
+    with {:ok, dtd} <- File.read(supplemental_dtd_path(cldr_repo)),
+         [_match, version] <-
+           Regex.run(~r/<!ATTLIST version cldrVersion CDATA #FIXED "([^"]+)"/, dtd) do
+      version
     else
       _no_version -> nil
     end

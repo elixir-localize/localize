@@ -21,13 +21,6 @@ defmodule Localize.Number.SystemMatrixTest do
   # arabext (ur.xml `<percentSign>٪</percentSign>`), where CLDR 48 had "%".
   @cldr_49_arabic_percent_sign ["ur-u-nu-arabext", "ur-IN-u-nu-latn"]
 
-  # cldr-json leaves out a locale's number data for numbering systems it does
-  # not use, and `fa.xml` defines its own `arab` percent sign and exponent
-  # ("٪", "E"), which ICU uses. Localize takes root's until cldr-json carries
-  # them (`TODO.md`), so these cases differ from ICU; the test says when they
-  # stop differing.
-  @omitted_by_cldr_json ["fa-u-nu-arab"]
-
   fixture_cases =
     for line <- File.stream!(@fixture),
         line = String.trim_trailing(line, "\n"),
@@ -48,15 +41,7 @@ defmodule Localize.Number.SystemMatrixTest do
             mismatch != nil,
             do: mismatch
 
-      {omitted, mismatches} =
-        Enum.split_with(mismatches, fn {tag, _, _, _, _} -> tag in @omitted_by_cldr_json end)
-
       assert mismatches == [], report(mismatches)
-
-      for tag <- @omitted_by_cldr_json, String.starts_with?(tag, unquote(locale) <> "-u-nu-") do
-        assert Enum.any?(omitted, &(elem(&1, 0) == tag)),
-               "#{tag} now matches ICU: remove it from @omitted_by_cldr_json"
-      end
     end
   end
 

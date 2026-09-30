@@ -41,21 +41,19 @@ defmodule Localize.Data.Normalize.LocaleDisplayNames do
           |> LMap.atomize_keys()
       end
 
-    measurement_systems =
+    {types, core_types} =
       locale_display_names
       |> Map.get("types", %{})
-      |> Map.get("ms", %{})
-      |> Enum.map(fn
-        {"uksystem", description} -> {"imperial", description}
-        other -> other
-      end)
-      |> Map.new()
-      |> LMap.atomize_keys()
+      |> split_core_types()
 
     types =
-      locale_display_names
-      |> Map.get("types", %{})
-      |> Map.put("ms", measurement_systems)
+      types
+      |> Map.update("ms", %{}, &rename_uksystem/1)
+      |> LMap.atomize_keys()
+
+    core_types =
+      core_types
+      |> Map.replace_lazy("ms", &rename_uksystem/1)
       |> LMap.atomize_keys()
 
     # Only include keys/subdivisions/measurement_system_names if they exist in source
@@ -80,6 +78,7 @@ defmodule Localize.Data.Normalize.LocaleDisplayNames do
       |> Map.delete("territories")
       |> Map.put("script", scripts)
       |> Map.put("types", types)
+      |> Map.put("core_types", core_types)
       |> Map.put("locale_display_pattern", locale_display_pattern)
       |> then(fn m ->
         if code_patterns, do: Map.put(m, "code_patterns", code_patterns), else: m
@@ -92,4 +91,29 @@ defmodule Localize.Data.Normalize.LocaleDisplayNames do
 
   defp atomize_if_present(map) when is_map(map), do: LMap.atomize_keys(map)
   defp atomize_if_present(other), do: other
+
+  # CLDR gives many type values a second, short name marked `scope="core"`
+  # — "Buddhist" beside "Buddhist Calendar" — which TR35 uses beside the
+  # key's name and in menus. The JSON nests them under `_core` among each
+  # key's type names, so they are split out, leaving each key's types
+  # holding only type names.
+  defp split_core_types(types) do
+    Enum.reduce(types, {%{}, %{}}, fn
+      {key, %{} = key_types}, {types, core_types} ->
+        case Map.pop(key_types, "_core") do
+          {nil, key_types} -> {Map.put(types, key, key_types), core_types}
+          {core, key_types} -> {Map.put(types, key, key_types), Map.put(core_types, key, core)}
+        end
+
+      {key, value}, {types, core_types} ->
+        {Map.put(types, key, value), core_types}
+    end)
+  end
+
+  defp rename_uksystem(measurement_systems) do
+    Map.new(measurement_systems, fn
+      {"uksystem", description} -> {"imperial", description}
+      other -> other
+    end)
+  end
 end

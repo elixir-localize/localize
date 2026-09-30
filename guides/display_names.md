@@ -218,7 +218,12 @@ iex> Localize.Locale.LocaleDisplay.type_name(:ca, :buddhist, locale: :en)
 
 Both accept a key in its short BCP 47 form (`:ca`) or CLDR's long form (`:calendar`).
 
-CLDR also records a short name for each type value, marked `scope="core"` — "Buddhist" rather than "Buddhist Calendar" — intended for exactly this use. Those are not currently reachable: cldr-json collapses every core name for a key onto a single entry, so the one belonging to a given value cannot be recovered from the published data. `type_name/3` with `prefer: :menu` therefore reports the absence rather than returning a name belonging to some other calendar.
+CLDR also records a short name for many type values, marked `scope="core"` — "Buddhist" rather than "Buddhist Calendar" — intended for exactly this use: the key's name titles the menu and the short names are its choices. `type_name/3` returns it with `prefer: :menu`, and reports an error for a value that has none rather than substituting the full name:
+
+```elixir
+iex> Localize.Locale.LocaleDisplay.type_name(:ca, :buddhist, locale: :en, prefer: :menu)
+{:ok, "Buddhist"}
+```
 
 Boolean keys — `kn` (numeric sorting), `kb` (reversed accent sorting) and the rest — share one pair of translated strings instead of naming each state separately:
 

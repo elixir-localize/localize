@@ -16,7 +16,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 * `Localize.Unit.to_string/2` takes `:inflect`, synthesizing a pattern when the requested `:grammatical_case` has no CLDR one — `:safe` uses attested paths only, `:always` also guesses from suffixes. `Localize.Unit.grammatical_gender/2` returns a unit's gender.
 
-* `Localize.Locale.LocaleDisplay.key_name/2` and `type_name/3` return a BCP 47 key's localized name and the name of one of its type values — `key_name(:ca)` is "Calendar", `type_name(:ca, :buddhist)` is "Buddhist Calendar".
+* `Localize.Locale.LocaleDisplay.key_name/2` and `type_name/3` return a BCP 47 key's localized name and the name of one of its type values — `key_name(:ca)` is "Calendar", `type_name(:ca, :buddhist)` is "Buddhist Calendar", and "Buddhist", CLDR's `scope="core"` name, with `prefer: :menu`.
 
 * `Localize.affirmative_responses/1` and `negative_responses/1` return CLDR's POSIX `yesstr` / `nostr` forms — `{:ok, ["ja", "j"]}` for `:de` — and `affirmative?/2` and `negative?/2` match a response against them, folding case as TR35 requires.
 
@@ -290,7 +290,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 * `Localize.Number.Rbnf.rule_names_for_locale/1` returns its names sorted. On OTP 26 and later their order followed the order the VM had created the atoms, so it varied between runs.
 
-* `Localize.Number` formats in a non-default numbering system with that system's symbols, root's own for `arab` and `arabext` (which `und` now carries from CLDR's `root.xml`), or `latn` where root aliases them, so `fa-u-nu-latn` is "1,000.5" not "1٬000٫5" and `en-u-nu-arab` "١٬٠٠٠٫٥" not "١,٠٠٠.٥". Locale data now carries every numbering system a locale defines.
+* `Localize.Number` formats in a non-default numbering system with the data CLDR gives the locale for it — its own, root's for `arab` and `arabext`, or its `latn` where root aliases the system — so `fa-u-nu-latn` is "1,000.5" not "1٬000٫5", `en-u-nu-arab` "١٬٠٠٠٫٥" not "١,٠٠٠.٥", and `fa-u-nu-arab` takes `fa`'s own "٪" and "E".
 
 * The long currency format no longer raises in `sd` and `ckb`, whose `arab` has no unit patterns and now takes their `latn` ones, and writes a currency with no display name by its code, as TR35 specifies ("٣٫٠٠ USD" in `ckb`).
 

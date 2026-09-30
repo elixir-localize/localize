@@ -2,9 +2,9 @@
 
 > **Process note (2026-07-06):** the repeatable update mechanics (source refresh, generation, verification gates, CDN upload, hash manifest, release order) are consolidated in [CLDR_UPDATE_INTEGRATION.md](../CLDR_UPDATE_INTEGRATION.md) — the CLDR Update Guide. This plan now carries only the CLDR-49-specific work items. Item 13 (CDN checksum manifests) shipped early in Localize 0.44.0 as the hash-manifest system; see the guide's "Hash manifest and the OTP encoding trap" section.
 
-**Status:** in progress, 2026-09-08
+**Status:** in progress, 2026-09-30
 
-32 of the 34 index rows are closed. Two remain open: **item 11** (`localize_emoji`, not yet started) and **item 16a** (an upstream cldr-json defect, to report rather than fix).
+33 of the 34 index rows are closed. One remains open: **item 11** (`localize_emoji`, not yet started).
 
 **Owner:** Localize maintainers
 
@@ -71,7 +71,7 @@ This package is widely used. The following invariants apply to every item in thi
 | 14 | Japanese pre-Meiji eras: keep and curate           | None (data retained) | **Output changes** — ✅ Done. All 237 eras generated from curated research; pre-Meiji dates were CLDR's lunisolar values and are now proleptic Gregorian, and their names are kept from CLDR 48.2 |
 | 15 | POSIX `yesstr` / `nostr` responses                  | New functions | None — ✅ Done. `affirmative_responses/1`, `negative_responses/1`, `affirmative?/2`, `negative?/2` |
 | 16 | `typeValues` On/Off translations (CLDR 49, CLDR-19394) | New functions | None — ✅ Done. `LocaleDisplay.type_value_name/2`; an upstream cldr-json defect found alongside |
-| 16a | cldr-json discards `scope="core"` display names | None (upstream) | None — upstream defect. 6,499 collapsed `(locale, key)` pairs across 458 locales; `en` keeps 15 of 102 short names |
+| 16a | cldr-json discards `scope="core"` display names | Internal (ETF) | ✅ Fixed upstream (CLDR-19774): all 11,195 names in 160 locales reach `locale_display_names.core_types`, and `type_name/3` returns them with `prefer: :menu` |
 | 16b | Harmonise the display-name preference option | `:prefer` with `:style` as alias; new functions | **Output changes** — ✅ Done. `prefer: :menu` corrected for 571 of 2,589 menu entries in 446 locales |
 | 17 | `H24` hour cycle deprecated                         | None       | None — ✅ Closed. CLDR 49 does not deprecate it; TR35 and `bcp47/calendar.xml` both still carry `h24`. No change |
 | 18 | Week-of-year numbering follows ISO by default        | None       | None — ✅ Closed. TR35 still numbers weeks by the locale's `firstDay`/`minDays`; already conformant. No change |
@@ -94,7 +94,7 @@ This package is widely used. The following invariants apply to every item in thi
 | 35 | Interval patterns inherited from a different locale level than the single date | None | None yet — Open. 141 of 656 locales disagree in field order; ICU agrees with us; tracking CLDR-14207 |
 | 36 | `fields: :month_and_day` drops the year across a year boundary | None | Done — widened as ICU does; interval defects found alongside fixed |
 | 37 | Relative time ignores the locale's number format and misreads fractional counts | None | **Output changes** — ✅ Fixed. "in 1,000 days", native digits, "in 1.5 hours"; checked against 9,576 ICU4C cases |
-| 38 | Numbering systems other than a locale's default format with the default's symbols | Internal (ETF) | **Output changes** — ✅ Fixed: `fa-u-nu-latn` is "1,000.5", and `en-u-nu-arab` "١٬٠٠٠٫٥" from root's blocks in `root.xml`. Open: 49 locales' own blocks cldr-json omits, to report |
+| 38 | Numbering systems other than a locale's default format with the default's symbols | Internal (ETF) | **Output changes** — ✅ Fixed: `fa-u-nu-latn` is "1,000.5", `en-u-nu-arab` "١٬٠٠٠٫٥" and `fa-u-nu-arab` takes `fa`'s own percent sign and exponent, from the JSON built with `fullnumbers` |
 | 39 | MF2 plural selection ignores the digits a numeric function displays | None | **Output changes** — ✅ Fixed. Russian `{2 :number minimumFractionDigits=1}` selects `other` |
 | 40 | `-u-hc-h11` and `-u-hc-h24` never render `K` or `k`, and parsing cannot read them back | None | **Output changes** — ✅ Fixed. `en-u-hc-h24` is "24:30" and parses back; 1,470 ICU4C cases, 40 documented exceptions |
 | 41 | Public functions raise on options or values of the wrong type | None | **Error instead of raise** — ✅ Fixed across the public API: options that are not a keyword list, and arguments and option values of the wrong type, return `{:error, exception}`. Open: an options list whose later entries are not pairs still raises where it is rebuilt, and `SemanticSkeleton.semantic/2` and `format_to_metadata!/1` raise by design |
@@ -1022,7 +1022,7 @@ Implementing this is what surfaced item 16a: `typeValues` itself is emitted corr
 
 * One new function and one new locale-data key. Purely additive.
 
-## 16a. cldr-json discards `scope="core"` display names — upstream defect
+## 16a. cldr-json discards `scope="core"` display names — ✅ Fixed upstream
 
 Found while implementing item 16 and re-verified in detail.
 
@@ -1077,6 +1077,12 @@ Of the 1,565 that survive, **1,552 are the last entry in XML document order** �
 **Worth reporting upstream.** The converter already has the mechanism for this: `LdmlConvertRules.NAME_PART_DISTINGUISHING_ATTR_SET` in `tools/cldr-code/src/main/java/org/unicode/cldr/json/` lists the attributes that must be folded into the key name as `name-(attribute)-(value)` so they cannot collide, and it carries `characters:parseLenients:scope` — but nothing for the `<type>` element's `scope`. Whether adding it is the whole fix has not been traced through the emitter, so the report should describe the symptom and point at that set rather than assert a patch.
 
 If it is not fixed, the workaround is the one already used for `primaryZones` in item 14: read `common/main/*.xml` directly and merge. That is a bigger job here, since it is per-locale rather than a single supplemental file.
+
+### Resolution
+
+Fixed upstream as CLDR-19774. `64389beaa7` (in `release-49-beta2`) writes each `scope="core"` name under its own type and makes the converter throw on a duplicate key rather than overwrite; `424a011014`, the first commit after the tag, keys the names `types/<key>/_core/<type>` and exempts the identity paths that made beta2's own converter throw on the `ff_Adlm` locales. Localize now builds its JSON from CLDR `main`, which carries both (`plans/cldr-source-payload.md`).
+
+The locale normalizer moves each key's `_core` names out of its type names into `locale_display_names.core_types`, so `types.<key>` holds type names only and the `core` pseudo-type is gone, and `LocaleDisplay.type_name/3` returns them with `prefer: :menu` (item 16b, step 7). Checked against CLDR's XML at the pinned commit: 160 locales define 11,195 `scope="core"` names of their own (outside comments, contributed or approved, not inheritance markers), and every one reaches the generated data with its value — `en`'s 102 included.
 
 ## 16b. Harmonise the display-name preference option — ✅ Done
 
@@ -1150,7 +1156,7 @@ Shipped as planned, with two departures worth recording.
 
 `Localize.Territory` keeps `Localize.UnknownStyleError` rather than moving to the shared `Localize.InvalidValueError`. That exception is asserted in `test/localize/territory_test.exs` and is also raised for "this territory has no name in that style", so switching it would have been a breaking change to a tested contract for no gain. Option *resolution* is shared through `LocaleDisplay.preference_option/1`; only validation stays local.
 
-Step 7 is untouched, as written: the `types` normalizer pass lands with the upstream fix, not before it.
+Step 7 waited, as written, for the upstream fix, and landed with it on 2026-09-30 in the JSON built from CLDR `main`: the fix nests each key's core names as `types/<key>/_core/<type>`, the normalizer moves them into `locale_display_names.core_types`, and `type_name/3` returns them with `prefer: :menu`.
 
 ### API impact / breaking risk
 
@@ -1787,7 +1793,7 @@ The number is formatted with the locale's number format, honouring a `-u-nu-` nu
 
 * **Output changes**: relative times localize their numbers, a fractional count formats as given, and `to_parts/2` splits the number into its parts.
 
-## 38. Numbering systems other than a locale's default format with the default's symbols — Fixed, with root's data; other locales' omitted data Open
+## 38. Numbering systems other than a locale's default format with the default's symbols — ✅ Fixed
 
 Found by the relative-time sweep's `-u-nu-` cases, then measured across number formatting.
 
@@ -1801,18 +1807,21 @@ Found by the relative-time sweep's `-u-nu-` cases, then measured across number f
 
 ### Root's own data
 
-Root defines `arab` and `arabext` symbols of its own, and `arab` percent and currency formats, while CLDR JSON carries a locale's symbols only for the numbering systems it uses. The vendoring policy settles the source: CLDR's repository is read in place at the pinned ref, so `common/main/root.xml` joined the pipeline's sources (and `mix localize.fetch_sources`' sparse paths). `Localize.Data.XmlExtractors.root_number_systems/0` reads root's blocks for systems other than `latn`, raising on any structure it does not know, and `und` carries them; a locale without its own inherits them at runtime, before its `latn`. `en-u-nu-arab` is now "١٬٠٠٠٫٥", as ICU gives it, and the fixture gained the 168 ICU cases of `arab` and `arabext` in the thirteen locales without them. No locale lacking them has an ancestor with them, so root is the whole inheritance, and root's blocks are the same in CLDR 48, 48.2 and 49.
+Root defines `arab` and `arabext` symbols of its own, and `arab` percent and currency formats, while CLDR JSON carries a locale's symbols only for the numbering systems it uses. The vendoring policy settles the source: CLDR's repository is read in place at the pinned ref, so `common/main/root.xml` joined the pipeline's sources (and `mix localize.fetch_sources`' sparse paths). `Localize.Data.XmlExtractors.root_number_systems/0` reads root's blocks for systems other than `latn`, raising on any structure it does not know, and `und` carries them; a locale without its own inherits them at runtime, before its `latn`. `en-u-nu-arab` is now "١٬٠٠٠٫٥", as ICU gives it, and the fixture gained the 168 ICU cases of `arab` and `arabext` in the thirteen locales without them. No locale lacking them has an ancestor with them, so root is the whole inheritance, and root's blocks are the same in CLDR 48, 48.2 and 49. The reader went the same day, when each locale's own JSON came to carry this data (below), and the 168 cases pass unchanged.
 
 Two defects surfaced on the way and were fixed: `sd` and `ckb`, whose `arab` has no unit patterns, raised `FunctionClauseError` in the long currency format (an empty set of patterns stood in for their `latn` ones), and a currency with no display name was written as nothing rather than its code.
 
-### Open
+### Every locale's own data
 
-The same cldr-json gap is wider: 49 locales define 1,012 contributed or approved blocks for systems they do not use, such as `fa`'s own `arab` percent sign and exponent, which ICU uses and cldr-json drops. Reading every locale's XML (94 MB, 182 locales' data changing) was declined (user, 2026-09-30): the gap is to be reported to CLDR (`TODO.md`), and `fa-u-nu-arab` is asserted as a known gap.
+The same cldr-json gap was wider: 49 locales define 1,012 contributed or approved blocks for systems they do not use, such as `fa`'s own `arab` percent sign and exponent, which ICU uses and cldr-json dropped. The omission is `Ldml2JsonConverter`'s default: it keeps a locale's number data only for Latin digits and the locale's default, native, traditional and finance systems unless run with `fullnumbers`, and cldr-json's driver does not pass it. Reading every locale's XML instead was declined (user, 2026-09-30), and so was waiting for cldr-json: the JSON is now built by Localize, from the pinned CLDR ref, with `fullnumbers` (`plans/cldr-source-payload.md`).
+
+Resolved, that JSON carries every numbering system in every locale, most of it the locale's `latn` data repeated through root's aliases — `numbers.json` grows from 5 MB to 314 MB across the 657 locales. The number normalizer keeps a system outside the locale's own only where a kind of data differs from its `latn`: at `release-49-beta1` that left 3,102 blocks, 2,109 of them root's `arab` and `arabext` resolved in each locale and 993 the own data of 25 locales. With each locale carrying its resolved `arab` and `arabext` data, the `root.xml` reader and the runtime's fallback to `und` had nothing left to do and are gone, and at runtime a system without data takes the locale's `latn`. `fa-u-nu-arab` now matches ICU.
 
 ### API impact / breaking risk
 
 * **Output changes** for numbers in a numbering system other than the locale's default.
-* The locale data gains symbols and formats for those systems, and `locale_hashes.etf` is regenerated from the CDN after the v49.0.0 upload, as for all CLDR 49 data.
+
+* The locale data gains symbols and formats for those systems where they differ from the locale's `latn`, and `locale_hashes.etf` is regenerated with the data; a push replaces the unreleased v49.0.0 on R2, as for all CLDR 49 data.
 
 ## 39. MF2 plural selection ignores the digits a numeric function displays — Done
 

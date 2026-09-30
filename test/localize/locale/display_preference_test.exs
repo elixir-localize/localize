@@ -74,7 +74,7 @@ defmodule Localize.Locale.DisplayPreferenceTest do
     end
 
     # `:default` used to be accepted as an undocumented alias for
-    # `:standard`. CLDR has no name for the unqualified entry — cldr-json
+    # `:standard`. CLDR has no name for the unqualified entry — the CLDR JSON
     # emits it as a bare key — and `"default"` is only a transient label in
     # our own normalizers, renamed to `"standard"` before the data is stored.
     test ":default is no longer accepted" do
@@ -130,13 +130,36 @@ defmodule Localize.Locale.DisplayPreferenceTest do
                {:ok, "Phonebook Sort Order"}
     end
 
-    # The short names CLDR marks `scope="core"` are collapsed by cldr-json
-    # onto a single `core` entry per key, so the name belonging to a given
-    # value cannot be recovered. Returning the surviving entry would hand
-    # back a name belonging to some other type.
-    test "prefer: :menu returns an error rather than another type's name" do
+    # The short names CLDR marks `scope="core"`, as `common/main/en.xml`
+    # gives them. Until CLDR-19774 the JSON collapsed every one of a key's
+    # core names onto a single `core` entry.
+    test "prefer: :menu returns the short name CLDR marks scope=core" do
+      assert LocaleDisplay.type_name(:ca, :buddhist, locale: :en, prefer: :menu) ==
+               {:ok, "Buddhist"}
+
+      assert LocaleDisplay.type_name(:ca, :ethiopic_amete_alem, locale: :en, prefer: :menu) ==
+               {:ok, "Ethiopic Amete Alem"}
+
+      assert LocaleDisplay.type_name(:ca, :iso8601, locale: :en, prefer: :menu) ==
+               {:ok, "Gregorian"}
+
+      assert LocaleDisplay.type_name(:co, :phonebook, locale: :en, prefer: :menu) ==
+               {:ok, "Phonebook"}
+    end
+
+    # `en.xml` names `numbers`/`arab` "Arabic-Indic Digits" and gives it no
+    # `scope="core"` name, so there is no menu name to return.
+    test "prefer: :menu returns an error for a value with no short name" do
       assert {:error, %Localize.ItemNotFoundError{}} =
-               LocaleDisplay.type_name(:ca, :buddhist, locale: :en, prefer: :menu)
+               LocaleDisplay.type_name(:nu, :arab, locale: :en, prefer: :menu)
+    end
+
+    test "the short names are not among the type values" do
+      assert {:error, %Localize.ItemNotFoundError{}} =
+               LocaleDisplay.type_name(:ca, :core, locale: :en)
+
+      assert {:error, %Localize.ItemNotFoundError{}} =
+               LocaleDisplay.type_name(:ca, :_core, locale: :en)
     end
 
     test "rejects a preference it cannot supply" do

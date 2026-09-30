@@ -129,8 +129,6 @@ These also appear as exclusions in the test suites and should not be read as del
 
 * **Unimplemented features.** `test/localize/locale/locale_display_test.exs` excludes line 47, the `uu` attribute in the `-u-` extension. That is a gap, not a decision.
 
-* **Number data cldr-json leaves out.** cldr-json publishes a locale's symbols and patterns only for the numbering systems it uses, so the 1,012 blocks that 49 locales define for other systems, such as `fa`'s own `arab` percent sign "٪" and exponent "E", are not in Localize's data, and those locales take root's, as a locale with no data of its own does. `test/localize/number_system_matrix_test.exs` asserts `fa-u-nu-arab` as a known gap until cldr-json publishes them.
-
 * **Calendars that are not enabled.** `test/localize/datetime/conformance_test.exs` keeps a `@wrong_format` list of non-Gregorian cases that never run; they are held for whenever the other calendars are switched on. The timezone-resolution and skeleton-matching exclusions that used to sit here are gone: zone name resolution landed, the date/time split path now adjusts the matched pattern's field widths, and `:tz` is a test dependency so a real offset is available.
 
 * **Upstream fixture issues.** The same file's `@invalid_test_results` and the locale-display suite's `@invalid_test_results` mark cases where the conformance data disagrees with CLDR's own data.
@@ -139,7 +137,7 @@ Collation carries no exclusions at all: all 210,155 pairs in both CLDR conforman
 
 ## Adding a divergence
 
-1. **Read the locale's data.** Open the relevant file in the cldr-json bundle, under `$CLDR_PRODUCTION/cldr-*-full/main/<locale>/`, and find the pattern or symbol in question. If Localize is not rendering what is there, it is a defect — stop and fix it.
+1. **Read the locale's data.** Open the relevant file in the CLDR JSON, under `$CLDR_PRODUCTION/cldr-*-full/main/<locale>/`, and find the pattern or symbol in question. If Localize is not rendering what is there, it is a defect — stop and fix it.
 2. **Check what produced the fixture.** Find the generator in `$CLDR_REPO/tools/` and read the API call. A contract mismatch is fixed in the test, not recorded as a divergence.
 3. **Record it with its evidence.** Name what CLDR ships and what ICU renders, so the entry can be re-checked without repeating the investigation.
 4. **Assert the count, not just the membership.** An exclusion that silently absorbs new failures stops being a record and becomes a blind spot.

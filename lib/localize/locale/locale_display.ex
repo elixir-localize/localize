@@ -372,11 +372,9 @@ defmodule Localize.Locale.LocaleDisplay do
     `t:Localize.LanguageTag.t/0`. The default is `Localize.get_locale/0`.
 
   * `:prefer` is `:standard` (the default) for the full name, or `:menu`
-    for the short name TR35 pairs with the key name in a menu. `:menu`
-    currently returns an error for every key: CLDR marks those names
-    `scope="core"`, and cldr-json collapses all of a key's core names
-    onto a single entry, so the name belonging to a given value is not
-    recoverable from the published data.
+    for the short name TR35 pairs with the key name in a menu, the one
+    CLDR marks `scope="core"`: "Buddhist" where the full name is
+    "Buddhist Calendar".
 
   ### Returns
 
@@ -389,6 +387,9 @@ defmodule Localize.Locale.LocaleDisplay do
 
       iex> Localize.Locale.LocaleDisplay.type_name(:ca, :buddhist, locale: :en)
       {:ok, "Buddhist Calendar"}
+
+      iex> Localize.Locale.LocaleDisplay.type_name(:ca, :buddhist, locale: :en, prefer: :menu)
+      {:ok, "Buddhist"}
 
       iex> Localize.Locale.LocaleDisplay.type_name(:co, :phonebook, locale: :en)
       {:ok, "Phonebook Sort Order"}
@@ -425,12 +426,12 @@ defmodule Localize.Locale.LocaleDisplay do
   def type_name(_key, _value, options),
     do: {:error, Localize.Utils.Helpers.invalid_options(options)}
 
-  # The `scope="core"` short name for a single type value does not survive
-  # cldr-json, which collapses every core name for a key onto one `core`
-  # entry. Returning that entry would hand back a name belonging to some
-  # other type, so nothing is returned until the published data carries
-  # the names per value.
-  defp type_name_for(:menu, _display_names, _display_key, _value), do: nil
+  # The menu name is CLDR's `scope="core"` name for the value. There is no
+  # fallback to the full name: a caller asking for this one name is told
+  # the locale has none.
+  defp type_name_for(:menu, display_names, display_key, value) do
+    get_in(display_names, [:core_types, display_key, value])
+  end
 
   defp type_name_for(:standard, display_names, display_key, value) do
     get_in(display_names, [:types, display_key, value])

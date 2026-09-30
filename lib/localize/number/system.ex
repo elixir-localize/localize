@@ -244,12 +244,12 @@ defmodule Localize.Number.System do
   end
 
   # The numbering systems of the locale whose symbols and formats stand in,
-  # in order, for a system it has no data for, after root's own data for
-  # that system: CLDR's root aliases every system's data to the locale's
-  # `latn`, except the symbols and some formats of `arab` and `arabext`,
-  # which root defines itself and `und` carries. The default is read from
-  # the locale data, not from a `-u-nu-` extension, which names the very
-  # system a fallback is being found for.
+  # in order, for a system it has no data for. A locale carries the data of
+  # every system that differs from its `latn` data, its own or root's (the
+  # symbols and some formats of `arab` and `arabext`), and CLDR's root
+  # aliases the rest to the locale's `latn`. The default is read from the
+  # locale data, not from a `-u-nu-` extension, which names the very system
+  # a fallback is being found for.
   @doc false
   @spec fallback_systems(Localize.LanguageTag.t() | atom() | String.t(), atom()) :: [atom()]
   def fallback_systems(locale, system_name) do

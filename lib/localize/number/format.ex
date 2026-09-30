@@ -162,11 +162,11 @@ defmodule Localize.Number.Format do
   * `{:error, exception}` if the locale data cannot be loaded or
     the number system is not available.
 
-  When the requested number system has no format data of its own in
-  the locale, the formats inherit per field as CLDR's do: from root's own
-  formats for that system, such as the `arab` percent and currency
-  patterns, and otherwise from the locale's `latn` formats, to which root
-  aliases the rest. That is what makes a `-u-nu-` override such as
+  A locale carries formats for every number system whose formats differ
+  from its `latn` ones, its own or root's, such as the `arab` currency
+  pattern. Any other number system, and any format a system's data
+  lacks, inherits the locale's `latn` format, to which CLDR's root
+  aliases it. That is what makes a `-u-nu-` override such as
   `en-u-nu-thai` formattable.
 
   ### Examples
@@ -206,32 +206,19 @@ defmodule Localize.Number.Format do
   end
 
   # CLDR inheritance: a format element for a numbering system the locale
-  # carries no data for (or only partial data for) is root's own for that
-  # system, which `und` carries (`arab`'s percent and currency patterns),
-  # and otherwise the first of `System.fallback_systems/2` the locale has
-  # formats for: its `latn`, which root aliases the rest to. Each field
-  # inherits independently, so a partially-populated entry (for example
-  # `zh`'s `:hans` entry, which is present but empty) is filled rather than
-  # left with `nil` patterns.
+  # carries no data for (or only partial data for) is the first of
+  # `System.fallback_systems/2` the locale has formats for: its `latn`,
+  # which root aliases the rest to. Each field inherits independently, so
+  # a partially-populated entry (for example `zh`'s `:hans` entry, which
+  # is present but empty, or `arab` currency formats without short forms)
+  # is filled rather than left with `nil` patterns.
   defp merge_with_default_formats(requested, all_formats, locale, system_name) do
     fallback =
       locale
       |> System.fallback_systems(system_name)
       |> Enum.find_value(&Map.get(all_formats, &1))
 
-    requested
-    |> merge_formats(root_formats(system_name))
-    |> merge_formats(fallback)
-  end
-
-  # Every locale has its own `latn` formats, so root's stand in for no one.
-  defp root_formats(:latn), do: nil
-
-  defp root_formats(system_name) do
-    case all_formats_for(:und) do
-      {:ok, formats} -> Map.get(formats, system_name)
-      {:error, _exception} -> nil
-    end
+    merge_formats(requested, fallback)
   end
 
   defp merge_formats(nil, default_formats), do: default_formats

@@ -8,10 +8,11 @@ defmodule Mix.Tasks.Localize.GenerateLocales do
   data, applies struct transforms, and writes ETF files to
   `priv/localize/locales/`.
 
-  The JSON is read from the cldr-json release bundle in `CLDR_PRODUCTION`
-  and the subdivision XML from the CLDR repository in `CLDR_REPO`, which
-  must be the sources recorded in `priv/localize/cldr_json_version` and
-  `priv/localize/cldr_repo_ref`. `mix localize.fetch_sources` fetches them.
+  The JSON is read from `CLDR_PRODUCTION` and the subdivision XML from the
+  CLDR repository in `CLDR_REPO`. The repository must be at the ref
+  recorded in `priv/localize/cldr_repo_ref`, and the JSON built from it
+  with the current options. `mix localize.fetch_sources` puts both in
+  place.
 
   ## Usage
 

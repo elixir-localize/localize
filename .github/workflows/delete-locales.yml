@@ -84,7 +84,7 @@ jobs:
       # Compute the current data version from the repository so we
       # can refuse to delete it unless allow_current is set.
       #
-      # This mirrors `Localize.read_version/0`, as upload-locales.yml
+      # This mirrors `Localize.read_version/0`, as check-locales.yml
       # does, so the guard compares against the segment clients
       # download from: the CLDR version is padded to major.minor ("49"
       # becomes "49.0"), and the patch comes from
