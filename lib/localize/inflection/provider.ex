@@ -190,7 +190,7 @@ defmodule Localize.Inflection.Provider do
   end
 
   defp load_manifest do
-    path = Application.app_dir(:localize, Path.join("priv/localize", @manifest))
+    path = Localize.Priv.path(Path.join("localize", @manifest))
 
     case File.read(path) do
       {:ok, binary} -> :erlang.binary_to_term(binary)

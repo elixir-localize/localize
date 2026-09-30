@@ -98,6 +98,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+* Localize starts inside an escript built with `include_priv_for: [:localize]`, reading its data from a copy extracted into the user cache directory that rebuilds share; one built without it stops at startup saying so, where every process crashed on its first read. Closes #58.
+
+* A collation table file that cannot be read is logged as a warning, as a missing one already was, where any other read error stopped Localize with a `CaseClauseError`.
+
 * `Localize.DateTime.Relative.to_string/2` counts the quarters, and the calendar weeks from the locale's first day for `:mon` to `:sun`, between two dates, where it formatted their difference in seconds as that many quarters or weekdays.
 
 * `Localize.DateTime.Relative.to_string/2` counts a number of seconds beyond the range of a float, where it raised `ArithmeticError`.

@@ -267,6 +267,23 @@ Specific locales can also be downloaded explicitly: `mix localize.download_local
 
 When `:supported_locales` is **not** configured (the default), `validate_locale/1` matches against all ~657 CLDR locales.
 
+### Running in an escript
+
+Localize reads its data from its `priv` directory, which `mix escript.build` leaves out of an escript unless it is asked for. Include it in the escript's configuration:
+
+```elixir
+def project do
+  [
+    app: :my_cli,
+    escript: [main_module: MyCli, include_priv_for: [:localize]]
+  ]
+end
+```
+
+At startup Localize extracts that copy of its data into the user cache directory (`~/.cache/localize` on Linux, `~/Library/Caches/localize` on macOS) and reads it from there. The copy is named for the data it holds, so a rebuilt escript, or another escript built with the same Localize, reuses it, along with any locales downloaded into it when `:allow_runtime_locale_download` is enabled. Copies from earlier Localize releases are not removed: the directory is a cache, and can be deleted whenever no escript is running.
+
+An escript built without `include_priv_for: [:localize]` stops at startup with a message saying so, as does one started without `HOME` set, where the user cache directory cannot be located.
+
 ## Environment variables
 
 The following environment variables influence Localize behaviour.

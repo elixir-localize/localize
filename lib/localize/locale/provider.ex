@@ -525,7 +525,8 @@ defmodule Localize.Locale.Provider do
   Returns the default directory in which downloaded locale data is cached.
 
   The default directory is located under the `:localize` application's
-  `priv` directory at `localize/locales`.
+  `priv` directory at `localize/locales`. In an escript, that is the copy
+  of the `priv` directory extracted into the user cache directory.
 
   ### Returns
 
@@ -539,7 +540,7 @@ defmodule Localize.Locale.Provider do
   """
   @spec default_locale_cache_dir() :: String.t()
   def default_locale_cache_dir do
-    Application.app_dir(:localize, "priv/localize/locales")
+    Localize.Priv.path("localize/locales")
   end
 
   @doc """
@@ -780,7 +781,7 @@ defmodule Localize.Locale.Provider do
   end
 
   defp load_locale_hashes do
-    path = Application.app_dir(:localize, "priv/localize/locale_hashes.etf")
+    path = Localize.Priv.path("localize/locale_hashes.etf")
 
     with {:ok, binary} <- File.read(path),
          {:ok, hashes} <- decode_hash_manifest(binary) do

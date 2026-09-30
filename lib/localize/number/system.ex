@@ -761,7 +761,7 @@ defmodule Localize.Number.System do
   # which then fails to read on the target host of a Mix release built on
   # a different machine (e.g. CI runner -> production VM).
   defp number_systems_path do
-    Application.app_dir(:localize, "priv/localize/supplemental_data/number_systems.etf")
+    Localize.Priv.path("localize/supplemental_data/number_systems.etf")
   end
 
   defp load_number_systems do

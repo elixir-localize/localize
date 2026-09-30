@@ -351,7 +351,7 @@ defmodule Localize.Collation.Table do
   end
 
   defp load_table do
-    etf_path = Application.app_dir(:localize, ["priv", "localize", @collation_etf])
+    etf_path = Localize.Priv.path(Path.join("localize", @collation_etf))
 
     case File.read(etf_path) do
       {:ok, binary} ->
@@ -374,6 +374,14 @@ defmodule Localize.Collation.Table do
         Logger.warning(
           "Collation table ETF not found at #{etf_path}. " <>
             "Run Localize.Data.Collation.generate_collation_table/0 to generate it.",
+          domain: [:localize]
+        )
+
+      {:error, reason} ->
+        require Logger
+
+        Logger.warning(
+          "Collation table ETF at #{etf_path} cannot be read: #{:file.format_error(reason)}.",
           domain: [:localize]
         )
     end

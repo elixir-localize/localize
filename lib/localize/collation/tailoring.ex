@@ -32,8 +32,8 @@ defmodule Localize.Collation.Tailoring do
   # cached in `:persistent_term` by `get_tailoring/2`.
   defp tailorings do
     Localize.DataLoader.load({:localize, :collation_tailorings}, fn ->
-      :localize
-      |> Application.app_dir("priv/localize/supplemental_data/collation_tailoring.etf")
+      "localize/supplemental_data/collation_tailoring.etf"
+      |> Localize.Priv.path()
       |> File.read!()
       |> :erlang.binary_to_term()
     end)

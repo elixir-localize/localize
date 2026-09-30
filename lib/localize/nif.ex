@@ -40,8 +40,8 @@ defmodule Localize.Nif do
   @doc false
   def init do
     path =
-      :localize
-      |> Application.app_dir("priv/localize_nif")
+      "localize_nif"
+      |> Localize.Priv.path()
       |> String.to_charlist()
 
     # Size the NIF's collator pool for both regular and dirty CPU

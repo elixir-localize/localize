@@ -85,7 +85,7 @@ The cache directory is configurable via `Localize.Locale.Provider.locale_cache_d
 
 3. **Absolute `:locale_cache_dir`** — used verbatim. `:otp_app` is ignored. Use for shared mounts or fixed system paths.
 
-With neither key set, Localize falls back to `Application.app_dir(:localize, "priv/localize/locales")` inside its own dependency directory. A relative `:locale_cache_dir` **without** an `:otp_app` anchor is refused at app start with `Localize.LocaleCacheDirError`: a relative path with no anchor resolves against the BEAM's current working directory, which differs between mix tasks, `mix test`, and a release, so one value cannot be correct in all phases.
+With neither key set, Localize falls back to `Application.app_dir(:localize, "priv/localize/locales")` inside its own dependency directory; in an escript, to the copy of its `priv` directory extracted into the user cache directory. A relative `:locale_cache_dir` **without** an `:otp_app` anchor is refused at app start with `Localize.LocaleCacheDirError`: a relative path with no anchor resolves against the BEAM's current working directory, which differs between mix tasks, `mix test`, and a release, so one value cannot be correct in all phases.
 
 Cached files are tagged with the current `Localize.version/0` so stale files are detected and re-downloaded on upgrade.
 

@@ -125,6 +125,31 @@ defmodule Localize.Collation.TableTest do
       assert is_tuple(:persistent_term.get(@fast_latin_key))
       assert {:ok, _elements} = Table.lookup(?a)
     end
+
+    # Localize's data directory is pointed at one where the ETF's path is
+    # a directory, so reading it fails with `:eisdir`: any read error, not
+    # only a missing file, must leave the server running (issue #58's
+    # escript failed with `:enotdir`).
+    @tag :tmp_dir
+    test "a table that cannot be read is a warning, not a crash", %{tmp_dir: tmp_dir} do
+      priv_dir_key = {Localize.Priv, :dir}
+      priv = Localize.Priv.dir()
+      server = Process.whereis(Table)
+      File.mkdir_p!(Path.join([tmp_dir, "localize", "collation_table.etf"]))
+
+      on_exit(fn ->
+        :persistent_term.put(priv_dir_key, priv)
+        Table.ensure_loaded()
+      end)
+
+      :persistent_term.put(priv_dir_key, tmp_dir)
+      :persistent_term.erase(@fast_latin_key)
+
+      log = ExUnit.CaptureLog.capture_log(fn -> assert :ok = Table.ensure_loaded() end)
+
+      assert log =~ "cannot be read: illegal operation on a directory"
+      assert Process.whereis(Table) == server
+    end
   end
 
   describe "start_link/1" do

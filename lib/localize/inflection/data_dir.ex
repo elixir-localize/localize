@@ -63,7 +63,7 @@ defmodule Localize.Inflection.DataDir do
         Application.app_dir(otp_app, @default_subdir)
 
       true ->
-        Application.app_dir(:localize, @default_subdir)
+        Localize.Priv.path(Path.relative_to(@default_subdir, "priv"))
     end
   end
 

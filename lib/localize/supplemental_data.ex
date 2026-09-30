@@ -4,7 +4,7 @@ defmodule Localize.SupplementalData do
   # ── Private helpers ─────────────────────────────────────────────
 
   defp localize_dir do
-    Application.app_dir(:localize, "priv/localize")
+    Localize.Priv.path("localize")
   end
 
   defp load_supplemental(filename) do

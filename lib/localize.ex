@@ -180,15 +180,8 @@ defmodule Localize do
   end
 
   defp read_version do
-    cldr_version =
-      :localize
-      |> Application.app_dir("priv/localize/version")
-      |> read_trimmed("0.0")
-
-    patch_raw =
-      :localize
-      |> Application.app_dir("priv/localize/localize_patch_version")
-      |> read_trimmed("0")
+    cldr_version = "localize/version" |> Localize.Priv.path() |> read_trimmed("0.0")
+    patch_raw = "localize/localize_patch_version" |> Localize.Priv.path() |> read_trimmed("0")
 
     patch =
       case String.split(patch_raw, ":", parts: 2) do
