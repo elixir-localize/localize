@@ -4,30 +4,22 @@ defmodule Localize.DateTime.Relative do
 
   A relative time is a number of units, or the difference between a `t:Date.t/0`, `t:Time.t/0`, `t:NaiveDateTime.t/0` or `t:DateTime.t/0` and a baseline. The number is formatted with the locale's digits and grouping, and the plural category of the number as displayed selects the unit's pattern. `to_string/2` returns the string and `to_parts/2` the same result as typed parts.
 
+  A difference is counted with the arithmetic of the value's own calendar, in the calendar periods between the two: the years, quarters, months, weeks and days between their dates, and the hours, minutes and seconds between their clocks. It is never a number of seconds divided by a mean length, so a month is a month of the value's calendar whatever its length, and a Hebrew leap year has thirteen of them.
+
   """
 
   import Localize.Utils.Helpers, only: [is_keyword_list: 1]
 
-  @second 1
-  @minute 60
-  @hour 3600
-  @day 86_400
-  @week 604_800
-  @month 2_629_743.83
-  @year 31_556_926
+  # A number of seconds has no calendar, so it is counted only in units of a
+  # fixed length, largest first. A difference between two dates or times is
+  # always counted with the calendar's own arithmetic, never through these.
+  @fixed_units [week: 604_800, day: 86_400, hour: 3600, minute: 60, second: 1]
 
-  @unit_steps %{
-    second: @second,
-    minute: @minute,
-    hour: @hour,
-    day: @day,
-    week: @week,
-    month: @month,
-    year: @year
-  }
-
-  @other_units [:mon, :tue, :wed, :thu, :fri, :sat, :sun, :quarter]
-  @unit_keys Enum.sort(Map.keys(@unit_steps) ++ @other_units)
+  @weekday_units [:mon, :tue, :wed, :thu, :fri, :sat, :sun]
+  @date_units [:year, :quarter, :month, :week, :day] ++ @weekday_units
+  @unit_keys Enum.sort(
+               [:second, :minute, :hour, :day, :week, :month, :quarter, :year] ++ @weekday_units
+             )
   @known_formats [:standard, :narrow, :short]
 
   @doc """
@@ -46,16 +38,11 @@ defmodule Localize.DateTime.Relative do
 
   * `:format` is `:standard`, `:narrow`, or `:short`. The default is `:standard`.
 
-  * `:unit` is the time unit for formatting. One of `:second`, `:minute`, `:hour`, `:day`, `:week`, `:month`, `:quarter`, `:year`, `:mon`, `:tue`, `:wed`, `:thu`, `:fri`, `:sat` or `:sun`. If omitted, a unit is derived from the difference in seconds.
+  * `:unit` is the time unit for formatting. One of `:second`, `:minute`, `:hour`, `:day`, `:week`, `:month`, `:quarter`, `:year`, `:mon`, `:tue`, `:wed`, `:thu`, `:fri`, `:sat` or `:sun`. A difference is the number of the unit's calendar periods from the baseline to the value: 1 February is "next month" from 31 January, and 00:01 is "in 1 hour" from 23:59 the day before. A week and a weekday unit count calendar weeks, each starting on the locale's first day of the week, so "next Monday" is the Monday of the week after the baseline's. Two times have no date, so no days or longer periods lie between them. If omitted, the unit is the largest of which a whole one lies between the two, from a year down to a day for dates and to a second for times. A number with no unit is a number of seconds, which has no calendar: it is counted, to the nearest, in the largest of weeks, days, hours, minutes and seconds it reaches, and never in months, quarters or years.
 
   * `:numeric` is `:auto` or `:always`, mirroring ECMA-402's `numeric` option. With `:auto` (the default), an offset of -2 to 2 takes the unit's named form, such as "yesterday" or "tomorrow", where the locale has one. With `:always`, output is always numeric: "1 day ago" instead of "yesterday".
 
-  * `:relative_to` is the baseline from which the difference is
-    calculated. A `t:Date.t/0` or `t:Time.t/0` is measured against a
-    value of its own type, a `t:NaiveDateTime.t/0` or a `t:DateTime.t/0`,
-    a `t:NaiveDateTime.t/0` against a `t:NaiveDateTime.t/0` or a
-    `t:DateTime.t/0`, and a `t:DateTime.t/0` against a `t:DateTime.t/0`.
-    Any other pairing returns an error. Defaults to now.
+  * `:relative_to` is the baseline from which the difference is calculated. A `t:Date.t/0` or `t:Time.t/0` is measured against a value of its own type, a `t:NaiveDateTime.t/0` or a `t:DateTime.t/0`, a `t:NaiveDateTime.t/0` against a `t:NaiveDateTime.t/0` or a `t:DateTime.t/0`, and a `t:DateTime.t/0` against a `t:DateTime.t/0`. The baseline is converted into the value's calendar, and a `t:DateTime.t/0` baseline of a `t:DateTime.t/0` is moved into the value's time zone, so the two are compared on the value's wall clock. Any other pairing, or a baseline that cannot be converted, returns an error. The default is `DateTime.utc_now/0`.
 
   ### Returns
 
@@ -79,6 +66,9 @@ defmodule Localize.DateTime.Relative do
 
       iex> Localize.DateTime.Relative.to_string(-1, unit: :day, locale: :en, numeric: :always)
       {:ok, "1 day ago"}
+
+      iex> Localize.DateTime.Relative.to_string(~D[2024-02-01], relative_to: ~D[2024-01-31], unit: :month, locale: :en)
+      {:ok, "next month"}
 
   """
   @spec to_string(number() | Date.t() | Time.t() | NaiveDateTime.t() | DateTime.t(), Keyword.t()) ::
@@ -184,9 +174,8 @@ defmodule Localize.DateTime.Relative do
          {:ok, unit} <- validate_unit(unit),
          {:ok, format} <- validate_format(format),
          {:ok, numeric} <- validate_numeric(numeric),
-         {:ok, time_difference} <- time_difference(relative, relative_to) do
-      {scaled, resolved_unit} = derive_unit(relative, relative_to, time_difference, unit)
-      {:ok, relative_parts(scaled, resolved_unit, format, locale, locale_id, numeric)}
+         {:ok, {count, resolved_unit}} <- relative_count(relative, relative_to, unit, locale) do
+      {:ok, relative_parts(count, resolved_unit, format, locale, locale_id, numeric)}
     end
   end
 
@@ -301,78 +290,330 @@ defmodule Localize.DateTime.Relative do
   # unit.
   defp with_unit(parts, unit), do: Enum.map(parts, &Map.put(&1, :unit, unit))
 
-  # ── Time difference calculation ────────────────────────────
+  # ── Counting ───────────────────────────────────────────────
 
-  defp time_difference(relative, _relative_to) when is_integer(relative) do
-    {:ok, relative}
+  # A number with a unit is a count of that unit, whole or fractional.
+  defp relative_count(relative, _relative_to, unit, _locale)
+       when is_number(relative) and not is_nil(unit) do
+    {:ok, {relative, unit}}
   end
 
-  defp time_difference(relative, _relative_to) when is_float(relative) do
-    {:ok, trunc(relative)}
+  # A number with no unit is a number of seconds. Seconds have no calendar,
+  # so they are counted, to the nearest, in the largest unit of a fixed
+  # length they reach: 5,000,000 seconds is "in 8 weeks". The count is
+  # rounded half away from zero in integers, as a number of seconds can be
+  # beyond the range of a float.
+  defp relative_count(relative, _relative_to, nil, _locale) when is_number(relative) do
+    seconds = trunc(relative)
+
+    {unit, length} =
+      Enum.find(@fixed_units, List.last(@fixed_units), fn {_unit, length} ->
+        abs(seconds) >= length
+      end)
+
+    count = div(2 * abs(seconds) + length, 2 * length)
+    {:ok, {if(seconds < 0, do: -count, else: count), unit}}
   end
 
-  defp time_difference(%DateTime{} = relative, %DateTime{} = relative_to) do
-    {:ok, DateTime.diff(relative, relative_to)}
+  # A difference between two dates or times is counted with the calendar's
+  # own arithmetic from their fields, never through a number of seconds.
+  defp relative_count(relative, relative_to, unit, locale) do
+    with {:ok, moment, baseline} <- moments(relative, relative_to) do
+      unit = unit || whole_unit(moment, baseline)
+      {:ok, {periods(moment, baseline, unit, locale), unit}}
+    end
   end
 
-  defp time_difference(%NaiveDateTime{} = relative, %NaiveDateTime{} = relative_to) do
-    {:ok, NaiveDateTime.diff(relative, relative_to)}
+  # ── The two values measured ───────────────────────────────
+
+  # The value and its baseline as the fields they are counted from: a date, a
+  # time, or both. A date is measured against a date, a time against a time
+  # and a date-time against a date-time, a date-time baseline giving a date or
+  # a time its date or time, and a naive date-time its wall clock. The
+  # baseline is taken into the value's calendar before counting. Any other
+  # pairing is an error.
+  #
+  # `:date` and `:time` are on the value's wall clock, and the days and longer
+  # periods between the two are counted from them. `:clock` holds the same
+  # instant at the value's UTC offset, and the hours, minutes and seconds are
+  # counted from it: where the offset changes between the two, the wall clock
+  # skips or repeats an hour that no time passes through. The two differ only
+  # for a date-time baseline of a date-time.
+  defp moments(%DateTime{} = relative, %DateTime{} = relative_to) do
+    naive = DateTime.to_naive(relative)
+
+    with {:ok, moment, baseline} <- moments(naive, wall_clock(relative_to, relative)),
+         {:ok, _moment, elapsed} <- moments(naive, at_offset(relative_to, offset(relative))) do
+      {:ok, moment, %{baseline | clock: elapsed.clock}}
+    end
   end
 
-  # A baseline of another type is converted only where the conversion is
-  # unambiguous: a date or time is taken from a datetime, and a naive
-  # datetime from a datetime's wall clock. That also covers the default
-  # baseline, `DateTime.utc_now/0`. Any other pairing is an error.
-  defp time_difference(%NaiveDateTime{} = relative, %DateTime{} = relative_to) do
-    {:ok, NaiveDateTime.diff(relative, DateTime.to_naive(relative_to))}
+  defp moments(%NaiveDateTime{} = relative, %NaiveDateTime{} = relative_to) do
+    relative_to
+    |> NaiveDateTime.convert(relative.calendar)
+    |> both(relative, relative_to, &date_and_time/1)
   end
 
-  defp time_difference(%Date{} = relative, %Date{} = relative_to) do
-    {:ok, Date.diff(relative, relative_to) * @day}
+  defp moments(%NaiveDateTime{} = relative, %DateTime{} = relative_to),
+    do: moments(relative, DateTime.to_naive(relative_to))
+
+  defp moments(%Date{} = relative, %Date{} = relative_to) do
+    relative_to
+    |> Date.convert(relative.calendar)
+    |> both(relative, relative_to, &date_only/1)
   end
 
-  defp time_difference(%Date{} = relative, %NaiveDateTime{} = relative_to) do
-    {:ok, Date.diff(relative, NaiveDateTime.to_date(relative_to)) * @day}
+  defp moments(%Date{} = relative, %NaiveDateTime{} = relative_to),
+    do: moments(relative, NaiveDateTime.to_date(relative_to))
+
+  defp moments(%Date{} = relative, %DateTime{} = relative_to),
+    do: moments(relative, DateTime.to_date(relative_to))
+
+  defp moments(%Time{} = relative, %Time{} = relative_to) do
+    relative_to
+    |> Time.convert(relative.calendar)
+    |> both(relative, relative_to, &time_only/1)
   end
 
-  defp time_difference(%Date{} = relative, %DateTime{} = relative_to) do
-    {:ok, Date.diff(relative, DateTime.to_date(relative_to)) * @day}
-  end
+  defp moments(%Time{} = relative, %NaiveDateTime{} = relative_to),
+    do: moments(relative, NaiveDateTime.to_time(relative_to))
 
-  defp time_difference(%Time{} = relative, %Time{} = relative_to) do
-    {:ok, Time.diff(relative, relative_to)}
-  end
+  defp moments(%Time{} = relative, %DateTime{} = relative_to),
+    do: moments(relative, DateTime.to_time(relative_to))
 
-  defp time_difference(%Time{} = relative, %NaiveDateTime{} = relative_to) do
-    {:ok, Time.diff(relative, NaiveDateTime.to_time(relative_to))}
-  end
-
-  defp time_difference(%Time{} = relative, %DateTime{} = relative_to) do
-    {:ok, Time.diff(relative, DateTime.to_time(relative_to))}
-  end
-
-  defp time_difference(%DateTime{}, relative_to) do
+  defp moments(%DateTime{}, relative_to) do
     {:error, invalid_baseline(relative_to, "a DateTime")}
   end
 
-  defp time_difference(%NaiveDateTime{}, relative_to) do
+  defp moments(%NaiveDateTime{}, relative_to) do
     {:error, invalid_baseline(relative_to, "a NaiveDateTime or DateTime")}
   end
 
-  defp time_difference(%Date{}, relative_to) do
+  defp moments(%Date{}, relative_to) do
     {:error, invalid_baseline(relative_to, "a Date, NaiveDateTime or DateTime")}
   end
 
-  defp time_difference(%Time{}, relative_to) do
+  defp moments(%Time{}, relative_to) do
     {:error, invalid_baseline(relative_to, "a Time, NaiveDateTime or DateTime")}
   end
 
-  defp time_difference(relative, _relative_to) do
+  defp moments(relative, _relative_to) do
     {:error,
      Localize.InvalidValueError.exception(
        value: relative,
        expected: "an integer, float, Date, Time, NaiveDateTime or DateTime"
      )}
+  end
+
+  defp both({:ok, baseline}, relative, _relative_to, fields),
+    do: {:ok, fields.(relative), fields.(baseline)}
+
+  defp both({:error, _reason}, relative, relative_to, _fields) do
+    {:error,
+     invalid_baseline(relative_to, "a value convertible to #{inspect(relative.calendar)}")}
+  end
+
+  # The baseline's wall clock at the value's place: shifted into the value's
+  # time zone by the time zone database, or, for a fixed offset or where no
+  # database can, taken to the value's offset.
+  defp wall_clock(%DateTime{} = relative_to, %DateTime{} = relative) do
+    shifted =
+      if fixed_offset?(relative),
+        do: :fixed_offset,
+        else:
+          DateTime.shift_zone(relative_to, relative.time_zone, Calendar.get_time_zone_database())
+
+    case shifted do
+      {:ok, baseline} -> DateTime.to_naive(baseline)
+      _no_shift -> at_offset(relative_to, offset(relative))
+    end
+  end
+
+  # The baseline's clock at a UTC offset.
+  defp at_offset(%DateTime{} = relative_to, offset) do
+    NaiveDateTime.add(DateTime.to_naive(relative_to), offset - offset(relative_to))
+  end
+
+  # A fixed offset is carried under `Etc/UTC`, as parsing a localized GMT
+  # format gives it.
+  defp fixed_offset?(%DateTime{time_zone: "Etc/UTC"} = datetime), do: offset(datetime) != 0
+  defp fixed_offset?(_datetime), do: false
+
+  defp offset(%DateTime{utc_offset: utc_offset, std_offset: std_offset}),
+    do: utc_offset + std_offset
+
+  defp date_and_time(%NaiveDateTime{} = datetime),
+    do: fields(NaiveDateTime.to_date(datetime), NaiveDateTime.to_time(datetime))
+
+  defp date_only(%Date{} = date), do: fields(date, nil)
+  defp time_only(%Time{} = time), do: fields(nil, time)
+
+  defp fields(date, time), do: %{date: date, time: time, clock: %{date: date, time: time}}
+
+  # ── Calendar arithmetic ───────────────────────────────────
+
+  # The number of the unit's periods from the baseline to the value, counted
+  # from their fields: years, quarters and months of the value's calendar,
+  # weeks from the locale's first day and days, on the wall clock, and then
+  # the hours, minutes and seconds on top of the days, on the clock at the
+  # value's offset. Two times have no date, and so no days or longer periods
+  # between them.
+  defp periods(%{date: nil}, _baseline, unit, _locale) when unit in @date_units, do: 0
+
+  defp periods(moment, baseline, :year, _locale), do: moment.date.year - baseline.date.year
+
+  defp periods(moment, baseline, :quarter, _locale) do
+    (moment.date.year - baseline.date.year) * 4 + Date.quarter_of_year(moment.date) -
+      Date.quarter_of_year(baseline.date)
+  end
+
+  defp periods(moment, baseline, :month, _locale), do: months_between(baseline.date, moment.date)
+  defp periods(moment, baseline, :day, _locale), do: days(moment, baseline)
+  defp periods(moment, baseline, :hour, _locale), do: hours(moment.clock, baseline.clock)
+  defp periods(moment, baseline, :minute, _locale), do: minutes(moment.clock, baseline.clock)
+  defp periods(moment, baseline, :second, _locale), do: seconds(moment.clock, baseline.clock)
+
+  # A week and a weekday count calendar weeks, each starting on the locale's
+  # first day of the week: "next Monday" is the Monday of the week after the
+  # baseline's, so a Monday is "next Monday" from the Sunday before it in
+  # `en-GB`, whose weeks start on Monday, and "this Monday" in `en-US`, whose
+  # weeks start on Sunday.
+  defp periods(moment, baseline, _week, locale) do
+    {first_day, _min_days} = Localize.DateTime.Week.config(locale)
+    div(Date.diff(week_start(moment.date, first_day), week_start(baseline.date, first_day)), 7)
+  end
+
+  defp days(%{date: nil}, _baseline), do: 0
+  defp days(moment, baseline), do: Date.diff(moment.date, baseline.date)
+
+  defp hours(clock, baseline), do: days(clock, baseline) * 24 + hour(clock) - hour(baseline)
+
+  defp minutes(clock, baseline),
+    do: hours(clock, baseline) * 60 + minute(clock) - minute(baseline)
+
+  defp seconds(clock, baseline),
+    do: minutes(clock, baseline) * 60 + second(clock) - second(baseline)
+
+  # Months from one date to another in their calendar, whose years need not
+  # all have twelve: a Hebrew leap year has thirteen.
+  defp months_between(%{year: year} = from, %{year: year} = to), do: to.month - from.month
+
+  defp months_between(from, to) do
+    if to.year > from.year,
+      do: months_forward(from, to),
+      else: -months_forward(to, from)
+  end
+
+  defp months_forward(from, to) do
+    calendar = to.calendar
+
+    between =
+      Enum.reduce((from.year + 1)..(to.year - 1)//1, 0, fn year, months ->
+        months + calendar.months_in_year(year)
+      end)
+
+    calendar.months_in_year(from.year) - from.month + between + to.month
+  end
+
+  # The first day of the week a date is in, `first_day` being 1 for Monday
+  # through 7 for Sunday.
+  defp week_start(date, first_day) do
+    Date.add(date, -Integer.mod(Date.day_of_week(date, :monday) - first_day, 7))
+  end
+
+  defp hour(%{time: nil}), do: 0
+  defp hour(%{time: time}), do: time.hour
+
+  defp minute(%{time: nil}), do: 0
+  defp minute(%{time: time}), do: time.minute
+
+  defp second(%{time: nil}), do: 0
+  defp second(%{time: time}), do: time.second
+
+  # ── The unit chosen ────────────────────────────────────────
+
+  # With no unit, the largest of which a whole one lies between the two, by
+  # the calendar's arithmetic, counted in its periods: a date is counted in
+  # days at the finest, and a time in seconds. Which of the two is the later
+  # is read from the clock, as the wall clock can repeat an hour.
+  defp whole_unit(moment, baseline) do
+    {earlier, later} =
+      if later?(moment.clock, baseline.clock), do: {baseline, moment}, else: {moment, baseline}
+
+    finest = if is_nil(moment.time), do: :day, else: :second
+    Enum.find([:year, :month, :week, :day, :hour, :minute], finest, &whole?(earlier, later, &1))
+  end
+
+  defp later?(clock, baseline) do
+    case compare_dates(clock, baseline) do
+      :eq -> time_of_day(clock) > time_of_day(baseline)
+      order -> order == :gt
+    end
+  end
+
+  defp compare_dates(%{date: nil}, _baseline), do: :eq
+  defp compare_dates(moment, baseline), do: Date.compare(moment.date, baseline.date)
+
+  # Whether a whole unit lies between two moments: more than one period of
+  # it apart, or one with the later at or past the earlier's place in its
+  # own period, a day of the month clamped to a shorter month and a month of
+  # the year to a shorter year. Days and longer are read from the wall
+  # clock, and hours and minutes from the clock.
+  defp whole?(%{date: nil}, _later, unit) when unit in [:year, :month, :week, :day], do: false
+
+  defp whole?(earlier, later, :year) do
+    one_or_more?(later.date.year - earlier.date.year, fn ->
+      calendar = later.date.calendar
+      month = min(earlier.date.month, calendar.months_in_year(later.date.year))
+      day = min(earlier.date.day, calendar.days_in_month(later.date.year, month))
+      {later.date.month, later.date.day, time_of_day(later)} >= {month, day, time_of_day(earlier)}
+    end)
+  end
+
+  defp whole?(earlier, later, :month) do
+    one_or_more?(months_between(earlier.date, later.date), fn ->
+      days_in_month = later.date.calendar.days_in_month(later.date.year, later.date.month)
+
+      {later.date.day, time_of_day(later)} >=
+        {min(earlier.date.day, days_in_month), time_of_day(earlier)}
+    end)
+  end
+
+  defp whole?(earlier, later, :week), do: days_or_more?(earlier, later, 7)
+  defp whole?(earlier, later, :day), do: days_or_more?(earlier, later, 1)
+
+  defp whole?(earlier, later, :hour) do
+    one_or_more?(hours(later.clock, earlier.clock), fn ->
+      Tuple.delete_at(time_of_day(later.clock), 0) >=
+        Tuple.delete_at(time_of_day(earlier.clock), 0)
+    end)
+  end
+
+  defp whole?(earlier, later, :minute) do
+    one_or_more?(minutes(later.clock, earlier.clock), fn ->
+      {_hour, _minute, second, microsecond} = time_of_day(later.clock)
+      {_hour, _minute, earlier_second, earlier_microsecond} = time_of_day(earlier.clock)
+      {second, microsecond} >= {earlier_second, earlier_microsecond}
+    end)
+  end
+
+  defp days_or_more?(earlier, later, days) do
+    case Date.diff(later.date, earlier.date) do
+      span when span > days -> true
+      ^days -> time_of_day(later) >= time_of_day(earlier)
+      _fewer -> false
+    end
+  end
+
+  defp one_or_more?(count, _at_place?) when count > 1, do: true
+  defp one_or_more?(1, at_place?), do: at_place?.()
+  defp one_or_more?(_count, _at_place?), do: false
+
+  defp time_of_day(%{time: nil}), do: {0, 0, 0, 0}
+
+  defp time_of_day(%{time: time}) do
+    {microsecond, _precision} = time.microsecond
+    {time.hour, time.minute, time.second, microsecond}
   end
 
   defp invalid_options(options) do
@@ -385,44 +626,6 @@ defmodule Localize.DateTime.Relative do
       expected: expected,
       context: ":relative_to"
     )
-  end
-
-  # ── Unit derivation ───────────────────────────────────────
-
-  # A number with a unit is a count of that unit, whole or fractional.
-  defp derive_unit(relative, _relative_to, _time_difference, unit)
-       when not is_nil(unit) and is_number(relative) do
-    {relative, unit}
-  end
-
-  # When a unit is specified but relative is a date/datetime, scale the difference
-  defp derive_unit(_relative, _relative_to, time_difference, unit) when not is_nil(unit) do
-    scaled = scale_relative(time_difference, unit)
-    {scaled, unit}
-  end
-
-  # No unit — derive from the time difference magnitude
-  defp derive_unit(_relative, _relative_to, time_difference, nil) do
-    unit = unit_from_time(abs(time_difference))
-    scaled = scale_relative(time_difference, unit)
-    {scaled, unit}
-  end
-
-  defp unit_from_time(seconds) do
-    cond do
-      seconds < @minute -> :second
-      seconds < @hour -> :minute
-      seconds < @day -> :hour
-      seconds < @week -> :day
-      seconds < @month -> :week
-      seconds < @year -> :month
-      true -> :year
-    end
-  end
-
-  defp scale_relative(time_difference, unit) do
-    step = Map.get(@unit_steps, unit, 1)
-    (time_difference / step) |> Float.round() |> trunc()
   end
 
   # ── Validation ─────────────────────────────────────────────

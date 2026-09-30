@@ -50,6 +50,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Changed
 
+* **Breaking.** `Localize.DateTime.Relative.to_string/2` and `to_parts/2` count a difference between dates in the calendar periods of the value's own calendar, where they divided seconds by a mean month or year, so 1 February is "next month" from 31 January and a Hebrew leap year has thirteen months. Hours, minutes and seconds count the clock periods of the time that passes, so 00:01 is "in 1 hour" from 23:59, across a change of UTC offset too.
+
+* **Breaking.** Without `:unit`, a relative time takes the largest unit of which a whole one lies between the two. A number of seconds has no calendar, so it is counted in weeks at most: 31,556,926 seconds is "in 52 weeks", not "in 1 year".
+
 * **Breaking.** The generic zone format (`v`, `vvvv`) qualifies a metazone name with the zone's country or city unless the zone is the metazone's preferred zone for the locale's country, as TR35 and CLDR's own formatter give it: "Central European Time (Germany)" for Berlin in `en`, "Mountain Time (Phoenix)". A standard name stands in for a generic one only where the zone keeps one offset for 184 days either side, so London's summer is no longer "Greenwich Mean Time" in a locale naming no British daylight time.
 
 * **Breaking.** A named zone in a parsed date-time resolves to a `DateTime` in Localize, through the configured time zone database, where it was dropped unless `calendrical` was installed, and an abbreviation is read where the locale's CLDR names hold it (`en` reads "EST", not "JST"). A zone field reads only a zone the locale writes, so "2:30 PM XQZV" is an error.
@@ -93,6 +97,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 * **Breaking.** A zero offset is spelled out wherever a localized GMT format is used, `"GMT+00:00"` long and `"GMT+0"` short, as TR35's examples and ICU give it. `Localize.DateTime.Timezone.gmt_format/3` drops its `:zero_format` option, which selected between the two.
 
 ### Fixed
+
+* `Localize.DateTime.Relative.to_string/2` counts the quarters, and the calendar weeks from the locale's first day for `:mon` to `:sun`, between two dates, where it formatted their difference in seconds as that many quarters or weekdays.
+
+* `Localize.DateTime.Relative.to_string/2` counts a number of seconds beyond the range of a float, where it raised `ArithmeticError`.
 
 * `Localize.Substitution.substitute/2` substitutes into a template of any shape, where it raised on one it did not list, such as `el`'s zone fallback format "[{1} ({0})]".
 

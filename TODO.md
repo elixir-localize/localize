@@ -18,8 +18,6 @@ Outstanding work on Localize. The design detail behind these items lives under [
 
 * [ ] **Report 12-hour patterns without a day period to CLDR** — `fr-CM`'s `h`, `hm` and `hms`, `bal-Latn`'s `hm` and `es-AR`'s `hms` are 12-hour patterns with no day period, which TR35 forbids, so the "12:30" and "1:45" they write each name two times.
 
-* [ ] **`Relative.to_string/2` counts a date difference in seconds for `:quarter` and the weekday units** — `scale_relative/2` finds no step for them in `@unit_steps`, so `~D[2026-10-01]` against `~D[2026-07-01]` with `unit: :quarter` is "in 7,948,800 quarters" (found in another session, on `ee24b2c5`). A quarter is three months, and a weekday unit counts calendar weeks from the locale's first day of the week (user, 2026-09-30).
-
 * [ ] **Decide whether specific zone names are qualified** — CLDR's own `TimezoneFormatter` qualifies the specific format (`z`, `zzzz`) as it does the generic one, "Central European Summer Time (Germany)" for Berlin in `en`, where ICU4C never does; a specific name already reads back to its instant, and Localize qualifies only the generic format.
 
 * [ ] **MF2's `calendar` option reaches into Calendrical** — `Localize.Message.Interpreter` resolves `calendar=hebrew` to a module through `Localize.OptionalDependency.call("Calendrical", ...)`, which the rule that Localize never depends on Calendrical forbids; it needs another way to a module, such as Calendrical registering its calendars with Localize.
@@ -61,6 +59,8 @@ Outstanding work on Localize. The design detail behind these items lives under [
 * [ ] **`localize_emoji` sibling library** — plan item 11, a separate package on its own schedule. A Phoenix LiveView picker (`localize_emoji_live`) is out of scope for its 0.1.0.
 
 ## Done
+
+* [x] **Relative time counts calendar periods** — every unit is counted with the value's calendar arithmetic, never seconds over a mean month or year (user, 2026-09-30), so `:quarter` and the weekday units no longer format seconds; months and years match ICU4C's `fieldDifference` in eight calendars. 2026-09-30, v1.4.0.
 
 * [x] **The generic zone format writes ambiguous names** — `v` and `vvvv` follow TR35's steps as CLDR's own formatter implements them, qualifying a metazone name by country or city ("Mountain Time (Phoenix)") and taking a standard name only for a zone that keeps one offset; every zoned date-time formatted in every locale now reads back but `nnh`'s. 2026-09-30, v1.4.0.
 

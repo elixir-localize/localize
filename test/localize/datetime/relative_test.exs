@@ -14,6 +14,60 @@ defmodule Localize.DateTime.RelativeTest do
 
   alias Localize.DateTime.Relative
 
+  # A calendar whose years need not have twelve months, as a Hebrew leap
+  # year has thirteen: every third year has thirteen months, every month
+  # thirty days, and days count on from an arbitrary epoch. Localize cannot
+  # load Calendrical's calendars, which depend on it.
+  defmodule Thirteen do
+    @moduledoc false
+
+    @epoch 700_000
+
+    def months_in_year(year), do: if(rem(year, 3) == 0, do: 13, else: 12)
+    def days_in_month(_year, _month), do: 30
+
+    def valid_date?(year, month, day),
+      do: year >= 1 and month in 1..months_in_year(year) and day in 1..30
+
+    def quarter_of_year(_year, month, _day), do: min(div(month - 1, 3) + 1, 4)
+
+    def day_of_week(year, month, day, starting_on) do
+      {days, _fraction} = naive_datetime_to_iso_days(year, month, day, 0, 0, 0, {0, 0})
+      {iso_year, iso_month, iso_day} = Calendar.ISO.date_from_iso_days(days)
+      Calendar.ISO.day_of_week(iso_year, iso_month, iso_day, starting_on)
+    end
+
+    def naive_datetime_to_iso_days(year, month, day, hour, minute, second, microsecond) do
+      days_before = Enum.reduce(1..(year - 1)//1, 0, &(months_in_year(&1) * 30 + &2))
+      days = @epoch + days_before + (month - 1) * 30 + day - 1
+      {days, Calendar.ISO.time_to_day_fraction(hour, minute, second, microsecond)}
+    end
+
+    def naive_datetime_from_iso_days({days, fraction}) do
+      {year, day_of_year} = year_of(days - @epoch, 1)
+      {hour, minute, second, microsecond} = Calendar.ISO.time_from_day_fraction(fraction)
+
+      {year, div(day_of_year, 30) + 1, rem(day_of_year, 30) + 1, hour, minute, second,
+       microsecond}
+    end
+
+    defp year_of(days, year) do
+      length = months_in_year(year) * 30
+      if days < length, do: {year, days}, else: year_of(days - length, year + 1)
+    end
+
+    def day_rollover_relative_to_midnight_utc, do: {0, 1}
+    def date_to_string(year, month, day), do: "#{year}-#{month}-#{day} Thirteen"
+  end
+
+  # A calendar whose day begins at noon, which no date of another calendar
+  # converts into.
+  defmodule Noon do
+    @moduledoc false
+
+    def day_rollover_relative_to_midnight_utc, do: {1, 2}
+  end
+
   describe "to_string/2 with integer offsets" do
     test "yesterday" do
       assert {:ok, "yesterday"} = Relative.to_string(-1, unit: :day, locale: :en)
@@ -89,14 +143,17 @@ defmodule Localize.DateTime.RelativeTest do
     end
   end
 
+  # A difference is counted in calendar periods from the clock's fields:
+  # from 11:52 to 18:11 is seven hours of the clock, 11 to 18, as from late
+  # on Monday to early on Wednesday is two days.
   describe "to_string/2 with Time structs" do
     test "relative time with unit" do
-      assert {:ok, "in 6 hours"} =
+      assert {:ok, "in 7 hours"} =
                Relative.to_string(@time, relative_to: @relative_time_to, unit: :hour)
     end
 
     test "relative time auto-derive" do
-      assert {:ok, "in 6 hours"} = Relative.to_string(@time, relative_to: @relative_time_to)
+      assert {:ok, "in 7 hours"} = Relative.to_string(@time, relative_to: @relative_time_to)
     end
   end
 
@@ -160,8 +217,12 @@ defmodule Localize.DateTime.RelativeTest do
       assert {:ok, "in 59 seconds"} = Relative.to_string(59, locale: :en)
     end
 
+    # Counted to the nearest, a half away from zero: 90 seconds is 1.5
+    # minutes.
     test "minutes from 60 seconds up to one hour" do
       assert {:ok, "in 1 minute"} = Relative.to_string(60, locale: :en)
+      assert {:ok, "in 2 minutes"} = Relative.to_string(90, locale: :en)
+      assert {:ok, "2 minutes ago"} = Relative.to_string(-90, locale: :en)
       assert {:ok, "in 60 minutes"} = Relative.to_string(3599, locale: :en)
     end
 
@@ -180,13 +241,21 @@ defmodule Localize.DateTime.RelativeTest do
       assert {:ok, "in 4 weeks"} = Relative.to_string(2_629_743, locale: :en)
     end
 
-    test "months from one month up to one year" do
-      assert {:ok, "next month"} = Relative.to_string(2_629_744, locale: :en)
-      assert {:ok, "in 12 months"} = Relative.to_string(31_556_925, locale: :en)
+    # A number of seconds has no calendar, so it is never counted in months
+    # or years, which have no fixed length: 2,629,744 seconds is 4.35 weeks
+    # and 31,556,926 seconds 52.18.
+    test "weeks are the largest unit a number of seconds reaches" do
+      assert {:ok, "in 4 weeks"} = Relative.to_string(2_629_744, locale: :en)
+      assert {:ok, "in 52 weeks"} = Relative.to_string(31_556_926, locale: :en)
     end
 
-    test "years from one year onward" do
-      assert {:ok, "next year"} = Relative.to_string(31_556_926, locale: :en)
+    # 604,800 × 10⁴⁰⁰ seconds is 10⁴⁰⁰ weeks, a number no float can hold:
+    # "10" and then 133 groups of three zeros.
+    test "a number of seconds beyond the range of a float" do
+      weeks = "10" <> String.duplicate(",000", 133)
+
+      assert Relative.to_string(604_800 * 10 ** 400, locale: :en) == {:ok, "in #{weeks} weeks"}
+      assert Relative.to_string(-604_800 * 10 ** 400, locale: :en) == {:ok, "#{weeks} weeks ago"}
     end
 
     test "negative offsets select past forms" do
@@ -226,6 +295,285 @@ defmodule Localize.DateTime.RelativeTest do
 
     test "zero offset uses the current-period ordinal" do
       assert {:ok, "this week"} = Relative.to_string(0, unit: :week, locale: :en)
+    end
+  end
+
+  # A difference is counted in quarters of three months, and in calendar
+  # weeks for a weekday unit, each week starting on the locale's first day:
+  # CLDR's week data starts the United States' weeks on Sunday and the
+  # United Kingdom's on Monday. The strings are CLDR's `en` names.
+  describe "a date difference in quarters and weekday units" do
+    test "quarters" do
+      assert Relative.to_string(~D[2026-10-01],
+               relative_to: ~D[2026-07-01],
+               unit: :quarter,
+               locale: :en
+             ) == {:ok, "next quarter"}
+
+      assert Relative.to_string(~D[2026-01-01],
+               relative_to: ~D[2026-07-01],
+               unit: :quarter,
+               locale: :en
+             ) == {:ok, "2 quarters ago"}
+    end
+
+    test "weekdays count calendar weeks" do
+      for {date, expected} <- [
+            {~D[2026-07-13], "next Monday"},
+            {~D[2026-06-29], "last Monday"},
+            {~D[2026-07-20], "in 2 Mondays"},
+            {~D[2026-07-08], "this Monday"}
+          ] do
+        assert Relative.to_string(date, relative_to: ~D[2026-07-06], unit: :mon, locale: :en) ==
+                 {:ok, expected}
+      end
+    end
+
+    test "a week starts on the locale's first day" do
+      assert Relative.to_string(~D[2026-07-13],
+               relative_to: ~D[2026-07-12],
+               unit: :mon,
+               locale: :"en-US"
+             ) == {:ok, "this Monday"}
+
+      assert Relative.to_string(~D[2026-07-13],
+               relative_to: ~D[2026-07-12],
+               unit: :mon,
+               locale: :"en-GB"
+             ) == {:ok, "next Monday"}
+    end
+
+    test "a date-time counts by its date" do
+      assert Relative.to_string(~N[2026-07-13 09:00:00],
+               relative_to: ~N[2026-07-06 18:00:00],
+               unit: :fri,
+               locale: :en
+             ) == {:ok, "next Friday"}
+
+      assert Relative.to_string(~U[2026-07-13 09:00:00Z],
+               relative_to: ~U[2026-07-06 18:00:00Z],
+               unit: :fri,
+               locale: :en
+             ) == {:ok, "next Friday"}
+    end
+
+    test "times have no weeks between them" do
+      assert Relative.to_string(~T[10:00:00], relative_to: ~T[09:00:00], unit: :mon, locale: :en) ==
+               {:ok, "this Monday"}
+    end
+
+    test "to_parts/2 agrees" do
+      assert Relative.to_parts(~D[2026-10-01],
+               relative_to: ~D[2026-07-01],
+               unit: :quarter,
+               locale: :en
+             ) == {:ok, [%{type: :literal, value: "next quarter"}]}
+    end
+  end
+
+  # A difference is counted with the calendar's arithmetic in its periods:
+  # "next month" is any day of the next month and "this year" any day of the
+  # year, never a number of seconds divided by an average month or year.
+  describe "calendar arithmetic" do
+    test "a unit's periods at their boundaries" do
+      for {relative, relative_to, unit, expected} <- [
+            {~D[2026-01-31], ~D[2026-01-01], :month, "this month"},
+            {~D[2026-02-01], ~D[2026-01-31], :month, "next month"},
+            {~D[2026-12-31], ~D[2026-01-01], :year, "this year"},
+            {~D[2027-01-01], ~D[2026-12-31], :year, "next year"},
+            {~D[2026-07-01], ~D[2026-06-30], :quarter, "next quarter"},
+            {~D[2026-09-30], ~D[2026-07-01], :quarter, "this quarter"},
+            {~N[2026-07-02 01:00:00], ~N[2026-07-01 23:00:00], :day, "tomorrow"},
+            {~N[2026-07-01 01:00:00], ~N[2026-06-30 23:00:00], :month, "next month"}
+          ] do
+        assert Relative.to_string(relative, relative_to: relative_to, unit: unit, locale: :en) ==
+                 {:ok, expected},
+               "#{inspect(relative)} against #{inspect(relative_to)} in #{unit}"
+      end
+    end
+
+    # The largest unit of which a whole one lies between them, counted in
+    # its periods: from 25 January to 6 March is a whole month, and March is
+    # two months on. A day of the month is clamped to a shorter month, so 31
+    # January to 28 February is a whole month, and 29 February 2024 to 28
+    # February 2025 a whole year.
+    test "the unit chosen" do
+      for {relative, relative_to, expected} <- [
+            {~D[2026-02-03], ~D[2026-01-25], "next week"},
+            {~D[2026-02-01], ~D[2026-01-25], "next week"},
+            {~D[2026-01-31], ~D[2026-01-25], "in 6 days"},
+            {~D[2026-03-06], ~D[2026-01-25], "in 2 months"},
+            {~D[2026-04-01], ~D[2026-01-31], "in 3 months"},
+            {~D[2026-02-28], ~D[2026-01-31], "next month"},
+            {~D[2026-02-27], ~D[2026-01-31], "in 4 weeks"},
+            {~D[2025-02-28], ~D[2024-02-29], "next year"},
+            {~N[2026-07-01 10:01:10], ~N[2026-07-01 10:00:50], "in 20 seconds"},
+            {~D[2027-01-01], ~D[2026-12-31], "tomorrow"},
+            {~D[2026-12-31], ~D[2026-01-01], "in 11 months"},
+            {~D[2027-01-02], ~D[2026-01-01], "next year"},
+            {~D[2025-11-15], ~D[2026-01-01], "2 months ago"},
+            {~D[2026-07-01], ~D[2026-07-01], "today"},
+            {~N[2026-07-02 01:00:00], ~N[2026-07-01 23:00:00], "in 2 hours"},
+            {~N[2026-07-01 10:00:30], ~N[2026-07-01 10:00:00], "in 30 seconds"}
+          ] do
+        assert Relative.to_string(relative, relative_to: relative_to, locale: :en) ==
+                 {:ok, expected},
+               "#{inspect(relative)} against #{inspect(relative_to)}"
+      end
+    end
+
+    # In a year of thirteen months, the thirteenth is followed by the next
+    # year's first: "next month", where twelve months to a year would make
+    # it this month. Year 3 has thirteen months, so from the twelfth month of
+    # year 2 to the first of year 4 is 0 + 13 + 1 months.
+    test "months of a calendar whose years have thirteen" do
+      month_13 = Date.new!(3, 13, 20, Thirteen)
+      next_january = Date.new!(4, 1, 20, Thirteen)
+
+      assert Relative.to_string(next_january, relative_to: month_13, unit: :month, locale: :en) ==
+               {:ok, "next month"}
+
+      assert Relative.to_string(next_january, relative_to: month_13, locale: :en) ==
+               {:ok, "next month"}
+
+      assert Relative.to_string(Date.new!(4, 1, 15, Thirteen),
+               relative_to: Date.new!(2, 12, 15, Thirteen),
+               unit: :month,
+               locale: :en
+             ) == {:ok, "in 14 months"}
+
+      assert Relative.to_string(Date.new!(4, 1, 15, Thirteen),
+               relative_to: Date.new!(2, 12, 15, Thirteen),
+               unit: :quarter,
+               locale: :en
+             ) == {:ok, "in 5 quarters"}
+
+      # The thirteenth month is clamped to the twelfth in a year of twelve,
+      # so from it to the twelfth month of the next year is a whole year.
+      assert Relative.to_string(Date.new!(4, 12, 20, Thirteen),
+               relative_to: month_13,
+               locale: :en
+             ) ==
+               {:ok, "next year"}
+    end
+
+    # A baseline in another calendar is taken into the value's before its
+    # periods are counted: the ISO date of the thirteenth month is a month
+    # before the next year's first.
+    test "a baseline in another calendar" do
+      month_13 = Date.new!(3, 13, 20, Thirteen)
+      {:ok, iso_month_13} = Date.convert(month_13, Calendar.ISO)
+
+      naive = %NaiveDateTime{
+        year: 4,
+        month: 1,
+        day: 20,
+        hour: 10,
+        minute: 0,
+        second: 0,
+        microsecond: {0, 0},
+        calendar: Thirteen
+      }
+
+      {:ok, iso_naive} = NaiveDateTime.convert(%{naive | year: 3, month: 13}, Calendar.ISO)
+
+      assert Relative.to_string(Date.new!(4, 1, 20, Thirteen),
+               relative_to: iso_month_13,
+               unit: :month,
+               locale: :en
+             ) == {:ok, "next month"}
+
+      assert Relative.to_string(naive, relative_to: iso_naive, unit: :month, locale: :en) ==
+               {:ok, "next month"}
+    end
+
+    # 08:00 on 2 July in Tokyo is 23:00 UTC on 1 July, an hour after the
+    # baseline: counted on Tokyo's wall clock, it is an hour away and the
+    # same day.
+    test "a date-time baseline on the value's wall clock" do
+      tokyo = DateTime.new!(~D[2026-07-02], ~T[08:00:00], "Asia/Tokyo")
+
+      assert Relative.to_string(tokyo, relative_to: ~U[2026-07-01 22:00:00Z], locale: :en) ==
+               {:ok, "in 1 hour"}
+
+      assert Relative.to_string(tokyo,
+               relative_to: ~U[2026-07-01 22:00:00Z],
+               unit: :day,
+               locale: :en
+             ) == {:ok, "today"}
+    end
+
+    # A fixed offset, as parsing "GMT-4" gives, is the same instant as the
+    # UTC baseline four hours later on the clock. 10 PM on 1 July at GMT-4 is
+    # 02:00 UTC on 2 July, and a baseline an hour before it is the same day
+    # on the value's clock.
+    test "a date-time at a fixed offset" do
+      {:ok, fixed} = Localize.DateTime.parse("July 1, 2026 at 10:00:00 AM GMT-4", locale: :en)
+      {:ok, late} = Localize.DateTime.parse("July 1, 2026 at 10:00:00 PM GMT-4", locale: :en)
+
+      assert Relative.to_string(fixed, relative_to: ~U[2026-07-01 14:00:00Z], locale: :en) ==
+               {:ok, "now"}
+
+      assert Relative.to_string(late,
+               relative_to: ~U[2026-07-02 01:00:00Z],
+               unit: :day,
+               locale: :en
+             ) == {:ok, "today"}
+    end
+
+    # On 8 March 2026 New York's clocks go from 02:00 to 03:00, and on 1
+    # November from 02:00 back to 01:00. Hours, minutes and seconds count the
+    # time that passes: 01:50 to 03:10 on the first is 20 minutes, crossing
+    # the hour at 03:00, and 01:50 before the change to 01:10 after it on the
+    # second is 20 minutes on, crossing the hour at the second 01:00. Days are
+    # counted on the wall clock, so noon to noon over the change is a day of
+    # 23 hours, and 23:30 the evening before is the day before, though at
+    # the later offset it would be past midnight.
+    test "across a change of UTC offset" do
+      spring_before = DateTime.new!(~D[2026-03-08], ~T[01:50:00], "America/New_York")
+      spring_after = DateTime.new!(~D[2026-03-08], ~T[03:10:00], "America/New_York")
+
+      {:ambiguous, fall_before, _standard} =
+        DateTime.new(~D[2026-11-01], ~T[01:50:00], "America/New_York")
+
+      {:ambiguous, _daylight, fall_after} =
+        DateTime.new(~D[2026-11-01], ~T[01:10:00], "America/New_York")
+
+      noon_before = DateTime.new!(~D[2026-03-07], ~T[12:00:00], "America/New_York")
+      noon_after = DateTime.new!(~D[2026-03-08], ~T[12:00:00], "America/New_York")
+      late_before = DateTime.new!(~D[2026-03-07], ~T[23:30:00], "America/New_York")
+
+      assert DateTime.diff(spring_after, spring_before, :minute) == 20
+      assert DateTime.diff(fall_after, fall_before, :minute) == 20
+      assert DateTime.diff(noon_after, noon_before, :hour) == 23
+
+      for {relative, relative_to, unit, expected} <- [
+            {spring_after, spring_before, nil, "in 20 minutes"},
+            {spring_after, spring_before, :hour, "in 1 hour"},
+            {spring_after, spring_before, :second, "in 1,200 seconds"},
+            {spring_before, spring_after, nil, "20 minutes ago"},
+            {fall_after, fall_before, nil, "in 20 minutes"},
+            {fall_after, fall_before, :hour, "in 1 hour"},
+            {fall_before, fall_after, nil, "20 minutes ago"},
+            {fall_after, fall_before, :day, "today"},
+            {noon_after, noon_before, nil, "tomorrow"},
+            {noon_after, noon_before, :hour, "in 23 hours"},
+            {noon_after, late_before, :day, "tomorrow"}
+          ] do
+        assert Relative.to_string(relative,
+                 relative_to: relative_to,
+                 unit: unit,
+                 locale: :en
+               ) == {:ok, expected},
+               "#{inspect(relative)} against #{inspect(relative_to)} in #{inspect(unit)}"
+      end
+    end
+
+    test "a baseline in a calendar the value's cannot take" do
+      noon = %Date{year: 1, month: 1, day: 1, calendar: Noon}
+
+      assert {:error, %Localize.InvalidValueError{}} =
+               Relative.to_string(~D[2026-07-01], relative_to: noon, locale: :en)
     end
   end
 

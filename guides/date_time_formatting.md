@@ -292,7 +292,9 @@ Formatting ranges between two dates ("Apr 22 – 25, 2024"), open intervals ("Ja
 
 `Localize.DateTime.Relative.to_string/2` formats time differences as human-readable phrases like "2 hours ago" or "in 3 days".
 
-### From integer seconds
+### From a number of seconds
+
+Without `:unit`, a number is a number of seconds. Seconds have no calendar, so they are counted, to the nearest, in the largest of weeks, days, hours, minutes and seconds they reach, and never in months, quarters or years:
 
 ```elixir
 iex> Localize.DateTime.Relative.to_string(-60, locale: :en)
@@ -300,6 +302,9 @@ iex> Localize.DateTime.Relative.to_string(-60, locale: :en)
 
 iex> Localize.DateTime.Relative.to_string(3600, locale: :en)
 {:ok, "in 1 hour"}
+
+iex> Localize.DateTime.Relative.to_string(31_556_926, locale: :en)
+{:ok, "in 52 weeks"}
 ```
 
 ### A number of units
@@ -319,11 +324,31 @@ iex> Localize.DateTime.Relative.to_string(-1000, unit: :day, locale: :de)
 
 ### From dates and datetimes
 
-When given a `Date`, `DateTime`, or `Time`, the difference is calculated relative to now (or the `:relative_to` option):
+Given a `Date`, `Time`, `NaiveDateTime` or `DateTime`, the difference from now, or from the `:relative_to` option, is formatted. It is counted with the arithmetic of the value's calendar, in the calendar periods between the two: the years, quarters, months, weeks and days between their dates, and the hours, minutes and seconds between their clocks. A month is a month of the value's calendar whatever its length, so 31 January is "last month" from 1 February:
 
 ```elixir
-Localize.DateTime.Relative.to_string(~D[2024-01-01], relative_to: ~D[2024-01-04], locale: :en)
+iex> Localize.DateTime.Relative.to_string(~D[2024-01-01], relative_to: ~D[2024-01-04], locale: :en)
 {:ok, "3 days ago"}
+
+iex> Localize.DateTime.Relative.to_string(~D[2024-01-31], relative_to: ~D[2024-02-01], unit: :month, locale: :en)
+{:ok, "last month"}
+```
+
+Without `:unit`, the unit is the largest of which a whole one lies between the two, from a year down to a day for dates and to a second for times:
+
+```elixir
+iex> Localize.DateTime.Relative.to_string(~D[2024-03-15], relative_to: ~D[2024-01-01], locale: :en)
+{:ok, "in 2 months"}
+```
+
+A week, and a weekday unit such as `:mon`, count calendar weeks, each starting on the locale's first day of the week. So "next Monday" is the Monday of the week after the baseline's, and a Monday is "next Monday" from the Sunday before it where weeks start on Monday, and "this Monday" where they start on Sunday:
+
+```elixir
+iex> Localize.DateTime.Relative.to_string(~D[2024-06-17], relative_to: ~D[2024-06-16], unit: :mon, locale: :"en-GB")
+{:ok, "next Monday"}
+
+iex> Localize.DateTime.Relative.to_string(~D[2024-06-17], relative_to: ~D[2024-06-16], unit: :mon, locale: :"en-US")
+{:ok, "this Monday"}
 ```
 
 ### Format styles
@@ -663,6 +688,6 @@ Skeleton atoms can use `j` as a meta-symbol that resolves to the locale's prefer
 |--------|------|---------|-------------|
 | `:locale` | atom, string, or `LanguageTag` | `Localize.get_locale()` | Locale for patterns, pluralization, and the number's digits and grouping. |
 | `:format` | atom | `:standard` | Width: `:standard`, `:short`, or `:narrow`. |
-| `:unit` | atom | (auto-derived) | Explicit unit: `:second`, `:minute`, `:hour`, `:day`, `:week`, `:month`, `:quarter`, `:year`, or a weekday from `:mon` to `:sun`. |
+| `:unit` | atom | (the largest whole unit) | Explicit unit: `:second`, `:minute`, `:hour`, `:day`, `:week`, `:month`, `:quarter`, `:year`, or a weekday from `:mon` to `:sun`. |
 | `:numeric` | atom | `:auto` | `:auto` uses named forms such as "yesterday" for offsets of -2 to 2; `:always` is always numeric. |
-| `:relative_to` | `Date`, `Time`, `NaiveDateTime`, or `DateTime` | `DateTime.utc_now()` | Baseline for calculating the difference. |
+| `:relative_to` | `Date`, `Time`, `NaiveDateTime`, or `DateTime` | `DateTime.utc_now()` | Baseline, converted into the value's calendar. |
