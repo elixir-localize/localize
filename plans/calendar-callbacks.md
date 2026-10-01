@@ -2,7 +2,7 @@
 
 **Status:** in progress, 2026-10-01
 
-Localize formats a date but never digs into its calendar's implementation: every answer a format or a parse needs comes from a callback on the date's own calendar module, and `Calendar.ISO`, which has none of those callbacks, is the only calendar Localize answers for itself (user, 2026-10-01; the rule is in `CLAUDE.md`, "Localize formats; calendars answer"). The date code probed calendars with `function_exported?/3` and fell back to raw fields, introspected them, and branched on CLDR calendar types; this plan removes all of it. Phases 1 and 2 have landed: no date code probes a calendar any more, and what is left is the identity and type branches.
+Localize formats a date but never digs into its calendar's implementation: every answer a format or a parse needs comes from a callback on the date's own calendar module, and `Calendar.ISO`, which has none of those callbacks, is the only calendar Localize answers for itself (user, 2026-10-01; the rule is in `CLAUDE.md`, "Localize formats; calendars answer"). The date code probed calendars with `function_exported?/3` and fell back to raw fields, introspected them, and branched on CLDR calendar types; this plan removes all of it. Phases 1 and 2 have landed: no date code probes a calendar any more, a calendar of weeks is parsed through the calendar it names, and what is left is the identity and type branches.
 
 ## Decisions
 
@@ -12,13 +12,19 @@ Localize formats a date but never digs into its calendar's implementation: every
 
 * **Months and days are ordinal.** A calendar's month and day are ordinal within its own year and are never changed. The month's CLDR name index is `month_of_year/3` followed by the calendar's `cardinal_month` callback; `month_of_year/3` keeps its meaning (user, 2026-10-01).
 
-* **Week-based dates as ex_cldr_dates_times wrote them.** The month is the 4-4-5 period's month through `month_of_year/3` and `cardinal_month`, and the day and year are the calendar's own fields: ISO 2026-W25-2 is "Jun 2, 2026", numerically 6/2/26 rather than today's 25/2/26 (user, 2026-10-01).
+* **Week-based dates.** The month is the 4-4-5 period's month through `month_of_year/3` and `cardinal_month`, and the day and year are the calendar's own fields: ISO 2026-W25-2 is "Jun 2, 2026", numerically 6/2/26 rather than today's 25/2/26 (user, 2026-10-01).
 
 * **Numeric months the same way.** `M` and `MM` write the CLDR month the name uses, `cardinal_month` of `month_of_year/3`, for every calendar, with the leap pattern for a leap month: fiscal period 1 is "7", ISO week 25 "6", and a Hebrew common year's Adar "7" and Nisan "8", where ICU writes the month's place in the year ("6", "7"); the difference is recorded in `icu_divergences.md` (user, 2026-10-01). The parser reads a numeric month back the same way, as the month of that CLDR number in the year.
 
-* **`cardinal_month` was never a callback.** In ex_cldr_calendars, as in Calendrical, it is a module function reading `__config__/0`, which ex_cldr_dates_times could call because it depended on the calendar library; nothing was lost in the move to Calendrical.
+* **`cardinal_month` becomes a callback.** In Calendrical it was a module function reading `__config__/0`, which Localize may not call, so it moves onto every calendar as a callback (user, 2026-10-01).
 
 * **Checked at the boundary, checked in the answer.** A value's calendar is checked where it enters — formatting, parsing and relative time — for every callback Localize puts to it: the Calendrical behaviour's that Localize asks and every `Calendar` callback, which Localize reaches directly and through `Date.convert/2` and `Date.shift/2`. Anything else is `Localize.UnknownCalendarError`. An answer is checked as it is used (`Localize.Calendar.ask/5`), so one that is not an answer is `Localize.InvalidValueError`, never a guess from the fields.
+
+* **A calendar must answer.** A calendar implementing only Elixir's `Calendar` behaviour cannot say how its dates are written, so it is refused with `Localize.UnknownCalendarError` wherever a value in it enters: formatting, parsing, MF2 messages and relative time alike (user, 2026-10-01).
+
+* **Week calendars parse as Gregorian dates.** A date written for a calendar of weeks, such as "Feb 1, 2024", is read as a Gregorian date and converted into it (user, 2026-10-01), since a written month and day name no single week. Localize learns this from the calendar's `parsing_calendar/0` callback, `Calendar.ISO` from the Week compiler and the calendar itself everywhere else, and reads in the answer and converts, so it never asks whether a calendar is week-based. The formatter writes a week date with its period's month and its own day, so a week date does not read back as itself: 2026-W25-2 is "Jun 2, 2026", which reads as 2026-W23-2.
+
+* **Weeks are the calendar's.** `w` and `Y` are the calendar's own week of the year and week-based year, its `week_of_year/3`, never the locale's week data (user, 2026-10-01: "Definitely the calendars weeks, not the locales weeks"; "Y follows the calendar when w does"), as Tempo's lowercase `w` is the calendar's own week beside ISO 8601's `W`. `Calendar.ISO`, the default calendar, has ISO 8601's weeks, so `W`, `w` and `Y` all follow ISO 8601 there; `W` counts a month's weeks by ISO 8601's rule in every calendar. The parser reads week text in the weeks of the calendar asked for, through its `week/2`, so week text round-trips, and an ISO 8601 week date without `:calendar` is a `Calendar.ISO` date.
 
 * **Relative time asks the calendar.** The date a month or a year on is the calendar's `shift_date/4` (through `Date.shift/2`), which keeps a lunisolar month by its name, and the months between two dates are counted by shifting, a month known by its year and `month_of_year/3`, so a week calendar's months are its periods of weeks. The months the month fields count are the starting estimate, exact wherever the field is the month.
 
@@ -32,19 +38,23 @@ When the plan began, the date code held about 33 `function_exported?/3` probes o
 | `month_of_year/3` | 5 | Called, then `cardinal_month` (new) |
 | `related_gregorian_year/3`, `cyclic_year/3`, `calendar_year/3`, `iso_week_of_year/3` | 6 | Called; answered for `Calendar.ISO` |
 | `era_calendar_type/0` (optional) | 2 | Required in Calendrical, defaulting to `cldr_calendar_type/0` |
-| `calendar_base/0` | 2 | Removed; relative time shifts through the calendar, and the parser names months through `cardinal_month` |
+| `calendar_base/0` | 2 | Removed; relative time shifts through the calendar, and the parser names months through `cardinal_month` and reads a week calendar's dates in its `parsing_calendar/0` |
 | `Calendar` callbacks every calendar has (`day_of_week/4`, `day_of_year/3`, `year_of_era/3`, `days_in_month/2`, `valid_date?/3` …) | 12 | Called without probing |
-| CLDR type and identity branches (the parser's `:japanese` eras, its `Calendar.ISO` week rules, `Localize.Calendar`'s era fallbacks) | — | Era fallbacks removed; the rest open |
+| CLDR type and identity branches (the parser's `:japanese` eras, its `Calendar.ISO` week rules, `Localize.Calendar`'s era fallbacks) | — | Era fallbacks and week rules removed; `:japanese` open |
 
 ## Tasks
 
-* [ ] **Localize: identity and type branches** — replace the parser's `:japanese` era branch and the formatter's and parser's `Calendar.ISO`-only week rules (`locale_week_of_year/2`, `W` on other calendars) with callbacks.
+* [ ] **Localize: identity and type branches** — replace the parser's `:japanese` era branch with a callback.
 
-* [ ] **Localize: quarters from the calendar** — the formatter and `Localize.Calendar.localize/3` compute a quarter from the month field, `div(month - 1, 3) + 1`, so ISO week 25 is Q9 and a thirteenth month Q5, where Calendrical's `quarter_of_year/3` answers Q2 and Q4; ex_cldr_dates_times asked the calendar.
+* [ ] **Localize: quarters from the calendar** — the formatter and `Localize.Calendar.localize/3` compute a quarter from the month field, `div(month - 1, 3) + 1`, so ISO week 25 is Q9 and a thirteenth month Q5, where Calendrical's `quarter_of_year/3` answers Q2 and Q4.
 
 * [ ] **Localize: the MF2 `calendar` option** — it still reaches Calendrical through `Localize.OptionalDependency`, which the decisions above rule out.
 
 ### Done
+
+* [x] **Localize: weeks are the calendar's** — `Y` and `w` from the calendar's `week_of_year/3` (ISO 8601 for `Calendar.ISO`), `W` by ISO 8601's rule in the calendar's month, week text parsed through the calendar's `week/2`; the locale's week data numbers no week. 2026-10-01.
+
+* [x] **Calendrical and Localize: week calendars parse as Gregorian dates** — a required `parsing_calendar/0` callback (`Calendar.ISO` in the Week compiler, the calendar itself elsewhere); the date, interval and date-time parsers read in it and convert, an ISO 8601 date and time included. 2026-10-01.
 
 * [x] **Localize: unsupported calendars** — formatting, time formats, the parsers and relative time refuse a calendar that is neither `Calendar.ISO` nor answers every callback (`Localize.Calendar.validate_calendar/1`). 2026-10-01.
 
@@ -58,8 +68,4 @@ When the plan began, the date code held about 33 `function_exported?/3` probes o
 
 ## Open questions
 
-* **Parsing into a week-based calendar.** A month name and a day are the period's month and the day of the week, which name no single week: "Feb 1, 2024" in ISO weeks is the Monday of any of weeks 5 to 8. The parser now reads it as the first week of the period, where it read the month as the week; decide whether it reads such dates at all, and how.
-
-* **Calendars outside Calendrical.** A calendar implementing only Elixir's `Calendar` behaviour was formatted from its raw fields and is now refused everywhere, relative time included; confirm that is wanted.
-
-* **Release coupling.** Localize calls `cardinal_month/1` and `era_calendar_type/0` unconditionally, so Localize 1.4 needs Calendrical 1.4; Calendrical depends on Localize, so the two are released together.
+* **Release coupling.** Localize calls `cardinal_month/1`, `era_calendar_type/0` and `parsing_calendar/0` unconditionally, so Localize 1.4 needs Calendrical 1.4; Calendrical depends on Localize, so the two are released together.

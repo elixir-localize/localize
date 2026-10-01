@@ -416,7 +416,7 @@ iex> Localize.Date.parse("2026-03-22", locale: :de)
 {:ok, ~D[2026-03-22]}
 ```
 
-Parsing is lenient about the decoration a locale allows. A weekday is read wherever the locale's formats place it, and a leading one is stripped from a format that has none. An era is read and its year counts from it, so 1 BC is year 0 and a two-digit year a format writes in full beside an era is taken as written, where ICU would move it into this century (see [ICU divergences](icu_divergences.md#date-parsing)). A format that writes the year as `yy`, its two low-order digits, is read in the century around the reference year even beside an era, as ICU reads it: `de`'s Buddhist "01.04.66 BE" is 2566 BE, and in a calendar that shows years of an era the digits are the year of that era, so `de`'s Japanese "01.04.05 R" is Reiwa 5. Stand-alone and format month names are both accepted, and week and quarter forms resolve to the date they begin. Dates, times and date-times written in the digits of the locale's number system are read as their Latin-digit forms are — `bn`'s "১০:০৫ AM" is 10:05, and names written in those digits, such as `dz`'s months, which are Tibetan numbers, are read too — and Latin digits are always accepted. Weeks are numbered by the locale's own rules, so an `en` week begins on a Sunday:
+Parsing is lenient about the decoration a locale allows. A weekday is read wherever the locale's formats place it, and a leading one is stripped from a format that has none. An era is read and its year counts from it, so 1 BC is year 0 and a two-digit year a format writes in full beside an era is taken as written, where ICU would move it into this century (see [ICU divergences](icu_divergences.md#date-parsing)). A format that writes the year as `yy`, its two low-order digits, is read in the century around the reference year even beside an era, as ICU reads it: `de`'s Buddhist "01.04.66 BE" is 2566 BE, and in a calendar that shows years of an era the digits are the year of that era, so `de`'s Japanese "01.04.05 R" is Reiwa 5. Stand-alone and format month names are both accepted, and week and quarter forms resolve to the date they begin. Dates, times and date-times written in the digits of the locale's number system are read as their Latin-digit forms are — `bn`'s "১০:০৫ AM" is 10:05, and names written in those digits, such as `dz`'s months, which are Tibetan numbers, are read too — and Latin digits are always accepted. Weeks are the calendar's own, never the locale's week data: `Calendar.ISO`'s are ISO 8601's, so week 20 of 2026 begins on Monday 11 May in every locale:
 
 ```elixir
 iex> Localize.Date.parse("Saturday, May 16, 2026", locale: :en)
@@ -429,7 +429,7 @@ iex> Localize.Date.parse("Mar 15, 44 BC", locale: :en)
 {:ok, ~D[-0043-03-15]}
 
 iex> Localize.Date.parse("week 20 of 2026", locale: :en)
-{:ok, ~D[2026-05-10]}
+{:ok, ~D[2026-05-11]}
 
 iex> Localize.Date.parse("Q2 2026", locale: :en)
 {:ok, ~D[2026-04-01]}
@@ -575,6 +575,16 @@ The calendar is checked before any parsing happens, so the answer does not depen
 
 The date comes back in the `:calendar` module. When a consumer needs it in another calendar, such as `Calendar.ISO` for an Ecto `:date` field, convert it with `Date.convert/2`.
 
+A calendar of weeks, such as `Calendrical.ISOWeek`, has no month or day of the month of its own, so a written month and day name no single one of its weeks. Its `parsing_calendar/0` callback answers `Calendar.ISO`, so its input is read as a Gregorian date and converted into it:
+
+```elixir
+# With calendrical installed
+Localize.Date.parse("Feb 1, 2024", locale: :en, calendar: Calendrical.ISOWeek)
+#=> {:ok, ~D[2024-W05-4 Calendrical.ISOWeek]}
+```
+
+So a week date does not read back as itself from the text the formatter writes for it: ISO week 25 day 2 of 2026 is written "Jun 2, 2026", the month of its period and its own day, which reads as 2 June 2026, 2026-W23-2.
+
 A time carries no date fields, so `Localize.Time.parse/2` resolves no calendar and the option has no effect there.
 
 ## Format pattern reference
@@ -595,7 +605,12 @@ A symbol takes only the widths TR35's Date Field Symbol Table lists for it. At a
 | `E` | Day name | Mon | Mon | Mon | Monday | M |
 | `e` | Day of week (numeric) | 2 | 02 | Mon | Monday | M |
 | `c` | Standalone day | 2 | 2 | Mon | Monday | M |
+| `Y` | Week-based year | 2024 | 24 | 2024 | 2024 | 02024 |
+| `w` | Week of year | 27 | 27 | � | � | � |
+| `W` | Week of month | 1 | � | � | � | � |
 | `Q` | Quarter | 3 | 03 | Q3 | 3rd quarter | 3 |
+
+`Y`, `w` and `W` count the calendar's weeks, never the locale's week data. `Y` and `w` are the calendar's own week-based year and week of the year, its `week_of_year/3`, and `Calendar.ISO`'s are ISO 8601's: weeks begin on Monday and week 1 holds 4 January, so 1 January 2027 is in week 53 of 2026 in `en` as in `de`. A calendar that numbers its weeks another way, such as Calendrical's Gregorian calendar, whose week 1 holds 1 January, gives its own. `W` counts the weeks of the calendar's month by ISO 8601's rule: a Monday week is the month's when four or more of its days are, so a month's weeks are its first four or five. The numeric day of the week, `e` and `c`, still counts from the locale's first day, as TR35 defines it. ICU numbers weeks by the locale's week data; see [ICU divergences](icu_divergences.md#date-and-time-patterns).
 
 `ddd` is CLDR 49's ordinal day of month and is a **technical preview** — TR35 designates the `dayOfMonth` section one, so both the output and the surface may change. It is taken from the locale's `dayOfMonths` data for the ordinal plural category the day selects — `:yMMMddd` renders "Jul 6th, 2024" in `en` and "1er juil. 2024" in `fr`. Only some locales carry that data; the rest format the plain day, as does any pattern whose month is numeric (`M` or `MM`), where TR35 says `ddd` is ignored. A skeleton asking for `ddd` where the locale has no `ddd` format matches its `d` format instead, and the pattern's `d` is left at its own width rather than being widened.
 

@@ -153,9 +153,12 @@ defmodule Localize.DateTime.FormatterSymbolTest do
       assert date_format(@january, "ww") == "03"
     end
 
+    # ISO 8601's rule in the month: Wednesday 31 July 2024's week holds
+    # Thursday 1 August, so it is week 1 of August.
     test "week of month" do
       assert date_format(@date, "W") == "1"
-      assert date_format(~D[2024-07-31], "W") == "5"
+      assert date_format(~D[2024-07-24], "W") == "4"
+      assert date_format(~D[2024-07-31], "W") == "1"
     end
   end
 

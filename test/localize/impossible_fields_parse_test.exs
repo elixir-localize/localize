@@ -53,33 +53,41 @@ defmodule Localize.ImpossibleFieldsParseTest do
                {:ok, %{calendar: Calendar.ISO, month: 5, year: 2032}}
     end
 
+    # `Calendar.ISO`'s weeks are ISO 8601's in every locale: 2025 has 52 of
+    # them and 2026, which begins on a Thursday, 53, whose Monday is
+    # 28 December (`:calendar.iso_week_number/1`).
     test "a week the year does not have is an error in both forms" do
-      for input <- ["week 60 of 2026", "week 0 of 2026", "week 53 of 2026"] do
+      assert :calendar.iso_week_number({2025, 12, 28}) == {2025, 52}
+      assert :calendar.iso_week_number({2026, 12, 28}) == {2026, 53}
+
+      for input <- ["week 60 of 2026", "week 0 of 2026", "week 53 of 2025"] do
         assert_error(Localize.Date.parse(input, @options), Localize.DateParseError, input)
         assert_error(Localize.Date.parse(input, @map_options), Localize.DateParseError, input)
       end
 
-      assert Localize.Date.parse("week 53 of 2022", @options) == {:ok, ~D[2022-12-25]}
+      assert Localize.Date.parse("week 53 of 2026", @options) == {:ok, ~D[2026-12-28]}
     end
 
+    # `W` follows ISO 8601's rule in every locale: a Monday week is the
+    # month's that holds its Thursday, so a month's weeks are its first four
+    # or five, as many as its Thursdays, and none is week 0 or week 6. June
+    # 2023 and August 2024 each have five Thursdays.
     test "a week of the month no month has is an error in the map form" do
-      for input <- ["week 7 of June", "week 0 of June"] do
+      for input <- ["week 7 of June", "week 6 of June", "week 0 of June"] do
         assert_error(Localize.Date.parse(input, @map_options), Localize.DateParseError, input)
       end
 
-      assert Localize.Date.parse("week 6 of June", @map_options) ==
-               {:ok, %{calendar: Calendar.ISO, month: 6, week_of_month: 6}}
+      assert Localize.Date.parse("week 5 of June", @map_options) ==
+               {:ok, %{calendar: Calendar.ISO, month: 6, week_of_month: 5}}
 
       de_options = Keyword.put(@map_options, :locale, :de)
 
-      assert_error(
-        Localize.Date.parse("Woche 6 im Februar", de_options),
-        Localize.DateParseError,
-        "Woche 6 im Februar"
-      )
+      for input <- ["Woche 6 im Februar", "Woche 0 im August"] do
+        assert_error(Localize.Date.parse(input, de_options), Localize.DateParseError, input)
+      end
 
-      assert Localize.Date.parse("Woche 0 im August", de_options) ==
-               {:ok, %{calendar: Calendar.ISO, month: 8, week_of_month: 0}}
+      assert Localize.Date.parse("Woche 5 im August", de_options) ==
+               {:ok, %{calendar: Calendar.ISO, month: 8, week_of_month: 5}}
     end
   end
 

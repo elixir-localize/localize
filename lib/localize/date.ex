@@ -602,9 +602,14 @@ defmodule Localize.Date do
   * `:calendar` is a calendar module, such as `Calendar.ISO` (the
     default), `Calendrical.Gregorian` or `Calendrical.Hebrew`. The input is
     read with the locale's patterns for the calendar's CLDR type, and the
-    date is built and returned in this module. Anything that is not a
-    calendar module, including a CLDR calendar name such as `:hebrew` or
-    `"gregorian"`, returns a `t:Localize.UnknownCalendarError.t/0`.
+    date is built and returned in this module. A calendar of weeks, such
+    as `Calendrical.ISOWeek`, whose written month and day name no single
+    week, reads the input as a Gregorian date, as its `parsing_calendar/0`
+    says, and the date is converted into it: `"Feb 1, 2024"` is
+    2024-W05-4. Anything that is not a calendar module, including a CLDR
+    calendar name such as `:hebrew` or `"gregorian"`, and a module that
+    implements only the `Calendar` behaviour, returns a
+    `t:Localize.UnknownCalendarError.t/0`.
 
   * `:reference_date` is the `t:Date.t/0` that partial input is completed
     against, taken in the calendar the input is read in. The default is
@@ -613,7 +618,10 @@ defmodule Localize.Date do
   * `:as` is `:struct` or `:map`. `:map` returns only the fields the input
     actually carried, rather than completing them. They must still be
     fields some date has, so `"June 31"` is an error in both forms while
-    `"February 29"` is a partial date. The default is `:struct`.
+    `"February 29"` is a partial date. A date read in another calendar and
+    converted, as a calendar of weeks reads one, comes back whole, as a
+    partial date has no fields in the other calendar. The default is
+    `:struct`.
 
   ### Returns
 

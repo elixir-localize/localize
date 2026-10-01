@@ -1067,9 +1067,14 @@ defmodule Localize.DateTime do
   * `:calendar` is a calendar module, such as `Calendar.ISO` (the
     default), `Calendrical.Gregorian` or `Calendrical.Hebrew`. The input is
     read with the locale's patterns for the calendar's CLDR type, and the
-    date is built and returned in this module. Anything that is not a
-    calendar module, including a CLDR calendar name such as `:hebrew` or
-    `"gregorian"`, returns a `t:Localize.UnknownCalendarError.t/0`.
+    date is built and returned in this module. A calendar of weeks, such
+    as `Calendrical.ISOWeek`, whose written month and day name no single
+    week, reads the input as a Gregorian date, as its `parsing_calendar/0`
+    says, and the date is converted into it: `"Feb 1, 2024"` is
+    2024-W05-4. Anything that is not a calendar module, including a CLDR
+    calendar name such as `:hebrew` or `"gregorian"`, and a module that
+    implements only the `Calendar` behaviour, returns a
+    `t:Localize.UnknownCalendarError.t/0`.
 
   * `:reference_date` is the `t:Date.t/0` that partial input is completed
     against, taken in the calendar the input is read in. The default is
@@ -1081,8 +1086,9 @@ defmodule Localize.DateTime do
     `t:DateTime.t/0` zone fields (`:time_zone`, `:utc_offset`, `:std_offset`
     and `:zone_abbr`) as the struct form resolves them: a fixed offset
     always, and a named zone when the input gives the full date its offset
-    depends on; otherwise `:time_zone` holds the zone as written. The
-    default is `:struct`.
+    depends on; otherwise `:time_zone` holds the zone as written. A date
+    and time read in another calendar and converted, as a calendar of
+    weeks reads one, comes back whole. The default is `:struct`.
 
   ### Returns
 

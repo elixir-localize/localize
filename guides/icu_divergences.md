@@ -63,6 +63,8 @@ TR35 is CLDR's specification, and the rule applies to it as to the data. Its Dat
 
 A numeric month (`M`, `MM`, `L`, `LL`) is the CLDR month the month's name uses, as the date's calendar answers it through `month_of_year/3` and `cardinal_month/1`. CLDR numbers the Hebrew months 1 to 13 in every year, Adar 7 and Nisan 8, so in a common year, which has no Adar I, Localize writes Adar 1, 5785 as "7/1/5785" where ICU4C writes the month's place in the year, "6/1/5785". A leap year's months are numbered alike by both.
 
+Week numbers (`Y`, `w`, `W`) are the calendar's, never the locale's week data (user, 2026-10-01). ICU4C numbers a Gregorian week by the locale's `firstDay` and `minDays`, so `en`'s week 1 of 2027 begins on Sunday 27 December 2026; Localize numbers `Calendar.ISO`'s weeks by ISO 8601 in every locale, so 1 January 2027 is in week 53 of 2026 and week 1 begins on Monday 4 January, as `de` writes it in both. `W` follows ISO 8601's rule in the month, so the days of a first week the month holds fewer than four of are in the last week of the month before, where ICU4C writes week 0.
+
 ### Date parsing
 
 TR35 makes `y` the year of the era `G` names, and leaves the reading of a two-digit year to the implementation. ICU4C 78.3 reads any two-digit year as one within 80 years before and 20 after today, even beside an era, so it cannot read back the "44 BC" it formats itself. Localize takes a year its era qualifies as written where the format writes the year in full (`y`), and applies the pivot to a year written without an era and, as ICU does, to one the format writes as `yy`, its two low-order digits; asserted in `test/localize/date_parse_era_test.exs` and `test/localize/date_parse_lunisolar_test.exs`.

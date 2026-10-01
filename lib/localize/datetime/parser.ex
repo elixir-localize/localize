@@ -102,10 +102,12 @@ defmodule Localize.DateTime.Parser do
   end
 
   # The `:calendar` option is the caller's calendar module, and the date
-  # and datetime parsers build their results in it.
+  # and datetime parsers build their results in it; an interval's
+  # separator is the one of the calendar its dates are read in.
   defp parse_valid(input, options) do
-    with {:ok, calendar_module} <- Localize.Date.Parser.calendar_option(options) do
-      parse_with_calendar(input, options, calendar_module)
+    with {:ok, calendar_module} <- Localize.Date.Parser.calendar_option(options),
+         {:ok, parsing} <- Localize.Calendar.parsing_calendar(calendar_module) do
+      parse_with_calendar(input, options, parsing)
     end
   end
 
@@ -247,9 +249,15 @@ defmodule Localize.DateTime.Parser do
     stripped = Localize.Date.Parser.preprocess_safe(normalised, locale, calendar_module)
     candidates = Enum.uniq([normalised, stripped])
 
+    # ISO 8601 writes a Gregorian date and time, which is converted into
+    # the calendar asked for. The locale's patterns read the date half
+    # through `Localize.Date.parse/2`, which reads it in the calendar's
+    # `parsing_calendar/0` and converts it, as for a calendar of weeks.
     case Enum.find_value(candidates, :error, &iso_candidate/1) do
       {:ok, value} ->
-        {:ok, finalise_datetime(value, as)}
+        with {:ok, value} <- Localize.Date.Parser.convert_value(value, calendar_module) do
+          {:ok, finalise_datetime(value, as)}
+        end
 
       :error ->
         try_locale_glue_candidates(candidates, locale, options, as)

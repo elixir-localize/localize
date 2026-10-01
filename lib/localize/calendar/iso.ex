@@ -27,6 +27,10 @@ defmodule Localize.Calendar.ISO do
   def era_calendar_type, do: :gregorian
 
   @doc false
+  @spec parsing_calendar() :: Calendar.ISO
+  def parsing_calendar, do: Calendar.ISO
+
+  @doc false
   @spec month_of_year(Calendar.year(), Calendar.month(), Calendar.day()) :: Calendar.month()
   def month_of_year(_year, month, _day), do: month
 
@@ -51,8 +55,36 @@ defmodule Localize.Calendar.ISO do
   @spec cyclic_year(Calendar.year(), Calendar.month(), Calendar.day()) :: Calendar.year()
   def cyclic_year(year, _month, _day), do: year
 
+  # `Calendar.ISO` numbers ISO 8601's weeks: they begin on Monday, and week
+  # 1 is the one holding 4 January, so 1 January 2027 is in week 53 of 2026.
   @doc false
-  @spec iso_week_of_year(Calendar.year(), Calendar.month(), Calendar.day()) ::
-          {Calendar.year(), pos_integer()}
-  def iso_week_of_year(year, month, day), do: :calendar.iso_week_number({year, month, day})
+  @spec week_of_year(Calendar.year(), Calendar.month(), Calendar.day()) ::
+          {Calendar.year(), pos_integer()} | {:error, :invalid_date}
+  def week_of_year(year, month, day) do
+    if Calendar.ISO.valid_date?(year, month, day),
+      do: :calendar.iso_week_number({year, month, day}),
+      else: {:error, :invalid_date}
+  end
+
+  # The days of ISO 8601 week `week` of week-based year `year`, Monday to
+  # Sunday. A year has 52 weeks, or 53 when it begins on a Thursday, or on a
+  # Wednesday in a leap year.
+  @doc false
+  @spec week(Calendar.year(), pos_integer()) :: Date.Range.t() | {:error, :invalid_date}
+  def week(year, week) when is_integer(year) and is_integer(week) do
+    with {:ok, january_4} <- Date.new(year, 1, 4),
+         true <- week in 1..weeks_in_year(year) do
+      monday = Date.add(january_4, (week - 1) * 7 + 1 - Date.day_of_week(january_4))
+      Date.range(monday, Date.add(monday, 6))
+    else
+      _not_a_week -> {:error, :invalid_date}
+    end
+  end
+
+  def week(_year, _week), do: {:error, :invalid_date}
+
+  defp weeks_in_year(year) do
+    {_year, weeks} = :calendar.iso_week_number({year, 12, 28})
+    weeks
+  end
 end

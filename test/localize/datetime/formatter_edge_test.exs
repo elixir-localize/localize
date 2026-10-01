@@ -223,21 +223,22 @@ defmodule Localize.DateTime.FormatterEdgeTest do
     end
   end
 
-  describe "locale week configuration (Y, w, W)" do
-    test "a date before week one belongs to the previous week-aligned year in de" do
-      # 2022-01-01 is a Saturday; with de's firstDay monday and
-      # minDays 4 it falls in week 52 of week-aligned year 2021.
+  # Week numbers are the calendar's, never the locale's week data (user,
+  # 2026-10-01): `Calendar.ISO`'s are ISO 8601's in every locale.
+  describe "the calendar's weeks (Y, w, W)" do
+    test "a date before week one belongs to the previous week-aligned year in every locale" do
+      # 2022-01-01 is a Saturday, in ISO 8601's week 52 of 2021
+      # (`:calendar.iso_week_number/1`), whether the locale's weeks begin
+      # on Monday (de) or Sunday (en).
       assert date_format(~D[2022-01-01], "YYYY-ww", :de) == "2021-52"
+      assert date_format(~D[2022-01-01], "YYYY-ww", :en) == "2021-52"
     end
 
-    test "the same date is week one in en (minDays 1)" do
-      assert date_format(~D[2022-01-01], "YYYY-ww", :en) == "2022-01"
-    end
-
-    test "W renders week zero when the leading partial week is too short" do
-      # 2021-10-01 is a Friday; the partial first week has three days,
-      # fewer than de's minDays 4, so per ICU it counts as week 0.
-      assert date_format(~D[2021-10-01], "W", :de) == "0"
+    test "W puts the days of a short first week in the month before" do
+      # 2021-10-01 is a Friday; its week holds Thursday 30 September, so
+      # it is the last week of September, its fifth, where ICU writes 0.
+      assert date_format(~D[2021-10-01], "W", :de) == "5"
+      assert date_format(~D[2021-10-04], "W", :de) == "1"
     end
   end
 

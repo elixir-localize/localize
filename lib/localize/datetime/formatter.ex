@@ -931,20 +931,20 @@ defmodule Localize.DateTime.Formatter do
 
   @doc false
   def week_aligned_year(date, 1, locale_id, options) when is_date(date) do
-    with {:ok, {year, _week}} <- locale_week_of_year(date, locale_id) do
+    with {:ok, {year, _week}} <- calendar_week_of_year(date) do
       year |> Kernel.to_string() |> apply_ns(locale_id, options, "Y")
     end
   end
 
   def week_aligned_year(date, 2, locale_id, options) when is_date(date) do
-    with {:ok, {year, _week}} <- locale_week_of_year(date, locale_id) do
+    with {:ok, {year, _week}} <- calendar_week_of_year(date) do
       year |> rem(100) |> pad(2) |> apply_ns(locale_id, options, "Y")
     end
   end
 
   # TR35 defines `YYYYY+`: any width of three or more is a minimum digit count.
   def week_aligned_year(date, count, locale_id, options) when is_date(date) and count >= 3 do
-    with {:ok, {year, _week}} <- locale_week_of_year(date, locale_id) do
+    with {:ok, {year, _week}} <- calendar_week_of_year(date) do
       year |> pad(count) |> apply_ns(locale_id, options, "Y")
     end
   end
@@ -1155,13 +1155,13 @@ defmodule Localize.DateTime.Formatter do
 
   @doc false
   def week_of_year(date, 1, locale_id, options) when is_date(date) do
-    with {:ok, {_year, week}} <- locale_week_of_year(date, locale_id) do
+    with {:ok, {_year, week}} <- calendar_week_of_year(date) do
       apply_ns(week, locale_id, options, "w")
     end
   end
 
   def week_of_year(date, 2, locale_id, options) when is_date(date) do
-    with {:ok, {_year, week}} <- locale_week_of_year(date, locale_id) do
+    with {:ok, {_year, week}} <- calendar_week_of_year(date) do
       week |> pad(2) |> apply_ns(locale_id, options, "w")
     end
   end
@@ -1171,21 +1171,13 @@ defmodule Localize.DateTime.Formatter do
   # ── Week of Month (W) ──────────────────────────────────────
 
   @doc false
-  def week_of_month(
-        %{year: year, month: month, day: day, calendar: Calendar.ISO},
-        _count,
-        locale_id,
-        options
-      ) do
-    config = Localize.DateTime.Week.config(locale_id)
-
-    year
-    |> Localize.DateTime.Week.week_of_month(month, day, config)
-    |> apply_ns(locale_id, options, "W")
-  end
-
-  def week_of_month(%{day: day}, _count, locale_id, options) when is_integer(day) do
-    (div(day - 1, 7) + 1) |> apply_ns(locale_id, options, "W")
+  # ISO 8601's rule in the calendar's own month, whatever the locale's week
+  # data: weeks begin on Monday, and a week is the month's when four or more
+  # of its days are.
+  def week_of_month(date, _count, locale_id, options) when is_date(date) do
+    with {:ok, week} <- Localize.Calendar.iso_week_of_month(date) do
+      apply_ns(week, locale_id, options, "W")
+    end
   end
 
   def week_of_month(_date, _count, _locale_id, _options), do: ""
@@ -1849,51 +1841,16 @@ defmodule Localize.DateTime.Formatter do
 
   # ── Calendar derivation helpers ────────────────────────────
 
-  # Prefer the date's own calendar callback. Calendrical calendars
-  # that implement ISO weeks (Gregorian, Julian, composites)
-  # return `{year, week}`. Calendars without ISO-week semantics
-  # (Hebrew, Islamic, Persian, Japanese imperial, …) return
-  # `{:error, :not_defined}` from the Calendrical Behaviour
-  # default — in that case we convert to Calendar.ISO and use
-  # the Erlang stdlib helper. For plain `Calendar.ISO` dates,
-  # which don't carry the callback at all, the stdlib helper
-  # is the direct path.
-  # CLDR week-of-year per TR35: weeks begin on the locale's first day
-  # of the week, and week 1 is the first week containing at least the
-  # locale's minimum number of days of the new year. Days before week 1
-  # belong to the last week of the previous week-aligned year. Applied
-  # to `Calendar.ISO` dates; calendars with their own week schemes keep
-  # their `iso_week_of_year/3` callback path.
-  defp locale_week_of_year(
-         %{year: year, month: month, day: day, calendar: Calendar.ISO},
-         locale_id
-       ) do
-    {first_day, min_days} = Localize.DateTime.Week.config(locale_id)
-    gregorian_day = :calendar.date_to_gregorian_days({year, month, day})
-    this_year_start = Localize.DateTime.Week.week_one_start(year, first_day, min_days)
-
-    week =
-      cond do
-        gregorian_day < this_year_start ->
-          previous_start = Localize.DateTime.Week.week_one_start(year - 1, first_day, min_days)
-          {year - 1, div(gregorian_day - previous_start, 7) + 1}
-
-        gregorian_day >= Localize.DateTime.Week.week_one_start(year + 1, first_day, min_days) ->
-          {year + 1, 1}
-
-        true ->
-          {year, div(gregorian_day - this_year_start, 7) + 1}
-      end
-
-    {:ok, week}
-  end
-
-  defp locale_week_of_year(%{year: year, month: month, day: day} = date, _locale_id) do
+  # The week of the year and the year it belongs to in the calendar's own
+  # weeks, its `week_of_year/3`, never the locale's week data: ISO 8601's for
+  # `Calendar.ISO`, and its own for a calendar of weeks or one that numbers
+  # them from 1 January.
+  defp calendar_week_of_year(%{year: year, month: month, day: day} = date) do
     Localize.Calendar.ask(
       Map.get(date, :calendar, Calendar.ISO),
-      :iso_week_of_year,
+      :week_of_year,
       [year, month, day],
-      "a year and an ISO week",
+      "a week-based year and a week",
       fn
         {week_year, week} -> is_integer(week_year) and is_integer(week)
         _other -> false

@@ -1379,12 +1379,14 @@ defmodule Localize.Calendar do
   @answers [
              cldr_calendar_type: 0,
              era_calendar_type: 0,
+             parsing_calendar: 0,
              month_of_year: 3,
              cardinal_month: 1,
              calendar_year: 3,
              related_gregorian_year: 3,
              cyclic_year: 3,
-             iso_week_of_year: 3
+             week_of_year: 3,
+             week: 2
            ] ++
              (Calendar.behaviour_info(:callbacks) -- Calendar.behaviour_info(:optional_callbacks))
 
@@ -1397,6 +1399,18 @@ defmodule Localize.Calendar do
   # The CLDR calendar whose data names a calendar's eras.
   @spec era_calendar_type(module()) :: atom()
   def era_calendar_type(calendar), do: answering(calendar).era_calendar_type()
+
+  @doc false
+  # The calendar a date written for `calendar` is parsed in before it is
+  # converted into it, as the calendar answers: itself, or `Calendar.ISO`
+  # for a calendar of weeks, whose written month and day name no single
+  # week. The answer is a calendar that must answer Localize in turn.
+  @spec parsing_calendar(module()) :: {:ok, module()} | {:error, Exception.t()}
+  def parsing_calendar(calendar) do
+    parsing = answering(calendar).parsing_calendar()
+
+    with :ok <- validate_calendar(%{calendar: parsing}), do: {:ok, parsing}
+  end
 
   @doc false
   # Puts a question to a calendar: `callback` with `arguments`, to the
@@ -1505,6 +1519,56 @@ defmodule Localize.Calendar do
 
   defp day_of_week?({day, _first, _last}), do: day in 1..7
   defp day_of_week?(_answer), do: false
+
+  @doc false
+  # The week of a date's month by ISO 8601's rule, in the calendar's own
+  # month: weeks begin on Monday, and a week belongs to the month holding
+  # four or more of its days. So a day of a week its month holds fewer of
+  # at the start is in the last week of the month before, and at the end
+  # in week 1 of the month after. An error when the calendar answers with
+  # something that is not a day of the week or a month's length.
+  @spec iso_week_of_month(map()) :: {:ok, pos_integer()} | {:error, Exception.t()}
+  def iso_week_of_month(%{year: year, month: month, day: day} = date)
+      when is_integer(year) and is_integer(month) and is_integer(day) do
+    calendar = Map.get(date, :calendar, Calendar.ISO)
+
+    with {:ok, first} <- day_of_week(%{year: year, month: month, day: 1, calendar: calendar}),
+         {:ok, days} <- month_length(calendar, year, month) do
+      week_one = week_one_day(first)
+      next_week_one = days + week_one_day(Integer.mod(first - 1 + days, 7) + 1)
+
+      cond do
+        day < week_one -> last_week_of_month_before(calendar, year, month)
+        day >= next_week_one -> {:ok, 1}
+        true -> {:ok, div(day - week_one, 7) + 1}
+      end
+    end
+  end
+
+  # The day of the month, counted from its first, on which the Monday that
+  # begins its week 1 falls: on or before the first when that week holds
+  # four or more of its days, and the Monday after otherwise.
+  defp week_one_day(first_weekday) when 8 - first_weekday >= 4, do: 2 - first_weekday
+  defp week_one_day(first_weekday), do: 9 - first_weekday
+
+  defp last_week_of_month_before(calendar, year, 1) do
+    with {:ok, months} <-
+           ask(calendar, :months_in_year, [year - 1], "a number of months", &positive?/1),
+         {:ok, days} <- month_length(calendar, year - 1, months) do
+      iso_week_of_month(%{year: year - 1, month: months, day: days, calendar: calendar})
+    end
+  end
+
+  defp last_week_of_month_before(calendar, year, month) do
+    with {:ok, days} <- month_length(calendar, year, month - 1) do
+      iso_week_of_month(%{year: year, month: month - 1, day: days, calendar: calendar})
+    end
+  end
+
+  defp month_length(calendar, year, month),
+    do: ask(calendar, :days_in_month, [year, month], "a number of days", &positive?/1)
+
+  defp positive?(answer), do: is_integer(answer) and answer > 0
 
   # CLDR's leap-year name of a month (`7_yeartype_leap`, the Hebrew "Adar II")
   # is keyed by an atom. The keys are built here from the closed set of month

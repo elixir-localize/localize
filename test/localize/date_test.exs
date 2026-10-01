@@ -58,46 +58,55 @@ defmodule Localize.DateTest do
       assert String.contains?(result, "CE")
     end
 
-    test "week fields honour the locale's first day and minimum days" do
-      # en (US): weeks start Sunday, min 1 day — 2023-01-01 is a Sunday
-      # and starts week 1. de: weeks start Monday, min 4 days (ISO) —
-      # the same date is week 52 of week-year 2022.
-      assert {:ok, "1"} = Localize.Date.to_string(~D[2023-01-01], format: "w", locale: :en)
-      assert {:ok, "2023"} = Localize.Date.to_string(~D[2023-01-01], format: "Y", locale: :en)
-      assert {:ok, "52"} = Localize.Date.to_string(~D[2023-01-01], format: "w", locale: :de)
-      assert {:ok, "2022"} = Localize.Date.to_string(~D[2023-01-01], format: "Y", locale: :de)
-      assert {:ok, "1"} = Localize.Date.to_string(~D[2023-01-02], format: "w", locale: :de)
-      assert {:ok, "53"} = Localize.Date.to_string(~D[2022-12-31], format: "w", locale: :en)
-      assert {:ok, "1"} = Localize.Date.to_string(~D[2024-12-29], format: "w", locale: :en)
-      assert {:ok, "2025"} = Localize.Date.to_string(~D[2024-12-29], format: "Y", locale: :en)
-    end
+    # Week numbers are the calendar's, never the locale's week data (user,
+    # 2026-10-01), and `Calendar.ISO`'s are ISO 8601's, so en's Sunday weeks
+    # and de's Monday weeks number a date alike. The expected weeks are
+    # Erlang's `:calendar.iso_week_number/1`: 2023-01-01, a Sunday, is in
+    # week 52 of 2022.
+    test "week fields are Calendar.ISO's ISO 8601 weeks in every locale" do
+      for locale <- [:en, :de, :"en-GB", :fr, :ja] do
+        assert Localize.Date.to_string(~D[2023-01-01], format: "w", locale: locale) == {:ok, "52"}
 
-    # TR35 §Week of Year works this exact example: January 1, 1998 was a
-    # Thursday, and with `firstDay=mon` / `minDays=4` — "the values
-    # reflecting ISO 8601" — week 1 of 1998 begins 1997-12-29. Week
-    # numbering follows the locale's own `firstDay`/`minDays`; ISO is what a
-    # locale gets when its data says mon/4, not a universal default. Do not
-    # "correct" `en` to the ISO answer.
-    test "week numbering follows TR35's worked example for both conventions" do
-      # en-GB, de and fr all carry mon/4, so they give the ISO answer.
-      for locale <- [:"en-GB", :de, :fr] do
-        assert {:ok, "1"} = Localize.Date.to_string(~D[1998-01-01], format: "w", locale: locale)
-        assert {:ok, "53"} = Localize.Date.to_string(~D[2027-01-01], format: "w", locale: locale)
+        assert Localize.Date.to_string(~D[2023-01-01], format: "Y", locale: locale) ==
+                 {:ok, "2022"}
 
-        assert {:ok, "2026"} =
-                 Localize.Date.to_string(~D[2027-01-01], format: "Y", locale: locale)
+        assert Localize.Date.to_string(~D[2023-01-02], format: "w", locale: locale) == {:ok, "1"}
+        assert Localize.Date.to_string(~D[2022-12-31], format: "w", locale: locale) == {:ok, "52"}
+        assert Localize.Date.to_string(~D[2024-12-29], format: "w", locale: locale) == {:ok, "52"}
+
+        assert Localize.Date.to_string(~D[2024-12-29], format: "Y", locale: locale) ==
+                 {:ok, "2024"}
       end
-
-      # en carries sun/1, so the first days of January belong to week 1.
-      assert {:ok, "1"} = Localize.Date.to_string(~D[2027-01-01], format: "w", locale: :en)
-      assert {:ok, "2027"} = Localize.Date.to_string(~D[2027-01-01], format: "Y", locale: :en)
     end
 
-    test "week of month honours the locale's first day" do
-      # February 2016 begins on a Monday. With US weeks (Sunday start),
-      # Feb 29 (a Monday) falls in week 5.
-      assert {:ok, "5"} = Localize.Date.to_string(~D[2016-02-29], format: "W", locale: :en)
-      assert {:ok, "1"} = Localize.Date.to_string(~D[2016-02-01], format: "W", locale: :en)
+    # TR35 §Week of Year works this example: January 1, 1998 was a Thursday,
+    # and with weeks beginning on Monday and four days in week 1, "the values
+    # reflecting ISO 8601", week 1 of 1998 begins on 29 December 1997. 2027
+    # begins on a Friday, so its first days are in week 53 of 2026.
+    test "week numbering follows TR35's ISO 8601 example" do
+      for locale <- [:en, :"en-GB", :de, :fr] do
+        assert Localize.Date.to_string(~D[1998-01-01], format: "w", locale: locale) == {:ok, "1"}
+
+        assert Localize.Date.to_string(~D[1997-12-29], format: "Y", locale: locale) ==
+                 {:ok, "1998"}
+
+        assert Localize.Date.to_string(~D[2027-01-01], format: "w", locale: locale) == {:ok, "53"}
+
+        assert Localize.Date.to_string(~D[2027-01-01], format: "Y", locale: locale) ==
+                 {:ok, "2026"}
+      end
+    end
+
+    # `W` follows ISO 8601's rule in the month: a Monday week is the month's
+    # that holds its Thursday. February 2016 begins on a Monday; Monday 29
+    # February's week holds Thursday 3 March, so it is week 1 of March.
+    test "week of month follows ISO 8601's rule in every locale" do
+      for locale <- [:en, :de] do
+        assert Localize.Date.to_string(~D[2016-02-01], format: "W", locale: locale) == {:ok, "1"}
+        assert Localize.Date.to_string(~D[2016-02-15], format: "W", locale: locale) == {:ok, "3"}
+        assert Localize.Date.to_string(~D[2016-02-28], format: "W", locale: locale) == {:ok, "4"}
+        assert Localize.Date.to_string(~D[2016-02-29], format: "W", locale: locale) == {:ok, "1"}
+      end
     end
 
     test "BCE years render era-relative, not signed proleptic" do

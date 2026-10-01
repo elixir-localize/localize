@@ -5,7 +5,10 @@ defmodule Localize.DateTime.SymbolMatrixTest do
 
   Expected values are computed here rather than taken from the formatter:
   numeric fields from `Calendar` arithmetic and TR35's field definitions,
-  week fields from the locale's week data by TR35's week rules, the Julian
+  week numbers as `Calendar.ISO` numbers them, by ISO 8601's rules whatever
+  the locale's week data (`:calendar.iso_week_number/1`, and for `W` the
+  month that holds the week's Thursday), the local weekday from the locale's
+  first day, the Julian
   day from a fixed epoch, day periods from the locale's day-period rules,
   and names read directly from the locale's calendar data. Each case goes
   through `to_string/2` and `to_parts/2`, whose parts must join to the same
@@ -568,39 +571,22 @@ defmodule Localize.DateTime.SymbolMatrixTest do
     eras |> Map.fetch!(width) |> Map.fetch!(era)
   end
 
-  # TR35 week rules: a week starts on the locale's first day, and week 1 is
-  # the first week holding at least the locale's minimum days of the year.
+  # The locale's first day of the week, from which `e` and `c` count.
   defp week_data(locale) do
     {Localize.Calendar.first_day_for_locale(locale),
      Localize.Calendar.min_days_for_locale(locale)}
   end
 
-  defp week_one_start(year, {first_day, min_days}) do
-    new_year = Date.new!(year, 1, 1)
-    offset = Integer.mod(Date.day_of_week(new_year) - first_day, 7)
-    week_start = Date.add(new_year, -offset)
+  # `Calendar.ISO`'s weeks are ISO 8601's in every locale: Erlang's week
+  # number for `Y` and `w`.
+  defp week_of_year(date, _locale), do: :calendar.iso_week_number(Date.to_erl(date))
 
-    if 7 - offset >= min_days, do: week_start, else: Date.add(week_start, 7)
-  end
-
-  defp week_of_year(date, locale) do
-    data = week_data(locale)
-
-    Enum.find_value([date.year + 1, date.year, date.year - 1], fn year ->
-      start = week_one_start(year, data)
-
-      if Date.compare(date, start) != :lt do
-        {year, div(Date.diff(date, start), 7) + 1}
-      end
-    end)
-  end
-
-  defp week_of_month(date, locale) do
-    {first_day, min_days} = week_data(locale)
-    offset = Integer.mod(Date.day_of_week(%{date | day: 1}) - first_day, 7)
-    week = div(date.day - 1 + offset, 7) + 1
-
-    if 7 - offset >= min_days, do: week, else: week - 1
+  # ISO 8601's rule in the month: a Monday week belongs to the month holding
+  # four or more of its days, which is the month of its Thursday, so `W` is
+  # that Thursday's place among the Thursdays of its month.
+  defp week_of_month(date, _locale) do
+    thursday = Date.add(date, 4 - Date.day_of_week(date, :monday))
+    div(thursday.day - 1, 7) + 1
   end
 
   defp local_day_of_week(date, locale) do

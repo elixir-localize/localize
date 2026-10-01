@@ -50,7 +50,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Changed
 
-* **Breaking.** A date's month, era, years, week and weekday are its calendar's answers — `month_of_year/3` and `cardinal_month/1` for the month, the Calendrical behaviour's callbacks for the rest — never its own fields, so a calendar other than `Calendar.ISO` must implement the Calendrical behaviour (Calendrical 1.4, which adds `cardinal_month/1` and requires `era_calendar_type/0`) and any other is refused with `Localize.UnknownCalendarError` by formatting, parsing and relative time alike. An answer that is not one is a `Localize.InvalidValueError`.
+* **Breaking.** A date's month, era, years, week and weekday are its calendar's answers — `month_of_year/3` and `cardinal_month/1` for the month, the Calendrical behaviour's callbacks for the rest — never its own fields, so a calendar other than `Calendar.ISO` must implement the Calendrical behaviour (Calendrical 1.4, which adds `cardinal_month/1` and `parsing_calendar/0` and requires `era_calendar_type/0`) and any other is refused with `Localize.UnknownCalendarError` by formatting, parsing and relative time alike. An answer that is not one is a `Localize.InvalidValueError`.
 
 * **Breaking.** A numeric month is the CLDR month its name uses, in formatting and parsing alike, so a Hebrew common year's Adar is "7", CLDR's number for it, where ICU4C writes its place in the year, "6"; a week-based calendar's is its 4-4-5 month, "6/2/26" for ISO week 2026-W25-2, where it was the week.
 
@@ -65,6 +65,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 * **Breaking.** MessageFormat 2's `{$t :time}` and `{$d :datetime}` give the time to the minute, as TR35 specifies, where they gave seconds; `precision=second` and `timePrecision=second` restore them. A date or time option other than `timeZone`, `hour12` and `calendar` set by a variable is an error, as TR35 requires.
 
 * **Breaking.** The parse functions' `:calendar` option is a calendar module — `Calendar.ISO`, the default, or one such as `Calendrical.Hebrew` — and the date is built and returned in that module, where a module sharing a CLDR calendar type with another came back in the other. A CLDR calendar name such as `:hebrew` returns `Localize.UnknownCalendarError`, and `Localize.DateParseError` reports the module.
+
+* **Breaking.** Week numbers are the calendar's, never the locale's week data: `Y` and `w` are the calendar's own week-based year and week (`week_of_year/3`), ISO 8601's for `Calendar.ISO`, so 1 January 2027 is in week 53 of 2026 in `en` as in `de`, and `W` counts the month's weeks by ISO 8601's rule. Week text parses back in those weeks, so a calendar of weeks' week text and an ISO 8601 week date such as "2026-W25-2" round-trip.
+
+* **Breaking.** A date parsed for a calendar of weeks is read as a Gregorian date and converted into it, as the calendar's `parsing_calendar/0` says, since a written month and day name no single week: "Feb 1, 2024" in `Calendrical.ISOWeek` is 2024-W05-4, and `as: :map` gives it whole. An ISO 8601 date and time is returned in the `:calendar` module, as a date is, where it came back in `Calendar.ISO`.
 
 * **Breaking.** The parse functions no longer take `:return_calendar`: the date comes back in the `:calendar` module, and `Date.convert/2` gives it in any other calendar.
 
