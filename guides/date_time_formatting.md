@@ -594,7 +594,7 @@ Localize.Date.parse("Feb 1, 2024", locale: :en, calendar: Calendrical.ISOWeek)
 #=> {:ok, ~D[2024-W05-4 Calendrical.ISOWeek]}
 ```
 
-So a week date does not read back as itself from the text the formatter writes for it: ISO week 25 day 2 of 2026 is written "Jun 2, 2026", the month of its period and its own day, which reads as 2 June 2026, 2026-W23-2.
+The formatter writes a week date in the same calendar, as the day it names: its era, year, month and day, and its day of the year (`D`) and day of the week in the month (`F`), are that Gregorian day's, so a week date reads back as itself. ISO week 25 day 2 of 2026 is written "Jun 16, 2026", which reads as 2026-W25-2, and 2026-W01-1 is "Dec 29, 2025". Its week numbers and quarters stay its own; see the [format pattern reference](#format-pattern-reference).
 
 A time carries no date fields, so `Localize.Time.parse/2` resolves no calendar and the option has no effect there.
 
@@ -709,7 +709,7 @@ Skeleton atoms can use `j` as a meta-symbol that resolves to the locale's prefer
 | `:date_format` | atom or string | `:format` | The date half of a datetime interval, or a date interval's format. |
 | `:time_format` | atom or string | `:format` | The time half of a datetime interval, or a time interval's format. |
 | `:fields` | atom | `:date` | Fields a date interval shows with a standard format: `:date`, `:month`, `:month_and_day`, or `:year_and_month`. |
-| `:style` | atom | `:at` | Wrapper joining a datetime interval's date to its time range: `:at` or `:default`. |
+| `:style` | atom | `:default` | Wrapper joining a datetime interval's date and time: `:default`, the standard one TR35 says an interval takes, or `:at`. |
 
 ### `Localize.DateTime.Relative.to_string/2`
 

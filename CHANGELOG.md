@@ -54,7 +54,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 * **Breaking.** A date's month, era, years, week and weekday are its calendar's answers — `month_of_year/3` and `cardinal_month/1` for the month, the Calendrical behaviour's callbacks for the rest — never its own fields, so a calendar other than `Calendar.ISO` must implement the Calendrical behaviour (Calendrical 1.4, which adds `cardinal_month/1` and `parsing_calendar/0` and requires `era_calendar_type/0`) and any other is refused with `Localize.UnknownCalendarError` by formatting, parsing and relative time alike. An answer that is not one is a `Localize.InvalidValueError`.
 
-* **Breaking.** A numeric month is the CLDR month its name uses, in formatting and parsing alike, so a Hebrew common year's Adar is "7", CLDR's number for it, where ICU4C writes its place in the year, "6"; a week-based calendar's is its 4-4-5 month, "6/2/26" for ISO week 2026-W25-2, where it was the week.
+* **Breaking.** A numeric month is the CLDR month its name uses, in formatting and parsing alike, so a Hebrew common year's Adar is "7", CLDR's number for it, where ICU4C writes its place in the year, "6".
 
 * **Breaking.** `Localize.DateTime.Relative.to_string/2` and `to_parts/2` count a difference between dates in the calendar periods of the value's own calendar, as its `shift_date/4` moves a date, where they divided seconds by a mean month or year, so 1 February is "next month" from 31 January, a Hebrew leap year has thirteen months and a week calendar's months are its periods of weeks. Hours, minutes and seconds count the clock periods of the time that passes, so 00:01 is "in 1 hour" from 23:59, across a change of UTC offset too.
 
@@ -74,7 +74,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 * **Breaking.** A pattern with `W` writes its month, and the year and era that month is in, as the month the week belongs to, as `Y` writes the year `w` belongs to: `MMMMW` writes 1 October 2021, in ISO 8601's fifth week of September, as "week 5 of September".
 
+* **Breaking.** An interval joins a date and a time with the locale's standard date-time pattern, as TR35 says an interval takes, where it took the "at" pattern: "June 15, 2026, 10:00 – 14:30" and "June 15, 2026, 10:00 – June 16, 2026, 14:30" in `en`. `style: :at` restores it.
+
 * **Breaking.** A date parsed for a calendar of weeks is read as a Gregorian date and converted into it, as the calendar's `parsing_calendar/0` says, since a written month and day name no single week: "Feb 1, 2024" in `Calendrical.ISOWeek` is 2024-W05-4, and `as: :map` gives it whole. An ISO 8601 date and time is returned in the `:calendar` module, as a date is, where it came back in `Calendar.ISO`.
+
+* **Breaking.** A date in a calendar of weeks is written as the day it names, in the calendar its `parsing_calendar/0` names, so it reads back as itself: ISO week 2026-W25-2 is "6/16/26" and "Jun 16, 2026", where its week was written as its month ("25/2/26"). Its week numbers and quarters stay its own.
 
 * **Breaking.** The parse functions no longer take `:return_calendar`: the date comes back in the `:calendar` module, and `Date.convert/2` gives it in any other calendar.
 

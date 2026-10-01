@@ -101,6 +101,8 @@ iex> Localize.Interval.to_string(~D[2026-06-15], ~D[2026-06-18], format: "d MMM 
 
 * **Time-only intervals** — use the locale's time-interval pattern (`"10:00 – 12:30 PM"`).
 
+A date and a time in an interval are joined with the locale's standard date-time pattern, as TR35 says an interval takes, where a single date and time takes the "at" pattern by default: "June 15, 2026, 10:00 – 14:30", not "June 15, 2026 at 10:00 – 14:30". `style: :at` asks for the "at" pattern.
+
 ```elixir
 iex> {:ok, result} =
 ...>   Localize.Interval.to_string(

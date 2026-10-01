@@ -32,6 +32,11 @@ defmodule Localize.Interval do
   @default_fields :date
   @default_format :medium
 
+  # TR35 joins an interval's date and time with the standard date-time
+  # pattern ("March 15, 3:00 – 5:00 PM"), where a single date and time takes
+  # the "at" pattern by default.
+  @interval_style :default
+
   @doc """
   Formats an interval between two dates, times or datetimes as a localized string.
 
@@ -53,7 +58,7 @@ defmodule Localize.Interval do
 
   * `:fields` selects *which* date fields a date interval shows with a standard `:format`: `:date` (the whole date, the default), `:month`, `:month_and_day`, or `:year_and_month`. See `known_fields/0`.
 
-  * `:style` is the pattern joining a datetime interval's date to its time range: `:at` (the default) or `:default`, as for `Localize.DateTime.to_string/2`.
+  * `:style` is the pattern joining a datetime interval's date and time: `:default`, the locale's standard date-time pattern, which TR35 says an interval takes ("June 15, 2026, 10:00 – 14:30"), or `:at`, the "at time" pattern a single date and time takes by default in `Localize.DateTime.to_string/2`. The default is `:default`.
 
   * `:numeric_date_separator` and `:numeric_time_separator` are
     strings replacing the locale's own separators in the rendered
@@ -790,10 +795,11 @@ defmodule Localize.Interval do
   end
 
   # TR35 step 3.2: the date formatted once, joined to the time range through
-  # the locale's date-time pattern for the date format and `:style`.
+  # the locale's date-time pattern for the date format and `:style`, by
+  # default the standard one, as TR35 says an interval takes.
   defp format_date_and_time_range(output, {from, to}, {left, right}, date_format, options) do
     locale = Keyword.get(options, :locale, Localize.get_locale())
-    style = Keyword.get(options, :style, :at)
+    style = Keyword.get(options, :style, @interval_style)
     options_map = options |> Map.new() |> Map.put_new(:locale, locale)
 
     date_options =
@@ -836,13 +842,15 @@ defmodule Localize.Interval do
 
   # Derive the datetime-format options from the interval options,
   # applying `:date_format` and `:time_format` overrides if present. The
-  # `:style` of date-time pattern goes along, so a datetime formatted whole
-  # is joined as a date joined to a time range is.
+  # `:style` of date-time pattern goes along, the standard one by default,
+  # so a datetime formatted whole is joined as a date joined to a time range
+  # is.
   defp datetime_sub_options(options) do
     base =
       options
       |> Keyword.take([:locale, :prefer, :style])
       |> Map.new()
+      |> Map.put_new(:style, @interval_style)
 
     format = Keyword.get(options, :format, @default_format)
     base = Map.put(base, :format, format)
@@ -1200,15 +1208,15 @@ defmodule Localize.Interval do
   defp format_single_value(%Date{} = value, options), do: Localize.Date.to_string(value, options)
 
   defp format_single_value(%DateTime{} = value, options),
-    do: Localize.DateTime.to_string(value, options)
+    do: Localize.DateTime.to_string(value, Keyword.put_new(options, :style, @interval_style))
 
   defp format_single_value(%NaiveDateTime{} = value, options),
-    do: Localize.DateTime.to_string(value, options)
+    do: Localize.DateTime.to_string(value, Keyword.put_new(options, :style, @interval_style))
 
   defp format_single_value(value, options) when is_map(value) do
     cond do
       Map.has_key?(value, :year) and Map.has_key?(value, :hour) ->
-        Localize.DateTime.to_string(value, options)
+        Localize.DateTime.to_string(value, Keyword.put_new(options, :style, @interval_style))
 
       Map.has_key?(value, :year) ->
         Localize.Date.to_string(value, options)

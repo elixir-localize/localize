@@ -122,6 +122,40 @@ defmodule Localize.IntervalSkeletonTest do
              ) == {:ok, "Jun 15, 2026"}
     end
 
+    # TR35: "If an interval is being formatted, use the standard combining
+    # pattern", for a date joined to a time range ("March 15, 3:00 – 5:00
+    # PM") and for whole datetimes ("March 15, 9:00 AM – March 16, 5:00
+    # PM"). ICU4C 78.3 writes the first as these do and joins the second's
+    # whole datetimes with the "at" pattern ("June 15, 2026 at 10:00 – June
+    # 16, 2026 at 14:30").
+    test "joins a date and a time with the standard pattern" do
+      from = ~N[2026-06-15 10:00:00]
+
+      for {locale, same_day, two_days} <- [
+            {:en, "June 15, 2026, 10:00#{@thin}–#{@thin}14:30",
+             "June 15, 2026, 10:00#{@thin}–#{@thin}June 16, 2026, 14:30"},
+            {:de, "15. Juni 2026, 10:00–14:30 Uhr",
+             "15. Juni 2026, 10:00#{@thin}–#{@thin}16. Juni 2026, 14:30"},
+            {:fr, "15 juin 2026, 10:00#{@thin}–#{@thin}14:30",
+             "15 juin 2026, 10:00#{@thin}–#{@thin}16 juin 2026, 14:30"}
+          ] do
+        assert interval(from, ~N[2026-06-15 14:30:00], format: :yMMMMdHm, locale: locale) ==
+                 {:ok, same_day}
+
+        assert interval(from, ~N[2026-06-16 14:30:00], format: :yMMMMdHm, locale: locale) ==
+                 {:ok, two_days}
+      end
+
+      assert interval(from, nil, format: :yMMMMdHm, locale: :en) ==
+               {:ok, "June 15, 2026, 10:00#{@thin}–"}
+
+      assert interval(from, from, format: :yMMMMdHm, locale: :en) ==
+               {:ok, "June 15, 2026, 10:00"}
+
+      assert interval(from, ~N[2026-06-15 14:30:00], format: :yMMMMdHm, locale: :en, style: :at) ==
+               {:ok, "June 15, 2026 at 10:00#{@thin}–#{@thin}14:30"}
+    end
+
     test "joins its parts to the same text" do
       for format <- [:yMMMdHm, :yMMMEdhm, :Hm, :yMMMd] do
         from = ~N[2026-06-15 10:00:00]

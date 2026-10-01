@@ -46,8 +46,6 @@ Outstanding work on Localize. The design detail behind these items lives under [
 
 * [ ] **Name standard and daylight time by a metazone's `stdOffset` and `dstOffset`** — TR35 lets `usesMetazone` say which offset is standard time and which daylight where the time zone database's flag is unreliable (`Europe/Dublin`, and in CLDR 49 `America/Winnipeg` for Manitoba's DST change); Localize ignores both attributes and decides from the datetime's `std_offset`.
 
-* [ ] **An interval joins its date and time with the "at" pattern** — `format_date_and_time_range/5` defaults `:style` to `:at`, so `en` `yMMMMdHm` on one day is "June 15, 2026 at 10:00 – 14:30" and `de` "15. Juni 2026 um 10:00–14:30 Uhr", where TR35 says an interval takes the standard pattern and ICU4C 78.3 writes "June 15, 2026, 10:00 – 14:30"; `style: :default` matches. Decide the default.
-
 ## In progress
 
 * [ ] **Calendar months through callbacks** — Localize takes every answer about a date from callbacks on its calendar, never probing or introspecting it, with `Calendar.ISO` the only calendar it answers for itself; the month's CLDR name is `month_of_year/3` then a new `cardinal_month` callback. Fixes a July-start fiscal year's period 1 written "Jan" and an ISO week date's week written as its month ("25/2/26" for 2026-W25-2); the day a week date names is its own item, under Open. Planned in [plans/calendar-callbacks.md](plans/calendar-callbacks.md); found through Tempo (2026-10-01). Landed: every month field through `month_of_year/3` and `cardinal_month/1`, every other field, the parser and relative time through the calendar's callbacks with no probe left, the refusal of a calendar that cannot answer, a week calendar's dates parsed as Gregorian through its `parsing_calendar/0`, week numbers, weeks of the month and quarters in the calendar's own, and the `:japanese` branch gone; the MF2 `calendar` option is deferred.
@@ -69,6 +67,8 @@ Outstanding work on Localize. The design detail behind these items lives under [
 * [ ] **`localize_emoji` sibling library** — plan item 11, a separate package on its own schedule. A Phoenix LiveView picker (`localize_emoji_live`) is out of scope for its 0.1.0.
 
 ## Done
+
+* [x] **An interval joins its date and time with the standard pattern** — as TR35 says, on one day and for whole datetimes across days (user, 2026-10-02), where it took the "at" pattern; ICU4C 78.3 takes "at" for the whole datetimes. `style: :at` keeps it. 2026-10-02, v1.4.0.
 
 * [x] **`Localize.Interval.to_string/3` selects an interval format by its skeleton** — a date interval takes a skeleton or a pattern by `:format` or `:date_format`, and a datetime interval splits a skeleton into its date and time fields (TR35 step 3.2); a time skeleton across days keeps TR35's reading, not ICU's added `yMd` (user). Found through Tempo. 2026-10-01, v1.4.0.
 
