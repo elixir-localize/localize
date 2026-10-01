@@ -79,6 +79,18 @@ iex> Localize.Interval.known_fields()
 }
 ```
 
+### Skeletons and patterns
+
+`:format` also takes a skeleton, which selects CLDR's interval format for its fields as CLDR keys them, so it can name a format no standard format reaches, or a pattern, with which both endpoints are formatted around the locale's interval fallback pattern. `:date_format` takes either too. `:fields` applies with a standard format only, since a skeleton names its fields itself.
+
+```elixir
+iex> Localize.Interval.to_string(~D[2026-06-15], ~D[2026-06-18], format: :yMMMEd, locale: :en)
+{:ok, "Mon, Jun 15 – Thu, Jun 18, 2026"}
+
+iex> Localize.Interval.to_string(~D[2026-06-15], ~D[2026-06-18], format: "d MMM y", locale: :en)
+{:ok, "15 Jun 2026 – 18 Jun 2026"}
+```
+
 ### Intervals for times and datetimes
 
 `Localize.Interval.to_string/3` accepts `Date`, `Time`, `NaiveDateTime`, and `DateTime` values, as well as any map with the appropriate fields. The formatting strategy depends on what fields differ:
@@ -121,6 +133,19 @@ iex> String.contains?(result, "10:30")
 true
 ```
 
+A skeleton for a datetime interval is split into its date and time fields, as TR35's interval algorithm separates them. On one day the date is written once and the times as a range. A skeleton of time fields alone writes only the times, across days too, as TR35's algorithm reads; ICU adds the locale's numeric date there. A skeleton of date fields alone formats the dates as a date interval does.
+
+```elixir
+iex> Localize.Interval.to_string(~N[2026-06-15 10:00:00], ~N[2026-06-15 14:30:00], format: :yMMMdHm, locale: :en)
+{:ok, "Jun 15, 2026, 10:00 – 14:30"}
+
+iex> Localize.Interval.to_string(~N[2026-06-15 10:00:00], ~N[2026-06-16 14:30:00], format: :Hm, locale: :en)
+{:ok, "10:00 – 14:30"}
+
+iex> Localize.Interval.to_string(~N[2026-06-15 10:00:00], ~N[2026-06-16 14:30:00], format: :yMMMd, locale: :en)
+{:ok, "Jun 15 – 16, 2026"}
+```
+
 ### Calendars and eras
 
 An interval is formatted with the formats of its endpoints' calendar: its interval patterns, its date and time formats, and the date-time pattern that joins a date to a time range. Two dates in Calendrical's Hebrew calendar take the Hebrew calendar's CLDR formats, as a single Hebrew date does in `Localize.Date.to_string/2`. Endpoints in two different calendars are an error, because there is no one calendar to take the formats from.
@@ -138,7 +163,7 @@ The Japanese calendar changes era within a year, so its interval from 30 April t
 
 1. The greatest difference between the two endpoints is identified (era, year, month, day, hour, or minute). Endpoints that differ in no field the format shows are formatted once; whole dates then take the requested standard format, exactly as `Localize.Date.to_string/2` renders it.
 
-2. The `:fields` and `:format` options resolve to a CLDR skeleton atom, from the endpoints' calendar.
+2. A skeleton given as `:format` is the skeleton; `:fields` and a standard `:format` resolve to one, from the endpoints' calendar. A datetime interval's skeleton is split into its date and time fields, the time fields taking the interval entry. A pattern names no entry, so both endpoints are formatted with it, as in step 5.
 
 3. That skeleton is looked up in the interval table of the locale and calendar. If CLDR ships no entry under it, the closest entry carrying the same fields is taken and its pattern adjusted to the requested widths — TR35 matches on fields, not widths, so a `yMMMd` pattern answering a requested `yMMMMd` still has to spell "June" rather than "Jun". A candidate with different fields can never win.
 

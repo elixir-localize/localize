@@ -319,8 +319,8 @@ defmodule Localize.DateTime.Relative do
   # own arithmetic from their fields, never through a number of seconds.
   # Both calendars must answer Localize, as `Localize.Calendar` checks.
   defp relative_count(relative, relative_to, unit, locale) do
-    with :ok <- Localize.Calendar.validate_calendar(relative),
-         :ok <- Localize.Calendar.validate_calendar(relative_to),
+    with :ok <- Localize.Calendar.validate_value(relative),
+         :ok <- Localize.Calendar.validate_value(relative_to),
          {:ok, moment, baseline} <- moments(relative, relative_to) do
       unit = unit || whole_unit(moment, baseline)
       {:ok, {periods(moment, baseline, unit, locale), unit}}

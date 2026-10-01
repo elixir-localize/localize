@@ -106,7 +106,7 @@ defmodule Localize.Date do
   """
   @spec to_string(map(), Keyword.t()) :: {:ok, String.t()} | {:error, Exception.t()}
   def to_string(date, options \\ []) do
-    with :ok <- Localize.Calendar.validate_calendar(date),
+    with :ok <- Localize.Calendar.validate_value(date),
          {:ok, pattern, locale_id, formatter_options} <- formatting_plan(date, options) do
       Localize.DateTime.Formatter.format(date, pattern, locale_id, formatter_options)
     end
@@ -259,7 +259,7 @@ defmodule Localize.Date do
   @spec to_parts(map(), Keyword.t()) ::
           {:ok, [%{type: atom(), value: String.t()}]} | {:error, Exception.t()}
   def to_parts(date, options \\ []) do
-    with :ok <- Localize.Calendar.validate_calendar(date),
+    with :ok <- Localize.Calendar.validate_value(date),
          {:ok, pattern, locale_id, formatter_options} <- formatting_plan(date, options) do
       Localize.DateTime.Formatter.format_to_parts(date, pattern, locale_id, formatter_options)
     end

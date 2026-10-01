@@ -188,7 +188,8 @@ defmodule Localize.DateTime.Formatter do
          tokens = ordinal_day_in_context(tokens),
          tokens = substitute_numeric_separators(tokens, datetime, locale_id, options),
          valid_tokens = Enum.filter(tokens, &valid_length?/1),
-         :ok <- validate_fields(datetime, valid_tokens, format_string) do
+         :ok <- validate_fields(datetime, valid_tokens, format_string),
+         {:ok, week_month_day} <- week_month_day(datetime, valid_tokens) do
       options = with_displayed_precision(options, valid_tokens)
 
       results =
@@ -197,7 +198,7 @@ defmodule Localize.DateTime.Formatter do
             string
 
           token ->
-            format_field(token, datetime, locale_id, options)
+            format_field(token, field_value(token, datetime, week_month_day), locale_id, options)
         end)
 
       case Enum.find(results, &match?({:error, _}, &1)) do
@@ -233,7 +234,8 @@ defmodule Localize.DateTime.Formatter do
          tokens = ordinal_day_in_context(tokens),
          tokens = substitute_numeric_separators(tokens, datetime, locale_id, options),
          valid_tokens = Enum.filter(tokens, &valid_length?/1),
-         :ok <- validate_fields(datetime, valid_tokens, format_string) do
+         :ok <- validate_fields(datetime, valid_tokens, format_string),
+         {:ok, week_month_day} <- week_month_day(datetime, valid_tokens) do
       options = with_displayed_precision(options, valid_tokens)
 
       results =
@@ -245,7 +247,7 @@ defmodule Localize.DateTime.Formatter do
             placeholder_parts(handler, datetime, count, locale_id, options)
 
           token ->
-            format_field(token, datetime, locale_id, options)
+            format_field(token, field_value(token, datetime, week_month_day), locale_id, options)
         end)
 
       case Enum.find(results, &match?({:error, _}, &1)) do
@@ -498,6 +500,35 @@ defmodule Localize.DateTime.Formatter do
       do: apply(__MODULE__, handler, [datetime, count, locale_id, options]),
       else: "�"
   end
+
+  # A pattern with `W` writes its month, and the quarter, year and era the
+  # month is in, as the month its week belongs to, as `Y` writes the year
+  # `w` belongs to: "week W of MMMM" names the week's month, which can be the
+  # month before or after the date's (`Localize.Calendar.week_month_day/1`).
+  # The day and everything below it stay the date's.
+  @week_month_handlers [
+    :era,
+    :year,
+    :extended_year,
+    :cyclic_year,
+    :related_year,
+    :quarter,
+    :standalone_quarter,
+    :month,
+    :standalone_month
+  ]
+
+  defp week_month_day(datetime, tokens) do
+    if Enum.any?(tokens, &match?({:week_of_month, _line, _count}, &1)),
+      do: Localize.Calendar.week_month_day(datetime),
+      else: {:ok, datetime}
+  end
+
+  defp field_value({handler, _line, _count}, _datetime, week_month_day)
+       when handler in @week_month_handlers,
+       do: week_month_day
+
+  defp field_value(_token, datetime, _week_month_day), do: datetime
 
   defp valid_length?({handler, _line, count}) do
     case Map.fetch(@valid_lengths, handler) do

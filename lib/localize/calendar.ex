@@ -788,7 +788,7 @@ defmodule Localize.Calendar do
 
   # A date whose calendar cannot answer for its parts is refused here.
   def localize(datetime, part, options) when is_keyword_list(options) do
-    with :ok <- validate_calendar(datetime) do
+    with :ok <- validate_value(datetime) do
       localize_part(datetime, part, options)
     end
   end
@@ -1454,6 +1454,102 @@ defmodule Localize.Calendar do
   def validate_calendar(_value), do: :ok
 
   @doc false
+  # A value Localize formats must be one its calendar has: the calendar
+  # answers (`validate_calendar/1`), and the value's date and time fields
+  # name a date and a time the calendar's `valid_date?/3` and `valid_time?/4`
+  # accept. Only the fields the value holds are checked, so a year and a
+  # month are checked as the month's first day, and a month or a day below 1
+  # is no calendar's, as Elixir's `Calendar` types say. A field that is not
+  # an integer is left to the format that needs it.
+  @spec validate_value(term()) :: :ok | {:error, Exception.t()}
+  def validate_value(value) do
+    with :ok <- validate_calendar(value),
+         :ok <- validate_date(value) do
+      validate_time(value)
+    end
+  end
+
+  defp validate_date(%{} = value) do
+    calendar = Map.get(value, :calendar, Calendar.ISO)
+
+    case date_to_check({Map.get(value, :year), Map.get(value, :month), Map.get(value, :day)}) do
+      {:check, arguments} -> possible(calendar, :valid_date?, arguments, value)
+      :impossible -> impossible(:valid_date?, value, calendar)
+      :unchecked -> :ok
+    end
+  end
+
+  defp validate_date(_value), do: :ok
+
+  # The date a value's fields ask its calendar about: the whole date, or a
+  # year and a month as the month's first day. Without them only a month or
+  # a day below 1 is known to be no calendar's.
+  defp date_to_check({year, month, day})
+       when is_integer(year) and is_integer(month) and is_integer(day),
+       do: {:check, [year, month, day]}
+
+  defp date_to_check({year, month, _day}) when is_integer(year) and is_integer(month),
+    do: {:check, [year, month, 1]}
+
+  defp date_to_check({_year, month, _day}) when is_integer(month) and month < 1, do: :impossible
+  defp date_to_check({_year, _month, day}) when is_integer(day) and day < 1, do: :impossible
+  defp date_to_check(_fields), do: :unchecked
+
+  # A time without its smaller fields is checked as the start of its hour or
+  # minute.
+  defp validate_time(%{} = value) do
+    fields = Map.take(value, [:hour, :minute, :second, :microsecond])
+
+    arguments = [
+      Map.get(fields, :hour, 0),
+      Map.get(fields, :minute, 0),
+      Map.get(fields, :second, 0),
+      Map.get(fields, :microsecond, {0, 0})
+    ]
+
+    case arguments do
+      _no_time when map_size(fields) == 0 ->
+        :ok
+
+      [hour, minute, second, {microsecond, precision}]
+      when is_integer(hour) and is_integer(minute) and is_integer(second) and
+             is_integer(microsecond) and is_integer(precision) ->
+        possible(Map.get(value, :calendar, Calendar.ISO), :valid_time?, arguments, value)
+
+      _not_integers ->
+        :ok
+    end
+  end
+
+  defp validate_time(_value), do: :ok
+
+  defp possible(calendar, callback, arguments, value) do
+    case ask(calendar, callback, arguments, "true or false", &is_boolean/1) do
+      {:ok, true} -> :ok
+      {:ok, false} -> impossible(callback, value, calendar)
+      {:error, _not_an_answer} = error -> error
+    end
+  end
+
+  defp impossible(:valid_date?, value, calendar) do
+    {:error,
+     Localize.InvalidValueError.exception(
+       value: Map.take(value, [:year, :month, :day]),
+       expected: "a date its calendar has",
+       context: inspect(calendar)
+     )}
+  end
+
+  defp impossible(:valid_time?, value, calendar) do
+    {:error,
+     Localize.InvalidValueError.exception(
+       value: Map.take(value, [:hour, :minute, :second, :microsecond]),
+       expected: "a time its calendar has",
+       context: inspect(calendar)
+     )}
+  end
+
+  @doc false
   # The CLDR month a date's month names, the index of its localized name,
   # as its calendar answers: `month_of_year/3` then `cardinal_month/1`, and
   # `{month, :leap}` for a leap month. A date without its day is taken on
@@ -1565,6 +1661,48 @@ defmodule Localize.Calendar do
         _other -> false
       end
     )
+  end
+
+  @doc false
+  # The day a date's week of the month is named by: the date itself when its
+  # week belongs to its own month, else the nearest day of that week in the
+  # month the week belongs to, which the calendar's rule for a month's weeks
+  # can make the month before or after the date's. A pattern with `W` writes
+  # its month, and the year and era the month is in, from this day, as `Y`
+  # writes the year `w` belongs to, so "week W of MMMM" names the week's
+  # month. The days of the week are the days the calendar gives the same week
+  # of the same month, so a calendar of weeks, whose week never leaves its
+  # month, names it by the date.
+  @spec week_month_day(map()) :: {:ok, map()} | {:error, Exception.t()}
+  def week_month_day(%{year: year, month: month, day: day} = date)
+      when is_integer(year) and is_integer(month) and is_integer(day) do
+    case week_of_month(date) do
+      {:ok, {^month, _week}} -> {:ok, date}
+      {:ok, answer} -> {:ok, day_in_week_month(date, answer)}
+      {:error, _not_an_answer} = error -> error
+    end
+  end
+
+  def week_month_day(date), do: {:ok, date}
+
+  # The other days of a week, nearest a day first.
+  @days_either_side Enum.flat_map(1..6, &[&1, -&1])
+
+  defp day_in_week_month(date, answer) do
+    calendar = Map.get(date, :calendar, Calendar.ISO)
+
+    with {:ok, start} <- Date.new(date.year, date.month, date.day, calendar),
+         %Date{} = day <-
+           Enum.find_value(@days_either_side, &week_month_day_at(start, &1, answer)) do
+      Map.merge(date, Map.take(day, [:year, :month, :day]))
+    else
+      _no_day -> date
+    end
+  end
+
+  defp week_month_day_at(start, days, {week_month, _week} = answer) do
+    day = Date.add(start, days)
+    if day.month == week_month and week_of_month(day) == {:ok, answer}, do: day
   end
 
   # CLDR's leap-year name of a month (`7_yeartype_leap`, the Hebrew "Adar II")

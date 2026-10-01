@@ -63,7 +63,7 @@ TR35 is CLDR's specification, and the rule applies to it as to the data. Its Dat
 
 A numeric month (`M`, `MM`, `L`, `LL`) is the CLDR month the month's name uses, as the date's calendar answers it through `month_of_year/3` and `cardinal_month/1`. CLDR numbers the Hebrew months 1 to 13 in every year, Adar 7 and Nisan 8, so in a common year, which has no Adar I, Localize writes Adar 1, 5785 as "7/1/5785" where ICU4C writes the month's place in the year, "6/1/5785". A leap year's months are numbered alike by both.
 
-Week numbers (`Y`, `w`, `W`) are the calendar's, never the locale's week data (user, 2026-10-01). ICU4C numbers a Gregorian week by the locale's `firstDay` and `minDays`, so `en`'s week 1 of 2027 begins on Sunday 27 December 2026; Localize numbers `Calendar.ISO`'s weeks by ISO 8601 in every locale, so 1 January 2027 is in week 53 of 2026 and week 1 begins on Monday 4 January, as `de` writes it in both. `Calendar.ISO`'s `W` follows ISO 8601's rule in the month, so the days of a first week the month holds fewer than four of are in the last week of the month before, where ICU4C writes week 0; another calendar's `W` is its own week of the month.
+Week numbers (`Y`, `w`, `W`) are the calendar's, never the locale's week data (user, 2026-10-01). ICU4C numbers a Gregorian week by the locale's `firstDay` and `minDays`, so `en`'s week 1 of 2027 begins on Sunday 27 December 2026; Localize numbers `Calendar.ISO`'s weeks by ISO 8601 in every locale, so 1 January 2027 is in week 53 of 2026 and week 1 begins on Monday 4 January, as `de` writes it in both. `Calendar.ISO`'s `W` follows ISO 8601's rule in the month, so the days of a first week the month holds fewer than four of are in the last week of the month before, where ICU4C writes week 0; another calendar's `W` is its own week of the month. A pattern with `W` writes its month and year as the week's, so `MMMMW` is "week 5 of September" for 1 October 2021 in every locale, where ICU4C 78.3 writes "week 1 of October" in `en` and "week 0 of October" in `en-GB`.
 
 ### Date parsing
 
@@ -100,19 +100,22 @@ TR35's generic non-location format (`v`, `vvvv`) qualifies a metazone name, unle
 
 ### Interval formatting
 
-An interval takes the formats of its endpoints' calendar. ICU4C 78.3 differs from Localize in three places, asserted in `test/localize/interval_calendar_test.exs`; the first two follow TR35 and the third ECMA-402.
+An interval takes the formats of its endpoints' calendar. ICU4C 78.3 differs from Localize in four places, asserted in `test/localize/interval_calendar_test.exs` and `test/localize/interval_skeleton_test.exs`; the first two and the last follow TR35 and the third ECMA-402.
 
 | Interval | Localize | ICU4C renders |
 |---|---|---|
 | `nl` Buddhist date and time range, `style: :standard` | "1 apr 2566 BE 10:00:00 – 10:30:00" | "1 apr 2566 BE, 10:00:00 – 10:30:00" |
 | `en` Chinese medium, `rMMMd` | "Mo2bis 11 – 20, 2023" | "Mo2bis 11, 2023 – Mo2bis 20, 2023" |
 | `am` medium, equal endpoints | "1 ኤፕሪ 2023" | "ኤፕሪ 1 2023" |
+| `en` `Hm`, 10:00 on 15 June to 14:30 on 16 June 2026 | "10:00 – 14:30" | "6/15/2026, 10:00 – 6/16/2026, 14:30" |
 
 * **The date-time pattern.** TR35 joins a date to a time range with the calendar's `dateTimeFormat`. ICU's `DateIntervalFormat` reads `calendar/gregorian/DateTimePatterns` whatever the calendar, though its single date-time formatter uses the calendar's own.
 
 * **Year symbols.** TR35 gives skeleton symbols of one field type a small distance, so the related year `r` and the cyclic year `U` of a Chinese or Dangi format match the `y`-keyed interval items. ICU's interval matcher compares letters one for one, finds no item, and writes both dates in full.
 
 * **Equal endpoints.** Localize writes the requested standard format, as ECMA-402's `formatRange` and `Localize.Date.to_string/2` do. ICU writes its pattern generator's pattern for the style's skeleton, which prefers an `availableFormats` entry with that skeleton over the standard format.
+
+* **A time skeleton across days.** TR35's interval algorithm, read as it is written, finds no day difference in a time item and formats both values with the skeleton around the fallback pattern. ICU adds the locale's `yMd` date to a skeleton of time fields alone when the days differ (user, 2026-10-01: not the ICU approach).
 
 ### Relative time
 

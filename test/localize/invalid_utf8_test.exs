@@ -68,7 +68,9 @@ defmodule Localize.InvalidUtf8Test do
         assert {:error, %Localize.DateTimeIntervalFormatError{reason: :invalid_format}} =
                  Localize.Interval.split_interval(input)
 
-        assert {:error, %Localize.DateTimeIntervalFormatError{}} =
+        # A date interval takes a pattern as a date does, so an invalid one is
+        # the date formatter's error for it.
+        assert {:error, %Localize.DateTimeFormatError{reason: :invalid_format}} =
                  Localize.Interval.to_string(~D[2024-07-06], ~D[2024-07-10], format: input)
       end
     end

@@ -107,7 +107,7 @@ defmodule Localize.Time do
   """
   @spec to_string(map(), Keyword.t()) :: {:ok, String.t()} | {:error, Exception.t()}
   def to_string(time, options \\ []) do
-    with :ok <- Localize.Calendar.validate_calendar(time),
+    with :ok <- Localize.Calendar.validate_value(time),
          {:ok, pattern, locale_id, formatter_options} <- formatting_plan(time, options) do
       Localize.DateTime.Formatter.format(time, pattern, locale_id, formatter_options)
     end
@@ -234,7 +234,7 @@ defmodule Localize.Time do
   @spec to_parts(map(), Keyword.t()) ::
           {:ok, [%{type: atom(), value: String.t()}]} | {:error, Exception.t()}
   def to_parts(time, options \\ []) do
-    with :ok <- Localize.Calendar.validate_calendar(time),
+    with :ok <- Localize.Calendar.validate_value(time),
          {:ok, pattern, locale_id, formatter_options} <- formatting_plan(time, options) do
       Localize.DateTime.Formatter.format_to_parts(time, pattern, locale_id, formatter_options)
     end
@@ -415,6 +415,31 @@ defmodule Localize.Time do
   end
 
   defp apply_hc_to_skeleton(format, _language_tag), do: format
+
+  @doc false
+  # The time half of a skeleton split in two is held as a string, which
+  # `hour_cycle_skeleton/2` takes for a pattern; it takes a `-u-hc-`
+  # override as a skeleton atom does there, with no atom made.
+  @spec hour_cycle_skeleton_half(String.t(), Localize.LanguageTag.t() | atom() | String.t()) ::
+          String.t()
+  def hour_cycle_skeleton_half(skeleton, locale) when is_binary(skeleton) do
+    case hour_cycle_of(locale) do
+      nil ->
+        skeleton
+
+      hour_cycle ->
+        symbols = if hour_cycle in [:h23, :h24], do: ["j", "J"], else: ["j"]
+
+        if String.contains?(skeleton, symbols),
+          do:
+            Localize.DateTime.Format.Match.apply_hc_substitution(
+              skeleton,
+              preferred_symbol_for_cycle(hour_cycle),
+              symbols
+            ),
+          else: skeleton
+    end
+  end
 
   defp preferred_symbol_for_cycle(:h11), do: "K"
   defp preferred_symbol_for_cycle(:h12), do: "h"

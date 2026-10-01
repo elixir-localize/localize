@@ -674,6 +674,65 @@ defmodule Localize.CalendarCallbacksTest do
       assert Localize.Date.to_string(date(2026, 25, 2, IsoWeek), format: "W", locale: :en) ==
                {:ok, "4"}
     end
+
+    # A pattern with `W` names the month its week belongs to, and the year
+    # and era that month is in, as `Y` names the year `w` belongs to (user,
+    # 2026-10-01). CLDR's `MMMMW` is "'week' W 'of' MMMM" in `en`, so 1
+    # October 2021, in September's fifth week by ISO 8601's rule, is "week 5
+    # of September", and 30 December 2019, whose week holds Thursday 2
+    # January 2020, is in January 2020's first. The day stays the date's, so
+    # a pattern that writes it too pairs it with the week's month; no CLDR
+    # pattern does.
+    test "of the month name the month the week belongs to" do
+      assert Localize.Date.to_string(~D[2021-10-01], format: :MMMMW, locale: :en) ==
+               {:ok, "week 5 of September"}
+
+      assert Localize.Date.to_string(~D[2021-10-04], format: :MMMMW, locale: :en) ==
+               {:ok, "week 1 of October"}
+
+      assert Localize.Date.to_string(~D[2019-12-30],
+               format: "'week' W 'of' MMMM y G",
+               locale: :en
+             ) == {:ok, "week 1 of January 2020 AD"}
+
+      assert Localize.Date.to_string(~D[2021-10-01], format: "d MMMM, 'week' W", locale: :en) ==
+               {:ok, "1 September, week 5"}
+
+      assert {:ok, parts} = Localize.Date.to_parts(~D[2021-10-01], format: :MMMMW, locale: :en)
+      assert Enum.map_join(parts, & &1.value) == "week 5 of September"
+      assert %{type: :month, value: "September"} in parts
+    end
+
+    test "of the month name the week's month on every day" do
+      {:ok, months} = Localize.Locale.get(:en, [:dates, :calendars, :gregorian, :months])
+      names = months.format.wide
+
+      for date <- Date.range(~D[2015-01-01], ~D[2026-12-31]) do
+        thursday = Date.add(date, 4 - Date.day_of_week(date, :monday))
+        week = div(thursday.day - 1, 7) + 1
+        expected = "#{week} #{Map.fetch!(names, thursday.month)} #{thursday.year}"
+
+        assert Localize.Date.to_string(date, format: "W MMMM y", locale: :en) == {:ok, expected}
+      end
+    end
+
+    # A calendar whose week never leaves its month names the date's own:
+    # ISO week 25 is the fourth week of its 4-4-5 June, and a calendar whose
+    # week 1 holds the first of the month cuts its weeks at the month's end.
+    test "of the month name the date's month where the week never leaves it" do
+      assert Localize.Date.to_string(date(2026, 25, 2, IsoWeek), format: :MMMMW, locale: :en) ==
+               {:ok, "week 4 of June"}
+
+      assert Localize.Date.to_string(date(2021, 10, 1, JanuaryWeeks),
+               format: :MMMMW,
+               locale: :en
+             ) == {:ok, "week 1 of October"}
+
+      assert Localize.Date.to_string(date(2021, 9, 30, JanuaryWeeks),
+               format: :MMMMW,
+               locale: :en
+             ) == {:ok, "week 5 of September"}
+    end
   end
 
   describe "quarters" do

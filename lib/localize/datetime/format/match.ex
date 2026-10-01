@@ -767,6 +767,16 @@ defmodule Localize.DateTime.Format.Match do
     |> separate_date_and_time_fields()
   end
 
+  @doc false
+  # Whether a skeleton names only date fields, or only time fields: one with
+  # no other half, which `separate_date_and_time/1` answers `nil` for.
+  @spec only_fields?(atom() | String.t(), :date | :time) :: boolean()
+  def only_fields?(skeleton, kind) do
+    symbols = if kind == :date, do: @date_symbols, else: @time_symbols
+    letters = skeleton |> Kernel.to_string() |> String.graphemes()
+    letters != [] and Enum.all?(letters, &(&1 in symbols))
+  end
+
   # A character that is neither a date nor a time symbol makes the skeleton
   # unsplittable rather than being dropped, so `:bogus` does not resolve as
   # the date "gu" and the time "bs".

@@ -126,6 +126,17 @@ iex> Exception.message(error)
 "The format \"MMM d, y\" cannot be applied to the value: missing :day."
 ```
 
+A value is checked against its calendar wherever it enters: a date or a time the calendar does not have is an error rather than a string written from impossible fields. A partial date is checked by the fields it holds, a year and a month as the month's first day, so a month and day without a year may be any year's:
+
+```elixir
+iex> {:error, error} = Localize.Date.to_string(%{year: 2023, month: 2, day: 29}, locale: :en)
+iex> error.expected
+"a date its calendar has"
+
+iex> Localize.Date.to_string(%{month: 2, day: 29}, format: "MMM d", locale: :en)
+{:ok, "Feb 29"}
+```
+
 An era needs only the year wherever a calendar's eras begin with its years. In the Japanese calendar, whose eras begin mid-year, a partial date in the year or month an era began is an error naming the fields that would settle it:
 
 ```elixir
@@ -610,7 +621,7 @@ A symbol takes only the widths TR35's Date Field Symbol Table lists for it. At a
 | `W` | Week of month | 1 | � | � | � | � |
 | `Q` | Quarter | 3 | 03 | Q3 | 3rd quarter | 3 |
 
-`Y`, `w` and `W` count the calendar's weeks, never the locale's week data. `Y` and `w` are the calendar's own week-based year and week of the year, its `week_of_year/3`, and `Calendar.ISO`'s are ISO 8601's: weeks begin on Monday and week 1 holds 4 January, so 1 January 2027 is in week 53 of 2026 in `en` as in `de`. A calendar that numbers its weeks another way, such as Calendrical's Gregorian calendar, whose week 1 holds 1 January, gives its own. `W` is the calendar's own week of the month, its `week_of_month/3`; `Calendar.ISO`'s follows ISO 8601's rule, a Monday week being the month's when four or more of its days are, so its months' weeks are their first four or five. `Q` and `q` are the calendar's quarter, its `quarter_of_year/3`: a thirteenth month, as the Coptic and Ethiopic calendars and a Hebrew leap year have, is in the fourth quarter, and a calendar of weeks' quarters are thirteen of its weeks, so a quarter needs the year as well as the month. The numeric day of the week, `e` and `c`, still counts from the locale's first day, as TR35 defines it. ICU numbers weeks by the locale's week data; see [ICU divergences](icu_divergences.md#date-and-time-patterns).
+`Y`, `w` and `W` count the calendar's weeks, never the locale's week data. `Y` and `w` are the calendar's own week-based year and week of the year, its `week_of_year/3`, and `Calendar.ISO`'s are ISO 8601's: weeks begin on Monday and week 1 holds 4 January, so 1 January 2027 is in week 53 of 2026 in `en` as in `de`. A calendar that numbers its weeks another way, such as Calendrical's Gregorian calendar, whose week 1 holds 1 January, gives its own. `W` is the calendar's own week of the month, its `week_of_month/3`; `Calendar.ISO`'s follows ISO 8601's rule, a Monday week being the month's when four or more of its days are, so its months' weeks are their first four or five. A week can therefore belong to the month before or after its date's, so a pattern with `W` writes its month, and the year and era that month is in, as the week's month, as `Y` writes the year `w` belongs to: `MMMMW` writes 1 October 2021 as "week 5 of September". The day stays the date's. `Q` and `q` are the calendar's quarter, its `quarter_of_year/3`: a thirteenth month, as the Coptic and Ethiopic calendars and a Hebrew leap year have, is in the fourth quarter, and a calendar of weeks' quarters are thirteen of its weeks, so a quarter needs the year as well as the month. The numeric day of the week, `e` and `c`, still counts from the locale's first day, as TR35 defines it. ICU numbers weeks by the locale's week data; see [ICU divergences](icu_divergences.md#date-and-time-patterns).
 
 `ddd` is CLDR 49's ordinal day of month and is a **technical preview** — TR35 designates the `dayOfMonth` section one, so both the output and the surface may change. It is taken from the locale's `dayOfMonths` data for the ordinal plural category the day selects — `:yMMMddd` renders "Jul 6th, 2024" in `en` and "1er juil. 2024" in `fr`. Only some locales carry that data; the rest format the plain day, as does any pattern whose month is numeric (`M` or `MM`), where TR35 says `ddd` is ignored. A skeleton asking for `ddd` where the locale has no `ddd` format matches its `d` format instead, and the pattern's `d` is left at its own width rather than being widened.
 
@@ -694,8 +705,11 @@ Skeleton atoms can use `j` as a meta-symbol that resolves to the locale's prefer
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
 | `:locale` | atom, string, or `LanguageTag` | `Localize.get_locale()` | Locale for patterns and calendar names. |
-| `:format` | atom | `:medium` | Detail level: `:short`, `:medium`, or `:long`. |
-| `:style` | atom | `:date` | Field scope: `:date`, `:month`, `:month_and_day`, or `:year_and_month`. |
+| `:format` | atom or string | `:medium` | A standard format (`:short`, `:medium`, `:long`, `:full`), a skeleton such as `:yMMMEd`, or a pattern. |
+| `:date_format` | atom or string | `:format` | The date half of a datetime interval, or a date interval's format. |
+| `:time_format` | atom or string | `:format` | The time half of a datetime interval, or a time interval's format. |
+| `:fields` | atom | `:date` | Fields a date interval shows with a standard format: `:date`, `:month`, `:month_and_day`, or `:year_and_month`. |
+| `:style` | atom | `:at` | Wrapper joining a datetime interval's date to its time range: `:at` or `:default`. |
 
 ### `Localize.DateTime.Relative.to_string/2`
 

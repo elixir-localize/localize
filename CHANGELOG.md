@@ -8,6 +8,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
+* `Localize.Interval.to_string/3` and `to_parts/3` take a skeleton or a pattern as a date interval's `:format` or `:date_format`, as CLDR keys interval formats by skeleton, so a format no standard format reaches can be named: `format: :yMMMEd` is "Mon, Jun 15 – Thu, Jun 18, 2026" in `en`.
+
 * `Localize.DateTime.Timezone.parse_zone/2` reads a time zone in any form a locale writes one — a name, location, city, zone ID or localized GMT format — as TR35's time zone parsing does, and `resolve/3` resolves it at a date and time through the configured time zone database.
 
 * `Localize.Inflection` inflects words for grammatical constraints from CLDR's inflection data — `inflect("Haus", :de, %{case: "dative", number: "plural"})` gives "Häusern" — with `pronoun/2,3`, `quantify/4` (whose numbers are spoken in agreement with the noun), and concepts that carry forms of their own as `:display_data`. Data for 48 languages comes from `mix localize.download_inflection`.
@@ -70,6 +72,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 * **Breaking.** Week numbers are the calendar's, never the locale's week data: `Y` and `w` are the calendar's own week-based year and week (`week_of_year/3`), ISO 8601's for `Calendar.ISO`, so 1 January 2027 is in week 53 of 2026 in `en` as in `de`, and `W` is the calendar's own week of the month (`week_of_month/3`), ISO 8601's rule for `Calendar.ISO`. Week text parses back in those weeks, so a calendar of weeks' week text and an ISO 8601 week date such as "2026-W25-2" round-trip.
 
+* **Breaking.** A pattern with `W` writes its month, and the year and era that month is in, as the month the week belongs to, as `Y` writes the year `w` belongs to: `MMMMW` writes 1 October 2021, in ISO 8601's fifth week of September, as "week 5 of September".
+
 * **Breaking.** A date parsed for a calendar of weeks is read as a Gregorian date and converted into it, as the calendar's `parsing_calendar/0` says, since a written month and day name no single week: "Feb 1, 2024" in `Calendrical.ISOWeek` is 2024-W05-4, and `as: :map` gives it whole. An ISO 8601 date and time is returned in the `:calendar` module, as a date is, where it came back in `Calendar.ISO`.
 
 * **Breaking.** The parse functions no longer take `:return_calendar`: the date comes back in the `:calendar` module, and `Date.convert/2` gives it in any other calendar.
@@ -107,6 +111,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 * **Breaking.** A zero offset is spelled out wherever a localized GMT format is used, `"GMT+00:00"` long and `"GMT+0"` short, as TR35's examples and ICU give it. `Localize.DateTime.Timezone.gmt_format/3` drops its `:zero_format` option, which selected between the two.
 
 ### Fixed
+
+* A datetime interval splits a skeleton into its date and time fields, as TR35's interval algorithm does, so one day's `format: :yMMMdHm` is "Jun 15, 2026, 10:00 – 14:30" where it was an error and `format: :Hm` writes the times alone where it wrote "10:00, 10:00 – 14:30". A skeleton of date fields alone formats the dates as a date interval does, "Jun 15 – 16, 2026".
+
+* A date or time its calendar does not have is a `Localize.InvalidValueError` wherever it enters formatting, intervals, `Localize.Calendar.localize/3` and relative time, checked by the calendar's `valid_date?/3` and `valid_time?/4`. `E`, `e`, `c`, `D`, `g` and `Q` raised for one, and the other fields wrote it, "Feb 30, 2019" or hour 25 as "1:00 AM".
 
 * A calendar whose year begins in another month, such as a fiscal year beginning in July, names its months for the months they are, period 1 "Jul" and "7", where they were named by their place in the year, "Jan" and "1".
 
