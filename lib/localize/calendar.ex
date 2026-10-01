@@ -717,6 +717,8 @@ defmodule Localize.Calendar do
   `Calendar.ISO` or one implementing the Calendrical behaviour, which
   answers these questions; any other is refused.
 
+  A date's era and month are those of the day it names as it is written, in the calendar its own calendar reads written dates in, its `parsing_calendar/0`: a calendar of weeks' date names a Gregorian day, so ISO week 27 day 1 of 2026 is in June, though its week is in its calendar's July. Its quarter and weekday are its own calendar's.
+
   ### Arguments
 
   * `datetime` is any `t:Date.t/0`, `t:DateTime.t/0`, or
@@ -786,15 +788,29 @@ defmodule Localize.Calendar do
           {:ok, String.t() | [{1..7, String.t()}]} | {:error, Exception.t()}
   def localize(datetime, part, options \\ [])
 
-  # A date whose calendar cannot answer for its parts is refused here.
+  # A date whose calendar cannot answer for its parts is refused here. Its
+  # era and month are named for the day it names as written (`written_day/1`),
+  # as the formatter writes them; its quarter and weekday are its calendar's.
   def localize(datetime, part, options) when is_keyword_list(options) do
-    with :ok <- validate_value(datetime) do
-      localize_part(datetime, part, options)
+    with :ok <- validate_value(datetime),
+         {:ok, written} <- written_day(datetime) do
+      localize_part(if(part in [:era, :month], do: written, else: datetime), part, options)
     end
   end
 
   def localize(_datetime, _part, options),
     do: {:error, Localize.Utils.Helpers.invalid_options(options)}
+
+  @doc false
+  # A part named for the value as it is given, for the formatter, which has
+  # chosen the value each field is written from: the day a date names
+  # (`written_day/1`), or the day its week's month is named by
+  # (`week_month_day/1`).
+  @spec localize_given(map(), part(), Keyword.t()) ::
+          {:ok, String.t() | [{1..7, String.t()}]} | {:error, Exception.t()}
+  def localize_given(datetime, part, options) do
+    with :ok <- validate_value(datetime), do: localize_part(datetime, part, options)
+  end
 
   defp localize_part(datetime, :era, options) do
     with {:ok, era} <- era_of(datetime) do
@@ -1661,6 +1677,51 @@ defmodule Localize.Calendar do
         _other -> false
       end
     )
+  end
+
+  @doc false
+  # The day a date names, as it is written: in the calendar its own calendar
+  # reads written dates in, its `parsing_calendar/0`. That is the calendar
+  # itself, so most dates are written from their own fields; a calendar of
+  # weeks reads its dates as Gregorian ones, so its date is written as the
+  # Gregorian day it names, its era, years, month and day, and `D` and `F`
+  # counted from them, and reads back as itself (user, 2026-10-01: ISO
+  # 2026-W25-2 is "Jun 16, 2026"). A value that is not a whole date names no
+  # day and is written from its own fields; a conversion that fails is an
+  # error.
+  @spec written_day(map()) :: {:ok, map()} | {:error, Exception.t()}
+  def written_day(%{year: year, month: month, day: day} = date)
+      when is_integer(year) and is_integer(month) and is_integer(day) do
+    calendar = Map.get(date, :calendar, Calendar.ISO)
+
+    case parsing_calendar(calendar) do
+      {:ok, ^calendar} -> {:ok, date}
+      {:ok, written_in} -> day_written_in(date, calendar, written_in)
+      {:error, _reason} = error -> error
+    end
+  end
+
+  def written_day(date), do: {:ok, date}
+
+  defp day_written_in(date, calendar, written_in) do
+    with {:ok, own} <- Date.new(date.year, date.month, date.day, calendar),
+         {:ok, written} <- Date.convert(own, written_in) do
+      {:ok,
+       Map.merge(date, %{
+         year: written.year,
+         month: written.month,
+         day: written.day,
+         calendar: written_in
+       })}
+    else
+      _no_conversion ->
+        {:error,
+         Localize.InvalidValueError.exception(
+           value: Map.take(date, [:year, :month, :day]),
+           expected: "a date its calendar can write in #{inspect(written_in)}",
+           context: inspect(calendar)
+         )}
+    end
   end
 
   @doc false

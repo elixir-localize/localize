@@ -1,8 +1,8 @@
 # Calendar callbacks
 
-**Status:** in progress, 2026-10-01
+**Status:** implemented (v1.4.0), 2026-10-02
 
-Localize formats a date but never digs into its calendar's implementation: every answer a format or a parse needs comes from a callback on the date's own calendar module, and `Calendar.ISO`, which has none of those callbacks, is the only calendar Localize answers for itself (user, 2026-10-01; the rule is in `CLAUDE.md`, "Localize formats; calendars answer"). The date code probed calendars with `function_exported?/3` and fell back to raw fields, introspected them, and branched on CLDR calendar types; this plan removes all of it. Phases 1 and 2 have landed: no date code probes a calendar any more, a calendar of weeks is parsed through the calendar it names, and what is left is the identity and type branches and writing a week date as the day it names.
+Localize formats a date but never digs into its calendar's implementation: every answer a format or a parse needs comes from a callback on the date's own calendar module, and `Calendar.ISO`, which has none of those callbacks, is the only calendar Localize answers for itself (user, 2026-10-01; the rule is in `CLAUDE.md`, "Localize formats; calendars answer"). The date code probed calendars with `function_exported?/3` and fell back to raw fields, introspected them, and branched on CLDR calendar types; this plan removes all of it. Every phase has landed: no date code probes a calendar or branches on its identity, a calendar of weeks is parsed through the calendar it names and its dates are written as the days they name, and only the MF2 `calendar` option is deferred.
 
 ## Decisions
 
@@ -46,13 +46,13 @@ When the plan began, the date code held about 33 `function_exported?/3` probes o
 
 ## Tasks
 
-* [ ] **Localize: a week date written as the day it names** — the formatter converts a date in a calendar of weeks into its `parsing_calendar/0` for its era, year, month, day, `D` and `F`, keeping its weeks and quarters the calendar's, so 2026-W25-2 is "Jun 16, 2026" where it is "Jun 2, 2026" (decision above, user, 2026-10-01). `guides/date_time_formatting.md` and a `CHANGELOG.md` entry already describe it, ahead of the code (user, 2026-10-02).
-
 ### Deferred
 
 * [ ] **Localize: the MF2 `calendar` option** — it still reaches Calendrical through `Localize.OptionalDependency`, which the decisions above rule out; deferred (user, 2026-10-01).
 
 ### Done
+
+* [x] **Localize: a week date written as the day it names** — the formatter writes a date's era, years, month, day, `D` and `F` from the day it names in its `parsing_calendar/0` (`Localize.Calendar.written_day/1`), keeping its weeks, quarters and a `W` pattern's month its own; `localize/3`'s era and month and an interval's differences follow, so 2026-W25-2 is "Jun 16, 2026" and reads back as itself. 2026-10-02.
 
 * [x] **Localize: `W` beside a month** — a pattern with `W` writes its month, and the year and era that month is in, from the day of the week in the week's month (`Localize.Calendar.week_month_day/1`), so `MMMMW` writes 1 October 2021 "week 5 of September" where it wrote "week 5 of October". 2026-10-01.
 

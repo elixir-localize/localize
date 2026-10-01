@@ -4,8 +4,6 @@ Outstanding work on Localize. The design detail behind these items lives under [
 
 ## Open
 
-* [ ] **A week calendar's date is written as the day it names** — Localize writes a week calendar's date from its own fields, its week-based year, its period's month and its day of the week, so the text names another day and does not read back as the date: ISO 2026-W25-2, Tuesday 16 June 2026, is "Jun 2, 2026" (`D` 170 and `F` 1, where 16 June is 167 and 3), 2026-W27-1, 29 June, is "Jul 1, 2026", and 2026-W01-1, 29 December 2025, is "Jan 1, 2026". Write its era, year, month and day, with `D` and `F`, as the day's own in the calendar it is read in, its `parsing_calendar/0`, converting into it as the parser converts out of it, and keep its weeks and quarters (`w`, `W`, `Y`, `Q`) the calendar's. Planned in [plans/calendar-callbacks.md](plans/calendar-callbacks.md) ("Week-based dates", user, 2026-10-01, reversing "Jun 2, 2026"); Tempo's `to_string/2` of a week date waits on it (found through Tempo, 2026-10-01).
-
 * [ ] **Settle the location format of a non-location zone with CLDR** — TR35 49 says a zone with no region (`PST8PDT`, `Etc/GMT+5`) falls back to the offset format, then gives "PST8PDT, generic → Unknown Location Time" as its worked example. Localize follows the first; the conformance data has no case. Worth a CLDR ticket.
 
 * [ ] Currency parsing - when presented with an ambiguous currency text, resolve it by ordering the locales by the match distance to the current locale (either parameter, or Localize.get_locale/1)
@@ -48,8 +46,6 @@ Outstanding work on Localize. The design detail behind these items lives under [
 
 ## In progress
 
-* [ ] **Calendar months through callbacks** — Localize takes every answer about a date from callbacks on its calendar, never probing or introspecting it, with `Calendar.ISO` the only calendar it answers for itself; the month's CLDR name is `month_of_year/3` then a new `cardinal_month` callback. Fixes a July-start fiscal year's period 1 written "Jan" and an ISO week date's week written as its month ("25/2/26" for 2026-W25-2); the day a week date names is its own item, under Open. Planned in [plans/calendar-callbacks.md](plans/calendar-callbacks.md); found through Tempo (2026-10-01). Landed: every month field through `month_of_year/3` and `cardinal_month/1`, every other field, the parser and relative time through the calendar's callbacks with no probe left, the refusal of a calendar that cannot answer, a week calendar's dates parsed as Gregorian through its `parsing_calendar/0`, week numbers, weeks of the month and quarters in the calendar's own, and the `:japanese` branch gone; the MF2 `calendar` option is deferred.
-
 * [ ] **CLDR 49 upgrade** — the plan's items are closed bar item 11; the data is built from CLDR `main` pending beta3 (below), then the final release. [plans/cldr-49.md](plans/cldr-49.md).
 
 ## Blocked
@@ -67,6 +63,10 @@ Outstanding work on Localize. The design detail behind these items lives under [
 * [ ] **`localize_emoji` sibling library** — plan item 11, a separate package on its own schedule. A Phoenix LiveView picker (`localize_emoji_live`) is out of scope for its 0.1.0.
 
 ## Done
+
+* [x] **A week calendar's date is written as the day it names** — its era, years, month, day, `D` and `F` are the day's in its `parsing_calendar/0`, so ISO 2026-W25-2 is "Jun 16, 2026" and reads back as itself; its weeks and quarters stay its own. Found through Tempo. 2026-10-02, v1.4.0.
+
+* [x] **Calendar months through callbacks** — every answer about a date comes from its calendar's callbacks, `Calendar.ISO` answered by Localize, with no probe or identity branch left; the MF2 `calendar` option is deferred. [plans/calendar-callbacks.md](plans/calendar-callbacks.md). 2026-10-02, v1.4.0.
 
 * [x] **An interval joins its date and time with the standard pattern** — as TR35 says, on one day and for whole datetimes across days (user, 2026-10-02), where it took the "at" pattern; ICU4C 78.3 takes "at" for the whole datetimes. `style: :at` keeps it. 2026-10-02, v1.4.0.
 

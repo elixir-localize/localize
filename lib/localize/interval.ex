@@ -903,8 +903,21 @@ defmodule Localize.Interval do
     second: ~w(s S A)
   ]
 
+  # The units are those the values are written in, so two dates in a
+  # calendar of weeks differ in the month their written days do: 29 June and
+  # 1 July 2026, days 1 and 3 of ISO week 27, are "Jun 29 – Jul 1, 2026".
   defp calendar_difference(from, to) do
+    {from, to} = {written_day(from), written_day(to)}
     Enum.find(@unit_order, &differs?(from, to, &1))
+  end
+
+  # A value the calendar cannot write in its parsing calendar is compared as
+  # it is; formatting it then reports the error.
+  defp written_day(value) do
+    case Localize.Calendar.written_day(value) do
+      {:ok, written} -> written
+      {:error, _reason} -> value
+    end
   end
 
   defp differs?(%{hour: from_hour}, %{hour: to_hour}, :am_pm)
@@ -1274,6 +1287,8 @@ defmodule Localize.Interval do
   Returns the greatest calendar field difference between
   two dates or datetimes.
 
+  The fields are the ones the dates are written in, so two dates in a calendar of weeks are compared as the days they name, as an interval writes them.
+
   ### Arguments
 
   * `from` is a date or datetime map.
@@ -1299,6 +1314,8 @@ defmodule Localize.Interval do
   @spec greatest_difference(map(), map()) ::
           {:ok, :y | :M | :d | :H | :m} | {:error, Exception.t()}
   def greatest_difference(from, to) when is_map(from) and is_map(to) do
+    {from, to} = {written_day(from), written_day(to)}
+
     cond do
       Map.get(from, :year) != Map.get(to, :year) ->
         {:ok, :y}
