@@ -46,7 +46,7 @@ When the plan began, the date code held about 33 `function_exported?/3` probes o
 
 ## Tasks
 
-* [ ] **Localize: a week date written as the day it names** — the formatter converts a date in a calendar of weeks into its `parsing_calendar/0` for its era, year, month, day, `D` and `F`, keeping its weeks and quarters the calendar's, so 2026-W25-2 is "Jun 16, 2026" where it is "Jun 2, 2026" (decision above, user, 2026-10-01). The week-date paragraph in `guides/date_time_formatting.md` and the numeric-month entry in `CHANGELOG.md`, which describe today's writing, change with it.
+* [ ] **Localize: a week date written as the day it names** — the formatter converts a date in a calendar of weeks into its `parsing_calendar/0` for its era, year, month, day, `D` and `F`, keeping its weeks and quarters the calendar's, so 2026-W25-2 is "Jun 16, 2026" where it is "Jun 2, 2026" (decision above, user, 2026-10-01). `guides/date_time_formatting.md` and a `CHANGELOG.md` entry already describe it, ahead of the code (user, 2026-10-02).
 
 ### Deferred
 
