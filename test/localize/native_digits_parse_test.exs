@@ -16,6 +16,7 @@ defmodule Localize.NativeDigitsParseTest do
   # 1744-02-21, taking the rest of its arithmetic from `Calendar.ISO`.
   defmodule Japanese do
     @moduledoc false
+    use Localize.Test.StandInCalendar
 
     @eras [{~D[1744-02-21], 214}, {~D[1741-02-27], 213}]
 

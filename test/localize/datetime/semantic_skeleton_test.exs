@@ -25,6 +25,7 @@ defmodule Localize.DateTime.SemanticSkeletonTest do
   # CLDR calendar type, which is all these stand-ins do.
   defmodule Japanese do
     @moduledoc false
+    use Localize.Test.StandInCalendar
     def cldr_calendar_type, do: :japanese
     def cardinal_month(month), do: month
     def month_of_year(_year, month, _day), do: month
@@ -33,6 +34,7 @@ defmodule Localize.DateTime.SemanticSkeletonTest do
 
   defmodule Buddhist do
     @moduledoc false
+    use Localize.Test.StandInCalendar
     def cldr_calendar_type, do: :buddhist
     def cardinal_month(month), do: month
     def month_of_year(_year, month, _day), do: month
@@ -41,6 +43,7 @@ defmodule Localize.DateTime.SemanticSkeletonTest do
 
   defmodule IslamicCivil do
     @moduledoc false
+    use Localize.Test.StandInCalendar
     def cldr_calendar_type, do: :islamic_civil
     def cardinal_month(month), do: month
     def month_of_year(_year, month, _day), do: month
@@ -49,6 +52,7 @@ defmodule Localize.DateTime.SemanticSkeletonTest do
 
   defmodule Hebrew do
     @moduledoc false
+    use Localize.Test.StandInCalendar
     def cldr_calendar_type, do: :hebrew
     def cardinal_month(month), do: month
     def month_of_year(_year, month, _day), do: month
@@ -57,6 +61,7 @@ defmodule Localize.DateTime.SemanticSkeletonTest do
 
   defmodule Chinese do
     @moduledoc false
+    use Localize.Test.StandInCalendar
     def cldr_calendar_type, do: :chinese
     def cardinal_month(month), do: month
     def month_of_year(_year, month, _day), do: month

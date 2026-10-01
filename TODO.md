@@ -26,6 +26,10 @@ Outstanding work on Localize. The design detail behind these items lives under [
 
 * [ ] **Date round trips that fail in eight locales** — `haw` writes months in Roman numerals ("31/xii/24"), `nnh`'s long and full dates do not parse, `gd`'s `yMMM` writes the week-based year ("Dùbh 2025" for 2024-12-31, a CLDR report like `pt`'s), `en-ZW` reads "May 2019" as May 20, and numeric `yMd` dates in `mt`, `sbp`, `ug` and `vai-Latn` are read day-first.
 
+* [ ] **Hebrew dates in `he` do not parse** — `he` writes a Hebrew calendar date's day and year in Hebrew numerals ("כ״ב בטבת ה׳תשפ״ד"), the `hebr` numbering, which the parser does not read as it reads `hanidays` and `hanidec`, so none of `he`'s Hebrew dates round-trip.
+
+* [ ] **Decide how a calendar's ISO-shaped numeric date is read** — the parser reads any `y-MM-dd` text as an ISO 8601 date and converts it, so `he`'s Chinese short date "2023-11-22" (related year 2023, month 11, day 22) comes back as Gregorian 22 November 2023; a calendar's own pattern written that way never round-trips.
+
 * [ ] **Numeric era dates read in another pattern's field order** — an era year small enough to be a day or a month fits the locale's other numeric patterns, so the Japanese `my` "Kanpō (1741–1744) 2/6/1" (y/M/d) is read as 1741-06-02 and `fa`'s "6/1/2 Kanpō (1741–1744)" as 1746-01-02, in either digits; `sa` likewise.
 
 * [ ] **Numeric widths in interval patterns** — TR35's `availableFormats` adjustment pads an interval item's `d/M` to a style's `dd/MM` (`vi` short "01/04/2023 – 10/04/2023"); ICU4C and V8 normalise the skeleton's numeric widths away and write "1/4/2023 – 10/4/2023". Decide which to follow; it predates the calendar work and shows in Gregorian `vi`, `id`, `ms`, `te`, `am` and `sw`.
@@ -44,7 +48,7 @@ Outstanding work on Localize. The design detail behind these items lives under [
 
 ## In progress
 
-* [ ] **Calendar months through callbacks** — Localize takes every answer about a date from callbacks on its calendar, never probing or introspecting it, with `Calendar.ISO` the only calendar it answers for itself; the month's CLDR name is `month_of_year/3` then a new `cardinal_month` callback. Fixes a July-start fiscal year's period 1 written "Jan" and an ISO week date's numeric month ("25/2/26" for 2026-W25-2, which is "6/2/26" as ex_cldr_dates_times wrote it; the day stays the calendar's own). Planned in [plans/calendar-callbacks.md](plans/calendar-callbacks.md); found through Tempo (2026-10-01). Landed: the `cardinal_month/1` callback in Calendrical, every month field through `month_of_year/3` and `cardinal_month/1`, and the refusal of a calendar that cannot answer.
+* [ ] **Calendar months through callbacks** — Localize takes every answer about a date from callbacks on its calendar, never probing or introspecting it, with `Calendar.ISO` the only calendar it answers for itself; the month's CLDR name is `month_of_year/3` then a new `cardinal_month` callback. Fixes a July-start fiscal year's period 1 written "Jan" and an ISO week date's numeric month ("25/2/26" for 2026-W25-2, which is "6/2/26" as ex_cldr_dates_times wrote it; the day stays the calendar's own). Planned in [plans/calendar-callbacks.md](plans/calendar-callbacks.md); found through Tempo (2026-10-01). Landed: every month field through `month_of_year/3` and `cardinal_month/1`, every other field, the parser and relative time through the calendar's callbacks with no probe left, and the refusal of a calendar that cannot answer; open: the `:japanese` and `Calendar.ISO` branches, quarters from the calendar, and the MF2 `calendar` option.
 
 * [ ] **CLDR 49 upgrade** — the plan's items are closed bar item 11; the data is built from CLDR `main` pending beta3 (below), then the final release. [plans/cldr-49.md](plans/cldr-49.md).
 

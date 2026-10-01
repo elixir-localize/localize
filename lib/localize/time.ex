@@ -107,7 +107,8 @@ defmodule Localize.Time do
   """
   @spec to_string(map(), Keyword.t()) :: {:ok, String.t()} | {:error, Exception.t()}
   def to_string(time, options \\ []) do
-    with {:ok, pattern, locale_id, formatter_options} <- formatting_plan(time, options) do
+    with :ok <- Localize.Calendar.validate_calendar(time),
+         {:ok, pattern, locale_id, formatter_options} <- formatting_plan(time, options) do
       Localize.DateTime.Formatter.format(time, pattern, locale_id, formatter_options)
     end
   end
@@ -233,7 +234,8 @@ defmodule Localize.Time do
   @spec to_parts(map(), Keyword.t()) ::
           {:ok, [%{type: atom(), value: String.t()}]} | {:error, Exception.t()}
   def to_parts(time, options \\ []) do
-    with {:ok, pattern, locale_id, formatter_options} <- formatting_plan(time, options) do
+    with :ok <- Localize.Calendar.validate_calendar(time),
+         {:ok, pattern, locale_id, formatter_options} <- formatting_plan(time, options) do
       Localize.DateTime.Formatter.format_to_parts(time, pattern, locale_id, formatter_options)
     end
   end
@@ -712,22 +714,11 @@ defmodule Localize.Time do
     {:ok, pattern}
   end
 
-  # Mirrors the same helper in `Localize.Date`: a calendar module opts in by
-  # exposing `cldr_calendar_type/0`, probed rather than depended on. A time
-  # map without a calendar is a `Calendar.ISO` time.
-  defp cldr_calendar_for(%{calendar: Calendar.ISO}), do: :gregorian
+  # The CLDR calendar whose data formats a value: its calendar's answer.
+  defp cldr_calendar_for(value) when is_map(value),
+    do: Localize.Calendar.cldr_calendar_type(Map.get(value, :calendar, Calendar.ISO))
 
-  defp cldr_calendar_for(%{calendar: module}) when is_atom(module) do
-    Code.ensure_loaded?(module)
-
-    if function_exported?(module, :cldr_calendar_type, 0) do
-      module.cldr_calendar_type()
-    else
-      :gregorian
-    end
-  end
-
-  defp cldr_calendar_for(_time), do: :gregorian
+  defp cldr_calendar_for(_value), do: :gregorian
 
   @doc false
   # The skeleton is built from three fixed symbols, so at most seven atoms

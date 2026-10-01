@@ -817,7 +817,9 @@ defmodule Localize.Calendar do
   end
 
   defp localize_part(datetime, :day_of_week, options) do
-    display_name(:day_of_week, iso_day_of_week(datetime), localize_options(datetime, options))
+    with {:ok, day} <- day_of_week(datetime) do
+      display_name(:day_of_week, day, localize_options(datetime, options))
+    end
   end
 
   defp localize_part(datetime, :days_of_week, options) do
@@ -1239,44 +1241,31 @@ defmodule Localize.Calendar do
 
   defp resolve_locale_id(locale), do: Localize.Locale.cldr_locale_id_from(locale)
 
-  defp calendar_type_from(%{calendar: calendar}) do
-    Code.ensure_loaded?(calendar)
-
-    if function_exported?(calendar, :cldr_calendar_type, 0) do
-      calendar.cldr_calendar_type()
-    else
-      @default_calendar_type
-    end
-  end
-
-  defp calendar_type_from(_), do: @default_calendar_type
+  defp calendar_type_from(datetime),
+    do: cldr_calendar_type(Map.get(datetime, :calendar, Calendar.ISO))
 
   # A calendar may name its eras from another CLDR calendar than its
   # months: Calendrical's lunisolar Japanese calendar takes its month
   # names from the Chinese calendar and its eras (元号) from the
   # Japanese one, through its `era_calendar_type/0`.
-  defp era_calendar_type_from(%{calendar: calendar} = datetime) when is_atom(calendar) do
-    if Code.ensure_loaded?(calendar) and function_exported?(calendar, :era_calendar_type, 0),
-      do: calendar.era_calendar_type(),
-      else: calendar_type_from(datetime)
-  end
-
-  defp era_calendar_type_from(datetime), do: calendar_type_from(datetime)
+  defp era_calendar_type_from(datetime),
+    do: era_calendar_type(Map.get(datetime, :calendar, Calendar.ISO))
 
   @doc false
   # The year of era and the era of a date, whole or partial, from its
   # calendar's `year_of_era/3`. `{:error, fields}` names the fields that
-  # would settle an era the date leaves open.
-  @spec year_of_era(term()) :: {:ok, {Calendar.year(), Calendar.era()}} | {:error, [atom()]}
+  # would settle an era the date leaves open, and `{:error, exception}`
+  # shows an answer that is not a year of era and an era.
+  @spec year_of_era(term()) ::
+          {:ok, {Calendar.year(), Calendar.era()}} | {:error, [atom()] | Exception.t()}
   def year_of_era(date), do: settle(date, &year_of_era_on/2)
 
   @doc false
-  # The year a date shows: Calendrical's `calendar_year/3` where the
-  # calendar has one and it gives a year of at least 1, and otherwise the
-  # year of era, so a year before a calendar's first era counts back as
-  # TR35 counts it — year 0 is 1 BC in `Calendar.ISO` and in Calendrical's
-  # calendars alike.
-  @spec displayed_year(term()) :: {:ok, Calendar.year()} | {:error, [atom()]}
+  # The year a date shows: its calendar's `calendar_year/3` when that is
+  # at least 1, and otherwise the year of era, so a year before a
+  # calendar's first era counts back as TR35 counts it — year 0 is 1 BC in
+  # `Calendar.ISO` and in Calendrical's calendars alike.
+  @spec displayed_year(term()) :: {:ok, Calendar.year()} | {:error, [atom()] | Exception.t()}
   def displayed_year(date), do: settle(date, &displayed_year_on/2)
 
   # A whole date is one day, and a partial one could be any day of its
@@ -1286,18 +1275,21 @@ defmodule Localize.Calendar do
   # the Japanese calendar, a date in the year or month of the change gets
   # the fields that would settle it instead.
   defp settle(%{year: year} = date, answer) when is_integer(year) do
-    calendar = era_calendar(date)
+    calendar = Map.get(date, :calendar, Calendar.ISO)
     {first, last} = date_span(date, calendar, year)
-    first_answer = answer.(calendar, first)
 
-    if first == last or answer.(calendar, last) == first_answer do
-      {:ok, first_answer}
-    else
-      {:error, unsettled_fields(first, last)}
+    with {:ok, first_answer} <- answer.(calendar, first),
+         {:ok, last_answer} <- last_answer(first, last, first_answer, calendar, answer) do
+      if last_answer == first_answer,
+        do: {:ok, first_answer},
+        else: {:error, unsettled_fields(first, last)}
     end
   end
 
   defp settle(_date, _answer), do: {:error, [:year]}
+
+  defp last_answer(day, day, first_answer, _calendar, _answer), do: {:ok, first_answer}
+  defp last_answer(_first, last, _first_answer, calendar, answer), do: answer.(calendar, last)
 
   # The era `localize/3` names. A value without a year names the current
   # era, as the other parts name their first value; one whose days span two
@@ -1307,32 +1299,26 @@ defmodule Localize.Calendar do
       {:ok, {_year_of_era, era}} ->
         {:ok, era}
 
-      {:error, fields} ->
+      {:error, fields} when is_list(fields) ->
         {:error, Localize.DateTimeInvalidInputError.exception(format: "G", missing: fields)}
+
+      {:error, _exception} = error ->
+        error
     end
   end
 
   defp era_of(_datetime), do: {:ok, 1}
 
-  # A date's calendar module when it has a loaded one, and otherwise
-  # `Calendar.ISO`.
-  defp era_calendar(%{calendar: calendar}) when is_atom(calendar) and not is_nil(calendar) do
-    if Code.ensure_loaded?(calendar), do: calendar, else: Calendar.ISO
-  end
-
-  defp era_calendar(_date), do: Calendar.ISO
-
   # The first and last days a date could be: itself when it has a month and
   # a day, its month when it has a month the calendar has, and otherwise its
-  # year. A calendar without the callbacks to measure them is measured as
-  # `Calendar.ISO` is.
+  # year, measured by the calendar.
   defp date_span(%{month: month, day: day}, _calendar, year)
        when is_integer(month) and is_integer(day) do
     {{year, month, day}, {year, month, day}}
   end
 
   defp date_span(date, calendar, year) do
-    measure = span_calendar(calendar)
+    measure = answering(calendar)
     month = Map.get(date, :month)
 
     if is_integer(month) and measure.valid_date?(year, month, 1) do
@@ -1343,48 +1329,32 @@ defmodule Localize.Calendar do
     end
   end
 
-  defp span_calendar(calendar) do
-    if function_exported?(calendar, :valid_date?, 3) and
-         function_exported?(calendar, :days_in_month, 2) and
-         function_exported?(calendar, :months_in_year, 1) do
-      calendar
-    else
-      Calendar.ISO
-    end
-  end
-
   defp unsettled_fields({_year, month, _first_day}, {_last_year, month, _last_day}), do: [:day]
   defp unsettled_fields(_first, _last), do: [:month, :day]
 
-  # A calendar without `year_of_era/3`, or whose answer is malformed, counts
-  # its years as `Calendar.ISO` does.
   defp year_of_era_on(calendar, {year, month, day}) do
-    answer =
-      if function_exported?(calendar, :year_of_era, 3),
-        do: calendar.year_of_era(year, month, day)
+    ask(calendar, :year_of_era, [year, month, day], "a year of era and an era", fn
+      {year_of_era, era} -> is_integer(year_of_era) and is_integer(era)
+      _other -> false
+    end)
+  end
 
-    case answer do
-      {year_of_era, era} when is_integer(year_of_era) and is_integer(era) -> answer
-      _none_or_malformed -> Calendar.ISO.year_of_era(year, month, day)
+  # A calendar's `calendar_year/3` numbers a year as it is displayed — the
+  # year of its era in the Japanese calendar, the year as a Julian calendar
+  # beginning in March counts it — but gives a year before the first era
+  # as it is, 0 or -5. TR35 counts those back from the era, so a year
+  # below 1 is the year of era, from the `year_of_era/3` that names the
+  # date's era.
+  defp displayed_year_on(calendar, {year, month, day} = date) do
+    case ask(calendar, :calendar_year, [year, month, day], "a year", &is_integer/1) do
+      {:ok, shown} when shown >= 1 -> {:ok, shown}
+      {:ok, _before_the_first_era} -> year_of_era_shown(calendar, date)
+      {:error, _exception} = error -> error
     end
   end
 
-  # Calendrical's `calendar_year/3` numbers a year as its calendar displays
-  # it — the year of its era in the Japanese calendar, the year as a Julian
-  # calendar beginning in March counts it — but gives a year before the
-  # first era as it is, 0 or -5. TR35 counts those back from the era, so a
-  # year below 1 is the year of era, from the `year_of_era/3` that names
-  # the date's era.
-  defp displayed_year_on(calendar, {year, month, day} = date) do
-    shown =
-      if function_exported?(calendar, :calendar_year, 3),
-        do: calendar.calendar_year(year, month, day)
-
-    if is_integer(shown) and shown >= 1 do
-      shown
-    else
-      calendar |> year_of_era_on(date) |> elem(0)
-    end
+  defp year_of_era_shown(calendar, date) do
+    with {:ok, {year_of_era, _era}} <- year_of_era_on(calendar, date), do: {:ok, year_of_era}
   end
 
   defp quarter_of_year(%{month: month}) when is_integer(month) do
@@ -1402,8 +1372,52 @@ defmodule Localize.Calendar do
   def answering(calendar), do: calendar
 
   # The callbacks Localize puts to a calendar other than `Calendar.ISO`, which
-  # every calendar implementing the Calendrical behaviour answers.
-  @answers [month_of_year: 3, cardinal_month: 1]
+  # every calendar implementing the Calendrical behaviour answers: the
+  # behaviour's own, and every callback of the `Calendar` behaviour it
+  # extends, which Localize reaches directly and through `Date.convert/2`,
+  # `Date.shift/2` and their kin.
+  @answers [
+             cldr_calendar_type: 0,
+             era_calendar_type: 0,
+             month_of_year: 3,
+             cardinal_month: 1,
+             calendar_year: 3,
+             related_gregorian_year: 3,
+             cyclic_year: 3,
+             iso_week_of_year: 3
+           ] ++
+             (Calendar.behaviour_info(:callbacks) -- Calendar.behaviour_info(:optional_callbacks))
+
+  @doc false
+  # The CLDR calendar whose data names a calendar's months and days.
+  @spec cldr_calendar_type(module()) :: atom()
+  def cldr_calendar_type(calendar), do: answering(calendar).cldr_calendar_type()
+
+  @doc false
+  # The CLDR calendar whose data names a calendar's eras.
+  @spec era_calendar_type(module()) :: atom()
+  def era_calendar_type(calendar), do: answering(calendar).era_calendar_type()
+
+  @doc false
+  # Puts a question to a calendar: `callback` with `arguments`, to the
+  # module `answering/1` names. The answer stands when `valid?` accepts it,
+  # and is otherwise an error showing what the calendar answered.
+  @spec ask(module(), atom(), list(), String.t(), (term() -> boolean())) ::
+          {:ok, term()} | {:error, Exception.t()}
+  def ask(calendar, callback, arguments, expected, valid?) do
+    answer = apply(answering(calendar), callback, arguments)
+
+    if valid?.(answer) do
+      {:ok, answer}
+    else
+      {:error,
+       Localize.InvalidValueError.exception(
+         value: answer,
+         expected: expected,
+         context: inspect(calendar)
+       )}
+    end
+  end
 
   @doc false
   # A value's calendar must answer Localize's questions: `Calendar.ISO`,
@@ -1470,6 +1484,28 @@ defmodule Localize.Calendar do
      )}
   end
 
+  @doc false
+  # The day of the week, 1 for Monday to 7 for Sunday, as the date's
+  # calendar answers it; a map without a calendar is an ISO date, and a
+  # date without its year, month or day is named as Monday. An error when
+  # its calendar answers with something that is not a day of the week.
+  @spec day_of_week(map()) :: {:ok, 1..7} | {:error, Exception.t()}
+  def day_of_week(%{year: year, month: month, day: day} = date)
+      when is_integer(year) and is_integer(month) and is_integer(day) do
+    calendar = Map.get(date, :calendar, Calendar.ISO)
+    arguments = [year, month, day, :monday]
+
+    with {:ok, {day_of_week, _first, _last}} <-
+           ask(calendar, :day_of_week, arguments, "a day of the week", &day_of_week?/1) do
+      {:ok, day_of_week}
+    end
+  end
+
+  def day_of_week(_date), do: {:ok, 1}
+
+  defp day_of_week?({day, _first, _last}), do: day in 1..7
+  defp day_of_week?(_answer), do: false
+
   # CLDR's leap-year name of a month (`7_yeartype_leap`, the Hebrew "Adar II")
   # is keyed by an atom. The keys are built here from the closed set of month
   # numbers, so no atom is made at runtime.
@@ -1505,29 +1541,6 @@ defmodule Localize.Calendar do
       _no_leap_month_pattern -> name
     end
   end
-
-  defp iso_day_of_week(%{year: year, month: month, day: day, calendar: Calendar.ISO})
-       when is_integer(year) and is_integer(month) and is_integer(day) do
-    Calendar.ISO.day_of_week(year, month, day, :monday) |> elem(0)
-  end
-
-  defp iso_day_of_week(%{year: year, month: month, day: day, calendar: calendar})
-       when is_integer(year) and is_integer(month) and is_integer(day) do
-    Code.ensure_loaded?(calendar)
-
-    if function_exported?(calendar, :day_of_week, 4) do
-      calendar.day_of_week(year, month, day, :monday) |> elem(0)
-    else
-      Calendar.ISO.day_of_week(year, month, day, :monday) |> elem(0)
-    end
-  end
-
-  defp iso_day_of_week(%{year: year, month: month, day: day})
-       when is_integer(year) and is_integer(month) and is_integer(day) do
-    Calendar.ISO.day_of_week(year, month, day, :monday) |> elem(0)
-  end
-
-  defp iso_day_of_week(_), do: 1
 
   defp territory_from_locale(locale) do
     Localize.Territory.territory_from_locale(locale)

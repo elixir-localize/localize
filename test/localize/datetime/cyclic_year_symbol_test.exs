@@ -15,6 +15,7 @@ defmodule Localize.DateTime.CyclicYearSymbolTest do
 
   defmodule FakeChineseCalendar do
     @moduledoc false
+    use Localize.Test.StandInCalendar
 
     def cldr_calendar_type, do: :chinese
     def cardinal_month(month), do: month

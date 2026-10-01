@@ -1114,20 +1114,7 @@ defmodule Localize.DateTime do
     end
   end
 
-  # Mirrors the same helper in `Localize.Date`: a calendar module opts in by
-  # exposing `cldr_calendar_type/0`, probed rather than depended on so
-  # Localize needs no hard dependency on the calendar library.
-  defp cldr_calendar_for(%{calendar: Calendar.ISO}), do: :gregorian
-
-  defp cldr_calendar_for(%{calendar: module}) when is_atom(module) do
-    Code.ensure_loaded?(module)
-
-    if function_exported?(module, :cldr_calendar_type, 0) do
-      module.cldr_calendar_type()
-    else
-      :gregorian
-    end
-  end
-
-  defp cldr_calendar_for(_datetime), do: :gregorian
+  # The CLDR calendar whose data formats a value: its calendar's answer.
+  defp cldr_calendar_for(value) when is_map(value),
+    do: Localize.Calendar.cldr_calendar_type(Map.get(value, :calendar, Calendar.ISO))
 end

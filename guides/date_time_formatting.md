@@ -556,7 +556,7 @@ iex> Localize.DateTime.parse("May 16, 2026 2:30 PM Asia/Tokyo", locale: :en)
 
 ### Calendars
 
-The `:calendar` option is a calendar module: `Calendar.ISO`, the default, or any module implementing the `Calendar` behaviour, such as `Calendrical.Hebrew` from [calendrical](https://hex.pm/packages/calendrical). The input is read with the locale's patterns for that calendar, and the date is built and returned in the module you name. A CLDR calendar name such as `:hebrew` is not a calendar, and neither is a module that is not installed:
+The `:calendar` option is a calendar module: `Calendar.ISO`, the default, or a calendar implementing the Calendrical behaviour, such as `Calendrical.Hebrew` from [calendrical](https://hex.pm/packages/calendrical). The input is read with the locale's patterns for that calendar, and the date is built and returned in the module you name. A CLDR calendar name such as `:hebrew` is not a calendar, and neither is a module that is not installed:
 
 ```elixir
 Localize.Date.parse("22.03.2026", locale: :de, calendar: Calendar.ISO)
@@ -571,7 +571,7 @@ Localize.Date.parse("22.03.2026", locale: :de, calendar: :hebrew)
 #=> {:error, %Localize.UnknownCalendarError{calendar: :hebrew}}
 ```
 
-The calendar is checked before any parsing happens, so the answer does not depend on the shape of the input: ISO 8601 and locale-formatted text both return the same error for the same `:calendar`. Any module implementing the `Calendar` behaviour is accepted, so a custom calendar needs no CLDR registration; one that names no CLDR calendar type is read with the Gregorian patterns.
+The calendar is checked before any parsing happens, so the answer does not depend on the shape of the input: ISO 8601 and locale-formatted text both return the same error for the same `:calendar`. A calendar names its own CLDR calendar type and months through the Calendrical behaviour's callbacks, so a custom calendar needs no registration with Localize; a module implementing only the `Calendar` behaviour cannot say how its dates are written, and is refused with `Localize.UnknownCalendarError`, as it is when formatting.
 
 The date comes back in the `:calendar` module. When a consumer needs it in another calendar, such as `Calendar.ISO` for an Ecto `:date` field, convert it with `Date.convert/2`.
 

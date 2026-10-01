@@ -3,20 +3,16 @@ defmodule Localize.CalendarTest.BuddhistLikeCalendar do
   # Minimal era-aware calendar: reports the Buddhist CLDR calendar
   # type and a `year_of_era/3` returning the BE era-year and the
   # Buddhist era index 0.
+  use Localize.Test.StandInCalendar
 
   def cldr_calendar_type, do: :buddhist
-  def cardinal_month(month), do: month
-  def month_of_year(_year, month, _day), do: month
   def year_of_era(year, _month, _day), do: {year + 543, 0}
-
-  def day_of_week(year, month, day, starting),
-    do: Calendar.ISO.day_of_week(year, month, day, starting)
 end
 
 defmodule Localize.CalendarTest.NoYearOfEraCalendar do
   @moduledoc false
-  # Calendar without a `year_of_era/3` callback; era localization
-  # falls back to the year>0 → era 1 heuristic.
+  # A calendar with neither `year_of_era/3` nor the rest of the `Calendar`
+  # behaviour, which Localize refuses where a date in it enters.
 
   def cldr_calendar_type, do: :gregorian
   def cardinal_month(month), do: month
@@ -25,20 +21,41 @@ end
 
 defmodule Localize.CalendarTest.BadYearOfEraCalendar do
   @moduledoc false
-  # Calendar whose `year_of_era/3` returns a non-tuple; era
-  # localization falls back to the year>0 → era 1 heuristic.
+  # A calendar whose `year_of_era/3` answers with something that is not a
+  # year of era and an era.
+  use Localize.Test.StandInCalendar
 
-  def cldr_calendar_type, do: :gregorian
-  def cardinal_month(month), do: month
-  def month_of_year(_year, month, _day), do: month
   def year_of_era(_year, _month, _day), do: :not_a_tuple
+end
+
+defmodule Localize.CalendarTest.NextDayWeekCalendar do
+  @moduledoc false
+  # A calendar whose weekday is the ISO weekday of the next day, so a name
+  # that follows it is the calendar's answer, not the ISO date's.
+  use Localize.Test.StandInCalendar
+
+  def day_of_week(year, month, day, starting_on) do
+    {day_of_week, first, last} = Calendar.ISO.day_of_week(year, month, day, starting_on)
+    {rem(day_of_week, last) + first, first, last}
+  end
+end
+
+defmodule Localize.CalendarTest.BadDayOfWeekCalendar do
+  @moduledoc false
+  # A calendar whose `day_of_week/4` answers with something that is not a
+  # day of the week.
+  use Localize.Test.StandInCalendar
+
+  def day_of_week(_year, _month, _day, _starting_on), do: {:error, :no_weekdays}
 end
 
 defmodule Localize.CalendarTest do
   use ExUnit.Case, async: true
 
+  alias Localize.CalendarTest.BadDayOfWeekCalendar
   alias Localize.CalendarTest.BadYearOfEraCalendar
   alias Localize.CalendarTest.BuddhistLikeCalendar
+  alias Localize.CalendarTest.NextDayWeekCalendar
   alias Localize.CalendarTest.NoYearOfEraCalendar
 
   doctest Localize.Calendar
@@ -587,18 +604,18 @@ defmodule Localize.CalendarTest do
                {:ok, "BE"}
     end
 
-    test "a calendar without year_of_era falls back to the year sign" do
+    test "a calendar without year_of_era is refused" do
       date = %{year: 2020, month: 6, day: 1, calendar: NoYearOfEraCalendar}
 
-      assert Localize.Calendar.localize(date, :era, locale: :en, style: :abbreviated) ==
-               {:ok, "AD"}
+      assert {:error, %Localize.UnknownCalendarError{calendar: NoYearOfEraCalendar}} =
+               Localize.Calendar.localize(date, :era, locale: :en, style: :abbreviated)
     end
 
-    test "a calendar with a malformed year_of_era falls back to the year sign" do
+    test "a calendar answering year_of_era with something else is an error" do
       date = %{year: 2020, month: 6, day: 1, calendar: BadYearOfEraCalendar}
 
-      assert Localize.Calendar.localize(date, :era, locale: :en, style: :abbreviated) ==
-               {:ok, "AD"}
+      assert {:error, %Localize.InvalidValueError{value: :not_a_tuple}} =
+               Localize.Calendar.localize(date, :era, locale: :en, style: :abbreviated)
     end
 
     test "a BC date renders the era at index zero, with variant BCE" do
@@ -638,12 +655,27 @@ defmodule Localize.CalendarTest do
     end
   end
 
-  describe "localize/3 :day_of_week calendar fallbacks" do
-    test "a calendar module without day_of_week/4 falls back to Calendar.ISO" do
-      date = %{year: 2024, month: 7, day: 6, calendar: NoYearOfEraCalendar}
+  describe "localize/3 :day_of_week from the calendar" do
+    # 6 July 2024 is a Saturday.
+    test "the day is named as the calendar answers it" do
+      date = %{year: 2024, month: 7, day: 6, calendar: NextDayWeekCalendar}
 
       assert Localize.Calendar.localize(date, :day_of_week, locale: :en, style: :abbreviated) ==
-               {:ok, "Sat"}
+               {:ok, "Sun"}
+    end
+
+    test "a calendar without day_of_week/4 is refused" do
+      date = %{year: 2024, month: 7, day: 6, calendar: NoYearOfEraCalendar}
+
+      assert {:error, %Localize.UnknownCalendarError{calendar: NoYearOfEraCalendar}} =
+               Localize.Calendar.localize(date, :day_of_week, locale: :en, style: :abbreviated)
+    end
+
+    test "a calendar answering day_of_week with something else is an error" do
+      date = %{year: 2024, month: 7, day: 6, calendar: BadDayOfWeekCalendar}
+
+      assert {:error, %Localize.InvalidValueError{value: {:error, :no_weekdays}}} =
+               Localize.Calendar.localize(date, :day_of_week, locale: :en, style: :abbreviated)
     end
 
     test "a bare map without a :calendar key uses Calendar.ISO" do

@@ -7,11 +7,16 @@ defmodule Localize.CalendarMonthNameTest do
   # and Chinese calendars do.
   defmodule Hebrew do
     @moduledoc false
+    use Localize.Test.StandInCalendar
 
     def cldr_calendar_type, do: :hebrew
     def cardinal_month(month), do: month
+    def year_of_era(year, _month, _day), do: {year, 0}
 
     def leap_year?(year), do: Integer.mod(7 * year + 1, 19) < 7
+    def months_in_year(year), do: if(leap_year?(year), do: 13, else: 12)
+    def days_in_month(_year, _month), do: 29
+    def valid_date?(year, month, day), do: month in 1..months_in_year(year) and day in 1..29
 
     # CLDR numbers the months of an ordinary year from Adar on one more than
     # their position, and names month 7 "Adar II" in a leap year.
@@ -26,6 +31,7 @@ defmodule Localize.CalendarMonthNameTest do
 
   defmodule Chinese do
     @moduledoc false
+    use Localize.Test.StandInCalendar
 
     def cldr_calendar_type, do: :chinese
     def cardinal_month(month), do: month
@@ -41,6 +47,7 @@ defmodule Localize.CalendarMonthNameTest do
 
   defmodule Unanswering do
     @moduledoc false
+    use Localize.Test.StandInCalendar
 
     def cldr_calendar_type, do: :gregorian
     def cardinal_month(month), do: month
@@ -112,6 +119,42 @@ defmodule Localize.CalendarMonthNameTest do
     test "a Hebrew month is the CLDR month its name uses, whatever its place in the year" do
       assert format(%{year: 5784, month: 8, day: 12}, Hebrew, "M/d", :en) == "8/12"
       assert format(%{year: 5785, month: 7, day: 12}, Hebrew, "M/d", :en) == "8/12"
+    end
+
+    # Read back, the number is the CLDR month too, and so the month of that
+    # name in the year: an ordinary year's Adar, its sixth month, is written
+    # 7, and a leap year's Adar II, its seventh, is also written 7.
+    test "a Hebrew month written as a number reads back to its place in the year" do
+      reference = %{year: 5786, month: 1, day: 1, calendar: Hebrew}
+
+      dates =
+        for {year, month} <- [
+              {5786, 5},
+              {5786, 6},
+              {5786, 7},
+              {5786, 12},
+              {5787, 6},
+              {5787, 7},
+              {5787, 8},
+              {5787, 13}
+            ],
+            do: %Date{year: year, month: month, day: 15, calendar: Hebrew}
+
+      failures =
+        for {locale, format} <- [de: :short, fr: :short, ja: :short, zh: :short, en: :medium],
+            date <- dates,
+            {:ok, text} = Localize.Date.to_string(date, format: format, locale: locale),
+            parsed =
+              Localize.Date.parse(text,
+                locale: locale,
+                calendar: Hebrew,
+                reference_date: reference
+              ),
+            parsed != {:ok, date} do
+          {locale, date, text, parsed}
+        end
+
+      assert failures == []
     end
   end
 

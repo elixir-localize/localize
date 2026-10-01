@@ -263,20 +263,9 @@ defmodule Localize.Interval do
   defp calendar_of(value) when is_map(value), do: Map.get(value, :calendar, Calendar.ISO)
   defp calendar_of(_value), do: Calendar.ISO
 
-  # The CLDR calendar whose formats a value is formatted with. Mirrors the
-  # same helper in `Localize.Date`: a calendar module opts in by exposing
-  # `cldr_calendar_type/0`, probed rather than depended on.
-  defp cldr_calendar_for(%{calendar: Calendar.ISO}), do: :gregorian
-
-  defp cldr_calendar_for(%{calendar: module}) when is_atom(module) do
-    Code.ensure_loaded?(module)
-
-    if function_exported?(module, :cldr_calendar_type, 0) do
-      module.cldr_calendar_type()
-    else
-      :gregorian
-    end
-  end
+  # The CLDR calendar whose data formats a value: its calendar's answer.
+  defp cldr_calendar_for(value) when is_map(value),
+    do: Localize.Calendar.cldr_calendar_type(Map.get(value, :calendar, Calendar.ISO))
 
   defp cldr_calendar_for(_value), do: :gregorian
 

@@ -17,11 +17,11 @@ defmodule Localize.IntervalCalendarTest do
   # and CLDR data, as Calendrical's Japanese calendar has them.
   defmodule Japanese do
     @moduledoc false
+    use Localize.Test.StandInCalendar
 
     def cldr_calendar_type, do: :japanese
     def cardinal_month(month), do: month
     def month_of_year(_year, month, _day), do: month
-    def calendar_base, do: :month
 
     # Reiwa began on 2019-05-01 and Heisei on 1989-01-08.
     def year_of_era(year, month, day) do
@@ -50,10 +50,10 @@ defmodule Localize.IntervalCalendarTest do
   # its eleventh day.
   defmodule Chinese do
     @moduledoc false
+    use Localize.Test.StandInCalendar
 
     def cldr_calendar_type, do: :chinese
     def cardinal_month(month), do: month
-    def calendar_base, do: :month
 
     def months_in_year(4660), do: 13
     def months_in_year(_year), do: 12
@@ -79,6 +79,7 @@ defmodule Localize.IntervalCalendarTest do
   # A calendar with the Hebrew calendar's CLDR data, for times.
   defmodule HebrewTimes do
     @moduledoc false
+    use Localize.Test.StandInCalendar
 
     def cldr_calendar_type, do: :hebrew
     def cardinal_month(month), do: month
@@ -89,12 +90,12 @@ defmodule Localize.IntervalCalendarTest do
   # numbered 543 ahead in the one era CLDR names for it.
   defmodule Buddhist do
     @moduledoc false
+    use Localize.Test.StandInCalendar
     @offset 543
 
     def cldr_calendar_type, do: :buddhist
     def cardinal_month(month), do: month
     def month_of_year(_year, month, _day), do: month
-    def calendar_base, do: :month
     def calendar_year(year, _month, _day), do: year
     def year_of_era(year, _month, _day), do: {year, 0}
 

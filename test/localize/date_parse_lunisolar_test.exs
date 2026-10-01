@@ -19,10 +19,10 @@ defmodule Localize.DateParseLunisolarTest do
   # but for 4660, whose leap second month is its third of thirteen.
   defmodule Lunisolar do
     @moduledoc false
+    use Localize.Test.StandInCalendar
 
     def cldr_calendar_type, do: :chinese
     def cardinal_month(month), do: month
-    def calendar_base, do: :month
 
     def months_in_year(4660), do: 13
     def months_in_year(_year), do: 12
@@ -59,12 +59,12 @@ defmodule Localize.DateParseLunisolarTest do
   # Buddhist calendar does, with no era before its first.
   defmodule Offset do
     @moduledoc false
+    use Localize.Test.StandInCalendar
     @offset 543
 
     def cldr_calendar_type, do: :buddhist
     def cardinal_month(month), do: month
     def month_of_year(_year, month, _day), do: month
-    def calendar_base, do: :month
     def calendar_year(year, _month, _day), do: year
     def year_of_era(year, _month, _day), do: {year, 0}
 
@@ -99,6 +99,7 @@ defmodule Localize.DateParseLunisolarTest do
   # Alem, 5500 years earlier, as CLDR and ICU number them.
   defmodule Ethiopic do
     @moduledoc false
+    use Localize.Test.StandInCalendar
 
     # The ISO day of 1 Meskerem of year 1, Gregorian 0008-08-27.
     @epoch 3161
@@ -106,7 +107,6 @@ defmodule Localize.DateParseLunisolarTest do
     def cldr_calendar_type, do: :ethiopic
     def cardinal_month(month), do: month
     def month_of_year(_year, month, _day), do: month
-    def calendar_base, do: :month
     def calendar_year(year, _month, _day), do: year
     def year_of_era(year, _month, _day) when year >= 1, do: {year, 1}
     def year_of_era(year, _month, _day), do: {year + 5500, 0}
@@ -141,12 +141,12 @@ defmodule Localize.DateParseLunisolarTest do
   # arithmetic is the Gregorian calendar's, its years counted from 645.
   defmodule EraYears do
     @moduledoc false
+    use Localize.Test.StandInCalendar
     @offset -644
 
     def cldr_calendar_type, do: :chinese
     def cardinal_month(month), do: month
     def era_calendar_type, do: :japanese
-    def calendar_base, do: :month
     def month_of_year(_year, month, _day), do: month
     def related_gregorian_year(year, _month, _day), do: year - @offset
 
@@ -193,12 +193,12 @@ defmodule Localize.DateParseLunisolarTest do
   # Japanese calendar's era names.
   defmodule JapaneseEras do
     @moduledoc false
+    use Localize.Test.StandInCalendar
 
     def cldr_calendar_type, do: :gregorian
     def cardinal_month(month), do: month
     def month_of_year(_year, month, _day), do: month
     def era_calendar_type, do: :japanese
-    def calendar_base, do: :month
 
     # Reiwa began on 2019-05-01 and Heisei on 1989-01-08.
     def year_of_era(year, month, day) do
@@ -225,11 +225,11 @@ defmodule Localize.DateParseLunisolarTest do
   # Persian calendar does, and raises for a year outside it.
   defmodule Bounded do
     @moduledoc false
+    use Localize.Test.StandInCalendar
 
     def cldr_calendar_type, do: :persian
     def cardinal_month(month), do: month
     def month_of_year(_year, month, _day), do: month
-    def calendar_base, do: :month
 
     def valid_date?(year, month, day),
       do: year >= 1000 and month in 1..12 and day in 1..days_in_month(year, month)

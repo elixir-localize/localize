@@ -14,14 +14,71 @@ defmodule Localize.DateTime.RelativeTest do
 
   alias Localize.DateTime.Relative
 
+  # A date shifted by years and months as Calendrical's calendars shift one
+  # in their `shift_date/4`, after Temporal: the years keep the month by its
+  # name, by `month_of_year/3`, wherever it falls in the new year; the months
+  # count on from it through each year's months; and the day is clamped to
+  # the month reached. A leap month the year lacks is the ordinary month it
+  # doubles, and an ordinary month the year has only as a leap month is
+  # that month, as Adar is the leap year's Adar II. Any other name the year
+  # lacks, Adar I in an ordinary year, is the month in the same place,
+  # clamped to the year's months.
+  defmodule Shift do
+    @moduledoc false
+
+    def date(calendar, year, month, day, %Duration{year: years, month: months, week: 0, day: 0}) do
+      {year, month} = same_month(calendar, year, month, day, year + years)
+      {year, month} = months_on(calendar, year, month, months)
+      {year, month, min(day, calendar.days_in_month(year, month))}
+    end
+
+    defp same_month(_calendar, year, month, _day, year), do: {year, month}
+
+    defp same_month(calendar, year, month, day, to_year) do
+      name = calendar.month_of_year(year, month, day)
+      months = calendar.months_in_year(to_year)
+      names = Enum.map(1..months, &{&1, calendar.month_of_year(to_year, &1, 1)})
+
+      to_month =
+        Enum.find_value(names, fn {place, other} -> other == name && place end) ||
+          Enum.find_value(names, fn {place, other} -> number(other) == number(name) && place end) ||
+          min(month, months)
+
+      {to_year, to_month}
+    end
+
+    defp months_on(_calendar, year, month, 0), do: {year, month}
+
+    defp months_on(calendar, year, month, months) when months > 0 do
+      left = calendar.months_in_year(year) - month
+
+      if months <= left,
+        do: {year, month + months},
+        else: months_on(calendar, year + 1, 1, months - left - 1)
+    end
+
+    defp months_on(calendar, year, month, months) do
+      if month + months >= 1,
+        do: {year, month + months},
+        else: months_on(calendar, year - 1, calendar.months_in_year(year - 1), months + month)
+    end
+
+    defp number({number, :leap}), do: number
+    defp number(number), do: number
+  end
+
   # A calendar whose years need not have twelve months, as a Hebrew leap
   # year has thirteen: every third year has thirteen months, every month
   # thirty days, and days count on from an arbitrary epoch. Localize cannot
   # load Calendrical's calendars, which depend on it.
   defmodule Thirteen do
     @moduledoc false
+    use Localize.Test.StandInCalendar
 
     @epoch 700_000
+
+    def shift_date(year, month, day, duration),
+      do: Shift.date(__MODULE__, year, month, day, duration)
 
     def months_in_year(year), do: if(rem(year, 3) == 0, do: 13, else: 12)
     def days_in_month(_year, _month), do: 30
@@ -66,6 +123,7 @@ defmodule Localize.DateTime.RelativeTest do
   # than in a year of twelve.
   defmodule Intercalary do
     @moduledoc false
+    use Localize.Test.StandInCalendar
 
     defdelegate months_in_year(year), to: Thirteen
     defdelegate days_in_month(year, month), to: Thirteen
@@ -80,7 +138,8 @@ defmodule Localize.DateTime.RelativeTest do
     defdelegate day_rollover_relative_to_midnight_utc, to: Thirteen
     defdelegate date_to_string(year, month, day), to: Thirteen
 
-    def calendar_base, do: :month
+    def shift_date(year, month, day, duration),
+      do: Shift.date(__MODULE__, year, month, day, duration)
 
     def month_of_year(year, month, _day) do
       cond do
@@ -96,6 +155,7 @@ defmodule Localize.DateTime.RelativeTest do
   # has Adar, 7, alone.
   defmodule Adar do
     @moduledoc false
+    use Localize.Test.StandInCalendar
 
     defdelegate months_in_year(year), to: Thirteen
     defdelegate days_in_month(year, month), to: Thirteen
@@ -110,7 +170,8 @@ defmodule Localize.DateTime.RelativeTest do
     defdelegate day_rollover_relative_to_midnight_utc, to: Thirteen
     defdelegate date_to_string(year, month, day), to: Thirteen
 
-    def calendar_base, do: :month
+    def shift_date(year, month, day, duration),
+      do: Shift.date(__MODULE__, year, month, day, duration)
 
     def month_of_year(year, month, _day) do
       cond do
@@ -122,10 +183,64 @@ defmodule Localize.DateTime.RelativeTest do
     end
   end
 
+  # A calendar of weeks, as Calendrical's week calendars are: a date is its
+  # year, its week and its day of the week, every year has 52 weeks, and a
+  # date's month is the period of weeks its week falls in, four, four and
+  # five to each quarter. It shifts a date by months from its week of the
+  # period, and by years from its week, as Calendrical's week calendars do.
+  defmodule Weeks do
+    @moduledoc false
+    use Localize.Test.StandInCalendar
+
+    @epoch 700_000
+
+    def months_in_year(_year), do: 12
+    def valid_date?(year, week, day), do: year >= 1 and week in 1..52 and day in 1..7
+    def quarter_of_year(_year, week, _day), do: div(week - 1, 13) + 1
+
+    def month_of_year(_year, week, _day) do
+      week_of_quarter = rem(week - 1, 13)
+      div(week - 1, 13) * 3 + min(div(week_of_quarter, 4), 2) + 1
+    end
+
+    def shift_date(year, week, day, %Duration{year: years, month: months, week: 0, day: 0}) do
+      month = month_of_year(year, week, day)
+      months_on = (year + years) * 12 + month - 1 + months
+      to_month = Integer.mod(months_on, 12) + 1
+      week_of_month = min(week - first_week(month), weeks_in(to_month) - 1)
+      {Integer.floor_div(months_on, 12), first_week(to_month) + week_of_month, day}
+    end
+
+    defp first_week(month), do: div(month - 1, 3) * 13 + rem(month - 1, 3) * 4 + 1
+    defp weeks_in(month), do: if(rem(month - 1, 3) == 2, do: 5, else: 4)
+
+    def day_of_week(year, week, day, starting_on) do
+      {days, _fraction} = naive_datetime_to_iso_days(year, week, day, 0, 0, 0, {0, 0})
+      {iso_year, iso_month, iso_day} = Calendar.ISO.date_from_iso_days(days)
+      Calendar.ISO.day_of_week(iso_year, iso_month, iso_day, starting_on)
+    end
+
+    def naive_datetime_to_iso_days(year, week, day, hour, minute, second, microsecond) do
+      days = @epoch + (year - 1) * 364 + (week - 1) * 7 + day - 1
+      {days, Calendar.ISO.time_to_day_fraction(hour, minute, second, microsecond)}
+    end
+
+    def naive_datetime_from_iso_days({days, fraction}) do
+      days = days - @epoch
+      {hour, minute, second, microsecond} = Calendar.ISO.time_from_day_fraction(fraction)
+
+      {div(days, 364) + 1, div(rem(days, 364), 7) + 1, rem(days, 7) + 1, hour, minute, second,
+       microsecond}
+    end
+
+    def date_to_string(year, week, day), do: "#{year}-W#{week}-#{day}"
+  end
+
   # A calendar whose day begins at noon, which no date of another calendar
   # converts into.
   defmodule Noon do
     @moduledoc false
+    use Localize.Test.StandInCalendar
 
     def day_rollover_relative_to_midnight_utc, do: {1, 2}
   end
@@ -717,6 +832,29 @@ defmodule Localize.DateTime.RelativeTest do
                  {:ok, expected},
                "#{inspect(relative)} against #{inspect(relative_to)}"
       end
+    end
+
+    # A week calendar's month is a period of its weeks, which its week field
+    # does not count: from the tenth week, in the third month, 300 days on is
+    # the first week of the next year, ten months on, where the week fields
+    # would count three. Year 1's 50th week is in its twelfth month.
+    test "a week calendar counts its months as periods of weeks" do
+      week_10 = Date.new!(2, 10, 3, Weeks)
+
+      assert Relative.to_string(Date.add(week_10, 300), relative_to: week_10, locale: :en) ==
+               {:ok, "in 10 months"}
+
+      assert Relative.to_string(Date.add(week_10, -40), relative_to: week_10, locale: :en) ==
+               {:ok, "2 months ago"}
+
+      assert Relative.to_string(Date.add(week_10, 364), relative_to: week_10, locale: :en) ==
+               {:ok, "next year"}
+
+      assert Relative.to_string(Date.new!(3, 2, 1, Weeks),
+               relative_to: Date.new!(1, 50, 1, Weeks),
+               unit: :month,
+               locale: :en
+             ) == {:ok, "in 13 months"}
     end
 
     test "a baseline in a calendar the value's cannot take" do

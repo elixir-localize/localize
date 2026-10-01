@@ -23,6 +23,7 @@ defmodule Localize.DateTime.PartialDateEraTest do
   # era data does, taking the rest of their arithmetic from `Calendar.ISO`.
   defmodule Japanese do
     @moduledoc false
+    use Localize.Test.StandInCalendar
 
     @eras [{~D[2019-05-01], 236}, {~D[1989-01-08], 235}, {~D[1926-12-25], 234}]
 
@@ -46,6 +47,7 @@ defmodule Localize.DateTime.PartialDateEraTest do
 
   defmodule Buddhist do
     @moduledoc false
+    use Localize.Test.StandInCalendar
 
     def cldr_calendar_type, do: :buddhist
     def cardinal_month(month), do: month

@@ -403,25 +403,11 @@ defmodule Localize.Date do
     end)
   end
 
-  # Resolve the CLDR calendar key from a date's `:calendar`
-  # module. `Calendar.ISO` is Gregorian. Other calendar modules
-  # (e.g. Calendrical's `Calendrical.Japanese`,
-  # `Calendrical.Buddhist`) expose `cldr_calendar_type/0` —
-  # probe it via `function_exported?/3` so Localize itself
-  # doesn't need a hard dep on the calendar library.
-  defp cldr_calendar_for(%{calendar: Calendar.ISO}), do: :gregorian
+  # The CLDR calendar whose data formats a value: its calendar's answer.
+  defp cldr_calendar_for(value) when is_map(value),
+    do: Localize.Calendar.cldr_calendar_type(Map.get(value, :calendar, Calendar.ISO))
 
-  defp cldr_calendar_for(%{calendar: module}) when is_atom(module) do
-    Code.ensure_loaded?(module)
-
-    if function_exported?(module, :cldr_calendar_type, 0) do
-      module.cldr_calendar_type()
-    else
-      :gregorian
-    end
-  end
-
-  defp cldr_calendar_for(_), do: :gregorian
+  defp cldr_calendar_for(_value), do: :gregorian
 
   defp resolve_skeleton(opts) when is_list(opts) do
     skeleton = Keyword.fetch!(opts, :skeleton)

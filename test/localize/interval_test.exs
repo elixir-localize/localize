@@ -1,5 +1,6 @@
 defmodule Localize.IntervalTest.GenericGregorian do
   @moduledoc false
+  use Localize.Test.StandInCalendar
   # Minimal non-ISO calendar module used to exercise the generic-calendar
   # branch of `Localize.Calendar.iso_day_of_week/1`. Only implements the
   # callbacks that path actually invokes.

@@ -1,27 +1,19 @@
 defmodule Localize.DateTime.FormatterEdgeTest.CalendarYearCalendar do
   @moduledoc false
-  # Minimal calendar exposing `calendar_year/3` so the formatter's
-  # preferred era-year branch (used by Calendrical era-aware
-  # calendars) is exercised.
+  # A calendar whose `calendar_year/3` numbers every year 12, as an
+  # era-aware calendar numbers its years within the era.
+  use Localize.Test.StandInCalendar
 
   def calendar_year(_year, _month, _day), do: 12
-  def cldr_calendar_type, do: :gregorian
-  def cardinal_month(month), do: month
-  def month_of_year(_year, month, _day), do: month
-
-  def day_of_week(year, month, day, starting),
-    do: Calendar.ISO.day_of_week(year, month, day, starting)
 end
 
 defmodule Localize.DateTime.FormatterEdgeTest.BadYearOfEraCalendar do
   @moduledoc false
-  # Calendar whose `year_of_era/3` returns a non-tuple, forcing the
-  # formatter to fall back to the proleptic year.
+  # A calendar whose `year_of_era/3` answers with something that is not a
+  # year of era and an era.
+  use Localize.Test.StandInCalendar
 
   def year_of_era(_year, _month, _day), do: :not_a_tuple
-  def cldr_calendar_type, do: :gregorian
-  def cardinal_month(month), do: month
-  def month_of_year(_year, month, _day), do: month
 end
 
 defmodule Localize.DateTime.FormatterEdgeTest.BeforeEraCalendar do
@@ -29,11 +21,8 @@ defmodule Localize.DateTime.FormatterEdgeTest.BeforeEraCalendar do
   # Numbers years as Calendrical's Gregorian calendar does: `calendar_year/3`
   # gives the year as it is, and `year_of_era/3` counts a year below 1 back
   # from the era, year 0 being 1 BC.
+  use Localize.Test.StandInCalendar
 
-  def cldr_calendar_type, do: :gregorian
-  def cardinal_month(month), do: month
-  def month_of_year(_year, month, _day), do: month
-  def calendar_year(year, _month, _day), do: year
   def year_of_era(year, _month, _day) when year > 0, do: {year, 1}
   def year_of_era(year, _month, _day), do: {1 - year, 0}
 end
@@ -42,11 +31,8 @@ defmodule Localize.DateTime.FormatterEdgeTest.NoYearZeroCalendar do
   @moduledoc false
   # Numbers years as Calendrical's Julian calendar does, with no year 0, so
   # year -1 is 1 BC.
+  use Localize.Test.StandInCalendar
 
-  def cldr_calendar_type, do: :gregorian
-  def cardinal_month(month), do: month
-  def month_of_year(_year, month, _day), do: month
-  def calendar_year(year, _month, _day), do: year
   def year_of_era(year, _month, _day) when year > 0, do: {year, 1}
   def year_of_era(year, _month, _day), do: {-year, 0}
 end
@@ -331,14 +317,23 @@ defmodule Localize.DateTime.FormatterEdgeTest do
     end
   end
 
-  describe "calendar derivation fallbacks" do
-    test "a calendar exporting calendar_year/3 supplies the displayed year" do
+  describe "fields as the calendar answers them" do
+    test "the year is the calendar's calendar_year/3" do
       date = %{year: 2024, month: 7, day: 6, calendar: CalendarYearCalendar}
       assert date_format(date, "y") == "12"
     end
 
-    test "a calendar whose year_of_era/3 returns a non-tuple falls back to the year" do
+    # The era is the calendar's `year_of_era/3`, never guessed from the sign
+    # of the year, so an answer that is not a year of era and an era is an
+    # error wherever the era is written or settles the year.
+    test "a calendar answering year_of_era with something else is an error" do
       date = %{year: 2024, month: 7, day: 6, calendar: BadYearOfEraCalendar}
+
+      for format <- ["G", "y G", "GGGG"] do
+        assert {:error, %Localize.InvalidValueError{value: :not_a_tuple}} =
+                 Localize.Date.to_string(date, format: format, locale: :en)
+      end
+
       assert date_format(date, "y") == "2024"
     end
 

@@ -174,19 +174,10 @@ defmodule Localize.Date.Parser do
   end
 
   defp date_in_calendar(date, calendar_module) do
-    with true <- convertible?(calendar_module),
-         {:ok, converted} <- Date.convert(date, calendar_module) do
-      converted
-    else
-      _not_convertible -> date
+    case Date.convert(date, calendar_module) do
+      {:ok, converted} -> converted
+      {:error, _incompatible} -> date
     end
-  end
-
-  # Whether `Date.convert/2` can bring a date into a calendar, which needs
-  # its day rollover and its conversion from ISO days.
-  defp convertible?(calendar_module) do
-    function_exported?(calendar_module, :day_rollover_relative_to_midnight_utc, 0) and
-      function_exported?(calendar_module, :naive_datetime_from_iso_days, 1)
   end
 
   # Retry with ordinal affixes stripped. Only fires if the
@@ -962,23 +953,35 @@ defmodule Localize.Date.Parser do
 
   defp year_with_related(nil, related, ctx) do
     %{calendar_module: calendar_module, reference_year: reference_year} = ctx
-    year = related - (related_year_of(reference_year, calendar_module) - reference_year)
 
-    case Enum.find([year, year - 1, year + 1], &(related_year_of(&1, calendar_module) == related)) do
-      nil -> :error
-      year -> {:ok, year}
+    case related_year_of(reference_year, calendar_module) do
+      {:ok, reference_related} ->
+        year = related - (reference_related - reference_year)
+
+        Enum.find_value([year, year - 1, year + 1], :error, fn candidate ->
+          related_year_of(candidate, calendar_module) == {:ok, related} && {:ok, candidate}
+        end)
+
+      {:error, _exception} ->
+        :error
     end
   end
 
   defp year_with_related(year, related, ctx) do
-    if related_year_of(year, ctx.calendar_module) == related, do: {:ok, year}, else: :error
+    if related_year_of(year, ctx.calendar_module) == {:ok, related},
+      do: {:ok, year},
+      else: :error
   end
 
   # A calendar year's related Gregorian year, as the formatter writes `r`.
   defp related_year_of(year, calendar_module) do
-    if function_exported?(calendar_module, :related_gregorian_year, 3),
-      do: calendar_module.related_gregorian_year(year, 1, 1),
-      else: year
+    Localize.Calendar.ask(
+      calendar_module,
+      :related_gregorian_year,
+      [year, 1, 1],
+      "a Gregorian year",
+      &is_integer/1
+    )
   end
 
   # `U`, the cyclic year name: the year of that name nearest the
@@ -988,10 +991,10 @@ defmodule Localize.Date.Parser do
   defp with_cyclic_year(nil, position, ctx) do
     %{calendar_module: calendar_module, reference_year: reference_year} = ctx
 
-    offset =
-      Integer.mod(position - cyclic_position(reference_year, calendar_module) + 30, 60) - 30
-
-    {:ok, reference_year + offset}
+    case cyclic_position(reference_year, calendar_module) do
+      nil -> :error
+      reference -> {:ok, reference_year + Integer.mod(position - reference + 30, 60) - 30}
+    end
   end
 
   defp with_cyclic_year(year, position, ctx) do
@@ -999,20 +1002,25 @@ defmodule Localize.Date.Parser do
   end
 
   # A calendar year's place in the sexagenary cycle, as the formatter
-  # finds it for `U`.
+  # finds it for `U`; `nil` when the calendar answers with no year.
   defp cyclic_position(year, calendar_module) do
-    number =
-      if function_exported?(calendar_module, :cyclic_year, 3),
-        do: calendar_module.cyclic_year(year, 1, 1),
-        else: year
-
-    Localize.Utils.Math.amod(number, 60)
+    case Localize.Calendar.ask(
+           calendar_module,
+           :cyclic_year,
+           [year, 1, 1],
+           "a year",
+           &is_integer/1
+         ) do
+      {:ok, number} -> Localize.Utils.Math.amod(number, 60)
+      {:error, _exception} -> nil
+    end
   end
 
-  # The month the captures give: a number, which is the month's place in
-  # its year, or a lunisolar month's traditional number (`2bis`, `闰2`)
-  # or a month name, which are `{:named, month}` until the year places
-  # them (`named_month/3`).
+  # The month the captures give: a number, a lunisolar month's traditional
+  # number (`2bis`, `闰2`) or a month name. Each is the CLDR month the
+  # formatter writes, `{:named, month}` until the year places it in its
+  # calendar (`named_month/3`), so a Hebrew common year's Adar, written 7,
+  # is its sixth month.
   defp extract_month(caps, prefix) do
     case {capture(caps, prefix <> "month"), capture(caps, prefix <> "traditional_month")} do
       {nil, nil} -> named_month_capture(caps, prefix)
@@ -1023,7 +1031,7 @@ defmodule Localize.Date.Parser do
 
   defp month_number(raw) do
     case Integer.parse(raw) do
-      {month, ""} when month in 1..13 -> month
+      {month, ""} when month in 1..13 -> {:named, month}
       _other -> :invalid
     end
   end
@@ -1514,28 +1522,16 @@ defmodule Localize.Date.Parser do
   def calendar_option(options) do
     calendar_module = Keyword.get(options, :calendar, Calendar.ISO)
 
-    if calendar_module?(calendar_module) do
+    with :ok <- Localize.Calendar.validate_calendar(%{calendar: calendar_module}) do
       {:ok, calendar_module}
-    else
-      {:error, Localize.UnknownCalendarError.exception(calendar: calendar_module)}
     end
-  end
-
-  defp calendar_module?(module) do
-    is_atom(module) and Code.ensure_loaded?(module) and
-      function_exported?(module, :date_to_string, 3)
   end
 
   @doc false
   # The CLDR calendar type of a calendar module, which selects the CLDR
-  # patterns and names the input is read with: its `cldr_calendar_type/0`,
-  # or `:gregorian` for `Calendar.ISO` and a calendar that names none.
+  # patterns and names the input is read with.
   @spec cldr_calendar_type(module()) :: atom()
-  def cldr_calendar_type(calendar_module) do
-    if function_exported?(calendar_module, :cldr_calendar_type, 0),
-      do: calendar_module.cldr_calendar_type(),
-      else: :gregorian
-  end
+  defdelegate cldr_calendar_type(calendar_module), to: Localize.Calendar
 
   # Convert `date` into `target_module`, gracefully degrading
   # on conversion failure (returns the original date so the
@@ -1706,18 +1702,14 @@ defmodule Localize.Date.Parser do
   # `era_calendar_type/0` where it has one (Calendrical's lunisolar
   # Japanese calendar names its months from the Chinese calendar and its
   # eras from the Japanese one), else its CLDR calendar type.
-  defp era_calendar_type(calendar_module) do
-    if function_exported?(calendar_module, :era_calendar_type, 0),
-      do: calendar_module.era_calendar_type(),
-      else: cldr_calendar_type(calendar_module)
-  end
+  defp era_calendar_type(calendar_module),
+    do: Localize.Calendar.era_calendar_type(calendar_module)
 
   # A lunisolar calendar writes a month as a number in its traditional
   # numbering when the locale gives the calendar a numeric leap-month
   # pattern, as the formatter does ("2bis", "闰2").
-  defp traditional_months?(calendar_module, month_patterns) do
-    function_exported?(calendar_module, :month_of_year, 3) and
-      match?([_ | _], get_in(month_patterns, [:numeric, :all, :leap]))
+  defp traditional_months?(_calendar_module, month_patterns) do
+    match?([_ | _], get_in(month_patterns, [:numeric, :all, :leap]))
   end
 
   defp maybe_load_month_patterns(locale, calendar) do
@@ -2762,11 +2754,7 @@ defmodule Localize.Date.Parser do
   # name the year has no month for is `:invalid`. Without a year, the month
   # is CLDR's number.
   defp named_month({:named, month}, year, calendar_module) when is_integer(year) do
-    if month_names_by_position?(calendar_module) do
-      month_named(month, year, calendar_module) || :invalid
-    else
-      cldr_month_number(month)
-    end
+    month_named(month, year, calendar_module) || :invalid
   end
 
   defp named_month({:named, month}, _year, _calendar_module), do: cldr_month_number(month)
@@ -2775,32 +2763,31 @@ defmodule Localize.Date.Parser do
   defp cldr_month_number({month, :leap}), do: month
   defp cldr_month_number(month), do: month
 
-  # A calendar names its months through `month_of_year/3`. A week-based
-  # calendar's dates carry a week, not a month, so its month names are not
-  # positions in the year.
-  defp month_names_by_position?(calendar_module) do
-    Code.ensure_loaded?(calendar_module) and
-      function_exported?(calendar_module, :month_of_year, 3) and
-      function_exported?(calendar_module, :calendar_base, 0) and
-      calendar_module.calendar_base() == :month
-  end
-
+  # The month of the year whose CLDR month, as its calendar answers, is
+  # the one written.
   defp month_named({_month, :leap} = leap_month, year, calendar_module) do
     Enum.find(
-      1..calendar_module.months_in_year(year)//1,
-      &(calendar_module.month_of_year(year, &1, 1) == leap_month)
+      months_of(year, calendar_module),
+      &(cldr_month_of(year, &1, calendar_module) == leap_month)
     )
   end
 
   defp month_named(month, year, calendar_module) do
-    if calendar_module.month_of_year(year, month, 1) == month do
+    if cldr_month_of(year, month, calendar_module) == month do
       month
     else
-      months = 1..calendar_module.months_in_year(year)//1
+      months = months_of(year, calendar_module)
 
-      Enum.find(months, &(calendar_module.month_of_year(year, &1, 1) == month)) ||
-        Enum.find(months, &(calendar_module.month_of_year(year, &1, 1) == {month, :leap}))
+      Enum.find(months, &(cldr_month_of(year, &1, calendar_module) == month)) ||
+        Enum.find(months, &(cldr_month_of(year, &1, calendar_module) == {month, :leap}))
     end
+  end
+
+  defp months_of(year, calendar_module),
+    do: 1..Localize.Calendar.answering(calendar_module).months_in_year(year)//1
+
+  defp cldr_month_of(year, month, calendar_module) do
+    Localize.Calendar.cldr_month(%{year: year, month: month, day: 1, calendar: calendar_module})
   end
 
   # Quarter capture comes in two flavors: numeric capture
@@ -2960,7 +2947,7 @@ defmodule Localize.Date.Parser do
   defp counted_from_era_start(year, era_index, calendar_module) do
     starts = era_starts(calendar_module)
 
-    with true <- map_size(starts) > 1 and convertible?(calendar_module),
+    with true <- map_size(starts) > 1,
          {:ok, [start_year, start_month, start_day]} <- Map.fetch(starts, era_index),
          {:ok, start} <- Date.new(start_year, start_month, start_day),
          {:ok, %{year: first_year}} <- Date.convert(start, calendar_module) do
@@ -2994,7 +2981,7 @@ defmodule Localize.Date.Parser do
   # month's traditional number, where the calendar counts months by their
   # place in the year.
   defp calendar_holds?(%{calendar: calendar, year: year}) do
-    not function_exported?(calendar, :valid_date?, 3) or calendar.valid_date?(year, 1, 1)
+    Localize.Calendar.answering(calendar).valid_date?(year, 1, 1)
   end
 
   defp era_probe(calendar_module, nil, _day), do: %{calendar: calendar_module}
@@ -3005,7 +2992,6 @@ defmodule Localize.Date.Parser do
   defp era_probe(calendar_module, month, day),
     do: %{calendar: calendar_module, month: month, day: day}
 
-  defp era_month(month) when is_integer(month), do: month
   defp era_month({:named, month}) when is_integer(month), do: month
   defp era_month(_month), do: nil
 

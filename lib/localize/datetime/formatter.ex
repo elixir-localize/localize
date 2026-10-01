@@ -722,7 +722,10 @@ defmodule Localize.DateTime.Formatter do
     do: settled_fields(Localize.Calendar.displayed_year(value))
 
   defp settled_fields({:ok, _answer}), do: []
-  defp settled_fields({:error, fields}), do: fields
+  defp settled_fields({:error, fields}) when is_list(fields), do: fields
+
+  # A calendar's malformed answer is reported where its field is formatted.
+  defp settled_fields({:error, _exception}), do: []
 
   defp valid_field?(:microsecond, {microsecond, precision}),
     do: is_integer(microsecond) and is_integer(precision)
@@ -785,24 +788,17 @@ defmodule Localize.DateTime.Formatter do
   # the calendar's `year_of_era/3` callback to derive it.
 
   @doc false
-  def year(%{year: _} = date, 1, locale_id, options) do
-    era_year(date) |> calendar_year() |> apply_ns(locale_id, options, "y")
-  end
-
-  def year(%{year: _} = date, 2, locale_id, options) do
-    era_year(date)
-    |> calendar_year()
-    |> rem(100)
-    |> abs()
-    |> pad(2)
-    |> apply_ns(locale_id, options, "y")
-  end
-
   def year(%{year: _} = date, count, locale_id, options) do
-    era_year(date) |> calendar_year() |> pad(count) |> apply_ns(locale_id, options, "y")
+    with year when is_integer(year) <- era_year(date) do
+      year |> year_digits(count) |> apply_ns(locale_id, options, "y")
+    end
   end
 
   def year(_date, _count, _locale_id, _options), do: ""
+
+  defp year_digits(year, 1), do: year
+  defp year_digits(year, 2), do: year |> rem(100) |> abs() |> pad(2)
+  defp year_digits(year, count), do: pad(year, count)
 
   # Apply a CLDR `number_system` override for one field. The
   # overrides map (from `Localize.DateTime.Format.number_system_overrides/4`)
@@ -926,7 +922,8 @@ defmodule Localize.DateTime.Formatter do
   defp era_year(%{year: year} = date) do
     case Localize.Calendar.displayed_year(date) do
       {:ok, displayed} -> displayed
-      {:error, _fields} -> year
+      {:error, fields} when is_list(fields) -> year
+      {:error, _exception} = error -> error
     end
   end
 
@@ -934,19 +931,22 @@ defmodule Localize.DateTime.Formatter do
 
   @doc false
   def week_aligned_year(date, 1, locale_id, options) when is_date(date) do
-    {year, _week} = locale_week_of_year(date, locale_id)
-    year |> Kernel.to_string() |> apply_ns(locale_id, options, "Y")
+    with {:ok, {year, _week}} <- locale_week_of_year(date, locale_id) do
+      year |> Kernel.to_string() |> apply_ns(locale_id, options, "Y")
+    end
   end
 
   def week_aligned_year(date, 2, locale_id, options) when is_date(date) do
-    {year, _week} = locale_week_of_year(date, locale_id)
-    year |> rem(100) |> pad(2) |> apply_ns(locale_id, options, "Y")
+    with {:ok, {year, _week}} <- locale_week_of_year(date, locale_id) do
+      year |> rem(100) |> pad(2) |> apply_ns(locale_id, options, "Y")
+    end
   end
 
   # TR35 defines `YYYYY+`: any width of three or more is a minimum digit count.
   def week_aligned_year(date, count, locale_id, options) when is_date(date) and count >= 3 do
-    {year, _week} = locale_week_of_year(date, locale_id)
-    year |> pad(count) |> apply_ns(locale_id, options, "Y")
+    with {:ok, {year, _week}} <- locale_week_of_year(date, locale_id) do
+      year |> pad(count) |> apply_ns(locale_id, options, "Y")
+    end
   end
 
   def week_aligned_year(_date, _count, _locale_id, _options), do: ""
@@ -976,9 +976,10 @@ defmodule Localize.DateTime.Formatter do
   def cyclic_year(%{year: year} = date, count, locale_id, options)
       when is_integer(year) and count in 1..5 do
     calendar_type = cldr_calendar_for_datetime(date)
-    position = Localize.Utils.Math.amod(cyclic_year_number(date), 60)
 
-    with {:ok, cyclic_data} <- Localize.Calendar.cyclic_years(locale_id, calendar_type),
+    with {:ok, number} <- cyclic_year_number(date),
+         position = Localize.Utils.Math.amod(number, 60),
+         {:ok, cyclic_data} <- Localize.Calendar.cyclic_years(locale_id, calendar_type),
          name when is_binary(name) <-
            get_in(cyclic_data, [:years, :format, cyclic_year_width(count), position]) do
       name
@@ -995,21 +996,15 @@ defmodule Localize.DateTime.Formatter do
 
   # The cyclic year is constant through a calendar year, so a partial date
   # is asked on the first day it could be.
-  defp cyclic_year_number(%{calendar: calendar, year: year} = date) when is_atom(calendar) do
-    Code.ensure_loaded?(calendar)
-
-    if function_exported?(calendar, :cyclic_year, 3) do
-      calendar.cyclic_year(
-        year,
-        integer_or(Map.get(date, :month), 1),
-        integer_or(Map.get(date, :day), 1)
-      )
-    else
-      year
-    end
+  defp cyclic_year_number(%{year: year} = date) do
+    Localize.Calendar.ask(
+      Map.get(date, :calendar, Calendar.ISO),
+      :cyclic_year,
+      [year, integer_or(Map.get(date, :month), 1), integer_or(Map.get(date, :day), 1)],
+      "a year of the cycle",
+      &is_integer/1
+    )
   end
-
-  defp cyclic_year_number(%{year: year}), do: year
 
   # ── Related year (r) ───────────────────────────────────────
 
@@ -1021,28 +1016,22 @@ defmodule Localize.DateTime.Formatter do
   # date's own year is the best available value.
   @doc false
   def related_year(%{year: year} = date, count, _locale_id, _options) when is_integer(year) do
-    pad(related_year_number(date), count)
+    with {:ok, related_year} <- related_year_number(date), do: pad(related_year, count)
   end
 
   def related_year(_date, _count, _locale_id, _options), do: ""
 
   # The related year is constant through a calendar year, so a partial
   # date is asked on the first day it could be.
-  defp related_year_number(%{calendar: calendar, year: year} = date) when is_atom(calendar) do
-    Code.ensure_loaded?(calendar)
-
-    if function_exported?(calendar, :related_gregorian_year, 3) do
-      calendar.related_gregorian_year(
-        year,
-        integer_or(Map.get(date, :month), 1),
-        integer_or(Map.get(date, :day), 1)
-      )
-    else
-      year
-    end
+  defp related_year_number(%{year: year} = date) do
+    Localize.Calendar.ask(
+      Map.get(date, :calendar, Calendar.ISO),
+      :related_gregorian_year,
+      [year, integer_or(Map.get(date, :month), 1), integer_or(Map.get(date, :day), 1)],
+      "a Gregorian year",
+      &is_integer/1
+    )
   end
-
-  defp related_year_number(%{year: year}), do: year
 
   # ── Quarter (Q) ────────────────────────────────────────────
 
@@ -1166,13 +1155,15 @@ defmodule Localize.DateTime.Formatter do
 
   @doc false
   def week_of_year(date, 1, locale_id, options) when is_date(date) do
-    {_year, week} = locale_week_of_year(date, locale_id)
-    apply_ns(week, locale_id, options, "w")
+    with {:ok, {_year, week}} <- locale_week_of_year(date, locale_id) do
+      apply_ns(week, locale_id, options, "w")
+    end
   end
 
   def week_of_year(date, 2, locale_id, options) when is_date(date) do
-    {_year, week} = locale_week_of_year(date, locale_id)
-    week |> pad(2) |> apply_ns(locale_id, options, "w")
+    with {:ok, {_year, week}} <- locale_week_of_year(date, locale_id) do
+      week |> pad(2) |> apply_ns(locale_id, options, "w")
+    end
   end
 
   def week_of_year(_date, _count, _locale_id, _options), do: ""
@@ -1240,9 +1231,10 @@ defmodule Localize.DateTime.Formatter do
 
   @doc false
   def day_of_year(date, count, locale_id, options) when is_date(date) do
-    doy = compute_day_of_year(date)
-    doy = if count == 1, do: doy, else: pad(doy, count)
-    apply_ns(doy, locale_id, options, "D")
+    with {:ok, doy} <- compute_day_of_year(date) do
+      doy = if count == 1, do: doy, else: pad(doy, count)
+      apply_ns(doy, locale_id, options, "D")
+    end
   end
 
   def day_of_year(_date, _count, _locale_id, _options), do: ""
@@ -1287,11 +1279,13 @@ defmodule Localize.DateTime.Formatter do
 
   @doc false
   def day_of_week(date, 1, locale_id, options) when is_date(date) do
-    local_day(date, locale_id) |> apply_ns(locale_id, options, "e")
+    with {:ok, day} <- local_day(date, locale_id), do: apply_ns(day, locale_id, options, "e")
   end
 
   def day_of_week(date, 2, locale_id, options) when is_date(date) do
-    local_day(date, locale_id) |> pad(2) |> apply_ns(locale_id, options, "e")
+    with {:ok, day} <- local_day(date, locale_id) do
+      day |> pad(2) |> apply_ns(locale_id, options, "e")
+    end
   end
 
   def day_of_week(date, count, locale_id, options) when is_date(date) and count in 3..6 do
@@ -1307,7 +1301,7 @@ defmodule Localize.DateTime.Formatter do
   # is not zero-padded.
   def standalone_day_of_week(date, count, locale_id, options)
       when is_date(date) and count in 1..2 do
-    local_day(date, locale_id) |> apply_ns(locale_id, options, "c")
+    with {:ok, day} <- local_day(date, locale_id), do: apply_ns(day, locale_id, options, "c")
   end
 
   def standalone_day_of_week(date, count, locale_id, _options)
@@ -1631,21 +1625,11 @@ defmodule Localize.DateTime.Formatter do
 
   def time(_datetime, _count, _locale_id, _options), do: ""
 
-  # Resolve the CLDR calendar key from a datetime's `:calendar`
-  # module — same probe as `Localize.Date.cldr_calendar_for/1`.
-  defp cldr_calendar_for_datetime(%{calendar: Calendar.ISO}), do: :gregorian
+  # The CLDR calendar a datetime's calendar names its fields from.
+  defp cldr_calendar_for_datetime(datetime) when is_map(datetime),
+    do: Localize.Calendar.cldr_calendar_type(Map.get(datetime, :calendar, Calendar.ISO))
 
-  defp cldr_calendar_for_datetime(%{calendar: module}) when is_atom(module) do
-    Code.ensure_loaded?(module)
-
-    if function_exported?(module, :cldr_calendar_type, 0) do
-      module.cldr_calendar_type()
-    else
-      :gregorian
-    end
-  end
-
-  defp cldr_calendar_for_datetime(_), do: :gregorian
+  defp cldr_calendar_for_datetime(_datetime), do: :gregorian
 
   # Pulls the `:prefer` option (consumed by
   # `Localize.DateTime.Format.resolve_variant/2`) out of the
@@ -1865,8 +1849,6 @@ defmodule Localize.DateTime.Formatter do
 
   # ── Calendar derivation helpers ────────────────────────────
 
-  defp calendar_year(year) when is_integer(year), do: year
-
   # Prefer the date's own calendar callback. Calendrical calendars
   # that implement ISO weeks (Gregorian, Julian, composites)
   # return `{year, week}`. Calendars without ISO-week semantics
@@ -1890,94 +1872,54 @@ defmodule Localize.DateTime.Formatter do
     gregorian_day = :calendar.date_to_gregorian_days({year, month, day})
     this_year_start = Localize.DateTime.Week.week_one_start(year, first_day, min_days)
 
-    cond do
-      gregorian_day < this_year_start ->
-        previous_start = Localize.DateTime.Week.week_one_start(year - 1, first_day, min_days)
-        {year - 1, div(gregorian_day - previous_start, 7) + 1}
+    week =
+      cond do
+        gregorian_day < this_year_start ->
+          previous_start = Localize.DateTime.Week.week_one_start(year - 1, first_day, min_days)
+          {year - 1, div(gregorian_day - previous_start, 7) + 1}
 
-      gregorian_day >= Localize.DateTime.Week.week_one_start(year + 1, first_day, min_days) ->
-        {year + 1, 1}
+        gregorian_day >= Localize.DateTime.Week.week_one_start(year + 1, first_day, min_days) ->
+          {year + 1, 1}
 
-      true ->
-        {year, div(gregorian_day - this_year_start, 7) + 1}
-    end
-  end
-
-  defp locale_week_of_year(date, _locale_id) do
-    iso_week_of_year(date)
-  end
-
-  defp iso_week_of_year(%{year: year, month: month, day: day, calendar: calendar} = date) do
-    Code.ensure_loaded?(calendar)
-
-    if function_exported?(calendar, :iso_week_of_year, 3) do
-      case calendar.iso_week_of_year(year, month, day) do
-        {y, w} when is_integer(y) and is_integer(w) -> {y, w}
-        _ -> iso_week_via_stdlib(date)
-      end
-    else
-      iso_week_via_stdlib(date)
-    end
-  end
-
-  defp iso_week_of_year(%{year: year, month: month, day: day}) do
-    :calendar.iso_week_number({year, month, day})
-  end
-
-  defp iso_week_via_stdlib(%{calendar: Calendar.ISO, year: year, month: month, day: day}) do
-    :calendar.iso_week_number({year, month, day})
-  end
-
-  defp iso_week_via_stdlib(%{} = date) do
-    %Date{year: y, month: m, day: d} = Date.convert!(date, Calendar.ISO)
-    :calendar.iso_week_number({y, m, d})
-  end
-
-  defp compute_day_of_year(%{year: year, month: month, day: day, calendar: calendar})
-       when is_integer(year) and is_integer(month) and is_integer(day) do
-    Code.ensure_loaded?(calendar)
-
-    if function_exported?(calendar, :day_of_year, 3) do
-      calendar.day_of_year(year, month, day)
-    else
-      compute_day_of_year_gregorian(year, month, day)
-    end
-  end
-
-  defp compute_day_of_year(%{year: year, month: month, day: day})
-       when is_integer(year) and is_integer(month) and is_integer(day) do
-    compute_day_of_year_gregorian(year, month, day)
-  end
-
-  defp compute_day_of_year_gregorian(year, month, day) do
-    days_before =
-      for m <- 1..(month - 1), reduce: 0 do
-        acc -> acc + Calendar.ISO.days_in_month(year, m)
+        true ->
+          {year, div(gregorian_day - this_year_start, 7) + 1}
       end
 
-    days_before + day
+    {:ok, week}
   end
 
-  # Calendar protocol requires every implementation to export
-  # `day_of_week/4` — dispatch through the date's own calendar.
-  # The bare-map clause is for non-`Date` shapes (raw
-  # `%{year:, month:, day:}` maps with no `:calendar`); we
-  # assume Gregorian for those since there's no other signal.
-  defp iso_day(%{year: year, month: month, day: day, calendar: calendar}) do
-    {dow, _, _} = calendar.day_of_week(year, month, day, :monday)
-    dow
+  defp locale_week_of_year(%{year: year, month: month, day: day} = date, _locale_id) do
+    Localize.Calendar.ask(
+      Map.get(date, :calendar, Calendar.ISO),
+      :iso_week_of_year,
+      [year, month, day],
+      "a year and an ISO week",
+      fn
+        {week_year, week} -> is_integer(week_year) and is_integer(week)
+        _other -> false
+      end
+    )
   end
 
-  defp iso_day(%{year: year, month: month, day: day}) do
-    {dow, _, _} = Calendar.ISO.day_of_week(year, month, day, :monday)
-    dow
+  defp compute_day_of_year(%{year: year, month: month, day: day} = date) do
+    Localize.Calendar.ask(
+      Map.get(date, :calendar, Calendar.ISO),
+      :day_of_year,
+      [year, month, day],
+      "a day of the year",
+      &is_integer/1
+    )
   end
 
   # The numeric `e` and `c` fields count from the locale's first day of
-  # the week, per TR35, so Saturday is 7 in `en` and 6 in `de`.
+  # the week, per TR35, so Saturday is 7 in `en` and 6 in `de`. The day is
+  # the date's calendar's answer; a map without a calendar is an ISO date.
   defp local_day(date, locale_id) do
     {first_day, _min_days} = Localize.DateTime.Week.config(locale_id)
-    Localize.DateTime.Week.local_day_of_week(iso_day(date), first_day)
+
+    with {:ok, day} <- Localize.Calendar.day_of_week(date) do
+      {:ok, Localize.DateTime.Week.local_day_of_week(day, first_day)}
+    end
   end
 
   # Days since 0000-01-01 in the proleptic Gregorian calendar, through the

@@ -5,6 +5,7 @@ defmodule Localize.ParsingCoverageTest do
   # does with `Calendar.ISO`: every `Calendar` callback is `Calendar.ISO`'s.
   defmodule GregorianLike do
     @moduledoc false
+    use Localize.Test.StandInCalendar
     @behaviour Calendar
 
     def cldr_calendar_type, do: :gregorian

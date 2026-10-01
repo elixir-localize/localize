@@ -24,6 +24,7 @@ defmodule Localize.DateParseEraTest do
   # calendar does: year -1 is 1 BC.
   defmodule NoYearZero do
     @moduledoc false
+    use Localize.Test.StandInCalendar
 
     def cldr_calendar_type, do: :gregorian
     def cardinal_month(month), do: month
@@ -42,6 +43,7 @@ defmodule Localize.DateParseEraTest do
   # Buddhist calendar does, so a year below 1 is written with its sign.
   defmodule NoBeforeEra do
     @moduledoc false
+    use Localize.Test.StandInCalendar
 
     def cldr_calendar_type, do: :buddhist
     def cardinal_month(month), do: month

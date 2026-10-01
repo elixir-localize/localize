@@ -317,8 +317,11 @@ defmodule Localize.DateTime.Relative do
 
   # A difference between two dates or times is counted with the calendar's
   # own arithmetic from their fields, never through a number of seconds.
+  # Both calendars must answer Localize, as `Localize.Calendar` checks.
   defp relative_count(relative, relative_to, unit, locale) do
-    with {:ok, moment, baseline} <- moments(relative, relative_to) do
+    with :ok <- Localize.Calendar.validate_calendar(relative),
+         :ok <- Localize.Calendar.validate_calendar(relative_to),
+         {:ok, moment, baseline} <- moments(relative, relative_to) do
       unit = unit || whole_unit(moment, baseline)
       {:ok, {periods(moment, baseline, unit, locale), unit}}
     end
@@ -504,11 +507,79 @@ defmodule Localize.DateTime.Relative do
   defp seconds(clock, baseline),
     do: minutes(clock, baseline) * 60 + second(clock) - second(baseline)
 
-  # Months from one date to another in their calendar, whose years need not
-  # all have twelve: a Hebrew leap year has thirteen.
-  defp months_between(%{year: year} = from, %{year: year} = to), do: to.month - from.month
-
+  # Months from one date to another in their calendar: how many months on
+  # from `from`, as the calendar shifts a date by months (its
+  # `shift_date/4`, through `Date.shift/2`), the month `to` is in, a month
+  # being known by its year and its `month_of_year/3`. So a Hebrew leap year
+  # has thirteen, and a week calendar's months are its periods of weeks,
+  # which its week field does not count. The months the dates' month fields
+  # count, which are the answer wherever the field is the month, are where
+  # the search starts.
   defp months_between(from, to) do
+    month = month_key(to)
+
+    position = fn months ->
+      shifted = Date.shift(from, month: months)
+
+      cond do
+        month_key(shifted) == month -> :eq
+        Date.compare(shifted, to) == :lt -> :lt
+        true -> :gt
+      end
+    end
+
+    estimate = months_counted(from, to)
+
+    case position.(estimate) do
+      :eq -> estimate
+      :lt -> bisect(position, months_above(position, estimate, 1))
+      :gt -> bisect(position, months_below(position, estimate, 1))
+    end
+  end
+
+  defp month_key(%{calendar: calendar, year: year, month: month, day: day}),
+    do: {year, Localize.Calendar.answering(calendar).month_of_year(year, month, day)}
+
+  # From a number of months short of the month sought, doubles the step
+  # until it is reached or passed; from one past it, the same backwards.
+  defp months_above(position, low, step) do
+    case position.(low + step) do
+      :lt -> months_above(position, low + step, step * 2)
+      :eq -> {:found, low + step}
+      :gt -> {low, low + step}
+    end
+  end
+
+  defp months_below(position, high, step) do
+    case position.(high - step) do
+      :gt -> months_below(position, high - step, step * 2)
+      :eq -> {:found, high - step}
+      :lt -> {high - step, high}
+    end
+  end
+
+  # The month sought lies between `low` months on, short of it, and `high`,
+  # past it. Each month on from a date is the month after the last, so it
+  # is always found before the two meet; a calendar that skips one ends
+  # the search at `high`.
+  defp bisect(_position, {:found, months}), do: months
+  defp bisect(_position, {low, high}) when high - low <= 1, do: high
+
+  defp bisect(position, {low, high}) do
+    middle = low + div(high - low, 2)
+
+    case position.(middle) do
+      :eq -> middle
+      :lt -> bisect(position, {middle, high})
+      :gt -> bisect(position, {low, middle})
+    end
+  end
+
+  # The months the month fields count from one date to another, the years
+  # between counted by the calendar's `months_in_year/1`.
+  defp months_counted(%{year: year} = from, %{year: year} = to), do: to.month - from.month
+
+  defp months_counted(from, to) do
     if to.year > from.year,
       do: months_forward(from, to),
       else: -months_forward(to, from)
@@ -601,79 +672,15 @@ defmodule Localize.DateTime.Relative do
   end
 
   # The date one unit after `date` in its calendar: the next day, the same
-  # day a week on, or the same day of the next month or of the same month
-  # next year, clamped to that month's days as ICU clamps it.
+  # day a week on, or the date a month or a year on as the calendar shifts
+  # it (its `shift_date/4`, through `Date.shift/2`): the same day of the next
+  # month, clamped to that month's days as ICU clamps it, or of the month of
+  # the same name next year, as a lunisolar calendar keeps it, Nisan being
+  # the eighth month of a Hebrew leap year and the seventh of an ordinary one.
   defp anniversary(date, :day), do: Date.add(date, 1)
   defp anniversary(date, :week), do: Date.add(date, 7)
-
-  defp anniversary(%{calendar: calendar} = date, :month) do
-    if date.month < calendar.months_in_year(date.year),
-      do: on_day(date, date.year, date.month + 1),
-      else: on_day(date, date.year + 1, 1)
-  end
-
-  defp anniversary(date, :year), do: on_day(date, date.year + 1, same_month(date, date.year + 1))
-
-  defp on_day(%{calendar: calendar} = date, year, month) do
-    %{date | year: year, month: month, day: min(date.day, calendar.days_in_month(year, month))}
-  end
-
-  # The month of `year` that is the date's month. A calendar that names its
-  # months by `month_of_year/3`, as Calendrical's lunisolar calendars do,
-  # has the month of that name wherever it falls in the year: Nisan is the
-  # eighth month of a Hebrew leap year and the seventh of an ordinary one. A
-  # leap month the year lacks is the ordinary month it doubles, and Adar the
-  # leap-year Adar II, as Temporal's leap-to-common rules have them. A name
-  # the year lacks otherwise, Adar I in an ordinary year, is the month in the
-  # same place, Adar, which is also the rule for a calendar that does not
-  # name its months: the same place, clamped to the year's months.
-  defp same_month(%{calendar: calendar, month: month} = date, year) do
-    months = calendar.months_in_year(year)
-
-    with true <- months_named?(calendar),
-         name when is_integer(name) or is_tuple(name) <-
-           calendar.month_of_year(date.year, month, date.day),
-         found when is_integer(found) <- month_named(calendar, year, months, month, name) do
-      found
-    else
-      _by_place -> min(month, months)
-    end
-  end
-
-  # As the date parser has it, a calendar names its months by
-  # `month_of_year/3` unless its dates carry a week, not a month.
-  defp months_named?(calendar) do
-    Code.ensure_loaded?(calendar) and function_exported?(calendar, :month_of_year, 3) and
-      function_exported?(calendar, :calendar_base, 0) and calendar.calendar_base() == :month
-  end
-
-  # A month moves at most one place from one year to the next, so the month
-  # of the same name is looked for there first: naming a month can take a
-  # lunisolar calendar an astronomical calculation.
-  defp month_named(calendar, year, months, month, name) do
-    nearby =
-      for place <- (month - 1)..(month + 1), place in 1..months//1 do
-        {place, calendar.month_of_year(year, place, 1)}
-      end
-
-    case Enum.find(nearby, fn {_place, other} -> other == name end) do
-      {place, _name} ->
-        place
-
-      nil ->
-        closest_month(Enum.map(1..months//1, &{&1, calendar.month_of_year(year, &1, 1)}), name)
-    end
-  end
-
-  defp closest_month(names, name) do
-    number = month_number(name)
-
-    Enum.find_value(names, fn {month, other} -> other == name && month end) ||
-      Enum.find_value(names, fn {month, other} -> month_number(other) == number && month end)
-  end
-
-  defp month_number({number, :leap}), do: number
-  defp month_number(number), do: number
+  defp anniversary(date, :month), do: Date.shift(date, month: 1)
+  defp anniversary(date, :year), do: Date.shift(date, year: 1)
 
   defp on_or_after?(later, date, earlier) do
     case Date.compare(later.date, date) do
