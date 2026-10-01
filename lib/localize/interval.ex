@@ -52,7 +52,7 @@ defmodule Localize.Interval do
 
   * `:locale` is a locale identifier. The default is `:en`.
 
-  * `:format` is a standard format, `:short`, `:medium`, `:long` or `:full`, a skeleton such as `:yMMMEd` or `:yMMMdHm`, or a pattern such as `"d MMM y"`. The default is `:medium`. A skeleton selects CLDR's interval format for its fields, as CLDR keys them, so it can name a format no standard format reaches. A pattern names no interval format, so both endpoints are formatted with it around the locale's interval fallback pattern. A datetime interval's skeleton is split into its date and time fields, as TR35's interval algorithm separates them: on one day the date is written once and the times as a range, a skeleton of time fields alone writes only the times, and a skeleton of date fields alone formats the dates as a date interval does.
+  * `:format` is a standard format, `:short`, `:medium`, `:long` or `:full`, a skeleton such as `:yMMMEd` or `:yMMMdHm`, or a pattern such as `"d MMM y"`. The default is `:medium`. A skeleton selects CLDR's interval format for its fields, as CLDR keys them, so it can name a format no standard format reaches. A pattern names no interval format, so both endpoints are formatted with it around the locale's interval fallback pattern. A datetime interval's skeleton is split into its date and time fields, as TR35's interval algorithm separates them: on one day the date is written once and the times as a range, a skeleton of time fields alone writes only the times, and a skeleton of date fields alone formats the dates as a date interval does. A date in a calendar of weeks, such as `Calendrical.ISOWeek`, is written at a standard format in the calendar's own notation, so an interval of its dates is both dates around the fallback pattern: "2026-W25-2 – 2026-W27-1".
 
   * `:date_format` and `:time_format` choose the date and the time half of a datetime interval separately, each a standard format, a skeleton or a pattern. `:date_format` is a date interval's format too, and `:time_format` a time interval's.
 
@@ -300,7 +300,7 @@ defmodule Localize.Interval do
     fields = Keyword.get(options, :fields, @default_fields)
 
     with {:ok, locale_id} <- resolve_locale_id(locale) do
-      case resolve_fields(fields, format, locale_id, cldr_calendar_for(from)) do
+      case resolve_date_fields(fields, format, locale_id, from) do
         {:ok, {:fallback_style, fallback_format}} ->
           # CLDR ships no skeleton-keyed interval-format data for the
           # per-locale skeleton (e.g. ja's `:yMMdd` for `:short`,
@@ -333,6 +333,23 @@ defmodule Localize.Interval do
       end
     end
   end
+
+  # A date whose calendar writes its dates in a notation of its own is
+  # written in it at a standard format, "2026-W25-2" for a calendar of weeks
+  # (`Localize.Date.to_string/2`), and no interval format shares a notation's
+  # fields, so whole dates are written in full around the fallback pattern,
+  # or once when they are the same day.
+  defp resolve_date_fields(:date, format, locale_id, from)
+       when format in [:short, :medium, :long, :full] do
+    case Localize.Calendar.own_notation?(calendar_of(from)) do
+      {:ok, true} -> {:ok, {:fallback_style, format}}
+      {:ok, false} -> resolve_fields(:date, format, locale_id, cldr_calendar_for(from))
+      {:error, _exception} = error -> error
+    end
+  end
+
+  defp resolve_date_fields(fields, format, locale_id, from),
+    do: resolve_fields(fields, format, locale_id, cldr_calendar_for(from))
 
   # The format of a date formatted whole — alone, when the values differ in
   # no unit the interval shows, or in full around the fallback pattern. For
@@ -903,21 +920,8 @@ defmodule Localize.Interval do
     second: ~w(s S A)
   ]
 
-  # The units are those the values are written in, so two dates in a
-  # calendar of weeks differ in the month their written days do: 29 June and
-  # 1 July 2026, days 1 and 3 of ISO week 27, are "Jun 29 – Jul 1, 2026".
   defp calendar_difference(from, to) do
-    {from, to} = {written_day(from), written_day(to)}
     Enum.find(@unit_order, &differs?(from, to, &1))
-  end
-
-  # A value the calendar cannot write in its parsing calendar is compared as
-  # it is; formatting it then reports the error.
-  defp written_day(value) do
-    case Localize.Calendar.written_day(value) do
-      {:ok, written} -> written
-      {:error, _reason} -> value
-    end
   end
 
   defp differs?(%{hour: from_hour}, %{hour: to_hour}, :am_pm)
@@ -1287,8 +1291,6 @@ defmodule Localize.Interval do
   Returns the greatest calendar field difference between
   two dates or datetimes.
 
-  The fields are the ones the dates are written in, so two dates in a calendar of weeks are compared as the days they name, as an interval writes them.
-
   ### Arguments
 
   * `from` is a date or datetime map.
@@ -1314,8 +1316,6 @@ defmodule Localize.Interval do
   @spec greatest_difference(map(), map()) ::
           {:ok, :y | :M | :d | :H | :m} | {:error, Exception.t()}
   def greatest_difference(from, to) when is_map(from) and is_map(to) do
-    {from, to} = {written_day(from), written_day(to)}
-
     cond do
       Map.get(from, :year) != Map.get(to, :year) ->
         {:ok, :y}

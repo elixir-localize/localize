@@ -78,7 +78,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 * **Breaking.** A date parsed for a calendar of weeks is read as a Gregorian date and converted into it, as the calendar's `parsing_calendar/0` says, since a written month and day name no single week: "Feb 1, 2024" in `Calendrical.ISOWeek` is 2024-W05-4, and `as: :map` gives it whole. An ISO 8601 date and time is returned in the `:calendar` module, as a date is, where it came back in `Calendar.ISO`.
 
-* **Breaking.** A date in a calendar of weeks is written as the day it names, in the calendar its `parsing_calendar/0` names, so it reads back as itself: ISO week 2026-W25-2 is "6/16/26" and "Jun 16, 2026", where its week was written as its month ("25/2/26"). Its week numbers and quarters stay its own.
+* **Breaking.** A date in a calendar of weeks is written in the calendar's own notation, "2026-W25-2" from its `date_to_string/3`, at every standard format, in a date and time and in an interval, and parses back as itself, where its week was written as its month ("25/2/26"). A pattern takes the calendar's answers, its months named by CLDR's generic calendar ("M06").
 
 * **Breaking.** The parse functions no longer take `:return_calendar`: the date comes back in the `:calendar` module, and `Date.convert/2` gives it in any other calendar.
 

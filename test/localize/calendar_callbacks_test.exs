@@ -12,6 +12,7 @@ defmodule Localize.CalendarCallbacksTest do
   use ExUnit.Case, async: true
 
   @thin <<0x2009::utf8>>
+  @narrow <<0x202F::utf8>>
 
   # A fiscal year beginning in July, numbered by the civil year it ends in:
   # 1 July 2025 is the first day of its first month of 2026.
@@ -42,13 +43,41 @@ defmodule Localize.CalendarCallbacksTest do
     defp civil(year, month), do: {year, cardinal_month(month)}
   end
 
+  # How Calendrical's calendars of weeks write their dates and read them
+  # back: as ISO 8601 writes a week date, "2026-W25-2", and, as Calendrical
+  # reads them, any "2024-02-01" as the year, week and day it holds.
+  defmodule WeekNotation do
+    @moduledoc false
+
+    def write(year, week, day), do: "#{pad(year, 4)}-W#{pad(week, 2)}-#{day}"
+
+    def read(text, calendar) do
+      with [_text, year, week, day] <- Regex.run(~r/\A(\d{4})-W?(\d{2})-(\d{1,2})\z/, text),
+           {year, week, day} =
+             {String.to_integer(year), String.to_integer(week), String.to_integer(day)},
+           true <- calendar.valid_date?(year, week, day) do
+        {:ok, {year, week, day}}
+      else
+        _not_a_date -> {:error, :invalid_date}
+      end
+    end
+
+    defp pad(value, digits), do: String.pad_leading(Integer.to_string(value), digits, "0")
+  end
+
   # The ISO week calendar: a date is its year, its week and its day of the
   # week, and its month the 4-4-5 month of the quarter its week falls in.
+  # Its months have no names, so they take CLDR's generic calendar's, "M01"
+  # to "M12", and its eras the Gregorian calendar's, as Calendrical's
+  # calendars of weeks answer.
   defmodule IsoWeek do
     @moduledoc false
     use Localize.Test.StandInCalendar
 
-    def cldr_calendar_type, do: :gregorian
+    def cldr_calendar_type, do: :generic
+    def era_calendar_type, do: :gregorian
+    def date_to_string(year, week, day), do: WeekNotation.write(year, week, day)
+    def parse_date(text), do: WeekNotation.read(text, __MODULE__)
 
     def month_of_year(_year, 53, _day), do: 12
 
@@ -167,6 +196,10 @@ defmodule Localize.CalendarCallbacksTest do
     @moduledoc false
     use Localize.Test.StandInCalendar
 
+    def cldr_calendar_type, do: :generic
+    def era_calendar_type, do: :gregorian
+    def date_to_string(year, week, day), do: WeekNotation.write(year, week, day)
+    def parse_date(text), do: WeekNotation.read(text, __MODULE__)
     def parsing_calendar, do: Calendar.ISO
     def valid_date?(_year, week, day), do: week in 1..53 and day in 1..7
     def week_of_year(year, week, _day), do: {year, week}
@@ -322,6 +355,20 @@ defmodule Localize.CalendarCallbacksTest do
   defp date(year, month, day, calendar),
     do: %{year: year, month: month, day: day, calendar: calendar}
 
+  # A date's day at a time, in the date's calendar.
+  defp at(%Date{} = date, hour, minute) do
+    %NaiveDateTime{
+      year: date.year,
+      month: date.month,
+      day: date.day,
+      hour: hour,
+      minute: minute,
+      second: 0,
+      microsecond: {0, 0},
+      calendar: date.calendar
+    }
+  end
+
   describe "a year beginning in July" do
     test "names its first month July, with the calendar's own day and year" do
       assert Localize.Date.to_string(date(2026, 1, 1, FiscalJuly), locale: :en) ==
@@ -400,94 +447,137 @@ defmodule Localize.CalendarCallbacksTest do
     end
   end
 
-  # A date in a calendar of weeks is written as the day it names, in the
-  # calendar it is read in, its `parsing_calendar/0` (user, 2026-10-01), so
-  # it reads back as itself; its weeks and quarters stay its own. The day an
-  # ISO week date names is ISO 8601's: week 1 begins on the Monday on or
-  # before 4 January, so 2026-W01-1 is 29 December 2025, 2026-W25-2 Tuesday
-  # 16 June 2026, 2026-W27-1 29 June and 2026-W53-7 3 January 2027.
+  # A calendar of weeks writes a date in its own notation, as it was given
+  # (user, 2026-10-02): ISO 8601's week date, "2026-W25-2" for Tuesday 16 June
+  # 2026 (`:calendar.iso_week_number/1`), at every standard format and in
+  # every locale, which reads back as itself. A date and time joins it to the
+  # locale's time with the locale's date-time pattern, and an interval joins
+  # two with the locale's fallback pattern ("{0} – {1}" in `en`). A pattern
+  # takes the calendar's answers: CLDR root's generic calendar names its
+  # months, "M06" and narrow "6", and its weeks, quarters and days are its
+  # own, the days named as the Gregorian calendar names them.
   describe "an ISO week calendar" do
-    test "writes a date as the day it names" do
-      for {{year, week, day}, medium, numeric} <- [
-            {{2026, 25, 2}, "Jun 16, 2026", "6/16/26"},
-            {{2026, 27, 1}, "Jun 29, 2026", "6/29/26"},
-            {{2026, 1, 1}, "Dec 29, 2025", "12/29/25"},
-            {{2026, 53, 7}, "Jan 3, 2027", "1/3/27"}
-          ] do
-        assert iso_week_day(year, week, day) |> Date.to_erl() |> :calendar.iso_week_number() ==
-                 {year, week}
+    test "writes a date in its own notation at every standard format" do
+      for format <- [nil, :short, :medium, :long, :full], locale <- [:en, :de, :ja, :ar] do
+        options = if format, do: [format: format, locale: locale], else: [locale: locale]
 
-        value = date(year, week, day, IsoWeek)
-        assert Localize.Date.to_string(value, locale: :en) == {:ok, medium}
-        assert Localize.Date.to_string(value, format: "M/d/yy", locale: :en) == {:ok, numeric}
+        assert Localize.Date.to_string(date(2026, 25, 2, IsoWeek), options) ==
+                 {:ok, "2026-W25-2"},
+               inspect(options)
       end
+
+      assert Localize.Date.to_string(date(2026, 53, 7, IsoWeek), format: :full, locale: :en) ==
+               {:ok, "2026-W53-7"}
+
+      assert Localize.Date.to_parts(date(2026, 25, 2, IsoWeek), locale: :en) ==
+               {:ok, [%{type: :literal, value: "2026-W25-2"}]}
     end
 
-    test "writes the day it names on every day, with D and F counted from it" do
-      for gregorian <- Date.range(~D[2024-12-23], ~D[2027-01-10]) do
-        {week_year, week} = :calendar.iso_week_number(Date.to_erl(gregorian))
-        value = date(week_year, week, Date.day_of_week(gregorian), IsoWeek)
-        day_of_year = Date.day_of_year(gregorian)
-        day_of_week_in_month = div(gregorian.day - 1, 7) + 1
-
-        expected =
-          "#{gregorian.year}-#{pad(gregorian.month)}-#{pad(gregorian.day)} " <>
-            "#{day_of_year} #{day_of_week_in_month}"
-
-        assert Localize.Date.to_string(value, format: "y-MM-dd D F", locale: :en) ==
-                 {:ok, expected}
-
+    test "reads its notation back as itself" do
+      for {week, day} <- [{25, 2}, {1, 1}, {53, 7}] do
+        value = %Date{year: 2026, month: week, day: day, calendar: IsoWeek}
         {:ok, text} = Localize.Date.to_string(value, locale: :en)
-        assert Localize.Date.parse(text, locale: :en, calendar: IsoWeek) == {:ok, as_date(value)}
+
+        assert Localize.Date.parse(text, locale: :en, calendar: IsoWeek) == {:ok, value}
+      end
+
+      assert {:error, %Localize.DateParseError{}} =
+               Localize.Date.parse("2026-W2a-1", locale: :en, calendar: IsoWeek)
+    end
+
+    test "writes a date and time as its date's notation and the locale's time" do
+      value = %NaiveDateTime{
+        year: 2026,
+        month: 25,
+        day: 2,
+        hour: 10,
+        minute: 30,
+        second: 0,
+        microsecond: {0, 0},
+        calendar: IsoWeek
+      }
+
+      assert Localize.DateTime.to_string(value, locale: :en) ==
+               {:ok, "2026-W25-2, 10:30:00#{@narrow}AM"}
+
+      assert Localize.DateTime.to_string(value, format: :short, locale: :en) ==
+               {:ok, "2026-W25-2, 10:30#{@narrow}AM"}
+
+      assert Localize.DateTime.to_string(value, locale: :de) == {:ok, "2026-W25-2, 10:30:00"}
+
+      assert Localize.DateTime.parse("2026-W25-2, 10:30:00 AM", locale: :en, calendar: IsoWeek) ==
+               {:ok, value}
+
+      # A semantic skeleton whose date resolves to a standard format writes
+      # that format, the notation; MessageFormat 2 gives the time to the
+      # minute, as TR35 specifies.
+      semantic = Localize.DateTime.SemanticSkeleton.semantic("YMD")
+
+      assert Localize.DateTime.to_string(value, format: semantic, locale: :en) ==
+               {:ok, "2026-W25-2"}
+
+      assert Localize.Message.format("{$d :date}", %{d: value}, locale: :en) ==
+               {:ok, "2026-W25-2"}
+
+      assert Localize.Message.format("{$d :datetime}", %{d: value}, locale: :en) ==
+               {:ok, "2026-W25-2, 10:30#{@narrow}AM"}
+    end
+
+    test "writes an interval as its notations around the fallback pattern" do
+      from = %Date{year: 2026, month: 25, day: 2, calendar: IsoWeek}
+      to = %Date{year: 2026, month: 27, day: 1, calendar: IsoWeek}
+      written = "2026-W25-2#{@thin}–#{@thin}2026-W27-1"
+
+      assert Localize.Interval.to_string(from, to, locale: :en) == {:ok, written}
+      assert Localize.Interval.to_string(from, to, format: :long, locale: :en) == {:ok, written}
+      assert Localize.Interval.to_string(from, from, locale: :en) == {:ok, "2026-W25-2"}
+
+      assert Localize.Interval.parse(written, locale: :en, calendar: IsoWeek) ==
+               {:ok, Date.range(from, to)}
+
+      morning = at(from, 10, 30)
+      afternoon = at(from, 14, 0)
+      later = at(to, 14, 0)
+
+      assert Localize.Interval.to_string(morning, afternoon, locale: :en) ==
+               {:ok, "2026-W25-2, 10:30:00#{@narrow}AM#{@thin}–#{@thin}2:00:00#{@narrow}PM"}
+
+      assert Localize.Interval.to_string(morning, later, locale: :en) ==
+               {:ok,
+                "2026-W25-2, 10:30:00#{@narrow}AM#{@thin}–#{@thin}2026-W27-1, 2:00:00#{@narrow}PM"}
+    end
+
+    test "writes a pattern with the calendar's answers" do
+      value = date(2026, 25, 2, IsoWeek)
+
+      for {pattern, expected} <- [
+            {"MMM", "M06"},
+            {"MMMM", "M06"},
+            {"LLLL", "M06"},
+            {"MMMMM", "6"},
+            {"LLLLL", "6"},
+            {"M", "6"},
+            {"MM", "06"},
+            {"Y", "2026"},
+            {"ww", "25"},
+            {"QQQ", "Q2"},
+            {"EEEE", "Tuesday"},
+            {"G", "AD"}
+          ] do
+        assert Localize.Date.to_string(value, format: pattern, locale: :en) == {:ok, expected},
+               pattern
       end
     end
 
-    # The week-based year and week, and the quarter, are the calendar's
-    # own: 2026-W01-1 is in 2026's week 1 though written in 2025, and week 27
-    # is in its third thirteen-week quarter though 29 June is in the second.
-    test "keeps its weeks and quarters its own" do
-      assert Localize.Date.to_string(date(2026, 1, 1, IsoWeek), format: "y Y-'W'ww", locale: :en) ==
-               {:ok, "2025 2026-W01"}
+    # A calendar of weeks beginning on Sunday numbers Tuesday 3, where ISO
+    # 8601 numbers it 2, so its notation reads back only as its own.
+    test "reads back a notation counting its own days of the week" do
+      value = %Date{year: 2026, month: 25, day: 3, calendar: SundayWeeks}
 
-      assert Localize.Date.to_string(date(2026, 27, 1, IsoWeek), format: "QQQ MMM d", locale: :en) ==
-               {:ok, "Q3 Jun 29"}
-
-      assert Localize.Date.to_string(date(2026, 27, 1, IsoWeek), format: :MMMMW, locale: :en) ==
-               {:ok, "week 1 of July"}
-    end
-
-    test "names the era and month of the day it names" do
-      assert Localize.Calendar.localize(date(2026, 27, 1, IsoWeek), :month) == {:ok, "June"}
-      assert Localize.Calendar.localize(date(2026, 1, 1, IsoWeek), :month) == {:ok, "December"}
-
-      assert Localize.Calendar.localize(date(2026, 27, 1, IsoWeek), :quarter) ==
-               {:ok, "3rd quarter"}
-    end
-
-    # 29 June and 1 July 2026, days 1 and 3 of ISO week 27, differ in their
-    # month as written, as ICU4C 78.3 writes those Gregorian days.
-    test "is an interval of the days it names" do
-      assert Localize.Interval.to_string(date(2026, 27, 1, IsoWeek), date(2026, 27, 3, IsoWeek),
-               locale: :en
-             ) == {:ok, "Jun 29 – Jul 1, 2026"}
-
-      assert Localize.Interval.greatest_difference(
-               date(2026, 27, 1, IsoWeek),
-               date(2026, 27, 3, IsoWeek)
-             ) == {:ok, :M}
+      assert Localize.Date.to_string(value, locale: :en) == {:ok, "2026-W25-3"}
+      assert Localize.Date.parse("2026-W25-3", locale: :en, calendar: SundayWeeks) == {:ok, value}
     end
   end
-
-  # ISO 8601's week date: week 1 begins on the Monday on or before 4 January.
-  defp iso_week_day(year, week, day) do
-    january_4 = Date.new!(year, 1, 4)
-    Date.add(january_4, 1 - Date.day_of_week(january_4) + (week - 1) * 7 + (day - 1))
-  end
-
-  defp pad(number), do: number |> Integer.to_string() |> String.pad_leading(2, "0")
-
-  defp as_date(%{year: year, month: month, day: day, calendar: calendar}),
-    do: %Date{year: year, month: month, day: day, calendar: calendar}
 
   describe "a calendar that cannot say what its months are" do
     test "is refused wherever a date enters" do
@@ -790,11 +880,12 @@ defmodule Localize.CalendarCallbacksTest do
     end
 
     # A calendar whose week never leaves its month names the date's own:
-    # ISO week 25 is the fourth week of its 4-4-5 June, and a calendar whose
-    # week 1 holds the first of the month cuts its weeks at the month's end.
+    # ISO week 25 is the fourth week of its sixth 4-4-5 month, which CLDR's
+    # generic calendar names "M06", and a calendar whose week 1 holds the
+    # first of the month cuts its weeks at the month's end.
     test "of the month name the date's month where the week never leaves it" do
       assert Localize.Date.to_string(date(2026, 25, 2, IsoWeek), format: :MMMMW, locale: :en) ==
-               {:ok, "week 4 of June"}
+               {:ok, "week 4 of M06"}
 
       assert Localize.Date.to_string(date(2021, 10, 1, JanuaryWeeks),
                format: :MMMMW,

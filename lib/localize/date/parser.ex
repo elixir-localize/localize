@@ -27,7 +27,9 @@ defmodule Localize.Date.Parser do
   # comes back in it. The input is read with the patterns of the
   # calendar's CLDR type, in the calendar its `parsing_calendar/0`
   # names: itself, or `Calendar.ISO` for a calendar of weeks, whose
-  # dates are then converted. The calendar's answers place everything
+  # dates are then converted. A calendar of weeks' own notation, as the
+  # formatter writes it ("2026-W25-2"), is read back by the calendar's
+  # `parse_date/1`. The calendar's answers place everything
   # else: its months (`month_of_year/3`, `cardinal_month/1`), the
   # years of its eras, and its own weeks and quarters (`week/2`,
   # `quarter/2`), counted in the calendar asked for.
@@ -133,9 +135,12 @@ defmodule Localize.Date.Parser do
     candidates = Enum.uniq([normalised, preprocess_safe(normalised, locale, calendar_module)])
 
     attempt = fn inputs ->
-      case Enum.find_value(inputs, &iso_date(&1, calendar_module)) do
+      case Enum.find_value(inputs, &written_date(&1, calendar_module, own_calendar)) do
         {:ok, date} ->
           {:ok, finalise_date(date, as)}
+
+        {:error, _exception} = error ->
+          error
 
         nil ->
           try_locale_patterns(inputs, locale, calendar_module, own_calendar, reference, as)
@@ -148,6 +153,18 @@ defmodule Localize.Date.Parser do
 
       {:error, _} = err ->
         retry_without_ordinal_affixes(attempt, candidates, locale, err)
+    end
+  end
+
+  # A date written in the notation of the calendar asked for, as the
+  # formatter writes a calendar of weeks' date ("2026-W25-2"), read back by
+  # that calendar and taken into the calendar the input is read in; else an
+  # ISO 8601 date.
+  defp written_date(input, calendar_module, own_calendar) do
+    case Localize.Calendar.from_notation(input, own_calendar) do
+      {:ok, date} -> in_calendar(date, calendar_module)
+      :none -> iso_date(input, calendar_module)
+      {:error, _exception} = error -> error
     end
   end
 

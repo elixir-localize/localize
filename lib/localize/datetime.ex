@@ -71,7 +71,10 @@ defmodule Localize.DateTime do
     `Localize.DateTime.SemanticSkeleton` or a format pattern
     string. The default is `:medium`. A standard format sets the
     width of the date and the time together; `:date_format` and
-    `:time_format` override each axis separately.
+    `:time_format` override each axis separately. A date in a
+    calendar of weeks, such as `Calendrical.ISOWeek`, is written at
+    a standard format in the calendar's own notation, as
+    `Localize.Date.to_string/2` writes it: "2026-W25-2, 10:30:00 AM".
 
   * `:date_format` and `:time_format` are standard format names,
     skeleton atoms or semantic skeletons that set the date half
@@ -457,13 +460,7 @@ defmodule Localize.DateTime do
          ) do
       {:ok, date_format, nil} when shape == :complete ->
         with {:ok, pattern} <-
-               Localize.DateTime.Format.resolve_format(
-                 :date,
-                 date_format,
-                 locale_id,
-                 calendar,
-                 options
-               ) do
+               Localize.Date.resolve_pattern(datetime, date_format, locale_id, options) do
           invoke_formatter(output, datetime, pattern, locale_id, Map.new(options))
         end
 
@@ -1068,9 +1065,10 @@ defmodule Localize.DateTime do
     default), `Calendrical.Gregorian` or `Calendrical.Hebrew`. The input is
     read with the locale's patterns for the calendar's CLDR type, and the
     date is built and returned in this module. A calendar of weeks, such
-    as `Calendrical.ISOWeek`, whose written month and day name no single
-    week, reads the input as a Gregorian date, as its `parsing_calendar/0`
-    says, and the date is converted into it: `"Feb 1, 2024"` is
+    as `Calendrical.ISOWeek`, reads its own notation as it writes it,
+    `"2024-W05-4"`, and any other input as a Gregorian date, as its
+    `parsing_calendar/0` says, since a written month and day name no
+    single week; the date is converted into it, so `"Feb 1, 2024"` is
     2024-W05-4. Anything that is not a calendar module, including a CLDR
     calendar name such as `:hebrew` or `"gregorian"`, and a module that
     implements only the `Calendar` behaviour, returns a

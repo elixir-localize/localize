@@ -64,7 +64,7 @@ Outstanding work on Localize. The design detail behind these items lives under [
 
 ## Done
 
-* [x] **A week calendar's date is written as the day it names** — its era, years, month, day, `D` and `F` are the day's in its `parsing_calendar/0`, so ISO 2026-W25-2 is "Jun 16, 2026" and reads back as itself; its weeks and quarters stay its own. Found through Tempo. 2026-10-02, v1.4.0.
+* [x] **A week calendar's date is written in its own notation** — "2026-W25-2" from the calendar's `date_to_string/3` at every standard format, in a date and time and in an interval, read back through its `parse_date/1`, with a pattern's months named by CLDR's generic calendar ("M06"), replacing `281b9990`'s Gregorian day (user, 2026-10-02). 2026-10-02, v1.4.0.
 
 * [x] **Calendar months through callbacks** — every answer about a date comes from its calendar's callbacks, `Calendar.ISO` answered by Localize, with no probe or identity branch left; the MF2 `calendar` option is deferred. [plans/calendar-callbacks.md](plans/calendar-callbacks.md). 2026-10-02, v1.4.0.
 

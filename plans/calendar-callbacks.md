@@ -1,8 +1,8 @@
 # Calendar callbacks
 
-**Status:** implemented (v1.4.0), 2026-10-02
+**Status:** in progress, 2026-10-02
 
-Localize formats a date but never digs into its calendar's implementation: every answer a format or a parse needs comes from a callback on the date's own calendar module, and `Calendar.ISO`, which has none of those callbacks, is the only calendar Localize answers for itself (user, 2026-10-01; the rule is in `CLAUDE.md`, "Localize formats; calendars answer"). The date code probed calendars with `function_exported?/3` and fell back to raw fields, introspected them, and branched on CLDR calendar types; this plan removes all of it. Every phase has landed: no date code probes a calendar or branches on its identity, a calendar of weeks is parsed through the calendar it names and its dates are written as the days they name, and only the MF2 `calendar` option is deferred.
+Localize formats a date but never digs into its calendar's implementation: every answer a format or a parse needs comes from a callback on the date's own calendar module, and `Calendar.ISO`, which has none of those callbacks, is the only calendar Localize answers for itself (user, 2026-10-01; the rule is in `CLAUDE.md`, "Localize formats; calendars answer"). The date code probed calendars with `function_exported?/3` and fell back to raw fields, introspected them, and branched on CLDR calendar types; this plan removes all of it. No date code probes a calendar or branches on its identity, a calendar of weeks is parsed through the calendar it names, and its dates are written in its own notation. Left are `Calendar.ISO`'s weeks from the locale and `Localize.Calendar.ISO` answering every Calendrical callback; the MF2 `calendar` option is deferred.
 
 ## Decisions
 
@@ -12,7 +12,7 @@ Localize formats a date but never digs into its calendar's implementation: every
 
 * **Months and days are ordinal.** A calendar's month and day are ordinal within its own year and are never changed. The month's CLDR name index is `month_of_year/3` followed by the calendar's `cardinal_month` callback; `month_of_year/3` keeps its meaning (user, 2026-10-01).
 
-* **Week-based dates.** A date in a calendar of weeks is written as the day it names: its era, year, month and day, and the `D` and `F` counted from them, are the day's own in the calendar it is read in, its `parsing_calendar/0`, into which the formatter converts it as the parser converts out of it. ISO 2026-W25-2 is "Jun 16, 2026", 2026-W27-1 "Jun 29, 2026" and 2026-W01-1 "Dec 29, 2025", and each reads back as itself; its weeks and quarters stay the calendar's (below). This reverses the first decision of the same day, the period's month with the calendar's own day and year ("Jun 2, 2026", "Jul 1, 2026" and "Jan 1, 2026"), which named other days (user, 2026-10-01).
+* **Week-based dates.** A date is written in its own calendar, the same as it was given (user, 2026-10-02: "when writing the calendars day, 2025-W25-1 would be the appropriate format. ie output the same as the input"). A Gregorian day is written in the locale's formats, "Jun 16, 2026"; a calendar of weeks' day in its own notation, as the calendar writes it, "2026-W25-2", which reads back as itself. A calendar of weeks has no named months: its month is the ordinal period of its pattern (4-4-5, 4-5-4, …), and where a pattern needs a name it takes the most generic one, CLDR's generic "M06", which is not a common need (user, 2026-10-02). Its weeks start as its configuration says, and every answer about its dates comes from the calendar itself (user, 2026-10-02). This replaces both earlier decisions of 2026-10-01, the period's month with the calendar's own day ("Jun 2, 2026") and the Gregorian day it names ("Jun 16, 2026"), the second of which `281b9990` implemented.
 
 * **Numeric months the same way.** `M` and `MM` write the CLDR month the name uses, `cardinal_month` of `month_of_year/3`, for every calendar, with the leap pattern for a leap month: fiscal period 1 is "7" and a Hebrew common year's Adar "7" and Nisan "8", where ICU writes the month's place in the year ("6", "7"); the difference is recorded in `icu_divergences.md` (user, 2026-10-01). The parser reads a numeric month back the same way, as the month of that CLDR number in the year.
 
@@ -22,7 +22,7 @@ Localize formats a date but never digs into its calendar's implementation: every
 
 * **A calendar must answer.** A calendar implementing only Elixir's `Calendar` behaviour cannot say how its dates are written, so it is refused with `Localize.UnknownCalendarError` wherever a value in it enters: formatting, parsing, MF2 messages and relative time alike (user, 2026-10-01).
 
-* **Week calendars parse as Gregorian dates.** A date written for a calendar of weeks, such as "Feb 1, 2024", is read as a Gregorian date and converted into it (user, 2026-10-01), since a written month and day name no single week. Localize learns this from the calendar's `parsing_calendar/0` callback, `Calendar.ISO` from the Week compiler and the calendar itself everywhere else, and reads in the answer and converts, so it never asks whether a calendar is week-based. The formatter writes a week date in that calendar too (above), so a week date reads back as itself: 2026-W25-2 is "Jun 16, 2026", which reads as 2026-W25-2.
+* **Week calendars parse as Gregorian dates.** A date written for a calendar of weeks, such as "Feb 1, 2024", is read as a Gregorian date and converted into it (user, 2026-10-01), since a written month and day name no single week. Localize learns this from the calendar's `parsing_calendar/0` callback, `Calendar.ISO` from the Week compiler and the calendar itself everywhere else, and reads in the answer and converts, so it never asks whether a calendar is week-based. A calendar whose `parsing_calendar/0` is another writes its dates in its own notation (above), which the calendar's `parse_date/1` reads back; the text is that notation only when the calendar writes the date it reads as exactly the text, so "2024-02-01", which Calendrical's week calendars read as week 2, stays a Gregorian date.
 
 * **Weeks are the calendar's.** `w` and `Y` are the calendar's own week of the year and week-based year, its `week_of_year/3`, never the locale's week data (user, 2026-10-01: "Definitely the calendars weeks, not the locales weeks"; "Y follows the calendar when w does"), as Tempo's lowercase `w` is the calendar's own week beside ISO 8601's `W`. `Calendar.ISO`, the default calendar, has ISO 8601's weeks, so `W`, `w` and `Y` all follow ISO 8601 there. `W` is each calendar's own week of the month, its `week_of_month/3` (user, 2026-10-01), so a calendar of weeks counts its own month's weeks. A week can belong to the month before or after its date's, so a pattern with `W` writes its month, and the year and era that month is in, as the week's month, as `Y` writes the year `w` belongs to (user, 2026-10-01, option (a)); the day stays the date's. The parser reads week text in the weeks of the calendar asked for, through its `week/2`, so week text round-trips, and an ISO 8601 week date without `:calendar` is a `Calendar.ISO` date.
 
@@ -46,13 +46,17 @@ When the plan began, the date code held about 33 `function_exported?/3` probes o
 
 ## Tasks
 
+* [ ] **Localize: `Calendar.ISO`'s weeks from the locale** — `w`, `Y` and `W` for `Calendar.ISO` follow the locale's week data (first day, minimal days, `-u-fw`, `-u-rg`), as TR35 and ICU do, while an ISO 8601 week date ("2026-W25-2") and Calendrical's ISO calendars keep ISO 8601's weeks (user, 2026-10-02, point 4). Replaces the "Weeks are the calendar's" decision for `Calendar.ISO` only.
+
+* [ ] **Localize: `Localize.Calendar.ISO` answers every Calendrical callback** — the fifteen it lacks (`calendar_base`, `days_in_year`, `months_in_year/0`, `periods_in_year`, `plus`, `diff`, …), checked complete by a Calendrical test, and Localize's own calculations moved onto them: the `W` month search, relative time's months, the parser's weeks of the month and `date_span` (user, 2026-10-02, point 5).
+
 ### Deferred
 
 * [ ] **Localize: the MF2 `calendar` option** — it still reaches Calendrical through `Localize.OptionalDependency`, which the decisions above rule out; deferred (user, 2026-10-01).
 
 ### Done
 
-* [x] **Localize: a week date written as the day it names** — the formatter writes a date's era, years, month, day, `D` and `F` from the day it names in its `parsing_calendar/0` (`Localize.Calendar.written_day/1`), keeping its weeks, quarters and a `W` pattern's month its own; `localize/3`'s era and month and an interval's differences follow, so 2026-W25-2 is "Jun 16, 2026" and reads back as itself. 2026-10-02.
+* [x] **Localize and Calendrical: a week date written in its own notation** — a standard format, a date and time and an interval write a calendar of weeks' date as its `date_to_string/3` does ("2026-W25-2"), read back through its `parse_date/1`; a pattern takes the calendar's answers, its months from CLDR's generic calendar ("M06"), as Calendrical's week calendars now name them. Replaces `281b9990`'s Gregorian day. 2026-10-02.
 
 * [x] **Localize: `W` beside a month** — a pattern with `W` writes its month, and the year and era that month is in, from the day of the week in the week's month (`Localize.Calendar.week_month_day/1`), so `MMMMW` writes 1 October 2021 "week 5 of September" where it wrote "week 5 of October". 2026-10-01.
 

@@ -59,7 +59,10 @@ defmodule Localize.Date do
     string. The default is `:medium`. For a partial date a
     standard format derives its skeleton from the fields present,
     with the month numeric at `:short`, abbreviated at `:medium`
-    and wide at `:long` and `:full`.
+    and wide at `:long` and `:full`. A date in a calendar of weeks,
+    such as `Calendrical.ISOWeek`, is written at every standard
+    format in the calendar's own notation, as its `date_to_string/3`
+    writes it, `"2026-W25-2"`, which parses back as itself.
 
   * `:locale` is a locale identifier. The default is `:en`.
 
@@ -360,7 +363,7 @@ defmodule Localize.Date do
 
     # For standard formats on full dates, resolve via the standard format map
     if format in @standard_formats and is_full_date(date) do
-      Localize.DateTime.Format.resolve_format(:date, format, locale_id, cldr_calendar, options)
+      standard_date_format(date, format, locale_id, cldr_calendar, options)
     else
       # Skeleton format — look up in available_formats
       [skeleton: format, locale_id: locale_id, calendar: cldr_calendar, options: options]
@@ -371,6 +374,23 @@ defmodule Localize.Date do
 
   defp find_format(_date, format, _locale_id, _options) do
     {:error, Localize.DateTimeFormatError.exception(format: format, reason: :invalid_format)}
+  end
+
+  # A standard format is the locale's standard date format of that length,
+  # unless the date's calendar writes its dates in a notation of its own:
+  # then it is that notation at every length, "2026-W25-2" for a calendar of
+  # weeks, quoted so the formatter writes it as the calendar wrote it.
+  defp standard_date_format(date, format, locale_id, cldr_calendar, options) do
+    case Localize.Calendar.notation(date) do
+      {:ok, notation} ->
+        {:ok, "'" <> String.replace(notation, "'", "''") <> "'"}
+
+      :none ->
+        Localize.DateTime.Format.resolve_format(:date, format, locale_id, cldr_calendar, options)
+
+      {:error, _exception} = error ->
+        error
+    end
   end
 
   # Look up the per-field number-system overrides for the
@@ -603,9 +623,10 @@ defmodule Localize.Date do
     default), `Calendrical.Gregorian` or `Calendrical.Hebrew`. The input is
     read with the locale's patterns for the calendar's CLDR type, and the
     date is built and returned in this module. A calendar of weeks, such
-    as `Calendrical.ISOWeek`, whose written month and day name no single
-    week, reads the input as a Gregorian date, as its `parsing_calendar/0`
-    says, and the date is converted into it: `"Feb 1, 2024"` is
+    as `Calendrical.ISOWeek`, reads its own notation as it writes it,
+    `"2024-W05-4"`, and any other input as a Gregorian date, as its
+    `parsing_calendar/0` says, since a written month and day name no
+    single week; the date is converted into it, so `"Feb 1, 2024"` is
     2024-W05-4. Anything that is not a calendar module, including a CLDR
     calendar name such as `:hebrew` or `"gregorian"`, and a module that
     implements only the `Calendar` behaviour, returns a
