@@ -1389,6 +1389,7 @@ defmodule Localize.Calendar do
              related_gregorian_year: 3,
              cyclic_year: 3,
              week_of_year: 3,
+             week_of_month: 3,
              week: 2,
              quarter: 2
            ] ++
@@ -1546,54 +1547,25 @@ defmodule Localize.Calendar do
   end
 
   @doc false
-  # The week of a date's month by ISO 8601's rule, in the calendar's own
-  # month: weeks begin on Monday, and a week belongs to the month holding
-  # four or more of its days. So a day of a week its month holds fewer of
-  # at the start is in the last week of the month before, and at the end
-  # in week 1 of the month after. An error when the calendar answers with
-  # something that is not a day of the week or a month's length.
-  @spec iso_week_of_month(map()) :: {:ok, pos_integer()} | {:error, Exception.t()}
-  def iso_week_of_month(%{year: year, month: month, day: day} = date)
+  # The week of the month a date is in and the month that week belongs to,
+  # as its calendar answers them (its `week_of_month/3`): ISO 8601's rule for
+  # `Calendar.ISO`, and each calendar's own week of the month otherwise. A
+  # map without a calendar is an ISO date. An error when the calendar answers
+  # with something that is not a month and a week.
+  @spec week_of_month(map()) :: {:ok, {Calendar.month(), pos_integer()}} | {:error, Exception.t()}
+  def week_of_month(%{year: year, month: month, day: day} = date)
       when is_integer(year) and is_integer(month) and is_integer(day) do
-    calendar = Map.get(date, :calendar, Calendar.ISO)
-
-    with {:ok, first} <- day_of_week(%{year: year, month: month, day: 1, calendar: calendar}),
-         {:ok, days} <- month_length(calendar, year, month) do
-      week_one = week_one_day(first)
-      next_week_one = days + week_one_day(Integer.mod(first - 1 + days, 7) + 1)
-
-      cond do
-        day < week_one -> last_week_of_month_before(calendar, year, month)
-        day >= next_week_one -> {:ok, 1}
-        true -> {:ok, div(day - week_one, 7) + 1}
+    ask(
+      Map.get(date, :calendar, Calendar.ISO),
+      :week_of_month,
+      [year, month, day],
+      "a month and a week of the month",
+      fn
+        {month, week} -> is_integer(month) and is_integer(week)
+        _other -> false
       end
-    end
+    )
   end
-
-  # The day of the month, counted from its first, on which the Monday that
-  # begins its week 1 falls: on or before the first when that week holds
-  # four or more of its days, and the Monday after otherwise.
-  defp week_one_day(first_weekday) when 8 - first_weekday >= 4, do: 2 - first_weekday
-  defp week_one_day(first_weekday), do: 9 - first_weekday
-
-  defp last_week_of_month_before(calendar, year, 1) do
-    with {:ok, months} <-
-           ask(calendar, :months_in_year, [year - 1], "a number of months", &positive?/1),
-         {:ok, days} <- month_length(calendar, year - 1, months) do
-      iso_week_of_month(%{year: year - 1, month: months, day: days, calendar: calendar})
-    end
-  end
-
-  defp last_week_of_month_before(calendar, year, month) do
-    with {:ok, days} <- month_length(calendar, year, month - 1) do
-      iso_week_of_month(%{year: year, month: month - 1, day: days, calendar: calendar})
-    end
-  end
-
-  defp month_length(calendar, year, month),
-    do: ask(calendar, :days_in_month, [year, month], "a number of days", &positive?/1)
-
-  defp positive?(answer), do: is_integer(answer) and answer > 0
 
   # CLDR's leap-year name of a month (`7_yeartype_leap`, the Hebrew "Adar II")
   # is keyed by an atom. The keys are built here from the closed set of month

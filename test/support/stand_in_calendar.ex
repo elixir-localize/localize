@@ -20,6 +20,7 @@ defmodule Localize.Test.StandInCalendar do
     related_gregorian_year: 3,
     cyclic_year: 3,
     week_of_year: 3,
+    week_of_month: 3,
     week: 2,
     quarter: 2
   ]
@@ -63,6 +64,13 @@ defmodule Localize.Test.StandInCalendar do
   defp definition({:week_of_year, 3}) do
     quote do
       def week_of_year(year, month, day), do: :calendar.iso_week_number({year, month, day})
+    end
+  end
+
+  defp definition({:week_of_month, 3}) do
+    quote do
+      def week_of_month(year, month, day),
+        do: Localize.Calendar.ISO.week_of_month(year, month, day)
     end
   end
 

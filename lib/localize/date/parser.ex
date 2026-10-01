@@ -3387,8 +3387,9 @@ defmodule Localize.Date.Parser do
     Enum.any?(months, &(fields.week_of_month in weeks_of_month(year, &1, fields)))
   end
 
-  # The weeks the days of a month fall in, numbered as the formatter
-  # numbers `W`: by ISO 8601's rule in the calendar's own month.
+  # The weeks of a month, numbered as the formatter numbers `W`: the
+  # calendar's own weeks of the month (its `week_of_month/3`) that its days
+  # fall in and that belong to it.
   defp weeks_of_month(year, month, %{calendar_module: calendar_module}) do
     days_in_month =
       Localize.Calendar.ask(
@@ -3403,7 +3404,7 @@ defmodule Localize.Date.Parser do
       {:ok, days} ->
         for day <- 1..days,
             date = %{year: year, month: month, day: day, calendar: calendar_module},
-            {:ok, week} <- [Localize.Calendar.iso_week_of_month(date)],
+            {:ok, {^month, week}} <- [Localize.Calendar.week_of_month(date)],
             uniq: true,
             do: week
 

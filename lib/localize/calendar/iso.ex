@@ -66,6 +66,23 @@ defmodule Localize.Calendar.ISO do
       else: {:error, :invalid_date}
   end
 
+  # The month a date's week belongs to and its week of that month, by ISO
+  # 8601's rule as TR35 applies it to a month: weeks begin on Monday, and a
+  # week is the month's that holds four or more of its days, which is the
+  # month of its Thursday.
+  @doc false
+  @spec week_of_month(Calendar.year(), Calendar.month(), Calendar.day()) ::
+          {Calendar.month(), pos_integer()} | {:error, :invalid_date}
+  def week_of_month(year, month, day) do
+    if Calendar.ISO.valid_date?(year, month, day) do
+      {weekday, _first, _last} = Calendar.ISO.day_of_week(year, month, day, :monday)
+      thursday = Date.add(Date.new!(year, month, day), 4 - weekday)
+      {thursday.month, div(thursday.day - 1, 7) + 1}
+    else
+      {:error, :invalid_date}
+    end
+  end
+
   # The days of ISO 8601 week `week` of week-based year `year`, Monday to
   # Sunday. A year has 52 weeks, or 53 when it begins on a Thursday, or on a
   # Wednesday in a leap year.

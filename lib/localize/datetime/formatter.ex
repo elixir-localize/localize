@@ -1182,11 +1182,11 @@ defmodule Localize.DateTime.Formatter do
   # ── Week of Month (W) ──────────────────────────────────────
 
   @doc false
-  # ISO 8601's rule in the calendar's own month, whatever the locale's week
-  # data: weeks begin on Monday, and a week is the month's when four or more
-  # of its days are.
+  # The calendar's own week of the month, its `week_of_month/3`, whatever
+  # the locale's week data: ISO 8601's rule for `Calendar.ISO`, a week being
+  # the month's that holds four or more of its days.
   def week_of_month(date, _count, locale_id, options) when is_date(date) do
-    with {:ok, week} <- Localize.Calendar.iso_week_of_month(date) do
+    with {:ok, {_month, week}} <- Localize.Calendar.week_of_month(date) do
       apply_ns(week, locale_id, options, "W")
     end
   end

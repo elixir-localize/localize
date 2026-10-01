@@ -63,7 +63,7 @@ TR35 is CLDR's specification, and the rule applies to it as to the data. Its Dat
 
 A numeric month (`M`, `MM`, `L`, `LL`) is the CLDR month the month's name uses, as the date's calendar answers it through `month_of_year/3` and `cardinal_month/1`. CLDR numbers the Hebrew months 1 to 13 in every year, Adar 7 and Nisan 8, so in a common year, which has no Adar I, Localize writes Adar 1, 5785 as "7/1/5785" where ICU4C writes the month's place in the year, "6/1/5785". A leap year's months are numbered alike by both.
 
-Week numbers (`Y`, `w`, `W`) are the calendar's, never the locale's week data (user, 2026-10-01). ICU4C numbers a Gregorian week by the locale's `firstDay` and `minDays`, so `en`'s week 1 of 2027 begins on Sunday 27 December 2026; Localize numbers `Calendar.ISO`'s weeks by ISO 8601 in every locale, so 1 January 2027 is in week 53 of 2026 and week 1 begins on Monday 4 January, as `de` writes it in both. `W` follows ISO 8601's rule in the month, so the days of a first week the month holds fewer than four of are in the last week of the month before, where ICU4C writes week 0.
+Week numbers (`Y`, `w`, `W`) are the calendar's, never the locale's week data (user, 2026-10-01). ICU4C numbers a Gregorian week by the locale's `firstDay` and `minDays`, so `en`'s week 1 of 2027 begins on Sunday 27 December 2026; Localize numbers `Calendar.ISO`'s weeks by ISO 8601 in every locale, so 1 January 2027 is in week 53 of 2026 and week 1 begins on Monday 4 January, as `de` writes it in both. `Calendar.ISO`'s `W` follows ISO 8601's rule in the month, so the days of a first week the month holds fewer than four of are in the last week of the month before, where ICU4C writes week 0; another calendar's `W` is its own week of the month.
 
 ### Date parsing
 

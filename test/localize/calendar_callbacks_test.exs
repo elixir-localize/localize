@@ -79,6 +79,14 @@ defmodule Localize.CalendarCallbacksTest do
     def week_of_year(year, week, _day), do: {year, week}
     def quarter_of_year(_year, week, _day), do: min(div(week - 1, 13) + 1, 4)
 
+    # Its weeks of the month are its 4-4-5 month's weeks, counted from the
+    # month's first.
+    def week_of_month(year, week, day) do
+      month = month_of_year(year, week, day)
+      first_week = div(month - 1, 3) * 13 + rem(month - 1, 3) * 4 + 1
+      {month, week - first_week + 1}
+    end
+
     def quarter(year, quarter) do
       {_year, last_week} = :calendar.iso_week_number({year, 12, 28})
       last = if quarter == 4, do: last_week, else: quarter * 13
@@ -135,6 +143,13 @@ defmodule Localize.CalendarCallbacksTest do
     def week(year, week) do
       first = Date.add(week_one(year), (week - 1) * 7)
       Date.range(Date.convert!(first, __MODULE__), Date.convert!(Date.add(first, 6), __MODULE__))
+    end
+
+    # Its weeks of the month likewise: week 1 is the Monday week holding the
+    # first of the month.
+    def week_of_month(year, month, day) do
+      {first_weekday, _first, _last} = Calendar.ISO.day_of_week(year, month, 1, :monday)
+      {month, div(day - 1 + first_weekday - 1, 7) + 1}
     end
 
     # The Monday on or before 1 January.
@@ -259,6 +274,7 @@ defmodule Localize.CalendarCallbacksTest do
     def day_of_year(_year, _month, _day), do: :no_day
     def day_of_week(_year, _month, _day, _starting_on), do: :no_day
     def quarter_of_year(_year, _month, _day), do: :no_quarter
+    def week_of_month(_year, _month, _day), do: :no_week
   end
 
   # A calendar answering every question but `parsing_calendar/0`, as a
@@ -283,6 +299,7 @@ defmodule Localize.CalendarCallbacksTest do
     def cyclic_year(year, _month, _day), do: year
     def week_of_year(year, month, day), do: :calendar.iso_week_number({year, month, day})
     def week(year, week), do: Localize.Calendar.ISO.week(year, week)
+    def week_of_month(year, month, day), do: Localize.Calendar.ISO.week_of_month(year, month, day)
     def quarter(year, quarter), do: Localize.Calendar.ISO.quarter(year, quarter)
   end
 
@@ -474,6 +491,7 @@ defmodule Localize.CalendarCallbacksTest do
             {"e", :no_day},
             {"c", :no_day},
             {"Q", :no_quarter},
+            {"W", :no_week},
             {"QQQ", :no_quarter}
           ] do
         assert {:error, %Localize.InvalidValueError{value: ^answer}} =
@@ -634,18 +652,27 @@ defmodule Localize.CalendarCallbacksTest do
                Localize.Date.parse("2027年1月3日月曜日", locale: :ja, calendar: SundayFirst)
     end
 
-    # `W` follows ISO 8601's rule in the calendar's own month: a Monday week
-    # is the month's that holds its Thursday. A July fiscal year's first
-    # month is July 2025, whose 1st is a Tuesday and 31st a Thursday.
-    test "of the month are ISO 8601's in the calendar's month" do
-      for {day, week} <- [{1, "1"}, {6, "1"}, {7, "2"}, {31, "5"}] do
-        civil = Date.new!(2025, 7, day)
-        thursday = Date.add(civil, 4 - Date.day_of_week(civil, :monday))
-        assert Integer.to_string(div(thursday.day - 1, 7) + 1) == week
+    # `W` is the calendar's own week of the month, its `week_of_month/3`
+    # (user, 2026-10-01). Calendar.ISO's follows ISO 8601's rule: 1 October
+    # 2021, a Friday, is in the week holding Thursday 30 September, the
+    # fifth of September. A calendar whose week 1 holds the first of the
+    # month puts it in week 1 of October, and a calendar of weeks counts its
+    # own month's weeks: ISO week 25 is the fourth of its 4-4-5 June.
+    test "of the month are the calendar's own" do
+      thursday = Date.add(~D[2021-10-01], 4 - Date.day_of_week(~D[2021-10-01], :monday))
+      assert {thursday.month, div(thursday.day - 1, 7) + 1} == {9, 5}
 
-        assert Localize.Date.to_string(date(2026, 1, day, FiscalJuly), format: "W", locale: :en) ==
-                 {:ok, week}
-      end
+      assert Localize.Date.to_string(~D[2021-10-01], format: "W", locale: :en) == {:ok, "5"}
+      assert Localize.Date.to_string(~D[2021-10-04], format: "W", locale: :en) == {:ok, "1"}
+
+      assert Localize.Date.to_string(date(2021, 10, 1, JanuaryWeeks), format: "W", locale: :en) ==
+               {:ok, "1"}
+
+      assert Localize.Date.to_string(date(2021, 10, 4, JanuaryWeeks), format: "W", locale: :en) ==
+               {:ok, "2"}
+
+      assert Localize.Date.to_string(date(2026, 25, 2, IsoWeek), format: "W", locale: :en) ==
+               {:ok, "4"}
     end
   end
 

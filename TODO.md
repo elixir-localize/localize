@@ -4,6 +4,8 @@ Outstanding work on Localize. The design detail behind these items lives under [
 
 ## Open
 
+* [ ] **An impossible date raises in a format** — `Localize.Date.to_string(%{year: 2019, month: 2, day: 30}, format: "E")` raises `ArgumentError` from `Calendar.ISO`, as `e`, `D` and `Q` do for an impossible day or month, while `d`, `MMM` and `F` write the impossible fields. Check the date with its calendar's `valid_date?/3` where it enters; Calendrical's callbacks have the same gap (its `TODO.md`).
+
 * [ ] **Settle the location format of a non-location zone with CLDR** — TR35 49 says a zone with no region (`PST8PDT`, `Etc/GMT+5`) falls back to the offset format, then gives "PST8PDT, generic → Unknown Location Time" as its worked example. Localize follows the first; the conformance data has no case. Worth a CLDR ticket.
 
 * [ ] Currency parsing - when presented with an ambiguous currency text, resolve it by ordering the locales by the match distance to the current locale (either parameter, or Localize.get_locale/1)
@@ -17,8 +19,6 @@ Outstanding work on Localize. The design detail behind these items lives under [
 * [ ] **Report 12-hour patterns without a day period to CLDR** — `fr-CM`'s `h`, `hm` and `hms`, `bal-Latn`'s `hm` and `es-AR`'s `hms` are 12-hour patterns with no day period, which TR35 forbids, so the "12:30" and "1:45" they write each name two times.
 
 * [ ] **Decide whether specific zone names are qualified** — CLDR's own `TimezoneFormatter` qualifies the specific format (`z`, `zzzz`) as it does the generic one, "Central European Summer Time (Germany)" for Berlin in `en`, where ICU4C never does; a specific name already reads back to its instant, and Localize qualifies only the generic format.
-
-* [ ] **MF2's `calendar` option reaches into Calendrical** — `Localize.Message.Interpreter` resolves `calendar=hebrew` to a module through `Localize.OptionalDependency.call("Calendrical", ...)`, which the rule that Localize never depends on Calendrical forbids; it needs another way to a module, such as Calendrical registering its calendars with Localize.
 
 * [ ] **The localized GMT format writes Latin digits** — TR35 writes its offset in the locale's default digits, as ICU4C does (`ar-EG` "غرينتش-٤", `ne` "GMT-४"), where Localize writes "غرينتش-4" and "GMT-4"; the parser reads the two forms alike.
 
@@ -46,9 +46,11 @@ Outstanding work on Localize. The design detail behind these items lives under [
 
 * [ ] **Name standard and daylight time by a metazone's `stdOffset` and `dstOffset`** — TR35 lets `usesMetazone` say which offset is standard time and which daylight where the time zone database's flag is unreliable (`Europe/Dublin`, and in CLDR 49 `America/Winnipeg` for Manitoba's DST change); Localize ignores both attributes and decides from the datetime's `std_offset`.
 
+* [ ] **`Localize.Interval.to_string/3` takes a skeleton format** — a date interval refuses every skeleton and pattern with `:unknown_fields`, by `:format` or `:date_format` and even for one day (`format: :yMMMd` from `~D[2026-06-15]` to `~D[2026-06-18]`), though `Localize.Date.to_string/2` takes both and CLDR keys interval formats by skeleton; a same-day datetime interval refuses a combined skeleton (`format: :yMMMdHm`, a `DateTimeUnresolvedFormatError`) that it renders given as `date_format: :yMMMd, time_format: :Hm`. Let `resolve_fields/4` send a skeleton through `skeleton_or_fallback_style/4`, as a style's skeleton already goes, and a pattern through the endpoint fallback, as a time interval's does, and split a combined skeleton into the date and time skeletons the same-day path takes. Found through Tempo, whose `to_string/2` of a span of several days with a skeleton is that error (2026-10-01).
+
 ## In progress
 
-* [ ] **Calendar months through callbacks** — Localize takes every answer about a date from callbacks on its calendar, never probing or introspecting it, with `Calendar.ISO` the only calendar it answers for itself; the month's CLDR name is `month_of_year/3` then a new `cardinal_month` callback. Fixes a July-start fiscal year's period 1 written "Jan" and an ISO week date's numeric month ("25/2/26" for 2026-W25-2, which is "6/2/26" as ex_cldr_dates_times wrote it; the day stays the calendar's own). Planned in [plans/calendar-callbacks.md](plans/calendar-callbacks.md); found through Tempo (2026-10-01). Landed: every month field through `month_of_year/3` and `cardinal_month/1`, every other field, the parser and relative time through the calendar's callbacks with no probe left, the refusal of a calendar that cannot answer, a week calendar's dates parsed as Gregorian through its `parsing_calendar/0`, week numbers and quarters in the calendar's own, and the `:japanese` branch gone; open: the MF2 `calendar` option and `W` in a calendar of weeks.
+* [ ] **Calendar months through callbacks** — Localize takes every answer about a date from callbacks on its calendar, never probing or introspecting it, with `Calendar.ISO` the only calendar it answers for itself; the month's CLDR name is `month_of_year/3` then a new `cardinal_month` callback. Fixes a July-start fiscal year's period 1 written "Jan" and an ISO week date's numeric month ("25/2/26" for 2026-W25-2, which is "6/2/26" as ex_cldr_dates_times wrote it; the day stays the calendar's own). Planned in [plans/calendar-callbacks.md](plans/calendar-callbacks.md); found through Tempo (2026-10-01). Landed: every month field through `month_of_year/3` and `cardinal_month/1`, every other field, the parser and relative time through the calendar's callbacks with no probe left, the refusal of a calendar that cannot answer, a week calendar's dates parsed as Gregorian through its `parsing_calendar/0`, week numbers, weeks of the month and quarters in the calendar's own, and the `:japanese` branch gone; the MF2 `calendar` option is deferred.
 
 * [ ] **CLDR 49 upgrade** — the plan's items are closed bar item 11; the data is built from CLDR `main` pending beta3 (below), then the final release. [plans/cldr-49.md](plans/cldr-49.md).
 
@@ -59,6 +61,8 @@ Outstanding work on Localize. The design detail behind these items lives under [
 * [ ] **Interval patterns inherited from a different locale level than the single date** — plan item 35: whether to glue or keep the inherited pattern. Blocked on CLDR-14207.
 
 ## Deferred
+
+* [ ] **MF2's `calendar` option reaches into Calendrical** — `Localize.Message.Interpreter` resolves `calendar=hebrew` to a module through `Localize.OptionalDependency.call("Calendrical", ...)`, which the rule that Localize never depends on Calendrical forbids; deferred (user, 2026-10-01). A registry Calendrical fills at start-up is one way to a module.
 
 * [ ] **Recheck map-order selections that only today's data keeps deterministic** — seven lookups walk a map and never see two candidates in the current CLDR data; recheck them whenever it is regenerated. [plans/map-order.md](plans/map-order.md).
 
