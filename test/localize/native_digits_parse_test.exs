@@ -20,6 +20,8 @@ defmodule Localize.NativeDigitsParseTest do
     @eras [{~D[1744-02-21], 214}, {~D[1741-02-27], 213}]
 
     def cldr_calendar_type, do: :japanese
+    def cardinal_month(month), do: month
+    def month_of_year(_year, month, _day), do: month
 
     def year_of_era(year, month, day) do
       date = Date.new!(year, month, day)

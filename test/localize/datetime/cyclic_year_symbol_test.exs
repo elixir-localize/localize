@@ -17,6 +17,8 @@ defmodule Localize.DateTime.CyclicYearSymbolTest do
     @moduledoc false
 
     def cldr_calendar_type, do: :chinese
+    def cardinal_month(month), do: month
+    def month_of_year(_year, month, _day), do: month
 
     # Elapsed years since the Chinese epoch; amod(4663, 60) == 43.
     def cyclic_year(year, _month, _day), do: year

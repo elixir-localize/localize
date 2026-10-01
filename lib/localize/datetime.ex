@@ -139,12 +139,14 @@ defmodule Localize.DateTime do
   # each terminal, so `to_string/2` and `to_parts/2` share every
   # resolution path.
   defp do_format(datetime, options, output) when is_map(datetime) and is_keyword_list(options) do
-    case value_shape(datetime) do
-      :complete -> format_datetime(datetime, options, output, :complete)
-      :partial -> format_datetime(datetime, options, output, :partial)
-      :date -> delegate_format(Localize.Date, datetime, options, output)
-      :time -> delegate_format(Localize.Time, datetime, options, output)
-      :none -> {:error, Localize.DateTimeInvalidInputError.exception(type: :datetime)}
+    with :ok <- Localize.Calendar.validate_calendar(datetime) do
+      case value_shape(datetime) do
+        :complete -> format_datetime(datetime, options, output, :complete)
+        :partial -> format_datetime(datetime, options, output, :partial)
+        :date -> delegate_format(Localize.Date, datetime, options, output)
+        :time -> delegate_format(Localize.Time, datetime, options, output)
+        :none -> {:error, Localize.DateTimeInvalidInputError.exception(type: :datetime)}
+      end
     end
   end
 

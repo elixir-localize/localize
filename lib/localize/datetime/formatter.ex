@@ -1124,42 +1124,40 @@ defmodule Localize.DateTime.Formatter do
 
   def standalone_month(_date, _count, _locale_id, _options), do: ""
 
-  # A lunisolar calendar writes a month's number among the traditional
-  # months, and a leap month in CLDR's numeric leap pattern, so the leap
-  # second month is "2bis" in `en` and "闰2" in `zh` and the months after it
-  # keep their numbers, as ICU4C writes them. Any other calendar writes a
-  # month's place in its year, which is how ICU numbers the Hebrew months.
-  defp numeric_month(%{month: month} = date, count, locale_id, options, field) do
-    {number, leap_pattern} = lunisolar_month(date, locale_id) || {month, nil}
-    formatted = number |> pad(count) |> apply_ns(locale_id, options, field)
+  # A month's number is the CLDR month its name uses, as its calendar answers
+  # through `month_of_year/3` and `cardinal_month/1`: a fiscal year's first
+  # month is its month of the year it begins in, and a Hebrew common year's
+  # Adar is 7, CLDR's number for it, where ICU writes its place in the year.
+  # A leap month is written in CLDR's numeric leap pattern where the calendar
+  # has one, so the leap second month is "2bis" in `en` and "闰2" in `zh`.
+  defp numeric_month(date, count, locale_id, options, field) do
+    case Localize.Calendar.cldr_month(date) do
+      {:error, _reason} = error ->
+        error
 
-    case leap_pattern do
-      nil -> formatted
-      pattern -> [formatted] |> Localize.Substitution.substitute(pattern) |> IO.iodata_to_binary()
+      {number, :leap} ->
+        number
+        |> pad(count)
+        |> apply_ns(locale_id, options, field)
+        |> in_numeric_leap_pattern(date, locale_id)
+
+      number when is_integer(number) ->
+        number |> pad(count) |> apply_ns(locale_id, options, field)
+
+      nil ->
+        ""
     end
   end
 
-  # The traditional number of a month in a calendar CLDR gives a numeric
-  # leap-month pattern, with that pattern for a leap month, from the
-  # calendar's `month_of_year/3`. The number does not depend on the day.
-  defp lunisolar_month(%{year: year, month: month, calendar: calendar} = date, locale_id)
-       when is_integer(year) and is_atom(calendar) do
-    with true <- Code.ensure_loaded?(calendar),
-         true <- function_exported?(calendar, :month_of_year, 3),
-         {:ok, patterns} <-
+  defp in_numeric_leap_pattern(formatted, date, locale_id) do
+    with {:ok, patterns} <-
            Localize.Calendar.month_patterns(locale_id, cldr_calendar_for_datetime(date)),
          [_ | _] = leap_pattern <- get_in(patterns, [:numeric, :all, :leap]) do
-      case calendar.month_of_year(year, month, integer_or(Map.get(date, :day), 1)) do
-        {number, :leap} when is_integer(number) -> {number, leap_pattern}
-        number when is_integer(number) -> {number, nil}
-        _other -> nil
-      end
+      [formatted] |> Localize.Substitution.substitute(leap_pattern) |> IO.iodata_to_binary()
     else
-      _not_lunisolar -> nil
+      _no_numeric_leap_pattern -> formatted
     end
   end
-
-  defp lunisolar_month(_date, _locale_id), do: nil
 
   defp integer_or(value, _default) when is_integer(value), do: value
   defp integer_or(_value, default), do: default

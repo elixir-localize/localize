@@ -6,6 +6,8 @@ defmodule Localize.DateTime.FormatterEdgeTest.CalendarYearCalendar do
 
   def calendar_year(_year, _month, _day), do: 12
   def cldr_calendar_type, do: :gregorian
+  def cardinal_month(month), do: month
+  def month_of_year(_year, month, _day), do: month
 
   def day_of_week(year, month, day, starting),
     do: Calendar.ISO.day_of_week(year, month, day, starting)
@@ -18,6 +20,8 @@ defmodule Localize.DateTime.FormatterEdgeTest.BadYearOfEraCalendar do
 
   def year_of_era(_year, _month, _day), do: :not_a_tuple
   def cldr_calendar_type, do: :gregorian
+  def cardinal_month(month), do: month
+  def month_of_year(_year, month, _day), do: month
 end
 
 defmodule Localize.DateTime.FormatterEdgeTest.BeforeEraCalendar do
@@ -27,6 +31,8 @@ defmodule Localize.DateTime.FormatterEdgeTest.BeforeEraCalendar do
   # from the era, year 0 being 1 BC.
 
   def cldr_calendar_type, do: :gregorian
+  def cardinal_month(month), do: month
+  def month_of_year(_year, month, _day), do: month
   def calendar_year(year, _month, _day), do: year
   def year_of_era(year, _month, _day) when year > 0, do: {year, 1}
   def year_of_era(year, _month, _day), do: {1 - year, 0}
@@ -38,6 +44,8 @@ defmodule Localize.DateTime.FormatterEdgeTest.NoYearZeroCalendar do
   # year -1 is 1 BC.
 
   def cldr_calendar_type, do: :gregorian
+  def cardinal_month(month), do: month
+  def month_of_year(_year, month, _day), do: month
   def calendar_year(year, _month, _day), do: year
   def year_of_era(year, _month, _day) when year > 0, do: {year, 1}
   def year_of_era(year, _month, _day), do: {-year, 0}

@@ -26,30 +26,40 @@ defmodule Localize.DateTime.SemanticSkeletonTest do
   defmodule Japanese do
     @moduledoc false
     def cldr_calendar_type, do: :japanese
+    def cardinal_month(month), do: month
+    def month_of_year(_year, month, _day), do: month
     defdelegate date_to_string(year, month, day), to: Calendar.ISO
   end
 
   defmodule Buddhist do
     @moduledoc false
     def cldr_calendar_type, do: :buddhist
+    def cardinal_month(month), do: month
+    def month_of_year(_year, month, _day), do: month
     defdelegate date_to_string(year, month, day), to: Calendar.ISO
   end
 
   defmodule IslamicCivil do
     @moduledoc false
     def cldr_calendar_type, do: :islamic_civil
+    def cardinal_month(month), do: month
+    def month_of_year(_year, month, _day), do: month
     defdelegate date_to_string(year, month, day), to: Calendar.ISO
   end
 
   defmodule Hebrew do
     @moduledoc false
     def cldr_calendar_type, do: :hebrew
+    def cardinal_month(month), do: month
+    def month_of_year(_year, month, _day), do: month
     defdelegate date_to_string(year, month, day), to: Calendar.ISO
   end
 
   defmodule Chinese do
     @moduledoc false
     def cldr_calendar_type, do: :chinese
+    def cardinal_month(month), do: month
+    def month_of_year(_year, month, _day), do: month
     defdelegate date_to_string(year, month, day), to: Calendar.ISO
   end
 

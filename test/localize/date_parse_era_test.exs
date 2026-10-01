@@ -26,6 +26,8 @@ defmodule Localize.DateParseEraTest do
     @moduledoc false
 
     def cldr_calendar_type, do: :gregorian
+    def cardinal_month(month), do: month
+    def month_of_year(_year, month, _day), do: month
     def calendar_year(year, _month, _day), do: year
     def year_of_era(year, _month, _day) when year > 0, do: {year, 1}
     def year_of_era(year, _month, _day), do: {-year, 0}
@@ -42,6 +44,8 @@ defmodule Localize.DateParseEraTest do
     @moduledoc false
 
     def cldr_calendar_type, do: :buddhist
+    def cardinal_month(month), do: month
+    def month_of_year(_year, month, _day), do: month
     def calendar_year(year, _month, _day), do: year
     def year_of_era(year, _month, _day), do: {year, 0}
 

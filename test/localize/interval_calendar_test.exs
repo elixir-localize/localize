@@ -19,6 +19,8 @@ defmodule Localize.IntervalCalendarTest do
     @moduledoc false
 
     def cldr_calendar_type, do: :japanese
+    def cardinal_month(month), do: month
+    def month_of_year(_year, month, _day), do: month
     def calendar_base, do: :month
 
     # Reiwa began on 2019-05-01 and Heisei on 1989-01-08.
@@ -50,6 +52,7 @@ defmodule Localize.IntervalCalendarTest do
     @moduledoc false
 
     def cldr_calendar_type, do: :chinese
+    def cardinal_month(month), do: month
     def calendar_base, do: :month
 
     def months_in_year(4660), do: 13
@@ -78,6 +81,8 @@ defmodule Localize.IntervalCalendarTest do
     @moduledoc false
 
     def cldr_calendar_type, do: :hebrew
+    def cardinal_month(month), do: month
+    def month_of_year(_year, month, _day), do: month
   end
 
   # The Buddhist calendar: the Gregorian calendar's arithmetic, its years
@@ -87,6 +92,8 @@ defmodule Localize.IntervalCalendarTest do
     @offset 543
 
     def cldr_calendar_type, do: :buddhist
+    def cardinal_month(month), do: month
+    def month_of_year(_year, month, _day), do: month
     def calendar_base, do: :month
     def calendar_year(year, _month, _day), do: year
     def year_of_era(year, _month, _day), do: {year, 0}

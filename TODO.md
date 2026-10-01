@@ -4,8 +4,6 @@ Outstanding work on Localize. The design detail behind these items lives under [
 
 ## Open
 
-* [ ] **Publish the regenerated CLDR 49 data** — `mix localize.publish_locales` (after `--dry-run`) with the R2 and Cloudflare credentials, before pushing: CI's check fails until R2 records the committed manifest for `v49.0.0`. [plans/cldr-source-payload.md](plans/cldr-source-payload.md).
-
 * [ ] **Settle the location format of a non-location zone with CLDR** — TR35 49 says a zone with no region (`PST8PDT`, `Etc/GMT+5`) falls back to the offset format, then gives "PST8PDT, generic → Unknown Location Time" as its worked example. Localize follows the first; the conformance data has no case. Worth a CLDR ticket.
 
 * [ ] Currency parsing - when presented with an ambiguous currency text, resolve it by ordering the locales by the match distance to the current locale (either parameter, or Localize.get_locale/1)
@@ -44,9 +42,9 @@ Outstanding work on Localize. The design detail behind these items lives under [
 
 * [ ] **Name standard and daylight time by a metazone's `stdOffset` and `dstOffset`** — TR35 lets `usesMetazone` say which offset is standard time and which daylight where the time zone database's flag is unreliable (`Europe/Dublin`, and in CLDR 49 `America/Winnipeg` for Manitoba's DST change); Localize ignores both attributes and decides from the datetime's `std_offset`.
 
-* [ ] **Format a week-based calendar's date by the day it names** — a `Date` in a week-based calendar (`calendar_base/0` of `:week`, as `Calendrical.ISOWeek` and `Calendrical.NRF` are) holds its week in `:month` and its day of the week in `:day`, and the formatter writes them as the month and the day of the month: `Localize.Date.to_string(Date.new!(2026, 25, 2, Calendrical.ISOWeek))` is "Jun 2, 2026" (short "25/2/26") for Tuesday 16 June 2026, week 20 day 3 of `Calendrical.NRF`'s 2026 is "May 3, 2026" for the same day, and ISO week 2026-W01-1 is "Jan 1, 2026" for 29 December 2025. Write such a date, in intervals and date-times too, as the civil day it names (its `Date.convert/2` to `Calendar.ISO`); found through Tempo, which hands Localize a week date in its own calendar (2026-10-01).
-
 ## In progress
+
+* [ ] **Calendar months through callbacks** — Localize takes every answer about a date from callbacks on its calendar, never probing or introspecting it, with `Calendar.ISO` the only calendar it answers for itself; the month's CLDR name is `month_of_year/3` then a new `cardinal_month` callback. Fixes a July-start fiscal year's period 1 written "Jan" and an ISO week date's numeric month ("25/2/26" for 2026-W25-2, which is "6/2/26" as ex_cldr_dates_times wrote it; the day stays the calendar's own). Planned in [plans/calendar-callbacks.md](plans/calendar-callbacks.md); found through Tempo (2026-10-01). Landed: the `cardinal_month/1` callback in Calendrical, every month field through `month_of_year/3` and `cardinal_month/1`, and the refusal of a calendar that cannot answer.
 
 * [ ] **CLDR 49 upgrade** — the plan's items are closed bar item 11; the data is built from CLDR `main` pending beta3 (below), then the final release. [plans/cldr-49.md](plans/cldr-49.md).
 
@@ -63,6 +61,8 @@ Outstanding work on Localize. The design detail behind these items lives under [
 * [ ] **`localize_emoji` sibling library** — plan item 11, a separate package on its own schedule. A Phoenix LiveView picker (`localize_emoji_live`) is out of scope for its 0.1.0.
 
 ## Done
+
+* [x] **Publish the CLDR 49 locale data** — v49.0.0 published to R2 from this machine with `mix localize.publish_locales`; manifest, all 657 files and a CDN sample verified. 2026-10-01.
 
 * [x] **Menu names for key types** — `type_name/3` with `prefer: :menu` returns CLDR's `scope="core"` names now that the converter keeps them per value (CLDR-19774); all 11,195 in 160 locales reach the data. 2026-09-30, v1.4.0.
 

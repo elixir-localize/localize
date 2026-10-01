@@ -21,6 +21,7 @@ defmodule Localize.DateParseLunisolarTest do
     @moduledoc false
 
     def cldr_calendar_type, do: :chinese
+    def cardinal_month(month), do: month
     def calendar_base, do: :month
 
     def months_in_year(4660), do: 13
@@ -61,6 +62,8 @@ defmodule Localize.DateParseLunisolarTest do
     @offset 543
 
     def cldr_calendar_type, do: :buddhist
+    def cardinal_month(month), do: month
+    def month_of_year(_year, month, _day), do: month
     def calendar_base, do: :month
     def calendar_year(year, _month, _day), do: year
     def year_of_era(year, _month, _day), do: {year, 0}
@@ -101,6 +104,8 @@ defmodule Localize.DateParseLunisolarTest do
     @epoch 3161
 
     def cldr_calendar_type, do: :ethiopic
+    def cardinal_month(month), do: month
+    def month_of_year(_year, month, _day), do: month
     def calendar_base, do: :month
     def calendar_year(year, _month, _day), do: year
     def year_of_era(year, _month, _day) when year >= 1, do: {year, 1}
@@ -139,6 +144,7 @@ defmodule Localize.DateParseLunisolarTest do
     @offset -644
 
     def cldr_calendar_type, do: :chinese
+    def cardinal_month(month), do: month
     def era_calendar_type, do: :japanese
     def calendar_base, do: :month
     def month_of_year(_year, month, _day), do: month
@@ -189,6 +195,8 @@ defmodule Localize.DateParseLunisolarTest do
     @moduledoc false
 
     def cldr_calendar_type, do: :gregorian
+    def cardinal_month(month), do: month
+    def month_of_year(_year, month, _day), do: month
     def era_calendar_type, do: :japanese
     def calendar_base, do: :month
 
@@ -219,6 +227,8 @@ defmodule Localize.DateParseLunisolarTest do
     @moduledoc false
 
     def cldr_calendar_type, do: :persian
+    def cardinal_month(month), do: month
+    def month_of_year(_year, month, _day), do: month
     def calendar_base, do: :month
 
     def valid_date?(year, month, day),

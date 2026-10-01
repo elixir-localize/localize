@@ -8,6 +8,8 @@ defmodule Localize.ParsingCoverageTest do
     @behaviour Calendar
 
     def cldr_calendar_type, do: :gregorian
+    def cardinal_month(month), do: month
+    def month_of_year(_year, month, _day), do: month
 
     for {name, arity} <- Calendar.behaviour_info(:callbacks) do
       args = Macro.generate_arguments(arity, __MODULE__)

@@ -6,6 +6,8 @@ defmodule Localize.IntervalTest.GenericGregorian do
 
   def day_of_week(y, m, d, start), do: Calendar.ISO.day_of_week(y, m, d, start)
   def cldr_calendar_type, do: :gregorian
+  def cardinal_month(month), do: month
+  def month_of_year(_year, month, _day), do: month
 end
 
 defmodule Localize.IntervalTest do

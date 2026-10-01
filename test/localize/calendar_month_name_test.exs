@@ -9,6 +9,7 @@ defmodule Localize.CalendarMonthNameTest do
     @moduledoc false
 
     def cldr_calendar_type, do: :hebrew
+    def cardinal_month(month), do: month
 
     def leap_year?(year), do: Integer.mod(7 * year + 1, 19) < 7
 
@@ -27,6 +28,7 @@ defmodule Localize.CalendarMonthNameTest do
     @moduledoc false
 
     def cldr_calendar_type, do: :chinese
+    def cardinal_month(month), do: month
 
     # Year 4660 has a leap second month, at position 3.
     def month_of_year(4660, 3, _day), do: {2, :leap}
@@ -41,6 +43,7 @@ defmodule Localize.CalendarMonthNameTest do
     @moduledoc false
 
     def cldr_calendar_type, do: :gregorian
+    def cardinal_month(month), do: month
     def month_of_year(_year, _month, _day), do: :not_a_month
   end
 
@@ -103,9 +106,12 @@ defmodule Localize.CalendarMonthNameTest do
       assert format(%{year: 4660, month: 3}, Chinese, "M r", :en) == "2bis 2023"
     end
 
-    test "a Hebrew month is its place in the year" do
+    # CLDR numbers the Hebrew months alike in every year, Nisan 8, where ICU
+    # writes a month's place in the year: Nisan is the seventh month of a
+    # common year such as 5785. Both number a leap year's months alike.
+    test "a Hebrew month is the CLDR month its name uses, whatever its place in the year" do
       assert format(%{year: 5784, month: 8, day: 12}, Hebrew, "M/d", :en) == "8/12"
-      assert format(%{year: 5785, month: 7, day: 12}, Hebrew, "M/d", :en) == "7/12"
+      assert format(%{year: 5785, month: 7, day: 12}, Hebrew, "M/d", :en) == "8/12"
     end
   end
 
@@ -125,8 +131,17 @@ defmodule Localize.CalendarMonthNameTest do
       assert Localize.Calendar.localize(%{month: 6}, :month, locale: :en) == {:ok, "June"}
     end
 
-    test "an answer that is not a month falls back to the month's number" do
-      assert month_name(2019, 6, Unanswering) == "June"
+    # Localize takes a month from its calendar's answer and never from the
+    # date's own field, so an answer that is not a month is an error.
+    test "an answer that is not a month is an error" do
+      assert {:error, %Localize.InvalidValueError{value: :not_a_month}} =
+               month_name(2019, 6, Unanswering)
+
+      assert {:error, %Localize.InvalidValueError{value: :not_a_month}} =
+               Localize.Date.to_string(%{year: 2019, month: 6, day: 1, calendar: Unanswering},
+                 format: "M/d",
+                 locale: :en
+               )
     end
   end
 end

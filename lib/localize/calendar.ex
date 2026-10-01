@@ -707,12 +707,15 @@ defmodule Localize.Calendar do
   @doc """
   Returns a localized string for a part of a date or time.
 
-  A month is named through the calendar's `month_of_year/3` when the
-  calendar has one, so a calendar whose month names do not follow a
-  month's position in its year (the Hebrew and lunisolar calendars)
-  names each month correctly. A leap month takes CLDR's leap-year name
-  for its month (the Hebrew "Adar II"), or its month's name in the
-  calendar's leap-month pattern (the Chinese "Second Monthbis").
+  A month is named by its calendar: `month_of_year/3` gives its month of
+  the year and `cardinal_month/1` the CLDR month whose name it takes, so
+  a year that begins in July names its first month July, and the Hebrew
+  and lunisolar calendars name each month whatever its place in the
+  year. A leap month takes CLDR's leap-year name for its month (the
+  Hebrew "Adar II"), or its month's name in the calendar's leap-month
+  pattern (the Chinese "Second Monthbis"). A date's calendar is
+  `Calendar.ISO` or one implementing the Calendrical behaviour, which
+  answers these questions; any other is refused.
 
   ### Arguments
 
@@ -753,6 +756,9 @@ defmodule Localize.Calendar do
     `{day_number, day_name}` tuples, when `part` is
     `:days_of_week`.
 
+  * `{:error, %Localize.UnknownCalendarError{}}` if the date's
+    calendar cannot answer for its parts.
+
   * `{:error, exception}` if the part cannot be localized.
 
   ### Examples
@@ -780,7 +786,17 @@ defmodule Localize.Calendar do
           {:ok, String.t() | [{1..7, String.t()}]} | {:error, Exception.t()}
   def localize(datetime, part, options \\ [])
 
-  def localize(datetime, :era, options) when is_keyword_list(options) do
+  # A date whose calendar cannot answer for its parts is refused here.
+  def localize(datetime, part, options) when is_keyword_list(options) do
+    with :ok <- validate_calendar(datetime) do
+      localize_part(datetime, part, options)
+    end
+  end
+
+  def localize(_datetime, _part, options),
+    do: {:error, Localize.Utils.Helpers.invalid_options(options)}
+
+  defp localize_part(datetime, :era, options) do
     with {:ok, era} <- era_of(datetime) do
       era_key = if options[:era] == :variant, do: -era - 1, else: era
       options = Keyword.put_new(options, :calendar, era_calendar_type_from(datetime))
@@ -788,19 +804,23 @@ defmodule Localize.Calendar do
     end
   end
 
-  def localize(datetime, :quarter, options) when is_keyword_list(options) do
+  defp localize_part(datetime, :quarter, options) do
     display_name(:quarter, quarter_of_year(datetime), localize_options(datetime, options))
   end
 
-  def localize(datetime, :month, options) when is_keyword_list(options) do
-    month_name(month_of_year(datetime), localize_options(datetime, options))
+  # A date without a month is named as the first month.
+  defp localize_part(datetime, :month, options) do
+    case cldr_month(datetime) do
+      {:error, _reason} = error -> error
+      month -> month_name(month || 1, localize_options(datetime, options))
+    end
   end
 
-  def localize(datetime, :day_of_week, options) when is_keyword_list(options) do
+  defp localize_part(datetime, :day_of_week, options) do
     display_name(:day_of_week, iso_day_of_week(datetime), localize_options(datetime, options))
   end
 
-  def localize(datetime, :days_of_week, options) when is_keyword_list(options) do
+  defp localize_part(datetime, :days_of_week, options) do
     options = localize_options(datetime, options)
 
     Enum.reduce_while(@days, {:ok, []}, fn day, {:ok, acc} ->
@@ -815,17 +835,13 @@ defmodule Localize.Calendar do
     end
   end
 
-  def localize(%{hour: hour} = datetime, :day_period, options)
-      when is_integer(hour) and is_keyword_list(options) do
+  defp localize_part(%{hour: hour} = datetime, :day_period, options) when is_integer(hour) do
     am_pm = if hour < 12 or rem(hour, 24) < 12, do: :am, else: :pm
 
     display_name(:day_period, am_pm, localize_options(datetime, options))
   end
 
-  def localize(_datetime, _part, options) when not is_keyword_list(options),
-    do: {:error, Localize.Utils.Helpers.invalid_options(options)}
-
-  def localize(_datetime, :day_period, _options) do
+  defp localize_part(_datetime, :day_period, _options) do
     {:error,
      Localize.InvalidValueError.exception(
        value: nil,
@@ -834,7 +850,7 @@ defmodule Localize.Calendar do
      )}
   end
 
-  def localize(_datetime, part, _options) do
+  defp localize_part(_datetime, part, _options) do
     {:error,
      Localize.InvalidValueError.exception(
        value: part,
@@ -1377,29 +1393,82 @@ defmodule Localize.Calendar do
 
   defp quarter_of_year(_), do: 1
 
-  # The key CLDR finds the date's month name by. A calendar whose month names
-  # do not follow a month's position in its year answers through its
-  # `month_of_year/3`: Calendrical's Hebrew calendar returns CLDR's fixed
-  # number (Nisan is 8 whatever its position) and `{7, :leap}` for Adar II,
-  # and its lunisolar calendars the traditional month, `{n, :leap}` for a
-  # leap month. Any other calendar names a month by its number.
-  defp month_of_year(%{year: year, month: month, day: day, calendar: calendar})
-       when is_integer(year) and is_integer(month) and is_integer(day) and is_atom(calendar) do
-    if Code.ensure_loaded?(calendar) and function_exported?(calendar, :month_of_year, 3) do
-      month_name_key(calendar.month_of_year(year, month, day), month)
-    else
-      month
+  @doc false
+  # The module a calendar's questions are put to: the calendar itself, or
+  # `Localize.Calendar.ISO` for `Calendar.ISO`, which has none of the
+  # callbacks and for which Localize answers as the Gregorian calendar.
+  @spec answering(module()) :: module()
+  def answering(Calendar.ISO), do: Localize.Calendar.ISO
+  def answering(calendar), do: calendar
+
+  # The callbacks Localize puts to a calendar other than `Calendar.ISO`, which
+  # every calendar implementing the Calendrical behaviour answers.
+  @answers [month_of_year: 3, cardinal_month: 1]
+
+  @doc false
+  # A value's calendar must answer Localize's questions: `Calendar.ISO`,
+  # answered for by Localize, or a calendar implementing the Calendrical
+  # behaviour. Any other calendar is refused where the value enters, rather
+  # than failing in a format.
+  @spec validate_calendar(term()) :: :ok | {:error, Exception.t()}
+  def validate_calendar(%{calendar: calendar}) when calendar != Calendar.ISO do
+    if is_atom(calendar) and Code.ensure_loaded?(calendar) and
+         Enum.all?(@answers, fn {name, arity} -> function_exported?(calendar, name, arity) end),
+       do: :ok,
+       else: {:error, Localize.UnknownCalendarError.exception(calendar: calendar)}
+  end
+
+  def validate_calendar(_value), do: :ok
+
+  @doc false
+  # The CLDR month a date's month names, the index of its localized name,
+  # as its calendar answers: `month_of_year/3` then `cardinal_month/1`, and
+  # `{month, :leap}` for a leap month. A date without its day is taken on
+  # the first; one without its year has its month named by
+  # `cardinal_month/1` alone. `nil` when the date has no month, and an
+  # error when its calendar answers with something that is not a month.
+  @spec cldr_month(map()) ::
+          Calendar.month() | {Calendar.month(), :leap} | nil | {:error, Exception.t()}
+  def cldr_month(%{month: month} = date) when is_integer(month) do
+    calendar = Map.get(date, :calendar, Calendar.ISO)
+    answers = answering(calendar)
+
+    case date do
+      %{year: year} when is_integer(year) ->
+        day = Map.get(date, :day)
+        day = if is_integer(day), do: day, else: 1
+        cardinal(answers.month_of_year(year, month, day), answers, calendar)
+
+      _no_year ->
+        cardinal(month, answers, calendar)
     end
   end
 
-  defp month_of_year(%{month: month}) when is_integer(month), do: month
-  defp month_of_year(_), do: 1
+  def cldr_month(_date), do: nil
 
-  defp month_name_key({name_month, :leap} = leap_month, _month) when is_integer(name_month),
-    do: leap_month
+  defp cardinal({month, :leap}, answers, calendar) when is_integer(month) do
+    with month when is_integer(month) <- cardinal(month, answers, calendar) do
+      {month, :leap}
+    end
+  end
 
-  defp month_name_key(name_month, _month) when is_integer(name_month), do: name_month
-  defp month_name_key(_other, month), do: month
+  defp cardinal(month, answers, calendar) when is_integer(month) do
+    case answers.cardinal_month(month) do
+      cardinal when is_integer(cardinal) -> cardinal
+      other -> not_a_month(other, calendar)
+    end
+  end
+
+  defp cardinal(other, _answers, calendar), do: not_a_month(other, calendar)
+
+  defp not_a_month(answer, calendar) do
+    {:error,
+     Localize.InvalidValueError.exception(
+       value: answer,
+       expected: "a month",
+       context: inspect(calendar)
+     )}
+  end
 
   # CLDR's leap-year name of a month (`7_yeartype_leap`, the Hebrew "Adar II")
   # is keyed by an atom. The keys are built here from the closed set of month

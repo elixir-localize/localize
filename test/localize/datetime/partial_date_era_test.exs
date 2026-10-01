@@ -27,6 +27,8 @@ defmodule Localize.DateTime.PartialDateEraTest do
     @eras [{~D[2019-05-01], 236}, {~D[1989-01-08], 235}, {~D[1926-12-25], 234}]
 
     def cldr_calendar_type, do: :japanese
+    def cardinal_month(month), do: month
+    def month_of_year(_year, month, _day), do: month
 
     def year_of_era(year, month, day) do
       date = Date.new!(year, month, day)
@@ -46,6 +48,8 @@ defmodule Localize.DateTime.PartialDateEraTest do
     @moduledoc false
 
     def cldr_calendar_type, do: :buddhist
+    def cardinal_month(month), do: month
+    def month_of_year(_year, month, _day), do: month
     def year_of_era(year, _month, _day), do: {year, 0}
 
     defdelegate valid_date?(year, month, day), to: Calendar.ISO

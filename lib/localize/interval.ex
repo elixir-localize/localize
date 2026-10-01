@@ -201,14 +201,21 @@ defmodule Localize.Interval do
   # An interval is formatted with the formats of its endpoints' calendar, so
   # endpoints in two calendars have none to share, as for ICU.
   defp format_closed_interval(from, to, options, output) do
-    cond do
-      calendar_of(from) != calendar_of(to) ->
-        {:error,
-         Localize.DateTimeIntervalFormatError.exception(
-           reason: :mixed_calendars,
-           detail: "#{inspect(calendar_of(from))} and #{inspect(calendar_of(to))}"
-         )}
+    if calendar_of(from) != calendar_of(to) do
+      {:error,
+       Localize.DateTimeIntervalFormatError.exception(
+         reason: :mixed_calendars,
+         detail: "#{inspect(calendar_of(from))} and #{inspect(calendar_of(to))}"
+       )}
+    else
+      with :ok <- Localize.Calendar.validate_calendar(from) do
+        format_endpoints(from, to, options, output)
+      end
+    end
+  end
 
+  defp format_endpoints(from, to, options, output) do
+    cond do
       datetime_value?(from) and datetime_value?(to) ->
         format_datetime_interval(from, to, options, output)
 
@@ -922,7 +929,8 @@ defmodule Localize.Interval do
   defp format_open_interval(value, side, options) do
     locale = Keyword.get(options, :locale, Localize.get_locale())
 
-    with {:ok, locale_id} <- resolve_locale_id(locale),
+    with :ok <- Localize.Calendar.validate_calendar(value),
+         {:ok, locale_id} <- resolve_locale_id(locale),
          {:ok, formats} <- interval_formats(locale_id, value),
          {:ok, pattern} <- get_fallback_pattern(formats),
          {:ok, formatted} <- format_single_value(value, options) do

@@ -61,6 +61,8 @@ TR35 is CLDR's specification, and the rule applies to it as to the data. Its Dat
 | Other zone widths TR35 does not list: `OO`, `vv`, `xxxxxx` | U+FFFD | nothing |
 | An undefined letter such as `n` | an error | nothing |
 
+A numeric month (`M`, `MM`, `L`, `LL`) is the CLDR month the month's name uses, as the date's calendar answers it through `month_of_year/3` and `cardinal_month/1`. CLDR numbers the Hebrew months 1 to 13 in every year, Adar 7 and Nisan 8, so in a common year, which has no Adar I, Localize writes Adar 1, 5785 as "7/1/5785" where ICU4C writes the month's place in the year, "6/1/5785". A leap year's months are numbered alike by both.
+
 ### Date parsing
 
 TR35 makes `y` the year of the era `G` names, and leaves the reading of a two-digit year to the implementation. ICU4C 78.3 reads any two-digit year as one within 80 years before and 20 after today, even beside an era, so it cannot read back the "44 BC" it formats itself. Localize takes a year its era qualifies as written where the format writes the year in full (`y`), and applies the pivot to a year written without an era and, as ICU does, to one the format writes as `yy`, its two low-order digits; asserted in `test/localize/date_parse_era_test.exs` and `test/localize/date_parse_lunisolar_test.exs`.

@@ -5,6 +5,8 @@ defmodule Localize.CalendarTest.BuddhistLikeCalendar do
   # Buddhist era index 0.
 
   def cldr_calendar_type, do: :buddhist
+  def cardinal_month(month), do: month
+  def month_of_year(_year, month, _day), do: month
   def year_of_era(year, _month, _day), do: {year + 543, 0}
 
   def day_of_week(year, month, day, starting),
@@ -17,6 +19,8 @@ defmodule Localize.CalendarTest.NoYearOfEraCalendar do
   # falls back to the year>0 → era 1 heuristic.
 
   def cldr_calendar_type, do: :gregorian
+  def cardinal_month(month), do: month
+  def month_of_year(_year, month, _day), do: month
 end
 
 defmodule Localize.CalendarTest.BadYearOfEraCalendar do
@@ -25,6 +29,8 @@ defmodule Localize.CalendarTest.BadYearOfEraCalendar do
   # localization falls back to the year>0 → era 1 heuristic.
 
   def cldr_calendar_type, do: :gregorian
+  def cardinal_month(month), do: month
+  def month_of_year(_year, month, _day), do: month
   def year_of_era(_year, _month, _day), do: :not_a_tuple
 end
 
