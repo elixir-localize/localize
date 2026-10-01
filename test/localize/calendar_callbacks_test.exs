@@ -74,8 +74,20 @@ defmodule Localize.CalendarCallbacksTest do
     # Gregorian one and converted, as Calendrical's week calendars say.
     def parsing_calendar, do: Calendar.ISO
 
-    # Its own weeks are its dates' week fields.
+    # Its own weeks are its dates' week fields, and its quarters thirteen of
+    # them each, a 53rd week in the last.
     def week_of_year(year, week, _day), do: {year, week}
+    def quarter_of_year(_year, week, _day), do: min(div(week - 1, 13) + 1, 4)
+
+    def quarter(year, quarter) do
+      {_year, last_week} = :calendar.iso_week_number({year, 12, 28})
+      last = if quarter == 4, do: last_week, else: quarter * 13
+
+      Date.range(
+        %Date{year: year, month: (quarter - 1) * 13 + 1, day: 1, calendar: __MODULE__},
+        %Date{year: year, month: last, day: 7, calendar: __MODULE__}
+      )
+    end
 
     def valid_date?(_year, week, day), do: week in 1..53 and day in 1..7
 
@@ -194,6 +206,20 @@ defmodule Localize.CalendarCallbacksTest do
       do: Calendar.ISO.day_of_week(year, month, day, starting_on)
   end
 
+  # A calendar of thirteen months, twelve of 30 days and a thirteenth of 5,
+  # as the Coptic and Ethiopic calendars are: its quarters are three months
+  # each but the last, which holds the thirteenth too.
+  defmodule ThirteenMonths do
+    @moduledoc false
+    use Localize.Test.StandInCalendar
+
+    def months_in_year(_year), do: 13
+    def days_in_month(_year, 13), do: 5
+    def days_in_month(_year, _month), do: 30
+    def valid_date?(_year, month, day), do: month in 1..13 and day in 1..days_in_month(1, month)
+    def quarter_of_year(_year, month, _day), do: min(div(month - 1, 3) + 1, 4)
+  end
+
   # A calendar of months whose years are numbered one ahead of the
   # Gregorian calendar's, so a date converted into it is plainly converted.
   defmodule YearAhead do
@@ -232,6 +258,7 @@ defmodule Localize.CalendarCallbacksTest do
     def week_of_year(_year, _month, _day), do: :no_week
     def day_of_year(_year, _month, _day), do: :no_day
     def day_of_week(_year, _month, _day, _starting_on), do: :no_day
+    def quarter_of_year(_year, _month, _day), do: :no_quarter
   end
 
   # A calendar answering every question but `parsing_calendar/0`, as a
@@ -256,6 +283,7 @@ defmodule Localize.CalendarCallbacksTest do
     def cyclic_year(year, _month, _day), do: year
     def week_of_year(year, month, day), do: :calendar.iso_week_number({year, month, day})
     def week(year, week), do: Localize.Calendar.ISO.week(year, week)
+    def quarter(year, quarter), do: Localize.Calendar.ISO.quarter(year, quarter)
   end
 
   # A complete calendar of Elixir's `Calendar` behaviour alone, every
@@ -444,7 +472,9 @@ defmodule Localize.CalendarCallbacksTest do
             {"D", :no_day},
             {"E", :no_day},
             {"e", :no_day},
-            {"c", :no_day}
+            {"c", :no_day},
+            {"Q", :no_quarter},
+            {"QQQ", :no_quarter}
           ] do
         assert {:error, %Localize.InvalidValueError{value: ^answer}} =
                  Localize.Date.to_string(value, format: format, locale: :en),
@@ -616,6 +646,52 @@ defmodule Localize.CalendarCallbacksTest do
         assert Localize.Date.to_string(date(2026, 1, day, FiscalJuly), format: "W", locale: :en) ==
                  {:ok, week}
       end
+    end
+  end
+
+  describe "quarters" do
+    # A quarter is the calendar's answer, its `quarter_of_year/3`: a
+    # thirteenth month is in the last quarter, where its month's place
+    # would make it the fifth.
+    test "are the calendar's own" do
+      for {month, quarter} <- [{1, "1"}, {6, "2"}, {10, "4"}, {13, "4"}] do
+        value = date(2026, month, 1, ThirteenMonths)
+        assert Localize.Date.to_string(value, format: "Q", locale: :en) == {:ok, quarter}
+      end
+
+      assert Localize.Calendar.localize(date(2026, 13, 1, ThirteenMonths), :quarter, locale: :en) ==
+               {:ok, "4th quarter"}
+
+      assert Localize.Date.to_string(date(2026, 25, 2, IsoWeek), format: "QQQ y", locale: :en) ==
+               {:ok, "Q2 2026"}
+    end
+
+    # The parser counts a quarter in the calendar's own quarters, so a
+    # calendar of weeks' quarter reads back as the first day of its week 14.
+    test "read back in the calendar's own quarters" do
+      week_14 = %Date{year: 2026, month: 14, day: 1, calendar: IsoWeek}
+      {:ok, text} = Localize.Date.to_string(week_14, format: "QQQ y", locale: :en)
+
+      assert text == "Q2 2026"
+      assert Localize.Date.parse(text, locale: :en, calendar: IsoWeek) == {:ok, week_14}
+      assert Localize.Date.parse("Q2 2026", locale: :en) == {:ok, ~D[2026-04-01]}
+    end
+
+    # The year decides a thirteen-month calendar's quarters, so a quarter
+    # needs it: a pattern's field is an error, and `Localize.Calendar.localize/3`
+    # names a date without its year as the first quarter, as it names one
+    # without any field.
+    test "need the year" do
+      assert {:error, _missing_year} =
+               Localize.Date.to_string(%{month: 5}, format: "QQQ", locale: :en)
+
+      assert Localize.Calendar.localize(%{month: 5}, :quarter, locale: :en, style: :abbreviated) ==
+               {:ok, "Q1"}
+
+      assert Localize.Calendar.localize(%{year: 2026, month: 5}, :quarter,
+               locale: :en,
+               style: :abbreviated
+             ) == {:ok, "Q2"}
     end
   end
 end

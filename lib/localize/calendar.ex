@@ -804,8 +804,11 @@ defmodule Localize.Calendar do
     end
   end
 
+  # A date without its year or month is named as the first quarter.
   defp localize_part(datetime, :quarter, options) do
-    display_name(:quarter, quarter_of_year(datetime), localize_options(datetime, options))
+    with {:ok, quarter} <- quarter_or_first(datetime) do
+      display_name(:quarter, quarter, localize_options(datetime, options))
+    end
   end
 
   # A date without a month is named as the first month.
@@ -1357,11 +1360,11 @@ defmodule Localize.Calendar do
     with {:ok, {year_of_era, _era}} <- year_of_era_on(calendar, date), do: {:ok, year_of_era}
   end
 
-  defp quarter_of_year(%{month: month}) when is_integer(month) do
-    div(month - 1, 3) + 1
-  end
+  defp quarter_or_first(%{year: year, month: month} = date)
+       when is_integer(year) and is_integer(month),
+       do: quarter_of_year(date)
 
-  defp quarter_of_year(_), do: 1
+  defp quarter_or_first(_date), do: {:ok, 1}
 
   @doc false
   # The module a calendar's questions are put to: the calendar itself, or
@@ -1386,7 +1389,8 @@ defmodule Localize.Calendar do
              related_gregorian_year: 3,
              cyclic_year: 3,
              week_of_year: 3,
-             week: 2
+             week: 2,
+             quarter: 2
            ] ++
              (Calendar.behaviour_info(:callbacks) -- Calendar.behaviour_info(:optional_callbacks))
 
@@ -1519,6 +1523,27 @@ defmodule Localize.Calendar do
 
   defp day_of_week?({day, _first, _last}), do: day in 1..7
   defp day_of_week?(_answer), do: false
+
+  @doc false
+  # The quarter of the year a date is in, as its calendar answers it (its
+  # `quarter_of_year/3`), which puts a thirteenth month in the last quarter
+  # and a calendar of weeks' weeks in theirs; a map without a calendar is an
+  # ISO date, and one without its day is taken on the first. An error when
+  # the calendar answers with something that is not a quarter.
+  @spec quarter_of_year(map()) :: {:ok, 1..4} | {:error, Exception.t()}
+  def quarter_of_year(%{year: year, month: month} = date)
+      when is_integer(year) and is_integer(month) do
+    day = Map.get(date, :day)
+    day = if is_integer(day), do: day, else: 1
+
+    ask(
+      Map.get(date, :calendar, Calendar.ISO),
+      :quarter_of_year,
+      [year, month, day],
+      "a quarter of the year",
+      &(&1 in 1..4)
+    )
+  end
 
   @doc false
   # The week of a date's month by ISO 8601's rule, in the calendar's own

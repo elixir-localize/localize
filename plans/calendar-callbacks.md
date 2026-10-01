@@ -26,6 +26,8 @@ Localize formats a date but never digs into its calendar's implementation: every
 
 * **Weeks are the calendar's.** `w` and `Y` are the calendar's own week of the year and week-based year, its `week_of_year/3`, never the locale's week data (user, 2026-10-01: "Definitely the calendars weeks, not the locales weeks"; "Y follows the calendar when w does"), as Tempo's lowercase `w` is the calendar's own week beside ISO 8601's `W`. `Calendar.ISO`, the default calendar, has ISO 8601's weeks, so `W`, `w` and `Y` all follow ISO 8601 there; `W` counts a month's weeks by ISO 8601's rule in every calendar. The parser reads week text in the weeks of the calendar asked for, through its `week/2`, so week text round-trips, and an ISO 8601 week date without `:calendar` is a `Calendar.ISO` date.
 
+* **Quarters are the calendar's.** `Q` and `q` are the calendar's `quarter_of_year/3`, which puts a thirteenth month in the fourth quarter and a calendar of weeks' weeks in its own quarters, and the parser finds a quarter's first day through the calendar's `quarter/2`, in the calendar asked for, as it does a week. A quarter needs the year; `Localize.Calendar.localize/3` names a date without one as the first quarter, as it names a date without any field.
+
 * **Relative time asks the calendar.** The date a month or a year on is the calendar's `shift_date/4` (through `Date.shift/2`), which keeps a lunisolar month by its name, and the months between two dates are counted by shifting, a month known by its year and `month_of_year/3`, so a week calendar's months are its periods of weeks. The months the month fields count are the starting estimate, exact wherever the field is the month.
 
 ## What Localize asked
@@ -40,17 +42,19 @@ When the plan began, the date code held about 33 `function_exported?/3` probes o
 | `era_calendar_type/0` (optional) | 2 | Required in Calendrical, defaulting to `cldr_calendar_type/0` |
 | `calendar_base/0` | 2 | Removed; relative time shifts through the calendar, and the parser names months through `cardinal_month` and reads a week calendar's dates in its `parsing_calendar/0` |
 | `Calendar` callbacks every calendar has (`day_of_week/4`, `day_of_year/3`, `year_of_era/3`, `days_in_month/2`, `valid_date?/3` …) | 12 | Called without probing |
-| CLDR type and identity branches (the parser's `:japanese` eras, its `Calendar.ISO` week rules, `Localize.Calendar`'s era fallbacks) | — | Era fallbacks and week rules removed; `:japanese` open |
+| CLDR type and identity branches (the parser's `:japanese` eras, its `Calendar.ISO` week rules, `Localize.Calendar`'s era fallbacks) | — | Removed |
 
 ## Tasks
 
-* [ ] **Localize: identity and type branches** — replace the parser's `:japanese` era branch with a callback.
-
-* [ ] **Localize: quarters from the calendar** — the formatter and `Localize.Calendar.localize/3` compute a quarter from the month field, `div(month - 1, 3) + 1`, so ISO week 25 is Q9 and a thirteenth month Q5, where Calendrical's `quarter_of_year/3` answers Q2 and Q4.
+* [ ] **Localize: `W` in a calendar of weeks** — `W` counts a month's weeks by ISO 8601's rule from the date's month and day fields, which a calendar of weeks does not have (its month is a period of its weeks), so its `W` is always 1.
 
 * [ ] **Localize: the MF2 `calendar` option** — it still reaches Calendrical through `Localize.OptionalDependency`, which the decisions above rule out.
 
 ### Done
+
+* [x] **Localize: quarters from the calendar** — `Q`, `q` and `Localize.Calendar.localize/3` from the calendar's `quarter_of_year/3`, the parser's quarters from its `quarter/2`; a thirteenth month is Q4 and ISO week 25 Q2, where they were Q5 and Q9. 2026-10-01.
+
+* [x] **Localize: the `:japanese` branch** — the parser reads a Japanese year of an era as it reads any calendar's, asking the calendar which of its years it writes that way, so a mid-year era start is settled by the month and day. 2026-10-01.
 
 * [x] **Localize: weeks are the calendar's** — `Y` and `w` from the calendar's `week_of_year/3` (ISO 8601 for `Calendar.ISO`), `W` by ISO 8601's rule in the calendar's month, week text parsed through the calendar's `week/2`; the locale's week data numbers no week. 2026-10-01.
 

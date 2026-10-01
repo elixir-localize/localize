@@ -83,6 +83,21 @@ defmodule Localize.Calendar.ISO do
 
   def week(_year, _week), do: {:error, :invalid_date}
 
+  # The days of quarter `quarter` of `year`: three months each, the first
+  # from January.
+  @doc false
+  @spec quarter(Calendar.year(), pos_integer()) :: Date.Range.t() | {:error, :invalid_date}
+  def quarter(year, quarter) when is_integer(year) and quarter in 1..4 do
+    with {:ok, first} <- Date.new(year, quarter * 3 - 2, 1),
+         {:ok, last_month} <- Date.new(year, quarter * 3, 1) do
+      Date.range(first, Date.end_of_month(last_month))
+    else
+      _not_a_quarter -> {:error, :invalid_date}
+    end
+  end
+
+  def quarter(_year, _quarter), do: {:error, :invalid_date}
+
   defp weeks_in_year(year) do
     {_year, weeks} = :calendar.iso_week_number({year, 12, 28})
     weeks

@@ -20,20 +20,17 @@ defmodule Localize.Date.Parser do
   # Japanese imperial), so the same input may parse to
   # different dates under different locales — by design.
   #
-  # ### Calendar support
+  # ### Calendars
   #
-  # Any CLDR calendar that has a `Calendrical.*` module
-  # implementation: `:gregorian`, `:buddhist`, `:islamic_civil`,
-  # `:islamic_umalqura`, `:islamic_tbla`, `:islamic_rgsa`,
-  # `:islamic`, `:japanese`, `:persian`, `:hebrew`, `:coptic`,
-  # `:ethiopic`, `:ethiopic_amete_alem`, `:indian`, `:roc`,
-  # `:chinese`, `:dangi`.
-  #
-  # The `:calendar` option says **what calendar to interpret
-  # the input as**. The result is always a `t:Date.t/0` whose
-  # `:calendar` field is the corresponding Calendrical module
-  # (or `Calendar.ISO` for `:gregorian`). Convert to ISO with
-  # `Date.convert/2` if needed.
+  # The `:calendar` option is a calendar module, `Calendar.ISO` by
+  # default or one answering the Calendrical behaviour, and the date
+  # comes back in it. The input is read with the patterns of the
+  # calendar's CLDR type, in the calendar its `parsing_calendar/0`
+  # names: itself, or `Calendar.ISO` for a calendar of weeks, whose
+  # dates are then converted. The calendar's answers place everything
+  # else: its months (`month_of_year/3`, `cardinal_month/1`), the
+  # years of its eras, and its own weeks and quarters (`week/2`,
+  # `quarter/2`), counted in the calendar asked for.
   #
   # ### Lenient matching
   #
@@ -129,7 +126,7 @@ defmodule Localize.Date.Parser do
   defp do_parse(input, options, calendar_module) do
     locale = Keyword.get(options, :locale) || Localize.get_locale()
     reference = reference_date(options, calendar_module)
-    week_calendar = week_calendar(options, calendar_module)
+    own_calendar = own_calendar(options, calendar_module)
     as = Keyword.get(options, :as, :struct)
 
     normalised = normalise_input(input)
@@ -141,7 +138,7 @@ defmodule Localize.Date.Parser do
           {:ok, finalise_date(date, as)}
 
         nil ->
-          try_locale_patterns(inputs, locale, calendar_module, week_calendar, reference, as)
+          try_locale_patterns(inputs, locale, calendar_module, own_calendar, reference, as)
       end
     end
 
@@ -407,7 +404,7 @@ defmodule Localize.Date.Parser do
   defp do_parse_range(input, options, calendar_module) do
     locale = Keyword.get(options, :locale) || Localize.get_locale()
     reference = reference_date(options, calendar_module)
-    week_calendar = week_calendar(options, calendar_module)
+    own_calendar = own_calendar(options, calendar_module)
     allow_inverted = Keyword.get(options, :allow_inverted, false)
     as = Keyword.get(options, :as, :struct)
 
@@ -434,7 +431,7 @@ defmodule Localize.Date.Parser do
            candidates,
            locale,
            calendar_module,
-           week_calendar,
+           own_calendar,
            reference,
            as
          ) do
@@ -457,13 +454,13 @@ defmodule Localize.Date.Parser do
     end
   end
 
-  defp match_interval_candidates(inputs, locale, calendar_module, week_calendar, reference, as) do
+  defp match_interval_candidates(inputs, locale, calendar_module, own_calendar, reference, as) do
     Enum.find_value(inputs, :error, fn input ->
       case match_any_interval_pattern(
              input,
              locale,
              calendar_module,
-             week_calendar,
+             own_calendar,
              reference,
              as
            ) do
@@ -504,13 +501,13 @@ defmodule Localize.Date.Parser do
   # fields not present in the pattern inherit from endpoint-2
   # (and vice versa), which is how `"May 5 – May 10, 2026"`
   # parses correctly even though the left side has no year.
-  defp match_any_interval_pattern(input, locale, calendar_module, week_calendar, reference, as) do
+  defp match_any_interval_pattern(input, locale, calendar_module, own_calendar, reference, as) do
     cldr_calendar = cldr_calendar_type(calendar_module)
 
     with {:ok, intervals} <- Format.interval_formats(locale, cldr_calendar),
          {:ok, months_data} <- LCalendar.months(locale, cldr_calendar) do
       transliterated = transliterate_digits(input, locale)
-      ctx = field_context(locale, calendar_module, week_calendar, reference, months_data)
+      ctx = field_context(locale, calendar_module, own_calendar, reference, months_data)
 
       cldr_patterns =
         for {skeleton, by_field} <- intervals,
@@ -1372,7 +1369,7 @@ defmodule Localize.Date.Parser do
   # then with a leading weekday stripped. A pass tries every spelling
   # before the next pass starts, so a strict match on either is
   # preferred to a lax one.
-  defp try_locale_patterns(inputs, locale, calendar_module, week_calendar, reference, as) do
+  defp try_locale_patterns(inputs, locale, calendar_module, own_calendar, reference, as) do
     cldr_calendar = cldr_calendar_type(calendar_module)
 
     with {:ok, available} <- Format.available_formats(locale, cldr_calendar),
@@ -1396,7 +1393,7 @@ defmodule Localize.Date.Parser do
         |> Enum.concat(available_patterns)
         |> Enum.uniq_by(fn {_skeleton, pattern} -> pattern end)
 
-      ctx = field_context(locale, calendar_module, week_calendar, reference, months_data)
+      ctx = field_context(locale, calendar_module, own_calendar, reference, months_data)
 
       # The compiled regex for each pattern is a pure function of
       # (locale, calendar) — the CLDR name data and lenient rules are
@@ -1546,14 +1543,15 @@ defmodule Localize.Date.Parser do
     end
   end
 
-  # The calendar whose weeks the input's week fields count: the calendar
-  # asked for, which reading its dates in another (`parsing_calendar/0`)
-  # does not change. An unusable one leaves the calendar the input is read in.
-  defp week_calendar(options, calendar_module) do
-    week_calendar = Keyword.get(options, :week_calendar, calendar_module)
+  # The calendar whose own weeks and quarters the input's week and quarter
+  # fields count: the calendar asked for, which reading its dates in another
+  # (`parsing_calendar/0`) does not change. An unusable one leaves the
+  # calendar the input is read in.
+  defp own_calendar(options, calendar_module) do
+    own_calendar = Keyword.get(options, :own_calendar, calendar_module)
 
-    case Localize.Calendar.validate_calendar(%{calendar: week_calendar}) do
-      :ok -> week_calendar
+    case Localize.Calendar.validate_calendar(%{calendar: own_calendar}) do
+      :ok -> own_calendar
       {:error, _unusable} -> calendar_module
     end
   end
@@ -1584,7 +1582,7 @@ defmodule Localize.Date.Parser do
     as = Keyword.get(options, :as, :struct)
 
     options =
-      Keyword.merge(options, calendar: parsing, as: :struct, week_calendar: calendar_module)
+      Keyword.merge(options, calendar: parsing, as: :struct, own_calendar: calendar_module)
 
     with {:ok, value} <- parse.(options, parsing),
          {:ok, converted} <- convert_value(value, calendar_module) do
@@ -1752,7 +1750,7 @@ defmodule Localize.Date.Parser do
   # are read with, shared by date and interval patterns. `:numbers` is
   # the numbering a pattern writes its fields in, set as each pattern is
   # compiled.
-  defp field_context(locale, calendar_module, week_calendar, reference, months_data) do
+  defp field_context(locale, calendar_module, own_calendar, reference, months_data) do
     cldr_calendar = cldr_calendar_type(calendar_module)
     month_patterns = maybe_load_month_patterns(locale, cldr_calendar)
     digits = locale_digits(locale)
@@ -1773,7 +1771,7 @@ defmodule Localize.Date.Parser do
       implied_era: implied_era(reference, calendar_module),
       mixed_years: false,
       calendar_module: calendar_module,
-      week_calendar: week_calendar,
+      own_calendar: own_calendar,
       week_config: Localize.DateTime.Week.config(locale)
     }
   end
@@ -2800,7 +2798,7 @@ defmodule Localize.Date.Parser do
   # strategy table below resolves which combination yields a
   # full Date.
   defp extract_fields(caps, year_fallback, era_index, ctx) do
-    %{calendar_module: calendar_module, week_calendar: week_calendar, week_config: week_config} =
+    %{calendar_module: calendar_module, own_calendar: own_calendar, week_config: week_config} =
       ctx
 
     month = extract_month(caps, "")
@@ -2821,7 +2819,7 @@ defmodule Localize.Date.Parser do
         day_of_week_in_month: extract_optional_int(caps, "day_of_week_in_month"),
         weekday_name_index: extract_optional_weekday_name(caps),
         calendar_module: calendar_module,
-        week_calendar: week_calendar
+        own_calendar: own_calendar
       })
     end
   end
@@ -3003,20 +3001,10 @@ defmodule Localize.Date.Parser do
        when not is_integer(year) or is_nil(era_index),
        do: {:ok, year}
 
-  # For Japanese imperial dates, the parsed `year` is the
-  # year-within-era, not the Gregorian year. Convert using
-  # the era's start date from CLDR supplemental data. Any
-  # other calendar says which of its years it writes that way.
-  defp resolve_calendar_year(year, era_index, calendar_module, month_day) do
-    if cldr_calendar_type(calendar_module) == :japanese do
-      case japanese_era_start_year(era_index) do
-        {:ok, start_year} -> {:ok, start_year + year - 1}
-        :error -> {:error, :unknown_era}
-      end
-    else
-      year_in_era(year, era_index, calendar_module, month_day)
-    end
-  end
+  # The calendar says which of its years it writes as `year` of the era,
+  # a Japanese calendar's years of an imperial era included.
+  defp resolve_calendar_year(year, era_index, calendar_module, month_day),
+    do: year_in_era(year, era_index, calendar_module, month_day)
 
   # The calendar's year that the formatter writes as `year` of era
   # `era_index`. A forward era counts years as they are and a before era
@@ -3094,17 +3082,6 @@ defmodule Localize.Date.Parser do
 
   defp era_day(day) when is_integer(day), do: day
   defp era_day(_day), do: nil
-
-  defp japanese_era_start_year(era_index) do
-    eras = get_in(Localize.SupplementalData.calendars(), [:japanese, :eras])
-
-    with true <- is_list(eras),
-         [_index, %{start: [year, _month, _day]}] <- Enum.find(eras, &match?([^era_index, _], &1)) do
-      {:ok, year}
-    else
-      _ -> :error
-    end
-  end
 
   defp build_date(year, month, day, Calendar.ISO) do
     case Date.new(year, month, day) do
@@ -3254,9 +3231,23 @@ defmodule Localize.Date.Parser do
     )
   end
 
+  # The first day of a quarter in the calendar's own quarters, as the
+  # formatter writes `Q`: the days its `quarter/2` gives, taken into the
+  # calendar the input is read in.
   defp build_from_quarter(fields, calendar_module) do
-    month = (fields.quarter - 1) * 3 + 1
-    build_date(fields.year, month, 1, calendar_module)
+    with {:ok, days} <-
+           Localize.Calendar.ask(
+             fields.own_calendar,
+             :quarter,
+             [fields.year, fields.quarter],
+             "the days of a quarter",
+             &match?(%Date.Range{}, &1)
+           ),
+         {:ok, date} <- convert_value(days.first, calendar_module) do
+      {:ok, date}
+    else
+      _no_such_quarter -> :error
+    end
   end
 
   # Verify the `E`/`c` weekday name (if any was captured)
@@ -3278,12 +3269,12 @@ defmodule Localize.Date.Parser do
   # its `week/2` gives (ISO 8601's for `Calendar.ISO`), and of them the one
   # on the ISO day of the week, or the first. They are the weeks of the
   # calendar asked for even where it reads its dates as Gregorian ones
-  # (`fields.week_calendar`), and the date is taken into the calendar the
+  # (`fields.own_calendar`), and the date is taken into the calendar the
   # input is read in.
   defp date_from_week(week_year, week, day_of_week, fields, calendar_module) do
     with {:ok, days} <-
            Localize.Calendar.ask(
-             fields.week_calendar,
+             fields.own_calendar,
              :week,
              [week_year, week],
              "the days of a week",
@@ -3454,7 +3445,7 @@ defmodule Localize.Date.Parser do
       day_of_week_in_month: nil,
       weekday_name_index: nil,
       calendar_module: calendar_module,
-      week_calendar: calendar_module
+      own_calendar: calendar_module
     }
   end
 

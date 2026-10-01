@@ -13,7 +13,9 @@ defmodule Localize.NativeDigitsParseTest do
   # Localize cannot load Calendrical's calendars, which depend on it. This
   # stand-in names the Japanese calendar and answers `year_of_era/3` as
   # CLDR's era data does for Kanpō, from 1741-02-27, and Enkyō, from
-  # 1744-02-21, taking the rest of its arithmetic from `Calendar.ISO`.
+  # 1744-02-21, counting a date before Kanpō back from it as Calendrical's
+  # Japanese calendar counts one before its first era, and taking the rest
+  # of its arithmetic from `Calendar.ISO`.
   defmodule Japanese do
     @moduledoc false
     use Localize.Test.StandInCalendar
@@ -26,7 +28,12 @@ defmodule Localize.NativeDigitsParseTest do
 
     def year_of_era(year, month, day) do
       date = Date.new!(year, month, day)
-      {start, era} = Enum.find(@eras, fn {start, _era} -> Date.compare(date, start) != :lt end)
+
+      {start, era} =
+        Enum.find(@eras, List.last(@eras), fn {start, _era} ->
+          Date.compare(date, start) != :lt
+        end)
+
       {year - start.year + 1, era}
     end
 

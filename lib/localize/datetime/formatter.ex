@@ -79,8 +79,8 @@ defmodule Localize.DateTime.Formatter do
     extended_year: [:year],
     cyclic_year: [:year],
     related_year: [:year],
-    quarter: [:month],
-    standalone_quarter: [:month],
+    quarter: [:year, :month],
+    standalone_quarter: [:year, :month],
     month: [:month],
     standalone_month: [:month],
     week_of_year: [:year, :month, :day],
@@ -1035,13 +1035,20 @@ defmodule Localize.DateTime.Formatter do
 
   # ── Quarter (Q) ────────────────────────────────────────────
 
+  # The quarter is the calendar's answer, its `quarter_of_year/3`, which a
+  # thirteen-month year or a calendar of weeks gives as its own, so it needs
+  # the year as well as the month.
   @doc false
   def quarter(date, 1, locale_id, options) when has_month(date) do
-    quarter_of_year(date) |> apply_ns(locale_id, options, "Q")
+    with {:ok, quarter} <- Localize.Calendar.quarter_of_year(date) do
+      apply_ns(quarter, locale_id, options, "Q")
+    end
   end
 
   def quarter(date, 2, locale_id, options) when has_month(date) do
-    quarter_of_year(date) |> pad(2) |> apply_ns(locale_id, options, "Q")
+    with {:ok, quarter} <- Localize.Calendar.quarter_of_year(date) do
+      quarter |> pad(2) |> apply_ns(locale_id, options, "Q")
+    end
   end
 
   def quarter(date, 3, locale_id, _options) when has_month(date) do
@@ -1062,11 +1069,15 @@ defmodule Localize.DateTime.Formatter do
 
   @doc false
   def standalone_quarter(date, 1, locale_id, options) when has_month(date) do
-    quarter_of_year(date) |> apply_ns(locale_id, options, "q")
+    with {:ok, quarter} <- Localize.Calendar.quarter_of_year(date) do
+      apply_ns(quarter, locale_id, options, "q")
+    end
   end
 
   def standalone_quarter(date, 2, locale_id, options) when has_month(date) do
-    quarter_of_year(date) |> pad(2) |> apply_ns(locale_id, options, "q")
+    with {:ok, quarter} <- Localize.Calendar.quarter_of_year(date) do
+      quarter |> pad(2) |> apply_ns(locale_id, options, "q")
+    end
   end
 
   def standalone_quarter(date, count, locale_id, _options)
@@ -1891,10 +1902,6 @@ defmodule Localize.DateTime.Formatter do
       Calendar.ISO.naive_datetime_to_iso_days(year, month, day, 0, 0, 0, {0, 0})
 
     days
-  end
-
-  defp quarter_of_year(%{month: month}) when is_integer(month) do
-    div(month - 1, 3) + 1
   end
 
   # ── General helpers ────────────────────────────────────────

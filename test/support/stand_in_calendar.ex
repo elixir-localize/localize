@@ -20,7 +20,8 @@ defmodule Localize.Test.StandInCalendar do
     related_gregorian_year: 3,
     cyclic_year: 3,
     week_of_year: 3,
-    week: 2
+    week: 2,
+    quarter: 2
   ]
 
   @calendar_callbacks Calendar.behaviour_info(:callbacks) --
@@ -70,6 +71,22 @@ defmodule Localize.Test.StandInCalendar do
     quote do
       def week(year, week) do
         case Localize.Calendar.ISO.week(year, week) do
+          %Date.Range{first: first, last: last} ->
+            Date.range(Date.convert!(first, __MODULE__), Date.convert!(last, __MODULE__))
+
+          error ->
+            error
+        end
+      end
+    end
+  end
+
+  # The Gregorian quarter `quarter` of `year`, in the calendar using this
+  # module.
+  defp definition({:quarter, 2}) do
+    quote do
+      def quarter(year, quarter) do
+        case Localize.Calendar.ISO.quarter(year, quarter) do
           %Date.Range{first: first, last: last} ->
             Date.range(Date.convert!(first, __MODULE__), Date.convert!(last, __MODULE__))
 
