@@ -413,6 +413,31 @@ defmodule Localize.ParsingCoverageTest do
                allow_inverted: true
              ) == {:ok, Date.range(~D[2026-05-10], ~D[2026-05-05], -1)}
     end
+
+    # Which date is the earlier is the calendar's to say, by its days, and
+    # not read from the dates' fields. In a calendar whose year turns on 25
+    # March, 1 January 2024 is the day after 31 December 2024 (ISO 1 January
+    # 2025 and 31 December 2024), so December to January ascends and January
+    # to December is the inverted range.
+    test "a range is inverted by its days, not by its dates' fields" do
+      calendar = Localize.Test.LadyDayCalendar
+      december = Date.new!(2024, 12, 31, calendar)
+      january = Date.new!(2024, 1, 1, calendar)
+
+      assert Date.diff(january, december) == 1
+
+      assert Localize.Interval.parse("12/31/2024 – 1/1/2024", locale: :en, calendar: calendar) ==
+               {:ok, Date.range(december, january)}
+
+      assert {:error, %Localize.DateRangeParseError{reason: :inverted}} =
+               Localize.Interval.parse("1/1/2024 – 12/31/2024", locale: :en, calendar: calendar)
+
+      assert Localize.Interval.parse("1/1/2024 – 12/31/2024",
+               locale: :en,
+               calendar: calendar,
+               allow_inverted: true
+             ) == {:ok, Date.range(january, december, -1)}
+    end
   end
 
   describe "Date.parse_range/2 error paths" do

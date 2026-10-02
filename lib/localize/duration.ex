@@ -63,26 +63,31 @@ defmodule Localize.Duration do
   # ── Creating durations ──────────────────────────────────────────
 
   @doc """
-  Calculates the calendar duration between two dates, times, or
-  datetimes.
+  Calculates the calendar duration between two dates, times, or datetimes.
+
+  The years, months and days are counted by the values' own calendar, never from their fields: the whole months from `from` to `to`, then the days left after them, with the whole years taken out of the months. A day of the month is brought into a shorter month, so 31 January to 29 February is one month. The duration is the span that `Date.shift/2` adds to `from` to reach `to`. Between two datetimes the time between their times of day is added, and where `to`'s time of day is the earlier of the two, the dates are counted to the day before `to`.
 
   ### Arguments
 
   * `from` is a date, time, or datetime representing the start.
 
-  * `to` is a date, time, or datetime representing the end.
+  * `to` is a date, time, or datetime representing the end. It is in the same calendar as `from` and is not earlier.
 
   ### Returns
 
   * `{:ok, duration}` where `duration` is a `t:t/0` struct.
 
-  * `{:error, exception}` if the arguments are incompatible.
+  * `{:error, exception}` if the arguments are incompatible, `to` is earlier than `from`, or a value is not one its calendar has. A calendar that cannot be asked for its arithmetic is a `t:Localize.UnknownCalendarError.t/0`.
 
   ### Examples
 
       iex> {:ok, d} = Localize.Duration.new(~D[2019-01-01], ~D[2019-12-31])
       iex> d.month
       11
+
+      iex> {:ok, d} = Localize.Duration.new(~D[2023-01-14], ~D[2023-07-13])
+      iex> {d.month, d.day}
+      {5, 29}
 
       iex> {:ok, d} = Localize.Duration.new(~T[10:00:00], ~T[12:30:45])
       iex> {d.hour, d.minute, d.second}
@@ -97,12 +102,14 @@ defmodule Localize.Duration do
         %{year: _, month: _, day: _, hour: _, minute: _, second: _} = from,
         %{year: _, month: _, day: _, hour: _, minute: _, second: _} = to
       ) do
-    with :ok <- confirm_same_calendar(from, to),
+    with :ok <- confirm_fields(from),
+         :ok <- confirm_fields(to),
+         :ok <- confirm_same_calendar(from, to),
+         :ok <- Localize.Calendar.validate_value(from),
+         :ok <- Localize.Calendar.validate_value(to),
          :ok <- confirm_same_time_zone(from, to),
          :ok <- confirm_date_order(from, to) do
-      time_diff = time_duration(from, to)
-      date_diff = date_duration(from, to)
-      apply_time_diff_to_duration(date_diff, time_diff, from)
+      datetime_duration(from, to, time_duration(from, to))
     end
   end
 
@@ -782,55 +789,47 @@ defmodule Localize.Duration do
 
   # ── Private: duration calculation ───────────────────────────────
 
-  defp apply_time_diff_to_duration(date_diff, time_diff, from) do
-    duration =
-      if time_diff < 0 do
-        back_one_day(date_diff, from)
-        |> merge(@microseconds_in_day + time_diff)
-      else
-        date_diff |> merge(time_diff)
-      end
-
-    {:ok, duration}
+  # The duration between two date-times: the years, months and days between
+  # their dates and the time between their times of day. Where the later
+  # value's time of day is the earlier of the two, the dates are counted to
+  # the day before it, as its calendar reaches that day, and the time runs on
+  # through midnight.
+  defp datetime_duration(%{calendar: calendar} = from, to, time_diff) when time_diff < 0 do
+    with {:ok, day_before} <- Localize.Calendar.plus(calendar, date_fields(to), :days, -1),
+         {:ok, duration} <- date_duration(calendar, date_fields(from), day_before) do
+      {:ok, merge(duration, @microseconds_in_day + time_diff)}
+    end
   end
+
+  defp datetime_duration(%{calendar: calendar} = from, to, time_diff) do
+    with {:ok, duration} <- date_duration(calendar, date_fields(from), date_fields(to)) do
+      {:ok, merge(duration, time_diff)}
+    end
+  end
+
+  defp date_fields(%{year: year, month: month, day: day}), do: {year, month, day}
 
   defp time_duration(from, to) do
     Time.diff(to, from, :microsecond)
   end
 
-  @doc false
-  def date_duration(
-        %{year: year, month: month, day: day, calendar: calendar},
-        %{year: year, month: month, day: day, calendar: calendar}
-      ) do
-    %__MODULE__{}
-  end
-
-  def date_duration(%{calendar: calendar} = from, %{calendar: calendar} = to) do
-    increment =
-      if from.day > to.day do
-        calendar.days_in_month(from.year, from.month)
-      else
-        0
-      end
-
-    {day_diff, increment} =
-      if increment != 0 do
-        {increment + to.day - from.day, 1}
-      else
-        {to.day - from.day, 0}
-      end
-
-    {month_diff, increment} =
-      if from.month + increment > to.month do
-        {to.month + calendar.months_in_year(to.year) - from.month - increment, 1}
-      else
-        {to.month - from.month - increment, 0}
-      end
-
-    year_diff = to.year - from.year - increment
-
-    %__MODULE__{year: year_diff, month: month_diff, day: day_diff}
+  # The years, months and days from one date to a later one, counted by their
+  # calendar and never from the dates' fields: its `diff/3` counts whole
+  # periods and its `plus/6` reaches the date a number of them on. The months
+  # are the whole months between the two and the days are those left after
+  # them, so the duration added to the earlier date, months and then days, is
+  # the later date, as `Date.shift/2` adds it. The years are the whole years
+  # between the two, and take their months out of the count: twelve a year,
+  # or thirteen where a Hebrew year has them.
+  defp date_duration(calendar, from, to) do
+    with {:ok, months} <- Localize.Calendar.diff(calendar, from, to, :months),
+         {:ok, reached} <- Localize.Calendar.plus(calendar, from, :months, months),
+         {:ok, days} <- Localize.Calendar.diff(calendar, reached, to, :days),
+         {:ok, years} <- Localize.Calendar.diff(calendar, from, to, :years),
+         {:ok, years_on} <- Localize.Calendar.plus(calendar, from, :years, years),
+         {:ok, months_of_years} <- Localize.Calendar.diff(calendar, from, years_on, :months) do
+      {:ok, %__MODULE__{year: years, month: months - months_of_years, day: days}}
+    end
   end
 
   defp merge(duration, microseconds) do
@@ -844,51 +843,77 @@ defmodule Localize.Duration do
     |> Map.put(:microsecond, microsecond_precision(microseconds))
   end
 
-  defp back_one_day(%{day: 0} = date_diff, from) do
-    previous_month = Integer.mod(from.month - 2, from.calendar.months_in_year(from.year)) + 1
-    days_in_month = from.calendar.days_in_month(from.year, previous_month)
-    back_one_month(%{date_diff | day: days_in_month})
-  end
-
-  defp back_one_day(%{day: day} = date_diff, _from) do
-    %{date_diff | day: day - 1}
-  end
-
-  defp back_one_month(%{month: 0} = date_diff) do
-    %{date_diff | month: 11, year: date_diff.year - 1}
-  end
-
-  defp back_one_month(%{month: month} = date_diff) do
-    %{date_diff | month: month - 1}
-  end
-
   # ── Private: type casting ───────────────────────────────────────
 
+  # A date is taken at midnight and a time on a day of its own, each at UTC,
+  # so that two of a kind are measured as date-times are. A value its
+  # calendar does not have is an error.
   defp cast_to_datetime(%{__struct__: _, year: _, month: _, day: _, hour: _} = dt) do
     {:ok, dt}
   end
 
-  defp cast_to_datetime(%{__struct__: _, year: y, month: m, day: d, calendar: calendar}) do
-    {:ok, naive} = NaiveDateTime.new(y, m, d, 0, 0, 0, {0, 6}, calendar)
-    DateTime.from_naive(naive, "Etc/UTC")
+  defp cast_to_datetime(%{__struct__: _, year: y, month: m, day: d} = date)
+       when is_integer(y) and is_integer(m) and is_integer(d) do
+    calendar = Map.get(date, :calendar, Calendar.ISO)
+
+    with :ok <- Localize.Calendar.validate_value(date) do
+      at_utc(NaiveDateTime.new(y, m, d, 0, 0, 0, {0, 6}, calendar), date)
+    end
   end
 
-  defp cast_to_datetime(%{__struct__: _, year: y, month: m, day: d}) do
-    {:ok, naive} = NaiveDateTime.new(y, m, d, 0, 0, 0, {0, 6})
-    DateTime.from_naive(naive, "Etc/UTC")
+  defp cast_to_datetime(%{__struct__: _, hour: h, minute: m, second: s} = time)
+       when is_integer(h) and is_integer(m) and is_integer(s) do
+    case Map.get(time, :microsecond, {0, 6}) do
+      {microsecond, precision} = fraction when is_integer(microsecond) and precision in 0..6 ->
+        at_utc(NaiveDateTime.new(1, 1, 1, h, m, s, fraction), time)
+
+      _not_a_fraction ->
+        at_utc({:error, :invalid_time}, time)
+    end
   end
 
-  defp cast_to_datetime(%{__struct__: _, hour: h, minute: m, second: s, microsecond: us}) do
-    {:ok, naive} = NaiveDateTime.new(1, 1, 1, h, m, s, us)
-    DateTime.from_naive(naive, "Etc/UTC")
+  defp cast_to_datetime(value) do
+    {:error,
+     Localize.InvalidValueError.exception(
+       value: value,
+       expected: "a date, a time or a datetime"
+     )}
   end
 
-  defp cast_to_datetime(%{__struct__: _, hour: h, minute: m, second: s}) do
-    {:ok, naive} = NaiveDateTime.new(1, 1, 1, h, m, s, {0, 6})
-    DateTime.from_naive(naive, "Etc/UTC")
+  defp at_utc({:ok, naive}, _value), do: DateTime.from_naive(naive, "Etc/UTC")
+
+  defp at_utc({:error, _reason}, value) do
+    {:error,
+     Localize.InvalidValueError.exception(
+       value: value,
+       expected: "a date or a time its calendar has"
+     )}
   end
 
   # ── Private: validation ─────────────────────────────────────────
+
+  # The fields counted are integers in a date or a time Elixir builds, which
+  # a struct built by hand need not hold.
+  defp confirm_fields(value) do
+    whole? =
+      Enum.all?([:year, :month, :day, :hour, :minute, :second], &is_integer(Map.get(value, &1)))
+
+    fraction? =
+      match?(
+        {microsecond, precision} when is_integer(microsecond) and precision in 0..6,
+        Map.get(value, :microsecond)
+      )
+
+    if whole? and fraction? do
+      :ok
+    else
+      {:error,
+       Localize.InvalidValueError.exception(
+         value: value,
+         expected: "a date and a time whose fields are integers"
+       )}
+    end
+  end
 
   defp confirm_same_calendar(%{calendar: c}, %{calendar: c}), do: :ok
 

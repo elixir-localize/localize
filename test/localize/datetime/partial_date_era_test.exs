@@ -31,13 +31,20 @@ defmodule Localize.DateTime.PartialDateEraTest do
     def cardinal_month(month), do: month
     def month_of_year(_year, month, _day), do: month
 
+    # The era depends on the day, so a date without its month or day is not
+    # this calendar's to answer, as Calendrical's Japanese calendar says of one.
+    def year_of_era(_year, month, day) when is_nil(month) or is_nil(day),
+      do: {:error, :missing_fields}
+
     def year_of_era(year, month, day) do
       date = Date.new!(year, month, day)
       {start, era} = Enum.find(@eras, fn {start, _era} -> Date.compare(date, start) != :lt end)
       {year - start.year + 1, era}
     end
 
-    def calendar_year(year, month, day), do: year |> year_of_era(month, day) |> elem(0)
+    def calendar_year(year, month, day) do
+      with {year_of_era, _era} <- year_of_era(year, month, day), do: year_of_era
+    end
 
     defdelegate valid_date?(year, month, day), to: Calendar.ISO
     defdelegate days_in_month(year, month), to: Calendar.ISO

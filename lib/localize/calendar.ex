@@ -1358,28 +1358,49 @@ defmodule Localize.Calendar do
   @spec displayed_year(term()) :: {:ok, Calendar.year()} | {:error, [atom()] | Exception.t()}
   def displayed_year(date), do: settle(date, &displayed_year_on/2)
 
-  # A whole date is one day, and a partial one could be any day of its
-  # month, or of its year when it has no month, so the answer is taken on
-  # the first and the last of them and stands when the two agree. They
-  # always do where eras begin with years. Where one began mid-year, as in
-  # the Japanese calendar, a date in the year or month of the change gets
-  # the fields that would settle it instead.
+  # The calendar is asked with the fields the date has, the others `nil`. A
+  # whole date is one day and that is its answer. A partial date could be any
+  # day of its month, or of its year when it has no month, and a calendar
+  # that answers from the fields it is given settles it: a calendar of weeks
+  # and the Gregorian calendars name a year and its era from the year alone.
+  # A calendar that needs the day says so, and the answer is then taken on
+  # the first and the last of the days the date could be, and stands when the
+  # two agree. They always do where eras begin with years. Where one began
+  # mid-year, as in the Japanese calendar, a date in the year or month of the
+  # change gets the fields that would settle it instead.
   defp settle(%{year: year} = date, answer) when is_integer(year) do
     calendar = Map.get(date, :calendar, Calendar.ISO)
-    {first, last} = date_span(date, calendar, year)
 
-    with {:ok, first_answer} <- answer.(calendar, first),
-         {:ok, last_answer} <- last_answer(first, last, first_answer, calendar, answer) do
-      if last_answer == first_answer,
-        do: {:ok, first_answer},
-        else: {:error, unsettled_fields(first, last)}
+    case answer.(calendar, {year, integer_field(date, :month), integer_field(date, :day)}) do
+      {:ok, _answer} = settled -> settled
+      {:error, _exception} = error -> settle_over_span(date, calendar, year, answer, error)
     end
   end
 
   defp settle(_date, _answer), do: {:error, [:year]}
 
-  defp last_answer(day, day, first_answer, _calendar, _answer), do: {:ok, first_answer}
-  defp last_answer(_first, last, _first_answer, calendar, answer), do: answer.(calendar, last)
+  defp integer_field(date, field) do
+    case Map.get(date, field) do
+      value when is_integer(value) -> value
+      _missing -> nil
+    end
+  end
+
+  # A whole date has no other day to ask about, so its calendar's error
+  # stands.
+  defp settle_over_span(%{month: month, day: day}, _calendar, _year, _answer, error)
+       when is_integer(month) and is_integer(day),
+       do: error
+
+  defp settle_over_span(date, calendar, year, answer, _error) do
+    with {:ok, {first, last, unsettled}} <- date_span(date, calendar, year),
+         {:ok, first_answer} <- answer.(calendar, first),
+         {:ok, last_answer} <- answer.(calendar, last) do
+      if last_answer == first_answer,
+        do: {:ok, first_answer},
+        else: {:error, unsettled}
+    end
+  end
 
   # The era `localize/3` names. A value without a year names the current
   # era, as the other parts name their first value; one whose days span two
@@ -1399,28 +1420,41 @@ defmodule Localize.Calendar do
 
   defp era_of(_datetime), do: {:ok, 1}
 
-  # The first and last days a date could be: itself when it has a month and
-  # a day, its month when it has a month the calendar has, and otherwise its
-  # year, measured by the calendar.
-  defp date_span(%{month: month, day: day}, _calendar, year)
-       when is_integer(month) and is_integer(day) do
-    {{year, month, day}, {year, month, day}}
-  end
-
+  # The first and last days a partial date could be, and the fields that
+  # would say which: its month when it has a month the calendar has, and
+  # otherwise its year. The calendar measures both. A year's days are its
+  # `year/1`. A month's run from its first to the last day the calendar has
+  # there, which is its `days_in_month/2` wherever the month field is a
+  # month; a calendar of weeks counts a period's days by that name, not its
+  # week's, so the day is checked (`valid_date?/3`) and the last one the
+  # calendar has is taken.
   defp date_span(date, calendar, year) do
     measure = answering(calendar)
     month = Map.get(date, :month)
 
     if is_integer(month) and measure.valid_date?(year, month, 1) do
-      {{year, month, 1}, {year, month, measure.days_in_month(year, month)}}
+      last_day = last_day_of(measure, year, month, measure.days_in_month(year, month))
+      {:ok, {{year, month, 1}, {year, month, last_day}, [:day]}}
     else
-      last_month = measure.months_in_year(year)
-      {{year, 1, 1}, {year, last_month, measure.days_in_month(year, last_month)}}
+      year_span(calendar, year)
     end
   end
 
-  defp unsettled_fields({_year, month, _first_day}, {_last_year, month, _last_day}), do: [:day]
-  defp unsettled_fields(_first, _last), do: [:month, :day]
+  defp last_day_of(measure, year, month, day) when is_integer(day) and day > 1 do
+    if measure.valid_date?(year, month, day),
+      do: day,
+      else: last_day_of(measure, year, month, day - 1)
+  end
+
+  defp last_day_of(_measure, _year, _month, _day), do: 1
+
+  defp year_span(calendar, year) do
+    with {:ok, %Date.Range{first: first, last: last}} <-
+           ask(calendar, :year, [year], "the days of a year", &match?(%Date.Range{}, &1)) do
+      {:ok,
+       {{first.year, first.month, first.day}, {last.year, last.month, last.day}, [:month, :day]}}
+    end
+  end
 
   defp year_of_era_on(calendar, {year, month, day}) do
     ask(calendar, :year_of_era, [year, month, day], "a year of era and an era", fn
@@ -1478,7 +1512,10 @@ defmodule Localize.Calendar do
              week_of_year: 3,
              week_of_month: 3,
              week: 2,
-             quarter: 2
+             quarter: 2,
+             year: 1,
+             plus: 6,
+             diff: 3
            ] ++
              (Calendar.behaviour_info(:callbacks) -- Calendar.behaviour_info(:optional_callbacks))
 
@@ -1563,6 +1600,61 @@ defmodule Localize.Calendar do
   def own_notation?(calendar) do
     with {:ok, parsing} <- parsing_calendar(calendar), do: {:ok, parsing != calendar}
   end
+
+  @typedoc false
+  @type date_fields :: {Calendar.year(), Calendar.month(), Calendar.day()}
+
+  @typedoc false
+  @type date_part :: :years | :quarters | :months | :weeks | :days
+
+  @doc false
+  # Which of two dates of one calendar is the earlier day. `Date.compare/2`
+  # orders the dates of one calendar by their fields, which is not their
+  # order in a calendar whose year turns after its first month: in a Julian
+  # calendar reckoned from 25 March, January follows December of the same
+  # year. The calendar's own count of days orders them (`Date.diff/2`).
+  @spec compare_days(Date.t(), Date.t()) :: :lt | :eq | :gt
+  def compare_days(%Date{} = date, %Date{} = other) do
+    case Date.diff(date, other) do
+      0 -> :eq
+      days when days < 0 -> :lt
+      _days -> :gt
+    end
+  end
+
+  @doc false
+  # The whole years, quarters, months, weeks or days from one date of a
+  # calendar to another, as the calendar counts them (its `diff/3`): the most
+  # its `plus/6` adds to the earlier date without passing the later, and
+  # negative when `to` is the earlier. An error when the calendar answers
+  # with something that is not a count.
+  @spec diff(module(), date_fields(), date_fields(), date_part()) ::
+          {:ok, integer()} | {:error, Exception.t()}
+  def diff(calendar, from, to, date_part) do
+    ask(calendar, :diff, [from, to, date_part], "a number of #{date_part}", &is_integer/1)
+  end
+
+  @doc false
+  # The date a number of years, quarters, months, weeks or days on from a
+  # date, as its calendar reaches it (its `plus/6`), the day brought into a
+  # month that is too short for it. An error when the calendar answers with
+  # something that is not a year, a month and a day.
+  @spec plus(module(), date_fields(), date_part(), integer()) ::
+          {:ok, date_fields()} | {:error, Exception.t()}
+  def plus(calendar, {year, month, day}, date_part, count) do
+    ask(
+      calendar,
+      :plus,
+      [year, month, day, date_part, count, [coerce: true]],
+      "a year, a month and a day",
+      &date_fields?/1
+    )
+  end
+
+  defp date_fields?({year, month, day}),
+    do: is_integer(year) and is_integer(month) and is_integer(day)
+
+  defp date_fields?(_answer), do: false
 
   @doc false
   # Puts a question to a calendar: `callback` with `arguments`, to the
@@ -1867,44 +1959,38 @@ defmodule Localize.Calendar do
 
   @doc false
   # The day a date's week of the month is named by: the date itself when its
-  # week belongs to its own month, else the nearest day of that week in the
-  # month the week belongs to, which the rule for a month's weeks can make
-  # the month before or after the date's. A pattern with `W` writes its
-  # month, and the year and era the month is in, from this day, as `Y`
-  # writes the year `w` belongs to, so "week W of MMMM" names the week's
-  # month. The days of the week are the days given the same week of the same
-  # month, so a calendar of weeks, whose week never leaves its month, names
-  # it by the date.
+  # week belongs to its own month, else a day of that week in the month the
+  # week belongs to, which the rule for a month's weeks can make the month
+  # before or after the date's. A pattern with `W` writes its month, and the
+  # year and era the month is in, from this day, as `Y` writes the year `w`
+  # belongs to, so "week W of MMMM" names the week's month.
   @spec week_month_day(map(), week_data()) :: {:ok, map()} | {:error, Exception.t()}
   def week_month_day(%{year: year, month: month, day: day} = date, week_data)
       when is_integer(year) and is_integer(month) and is_integer(day) do
     case week_of_month(date, week_data) do
       {:ok, {^month, _week}} -> {:ok, date}
-      {:ok, answer} -> {:ok, day_in_week_month(date, answer, week_data)}
+      {:ok, {week_month, _week}} -> day_in_week_month(date, week_month, week_data)
       {:error, _not_an_answer} = error -> error
     end
   end
 
   def week_month_day(date, _week_data), do: {:ok, date}
 
-  # The other days of a week, nearest a day first.
-  @days_either_side Enum.flat_map(1..6, &[&1, -&1])
-
-  defp day_in_week_month(date, answer, week_data) do
+  # The calendar says which days a week holds: the week of the year the date
+  # is in (`week_of_year/2`) and that week's days (`week/4`). The first of
+  # them in the week's month names it. A calendar of weeks, whose month field
+  # is its week and whose week never leaves its month, has no such day and is
+  # named by the date.
+  defp day_in_week_month(date, week_month, week_data) do
     calendar = Map.get(date, :calendar, Calendar.ISO)
 
-    with {:ok, start} <- Date.new(date.year, date.month, date.day, calendar),
-         %Date{} = day <-
-           Enum.find_value(@days_either_side, &week_month_day_at(start, &1, answer, week_data)) do
-      Map.merge(date, Map.take(day, [:year, :month, :day]))
-    else
-      _no_day -> date
+    with {:ok, {week_year, week}} <- week_of_year(date, week_data),
+         {:ok, days} <- week(calendar, week_year, week, week_data) do
+      case Enum.find(days, &(&1.month == week_month)) do
+        %Date{} = day -> {:ok, Map.merge(date, Map.take(day, [:year, :month, :day]))}
+        nil -> {:ok, date}
+      end
     end
-  end
-
-  defp week_month_day_at(start, days, {week_month, _week} = answer, week_data) do
-    day = Date.add(start, days)
-    if day.month == week_month and week_of_month(day, week_data) == {:ok, answer}, do: day
   end
 
   # CLDR's leap-year name of a month (`7_yeartype_leap`, the Hebrew "Adar II")

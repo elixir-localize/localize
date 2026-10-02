@@ -4,9 +4,11 @@ Outstanding work on Localize. The design detail behind these items lives under [
 
 ## Open
 
-* [ ] **Decide how a week 53 the year does not have is parsed** — TR35's note on week data says such a date "should be treated as in the first week of the following year", and ICU4C 78.3 reads `en`'s "week 53 of 2026" as the week of 27 December 2026; Localize returns an error, as for every field no date has. Now that `Calendar.ISO`'s weeks are the locale's, week text written in one locale can name a week another does not have.
-
 * [ ] **A `-u-rg-` subdivision is returned as the territory** — `Localize.Territory.territory_from_locale("en-u-rg-gbsct")` is `{:ok, :gbsct}`, where TR35 lets a region override name a subdivision whose region, GB, is the territory. The week data lookup reads the region (`Localize.Calendar.first_day_for_locale/1`); currency, unit preference and the other callers of `territory_from_locale/1` do not.
+
+* [ ] **`Localize.Duration.new/2` measures two datetimes on their wall clocks** — it counts the time between their clock fields whatever zones they are in (`confirm_same_time_zone/2` accepts any two), so 10:00 UTC to 18:00 in `Asia/Karachi` the same day, three hours later, is "8 hours". Move the later value into the earlier's zone first, as relative time does, or refuse two zones.
+
+* [ ] **`u` writes the year field, not the calendar's extended year** — TR35's extended year counts 1 BCE as year 0, but the formatter writes a date's `year` as it stands and never asks its calendar's `extended_year/3`, so 15 June 1 BC in `Calendrical.Julian`, whose year is -1, is "-1". The calendar must answer it too: `Calendrical.Julian.extended_year/3` returns the year as given (Calendrical's `TODO.md`).
 
 * [ ] **Settle the location format of a non-location zone with CLDR** — TR35 49 says a zone with no region (`PST8PDT`, `Etc/GMT+5`) falls back to the offset format, then gives "PST8PDT, generic → Unknown Location Time" as its worked example. Localize follows the first; the conformance data has no case. Worth a CLDR ticket.
 
@@ -67,6 +69,12 @@ Outstanding work on Localize. The design detail behind these items lives under [
 * [ ] **`localize_emoji` sibling library** — plan item 11, a separate package on its own schedule. A Phoenix LiveView picker (`localize_emoji_live`) is out of scope for its 0.1.0.
 
 ## Done
+
+* [x] **A year or a week alone in a calendar of weeks formats** — a partial date's year and era are asked of its calendar with the fields it has, and a span of days it could be ends on a day the calendar has (`year/1`, `valid_date?/3`), never one composed from `months_in_year/1` and `days_in_month/2`, so a year alone in `Calendrical.ISOWeek` writes "2026 AD", as its whole date does, where it was a `Localize.InvalidValueError`. Found through Tempo. 2026-10-02, v1.4.0.
+
+* [x] **`Localize.Calendar.ISO` answers the whole Calendrical behaviour** — all 27 callbacks in the one module, as `Calendrical.ISO` answers them, held to the behaviour by a Calendrical test, and the calculations Localize made itself come from the calendar: a `W` week's days, a year's days, the years, quarters and months of a relative time and the years, months and days of `Localize.Duration.new/2` (`week/2`, `year/1`, `diff/3`, `plus/6`), with two dates ordered by their days and not by `Date.compare/2` (user, 2026-10-02, point 5). [plans/calendar-callbacks.md](plans/calendar-callbacks.md). 2026-10-02, v1.4.0.
+
+* [x] **A week's month and a week 53 the year lacks stay as they are** — `W` keeps a week in the month that holds the locale's minimum days of it, and a week 53 the year does not have stays an error, where ICU4C keeps a week in its date's month and reads the week 53 as week 1 of the next year (user, 2026-10-02: "keep existing behaviour"); both recorded in the ICU divergences guide. 2026-10-02, v1.4.0.
 
 * [x] **`Calendar.ISO`'s weeks are the locale's** — `w`, `Y` and `W` follow the locale's week data by TR35's rule, in this one case only (user, 2026-10-02), with TR35's first day algorithm in full (`-u-fw-`, `-u-rg-`, `-u-sd-`, `-u-ca-iso8601`) and `e` and `c` honouring it; `Y`, `w` and `e` agree with ICU4C 78.3 on 74,511 locale-days, and `W` gives a week to the month holding the minimum days of it. [plans/calendar-callbacks.md](plans/calendar-callbacks.md). 2026-10-02, v1.4.0.
 

@@ -193,6 +193,18 @@ iex> {d.hour, d.minute, d.second}
 {2, 30, 45}
 ```
 
+The years, months and days between two dates are counted by the dates' own calendar: the whole months between the two, then the days left after them, with the whole years taken out of the months. The duration is the span `Date.shift/2` adds to the earlier date to reach the later. A day of the month is brought into a shorter month, so 31 January to 29 February is one month:
+
+```elixir
+iex> {:ok, d} = Localize.Duration.new(~D[2023-01-14], ~D[2023-07-13])
+iex> {d.month, d.day}
+{5, 29}
+
+iex> {:ok, d} = Localize.Duration.new(~D[2024-01-31], ~D[2024-02-29])
+iex> {d.month, d.day}
+{1, 0}
+```
+
 From a number of seconds:
 
 ```elixir

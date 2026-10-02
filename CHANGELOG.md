@@ -52,11 +52,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Changed
 
-* **Breaking.** A date's month, era, years, week and weekday are its calendar's answers — `month_of_year/3` and `cardinal_month/1` for the month, the Calendrical behaviour's callbacks for the rest — never its own fields, so a calendar other than `Calendar.ISO` must implement the Calendrical behaviour (Calendrical 1.4, which adds `cardinal_month/1` and `parsing_calendar/0` and requires `era_calendar_type/0`) and any other is refused with `Localize.UnknownCalendarError` by formatting, parsing and relative time alike. An answer that is not one is a `Localize.InvalidValueError`.
+* **Breaking.** A date's month, era, years, week and weekday, a year's days and the years and months between two dates are its calendar's answers — `month_of_year/3` and `cardinal_month/1` for the month, the Calendrical behaviour's callbacks for the rest — never its own fields, so a calendar other than `Calendar.ISO` must implement the Calendrical behaviour (Calendrical 1.4, which adds `cardinal_month/1` and `parsing_calendar/0` and requires `era_calendar_type/0`) and any other is refused with `Localize.UnknownCalendarError` by formatting, parsing and relative time alike. An answer that is not one is a `Localize.InvalidValueError`.
 
 * **Breaking.** A numeric month is the CLDR month its name uses, in formatting and parsing alike, so a Hebrew common year's Adar is "7", CLDR's number for it, where ICU4C writes its place in the year, "6".
 
-* **Breaking.** `Localize.DateTime.Relative.to_string/2` and `to_parts/2` count a difference between dates in the calendar periods of the value's own calendar, as its `shift_date/4` moves a date, where they divided seconds by a mean month or year, so 1 February is "next month" from 31 January, a Hebrew leap year has thirteen months and a week calendar's months are its periods of weeks. Hours, minutes and seconds count the clock periods of the time that passes, so 00:01 is "in 1 hour" from 23:59, across a change of UTC offset too.
+* **Breaking.** `Localize.DateTime.Relative.to_string/2` and `to_parts/2` count a difference between dates in the calendar periods of the value's own calendar, as the calendar counts them with its `diff/3` and `plus/6`, where they divided seconds by a mean month or year, so 1 February is "next month" from 31 January, a Hebrew leap year has thirteen months and a week calendar's months are its periods of weeks. Hours, minutes and seconds count the clock periods of the time that passes, so 00:01 is "in 1 hour" from 23:59, across a change of UTC offset too.
 
 * **Breaking.** Without `:unit`, a relative time takes the largest unit of which a whole one lies between the two, reckoned as ECMA-262 Temporal reckons it across a change of UTC offset and in lunisolar calendars. A number of seconds has no calendar, so it is counted in weeks at most: 31,556,926 seconds is "in 52 weeks", not "in 1 year".
 
@@ -131,6 +131,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 * `Localize.DateTime.Relative.to_string/2` counts the quarters, and the calendar weeks from the locale's first day for `:mon` to `:sun`, between two dates, where it formatted their difference in seconds as that many quarters or weekdays.
 
 * `Localize.DateTime.Relative.to_string/2` counts a number of seconds beyond the range of a float, where it raised `ArithmeticError`.
+
+* `Localize.Duration.new/2` counts years, months and days with the calendar's own arithmetic, its `diff/3` and `plus/6`, so the duration is the span `Date.shift/2` adds to the earlier date to reach the later: 14 January to 13 July is 5 months and 29 days, where it was 30, and a calendar of weeks or a lunisolar leap year no longer gives negative months. A date its calendar does not have is an error, where it raised, and a calendar that does not implement the Calendrical behaviour is refused, as it is in formatting.
+
+* A parsed range of dates is ascending or inverted by its calendar's days, where the dates' fields decided: in a calendar whose year turns after its first month, as a Julian year reckoned from 25 March does, 31 December to 1 January of the same year is no longer refused as inverted.
 
 * `Localize.Substitution.substitute/2` substitutes into a template of any shape, where it raised on one it did not list, such as `el`'s zone fallback format "[{1} ({0})]".
 

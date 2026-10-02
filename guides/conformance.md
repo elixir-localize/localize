@@ -267,7 +267,7 @@ Two areas are explicitly out of scope:
 
 | Feature | Status | Notes |
 |---------|--------|-------|
-| String to date/time parsing | Implemented | `Localize.Date.parse/2`, `Localize.Time.parse/2`, `Localize.DateTime.parse/2` and `Localize.Interval.parse/2` read the locale's patterns in any calendar module, and ISO 8601. |
+| String to date/time parsing | Implemented | `Localize.Date.parse/2`, `Localize.Time.parse/2`, `Localize.DateTime.parse/2` and `Localize.Interval.parse/2` read the locale's patterns in any calendar module, and ISO 8601. A week 53 the year does not have is an error, where TR35's note on week data recommends reading it as week 1 of the next year; see [ICU divergences](icu_divergences.md#date-parsing). |
 
 ### Calendar Fields
 

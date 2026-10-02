@@ -240,6 +240,42 @@ defmodule Localize.CalendarCallbacksTest do
     end
   end
 
+  # A calendar of weeks that names a year and its era only for a whole date,
+  # and counts a period's days as a month's, 28 where a week has seven, as
+  # Calendrical's calendars of weeks count them.
+  defmodule WholeDateWeeks do
+    @moduledoc false
+    use Localize.Test.StandInCalendar
+
+    def parsing_calendar, do: Calendar.ISO
+    def days_in_month(_year, _period), do: 28
+
+    def year_of_era(_year, week, day) when is_nil(week) or is_nil(day),
+      do: {:error, :missing_fields}
+
+    def year_of_era(year, _week, _day), do: {year, 1}
+
+    def calendar_year(_year, week, day) when is_nil(week) or is_nil(day),
+      do: {:error, :missing_fields}
+
+    def calendar_year(year, _week, _day), do: year
+
+    def year(year) do
+      Date.range(
+        %Date{year: year, month: 1, day: 1, calendar: __MODULE__},
+        %Date{year: year, month: 52, day: 7, calendar: __MODULE__}
+      )
+    end
+
+    defdelegate valid_date?(year, week, day), to: SundayWeeks
+    defdelegate day_of_week(year, week, day, starting_on), to: SundayWeeks
+
+    defdelegate naive_datetime_to_iso_days(year, week, day, hour, minute, second, microsecond),
+      to: SundayWeeks
+
+    defdelegate naive_datetime_from_iso_days(iso_days), to: SundayWeeks
+  end
+
   # A calendar of months whose weeks begin on Sunday: its `day_of_week/4`
   # counts from Sunday by default, as a calendar made for a locale whose
   # weeks begin on Sunday does.
@@ -308,6 +344,26 @@ defmodule Localize.CalendarCallbacksTest do
     def day_of_week(_year, _month, _day, _starting_on), do: :no_day
     def quarter_of_year(_year, _month, _day), do: :no_quarter
     def week_of_month(_year, _month, _day), do: :no_week
+    def year(_year), do: :no_days
+    def diff(_from, _to, _date_part), do: :no_count
+  end
+
+  # A calendar that counts the months between two dates but cannot say what
+  # date a number of months on is.
+  defmodule Misadding do
+    @moduledoc false
+    use Localize.Test.StandInCalendar
+
+    def diff(_from, _to, _date_part), do: 1
+    def plus(_year, _month, _day, _date_part, _increment, _options), do: :no_date
+  end
+
+  # A calendar that cannot say which month of its year a date is in.
+  defmodule Monthless do
+    @moduledoc false
+    use Localize.Test.StandInCalendar
+
+    def month_of_year(_year, _month, _day), do: :no_month
   end
 
   # A calendar answering every question but `parsing_calendar/0`, as a
@@ -315,6 +371,23 @@ defmodule Localize.CalendarCallbacksTest do
   defmodule Unparsing do
     @moduledoc false
     use Localize.Test.StandInCalendar, without: [parsing_calendar: 0]
+  end
+
+  # Calendars answering every question but one of those Localize puts for a
+  # year's days and for the months between two dates.
+  defmodule Yearless do
+    @moduledoc false
+    use Localize.Test.StandInCalendar, without: [year: 1]
+  end
+
+  defmodule Uncounting do
+    @moduledoc false
+    use Localize.Test.StandInCalendar, without: [diff: 3]
+  end
+
+  defmodule Unadding do
+    @moduledoc false
+    use Localize.Test.StandInCalendar, without: [plus: 6]
   end
 
   # A calendar answering the questions Localize puts to a Calendrical
@@ -334,6 +407,11 @@ defmodule Localize.CalendarCallbacksTest do
     def week(year, week), do: Localize.Calendar.ISO.week(year, week)
     def week_of_month(year, month, day), do: Localize.Calendar.ISO.week_of_month(year, month, day)
     def quarter(year, quarter), do: Localize.Calendar.ISO.quarter(year, quarter)
+    def year(year), do: Localize.Calendar.ISO.year(year)
+    def diff(from, to, date_part), do: Localize.Calendar.ISO.diff(from, to, date_part)
+
+    def plus(year, month, day, date_part, increment, options),
+      do: Localize.Calendar.ISO.plus(year, month, day, date_part, increment, options)
   end
 
   # A complete calendar of Elixir's `Calendar` behaviour alone, every
@@ -569,6 +647,37 @@ defmodule Localize.CalendarCallbacksTest do
       end
     end
 
+    # A year alone, or a year and a week, is asked of the calendar with the
+    # fields it has, and a calendar of weeks names its year and era from the
+    # year, so both are written: the days a week could be are never made up
+    # from `days_in_month/2`, which counts a period's days for such a
+    # calendar (found through Tempo, 2026-10-02).
+    test "writes a year alone, and a year and a week" do
+      for value <- [
+            %{year: 2026, calendar: IsoWeek},
+            %{year: 2026, month: 25, calendar: IsoWeek},
+            %{year: 2026, month: 53, calendar: IsoWeek}
+          ] do
+        assert Localize.Date.to_string(value, format: "y", locale: :en) == {:ok, "2026"}
+        assert Localize.Date.to_string(value, format: "G y", locale: :en) == {:ok, "AD 2026"}
+        assert Localize.Calendar.localize(value, :era, locale: :en) == {:ok, "Anno Domini"}
+      end
+    end
+
+    # A calendar of weeks that answers only for a whole date is asked about
+    # the first and the last day its week, or its year, could be: the last
+    # is the last day the calendar has there, the seventh, not the 28th its
+    # `days_in_month/2` counts.
+    test "is asked about a week's own days where it needs the whole date" do
+      for value <- [
+            %{year: 2026, calendar: WholeDateWeeks},
+            %{year: 2026, month: 25, calendar: WholeDateWeeks}
+          ] do
+        assert Localize.Date.to_string(value, format: "G y", locale: :en) == {:ok, "AD 2026"}
+        assert Localize.Calendar.year_of_era(value) == {:ok, {2026, 1}}
+      end
+    end
+
     # A calendar of weeks beginning on Sunday numbers Tuesday 3, where ISO
     # 8601 numbers it 2, so its notation reads back only as its own.
     test "reads back a notation counting its own days of the week" do
@@ -599,6 +708,7 @@ defmodule Localize.CalendarCallbacksTest do
 
       assert Localize.DateTime.Relative.to_string(value, relative_to: ~D[2026-02-01]) == unknown
       assert Localize.DateTime.Relative.to_string(~D[2026-02-01], relative_to: value) == unknown
+      assert Localize.Duration.new(value, value) == unknown
       assert Localize.Time.to_string(time, locale: :en) == unknown
       assert Localize.Time.to_parts(time, locale: :en) == unknown
       assert Localize.Date.parse("Jan 1, 2026", locale: :en, calendar: Unanswered) == unknown
@@ -633,6 +743,20 @@ defmodule Localize.CalendarCallbacksTest do
       assert Localize.Date.parse("Jan 1, 2026", locale: :en, calendar: Unparsing) == unknown
     end
 
+    # A year's days and the months between two dates are the calendar's to
+    # give, its `year/1`, `diff/3` and `plus/6`, so a calendar without one
+    # of them is refused as one without any other answer is.
+    test "a calendar that cannot give a year's days or count its months is refused" do
+      for calendar <- [Yearless, Uncounting, Unadding] do
+        unknown = {:error, Localize.UnknownCalendarError.exception(calendar: calendar)}
+        value = %Date{year: 2026, month: 1, day: 1, calendar: calendar}
+
+        assert Localize.Date.to_string(value, locale: :en) == unknown
+        assert Localize.Date.parse("Jan 1, 2026", locale: :en, calendar: calendar) == unknown
+        assert Localize.DateTime.Relative.to_string(value, relative_to: value) == unknown
+      end
+    end
+
     test "a calendar that is not a module is refused too" do
       unknown = {:error, Localize.UnknownCalendarError.exception(calendar: "gregorian")}
       assert Localize.Date.to_string(date(2026, 1, 1, "gregorian"), locale: :en) == unknown
@@ -661,6 +785,49 @@ defmodule Localize.CalendarCallbacksTest do
                  Localize.Date.to_string(value, format: format, locale: :en),
                format
       end
+    end
+
+    # A year alone could be any of its days. Where the calendar does not name
+    # the year from the year alone, it gives the year's days (its `year/1`)
+    # so that the year they share can be written.
+    test "is an error where a year's days are asked for" do
+      assert {:error, %Localize.InvalidValueError{value: :no_days}} =
+               Localize.Calendar.displayed_year(%{year: 2026, calendar: Misanswering})
+
+      assert {:error, %Localize.InvalidValueError{value: :no_days}} =
+               Localize.Date.to_string(%{year: 2026, calendar: Misanswering},
+                 format: "y",
+                 locale: :en
+               )
+    end
+
+    # The years, quarters and months between two dates are the calendar's
+    # count (its `diff/3`), set against the date that many on (its `plus/6`),
+    # in relative time and in a duration.
+    test "is an error where the periods between two dates are counted" do
+      for {calendar, answer} <- [{Misanswering, :no_count}, {Misadding, :no_date}] do
+        from = %Date{year: 2026, month: 1, day: 31, calendar: calendar}
+        to = %Date{year: 2026, month: 3, day: 1, calendar: calendar}
+
+        for unit <- [:year, :quarter, :month] do
+          assert {:error, %Localize.InvalidValueError{value: ^answer}} =
+                   Localize.DateTime.Relative.to_string(to, relative_to: from, unit: unit),
+                 "#{inspect(calendar)} in #{unit}"
+        end
+
+        assert {:error, %Localize.InvalidValueError{value: ^answer}} =
+                 Localize.Duration.new(from, to)
+      end
+    end
+
+    # A month is known by the calendar's `month_of_year/3`, which the months
+    # between two dates are counted to.
+    test "is an error where a date's month of the year is asked for" do
+      from = %Date{year: 2026, month: 1, day: 31, calendar: Monthless}
+      to = %Date{year: 2026, month: 3, day: 1, calendar: Monthless}
+
+      assert {:error, %Localize.InvalidValueError{value: :no_month}} =
+               Localize.DateTime.Relative.to_string(to, relative_to: from, unit: :month)
     end
   end
 

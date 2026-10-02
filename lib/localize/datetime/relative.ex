@@ -323,7 +323,10 @@ defmodule Localize.DateTime.Relative do
          :ok <- Localize.Calendar.validate_value(relative_to),
          {:ok, moment, baseline} <- moments(relative, relative_to) do
       unit = unit || whole_unit(moment, baseline)
-      {:ok, {periods(moment, baseline, unit, locale), unit}}
+
+      with {:ok, count} <- period_count(moment, baseline, unit, locale) do
+        {:ok, {count, unit}}
+      end
     end
   end
 
@@ -465,22 +468,28 @@ defmodule Localize.DateTime.Relative do
 
   # ── Calendar arithmetic ───────────────────────────────────
 
-  # The number of the unit's periods from the baseline to the value, counted
-  # from their fields: years, quarters and months of the value's calendar,
-  # weeks from the locale's first day and days, on the wall clock, and then
-  # the hours, minutes and seconds on top of the days, on the clock at the
-  # value's offset. Two times have no date, and so no days or longer periods
-  # between them.
+  # The unit's periods from the baseline to the value. Years, quarters and
+  # months are the calendar's own count, which an answer that is no count
+  # makes an error; every other unit is counted in days and on the clock.
+  defp period_count(%{date: %Date{} = to}, %{date: %Date{} = from}, :year, _locale),
+    do: years_between(from, to)
+
+  defp period_count(%{date: %Date{} = to}, %{date: %Date{} = from}, :quarter, _locale),
+    do: quarters_between(from, to)
+
+  defp period_count(%{date: %Date{} = to}, %{date: %Date{} = from}, :month, _locale),
+    do: months_between(from, to)
+
+  defp period_count(moment, baseline, unit, locale),
+    do: {:ok, periods(moment, baseline, unit, locale)}
+
+  # The number of the unit's periods from the baseline to the value: weeks
+  # from the locale's first day and days, in the calendar's count of days on
+  # the wall clock, and then the hours, minutes and seconds on top of the
+  # days, on the clock at the value's offset. Two times have no date, and so
+  # no days or longer periods between them.
   defp periods(%{date: nil}, _baseline, unit, _locale) when unit in @date_units, do: 0
 
-  defp periods(moment, baseline, :year, _locale), do: moment.date.year - baseline.date.year
-
-  defp periods(moment, baseline, :quarter, _locale) do
-    (moment.date.year - baseline.date.year) * 4 + Date.quarter_of_year(moment.date) -
-      Date.quarter_of_year(baseline.date)
-  end
-
-  defp periods(moment, baseline, :month, _locale), do: months_between(baseline.date, moment.date)
   defp periods(moment, baseline, :day, _locale), do: days(moment, baseline)
   defp periods(moment, baseline, :hour, _locale), do: hours(moment.clock, baseline.clock)
   defp periods(moment, baseline, :minute, _locale), do: minutes(moment.clock, baseline.clock)
@@ -507,93 +516,61 @@ defmodule Localize.DateTime.Relative do
   defp seconds(clock, baseline),
     do: minutes(clock, baseline) * 60 + second(clock) - second(baseline)
 
+  # Years from one date to another in their calendar: how many years on from
+  # `from`'s the year `to` is in lies. A year is known by its number, and the
+  # calendar says which year follows which: the Julian calendar has no year
+  # 0, so AD 1 is the year after 1 BC.
+  defp years_between(from, to) do
+    periods_between(from, to, :years, fn _calendar, {year, _month, _day} -> {:ok, year} end)
+  end
+
+  # Quarters from one date to another in their calendar: four to each year
+  # between them, and the quarters of the year between the two as the
+  # calendar numbers them (its `quarter_of_year/3`).
+  defp quarters_between(from, to) do
+    with {:ok, years} <- years_between(from, to),
+         {:ok, quarter} <- Localize.Calendar.quarter_of_year(to),
+         {:ok, from_quarter} <- Localize.Calendar.quarter_of_year(from) do
+      {:ok, years * 4 + quarter - from_quarter}
+    end
+  end
+
   # Months from one date to another in their calendar: how many months on
-  # from `from`, as the calendar shifts a date by months (its
-  # `shift_date/4`, through `Date.shift/2`), the month `to` is in, a month
-  # being known by its year and its `month_of_year/3`. So a Hebrew leap year
-  # has thirteen, and a week calendar's months are its periods of weeks,
-  # which its week field does not count. The months the dates' month fields
-  # count, which are the answer wherever the field is the month, are where
-  # the search starts.
-  defp months_between(from, to) do
-    month = month_key(to)
+  # from `from`'s the month `to` is in lies, so a Hebrew leap year has
+  # thirteen and a week calendar's months are its periods of weeks, which its
+  # week field does not count. A month is known by its `month_of_year/3`
+  # alone, as a year can turn within one: a Julian year reckoned from 25
+  # March begins part-way through March.
+  defp months_between(from, to), do: periods_between(from, to, :months, &month_of_year/2)
 
-    position = fn months ->
-      shifted = Date.shift(from, month: months)
+  defp month_of_year(calendar, {year, month, day}) do
+    Localize.Calendar.ask(calendar, :month_of_year, [year, month, day], "a month of the year", fn
+      {month, :leap} -> is_integer(month)
+      month -> is_integer(month)
+    end)
+  end
 
+  # The periods from one date to another as their calendar counts them. Its
+  # `diff/3` gives the whole periods between the two dates and its `plus/6`
+  # the date that many on from `from`, which is less than one period short of
+  # `to`. The two are in one period when `period` names it the same for both,
+  # and `to` is otherwise in the next, as from 31 January to 1 February,
+  # which no whole month separates.
+  defp periods_between(from, to, part, period) do
+    calendar = from.calendar
+    start = {from.year, from.month, from.day}
+    finish = {to.year, to.month, to.day}
+
+    with {:ok, whole} <- Localize.Calendar.diff(calendar, start, finish, part),
+         {:ok, reached} <- Localize.Calendar.plus(calendar, start, part, whole),
+         {:ok, reached_period} <- period.(calendar, reached),
+         {:ok, finish_period} <- period.(calendar, finish) do
       cond do
-        month_key(shifted) == month -> :eq
-        Date.compare(shifted, to) == :lt -> :lt
-        true -> :gt
+        reached_period == finish_period -> {:ok, whole}
+        Localize.Calendar.compare_days(to, from) == :lt -> {:ok, whole - 1}
+        true -> {:ok, whole + 1}
       end
     end
-
-    estimate = months_counted(from, to)
-
-    case position.(estimate) do
-      :eq -> estimate
-      :lt -> bisect(position, months_above(position, estimate, 1))
-      :gt -> bisect(position, months_below(position, estimate, 1))
-    end
-  end
-
-  defp month_key(%{calendar: calendar, year: year, month: month, day: day}),
-    do: {year, Localize.Calendar.answering(calendar).month_of_year(year, month, day)}
-
-  # From a number of months short of the month sought, doubles the step
-  # until it is reached or passed; from one past it, the same backwards.
-  defp months_above(position, low, step) do
-    case position.(low + step) do
-      :lt -> months_above(position, low + step, step * 2)
-      :eq -> {:found, low + step}
-      :gt -> {low, low + step}
-    end
-  end
-
-  defp months_below(position, high, step) do
-    case position.(high - step) do
-      :gt -> months_below(position, high - step, step * 2)
-      :eq -> {:found, high - step}
-      :lt -> {high - step, high}
-    end
-  end
-
-  # The month sought lies between `low` months on, short of it, and `high`,
-  # past it. Each month on from a date is the month after the last, so it
-  # is always found before the two meet; a calendar that skips one ends
-  # the search at `high`.
-  defp bisect(_position, {:found, months}), do: months
-  defp bisect(_position, {low, high}) when high - low <= 1, do: high
-
-  defp bisect(position, {low, high}) do
-    middle = low + div(high - low, 2)
-
-    case position.(middle) do
-      :eq -> middle
-      :lt -> bisect(position, {middle, high})
-      :gt -> bisect(position, {low, middle})
-    end
-  end
-
-  # The months the month fields count from one date to another, the years
-  # between counted by the calendar's `months_in_year/1`.
-  defp months_counted(%{year: year} = from, %{year: year} = to), do: to.month - from.month
-
-  defp months_counted(from, to) do
-    if to.year > from.year,
-      do: months_forward(from, to),
-      else: -months_forward(to, from)
-  end
-
-  defp months_forward(from, to) do
-    calendar = to.calendar
-
-    between =
-      Enum.reduce((from.year + 1)..(to.year - 1)//1, 0, fn year, months ->
-        months + calendar.months_in_year(year)
-      end)
-
-    calendar.months_in_year(from.year) - from.month + between + to.month
   end
 
   # The first day of the week a date is in, `first_day` being 1 for Monday
@@ -633,7 +610,9 @@ defmodule Localize.DateTime.Relative do
   end
 
   defp compare_dates(%{date: nil}, _baseline), do: :eq
-  defp compare_dates(moment, baseline), do: Date.compare(moment.date, baseline.date)
+
+  defp compare_dates(moment, baseline),
+    do: Localize.Calendar.compare_days(moment.date, baseline.date)
 
   # Whether a whole unit lies between two moments. Hours and minutes are read
   # from the clock. A day, week, month or year is whole as ECMA-262 Temporal's
@@ -660,11 +639,11 @@ defmodule Localize.DateTime.Relative do
     end)
   end
 
-  # Still in the earlier's year, or month, the later is short of the next.
+  # Still in the earlier's year, the later is short of the next. A month is
+  # not known by its year and number alone: where a calendar's year turns
+  # within a month, as a Julian year reckoned from 25 March does, the month's
+  # first days and its last are a year's length apart.
   defp whole?(%{date: %{year: year}}, %{date: %{year: year}}, :year), do: false
-
-  defp whole?(%{date: %{year: year, month: month}}, %{date: %{year: year, month: month}}, :month),
-    do: false
 
   defp whole?(earlier, later, unit) do
     anniversary = anniversary(earlier.date, unit)
@@ -683,7 +662,7 @@ defmodule Localize.DateTime.Relative do
   defp anniversary(date, :year), do: Date.shift(date, year: 1)
 
   defp on_or_after?(later, date, earlier) do
-    case Date.compare(later.date, date) do
+    case Localize.Calendar.compare_days(later.date, date) do
       :gt -> true
       :eq -> time_of_day(later) >= time_of_day(earlier)
       :lt -> false

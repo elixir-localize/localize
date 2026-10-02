@@ -13,6 +13,7 @@ defmodule Localize.DateTime.RelativeTest do
   @relative_time_to ~T[11:52:03]
 
   alias Localize.DateTime.Relative
+  alias Localize.Test.{LadyDayCalendar, NoYearZeroCalendar}
 
   # A date shifted by years and months as Calendrical's calendars shift one
   # in their `shift_date/4`, after Temporal: the years keep the month by its
@@ -855,6 +856,115 @@ defmodule Localize.DateTime.RelativeTest do
                unit: :month,
                locale: :en
              ) == {:ok, "in 13 months"}
+    end
+
+    # A year that turns on 25 March puts January after December of the same
+    # year, so the fields of two dates do not say which is the earlier; the
+    # calendar's days do. `Date.compare/2` orders two dates of one calendar
+    # by their fields and never asks it. The expected values are counted
+    # from the ISO dates: 31 December 2024 and the next day, 1 January 2025,
+    # a Tuesday and a Wednesday, are a month apart and in one quarter and
+    # year of this calendar; 10 November 2024 to 10 February 2025 is 92 days
+    # and three months.
+    test "a calendar whose year turns after its first month" do
+      december = Date.new!(2024, 12, 31, LadyDayCalendar)
+      january = Date.new!(2024, 1, 1, LadyDayCalendar)
+      november = Date.new!(2024, 11, 10, LadyDayCalendar)
+      february = Date.new!(2024, 2, 10, LadyDayCalendar)
+
+      assert Date.convert!(december, Calendar.ISO) == ~D[2024-12-31]
+      assert Date.convert!(january, Calendar.ISO) == ~D[2025-01-01]
+      assert Date.convert!(february, Calendar.ISO) == ~D[2025-02-10]
+
+      for {relative, relative_to, unit, expected} <- [
+            {january, december, nil, "tomorrow"},
+            {january, december, :day, "tomorrow"},
+            {january, december, :week, "this week"},
+            {january, december, :month, "next month"},
+            {january, december, :quarter, "this quarter"},
+            {january, december, :year, "this year"},
+            {december, january, nil, "yesterday"},
+            {december, january, :month, "last month"},
+            {december, january, :year, "this year"},
+            {february, november, nil, "in 3 months"},
+            {february, november, :day, "in 92 days"},
+            {february, november, :month, "in 3 months"},
+            {february, november, :quarter, "next quarter"},
+            {february, november, :year, "this year"},
+            {november, february, nil, "3 months ago"},
+            {november, february, :quarter, "last quarter"}
+          ] do
+        assert Relative.to_string(relative, relative_to: relative_to, unit: unit, locale: :en) ==
+                 {:ok, expected},
+               "#{inspect(relative)} against #{inspect(relative_to)} in #{inspect(unit)}"
+      end
+    end
+
+    # The same year turns within March, so a month is not known by its year
+    # and number: 24 March 2024 is the day before 25 March 2025, in the same
+    # month and the next year. From the year's first day, 25 March, to its
+    # last, the next 24 March, is twelve months on and the same year.
+    test "a calendar whose year turns within a month" do
+      last_day = Date.new!(2024, 3, 24, LadyDayCalendar)
+      new_year = Date.new!(2025, 3, 25, LadyDayCalendar)
+      first_day = Date.new!(2024, 3, 25, LadyDayCalendar)
+
+      assert Date.convert!(first_day, Calendar.ISO) == ~D[2024-03-25]
+      assert Date.convert!(last_day, Calendar.ISO) == ~D[2025-03-24]
+      assert Date.convert!(new_year, Calendar.ISO) == ~D[2025-03-25]
+
+      for {relative, relative_to, unit, expected} <- [
+            {new_year, last_day, nil, "tomorrow"},
+            {new_year, last_day, :month, "this month"},
+            {new_year, last_day, :quarter, "next quarter"},
+            {new_year, last_day, :year, "next year"},
+            {last_day, new_year, :month, "this month"},
+            {last_day, new_year, :quarter, "last quarter"},
+            {last_day, new_year, :year, "last year"},
+            {last_day, first_day, nil, "in 12 months"},
+            {last_day, first_day, :month, "in 12 months"},
+            {last_day, first_day, :quarter, "in 3 quarters"},
+            {last_day, first_day, :year, "this year"},
+            {new_year, first_day, nil, "next year"},
+            {new_year, first_day, :month, "in 12 months"},
+            {new_year, first_day, :quarter, "in 4 quarters"},
+            {first_day, new_year, nil, "last year"}
+          ] do
+        assert Relative.to_string(relative, relative_to: relative_to, unit: unit, locale: :en) ==
+                 {:ok, expected},
+               "#{inspect(relative)} against #{inspect(relative_to)} in #{inspect(unit)}"
+      end
+    end
+
+    # The Julian calendar has no year 0, so the year after 1 BC, year -1, is
+    # AD 1, and the calendar says so: the years between two dates are not the
+    # difference of their numbers. 15 June 2 BC to 15 June AD 2 is three
+    # years.
+    test "a calendar whose years are not numbered one after another" do
+      last_day_bc = Date.new!(-1, 12, 31, NoYearZeroCalendar)
+      first_day_ad = Date.new!(1, 1, 1, NoYearZeroCalendar)
+      two_bc = Date.new!(-2, 6, 15, NoYearZeroCalendar)
+      two_ad = Date.new!(2, 6, 15, NoYearZeroCalendar)
+
+      assert Date.diff(first_day_ad, last_day_bc) == 1
+      assert Date.convert!(two_bc, Calendar.ISO) == ~D[-0001-06-15]
+
+      for {relative, relative_to, unit, expected} <- [
+            {first_day_ad, last_day_bc, nil, "tomorrow"},
+            {first_day_ad, last_day_bc, :month, "next month"},
+            {first_day_ad, last_day_bc, :quarter, "next quarter"},
+            {first_day_ad, last_day_bc, :year, "next year"},
+            {last_day_bc, first_day_ad, :year, "last year"},
+            {two_ad, two_bc, nil, "in 3 years"},
+            {two_ad, two_bc, :year, "in 3 years"},
+            {two_ad, two_bc, :quarter, "in 12 quarters"},
+            {two_ad, two_bc, :month, "in 36 months"},
+            {two_bc, two_ad, :year, "3 years ago"}
+          ] do
+        assert Relative.to_string(relative, relative_to: relative_to, unit: unit, locale: :en) ==
+                 {:ok, expected},
+               "#{inspect(relative)} against #{inspect(relative_to)} in #{inspect(unit)}"
+      end
     end
 
     test "a baseline in a calendar the value's cannot take" do

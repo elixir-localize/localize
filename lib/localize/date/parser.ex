@@ -488,9 +488,9 @@ defmodule Localize.Date.Parser do
   end
 
   # In `:map` mode there's no `Date.Range` to build and no
-  # `Date.compare/2` to run for inversion checking — the
-  # partial maps may not have enough fields to compare. We
-  # return the pair as-is and let the caller decide.
+  # inversion to check — the partial maps may not have enough
+  # fields to say which is the earlier. We return the pair
+  # as-is and let the caller decide.
   defp finalise_range(%Date{} = from, %Date{} = to, allow_inverted, :struct) do
     build_range(from, to, allow_inverted)
   end
@@ -1220,7 +1220,7 @@ defmodule Localize.Date.Parser do
   end
 
   defp build_range(from, to, allow_inverted) do
-    case Date.compare(from, to) do
+    case Localize.Calendar.compare_days(from, to) do
       :gt when not allow_inverted ->
         {:error,
          DateRangeParseError.exception(
@@ -1323,60 +1323,34 @@ defmodule Localize.Date.Parser do
     end
   end
 
-  # `YYYY-DDD` (ordinal date — year + day-of-year, 1..366).
+  # `YYYY-DDD` (ordinal date — year + day-of-year, 1..366): that day of the
+  # year's days, as `Localize.Calendar.ISO` gives them.
   defp try_iso_ordinal(input) do
     with [_, y, d] <- Regex.run(~r/\A(\d{4})-(\d{3})\z/u, input),
          {year, ""} <- Integer.parse(y),
          {day_of_year, ""} <- Integer.parse(d),
-         days = days_in_iso_year(year),
-         true <- day_of_year in 1..days,
-         {:ok, jan_1} <- Date.new(year, 1, 1) do
-      {:ok, Date.add(jan_1, day_of_year - 1)}
+         %Date.Range{} = days <- Localize.Calendar.ISO.year(year),
+         true <- day_of_year in 1..Enum.count(days)//1 do
+      {:ok, Date.add(days.first, day_of_year - 1)}
     else
       _ -> :error
     end
   end
 
-  defp days_in_iso_year(year) do
-    if Calendar.ISO.leap_year?(year), do: 366, else: 365
-  end
-
-  # `YYYY-Www-D` (ISO week date — week-based year + week
-  # number + day-of-week 1..7, Monday=1). Resolved against
-  # `Calendar.ISO`'s week numbering.
+  # `YYYY-Www-D` (ISO week date — week-based year + week number + day of the
+  # week, 1 for Monday to 7): that day of ISO 8601's week, which
+  # `Localize.Calendar.ISO` answers where a question carries no locale. A
+  # week the year does not have, `2026-W54-1` or `2025-W53-1`, is no date.
   defp try_iso_week_date(input) do
     with [_, y, w, d] <- Regex.run(~r/\A(\d{4})-W(\d{2})-(\d)\z/u, input),
          {year, ""} <- Integer.parse(y),
          {week, ""} <- Integer.parse(w),
          {day, ""} <- Integer.parse(d),
-         true <- week in 1..53,
          true <- day in 1..7,
-         {:ok, date} <- iso_week_date_to_date(year, week, day) do
-      {:ok, date}
+         %Date.Range{first: monday} <- Localize.Calendar.ISO.week(year, week) do
+      {:ok, Date.add(monday, day - 1)}
     else
       _ -> :error
-    end
-  end
-
-  # ISO 8601 week 01 is the week containing the first Thursday
-  # of the year (equivalently, the week containing Jan 4).
-  defp iso_week_date_to_date(year, week, day) do
-    case Date.new(year, 1, 4) do
-      {:ok, jan_4} ->
-        jan_4_day_of_week = Date.day_of_week(jan_4)
-        week_1_monday = Date.add(jan_4, -(jan_4_day_of_week - 1))
-        candidate = Date.add(week_1_monday, (week - 1) * 7 + (day - 1))
-
-        # Validate that the resulting date's week-based year
-        # matches the requested year (rejects e.g. `2026-W53-1`
-        # for years with only 52 weeks).
-        case :calendar.iso_week_number({candidate.year, candidate.month, candidate.day}) do
-          {^year, ^week} -> {:ok, candidate}
-          _ -> :error
-        end
-
-      _ ->
-        :error
     end
   end
 
@@ -3209,15 +3183,8 @@ defmodule Localize.Date.Parser do
     end
   end
 
-  defp build_from_day_of_year(fields, calendar_module) do
-    with true <- fields.day_of_year in 1..days_in_year(fields.year, calendar_module),
-         {:ok, jan1} <- build_date(fields.year, 1, 1, calendar_module),
-         %Date{} = date <- Date.add(jan1, fields.day_of_year - 1) do
-      {:ok, date}
-    else
-      _ -> :error
-    end
-  end
+  defp build_from_day_of_year(fields, calendar_module),
+    do: day_of_year(fields.year, fields.day_of_year, calendar_module)
 
   defp build_from_week_date(fields, calendar_module) do
     date_from_week(
@@ -3378,9 +3345,8 @@ defmodule Localize.Date.Parser do
 
   defp possible_day_of_year?(%{day_of_year: nil}, _year), do: true
 
-  defp possible_day_of_year?(fields, year) do
-    fields.day_of_year in 1..days_in_year(year, fields.calendar_module)
-  end
+  defp possible_day_of_year?(fields, year),
+    do: match?({:ok, _date}, day_of_year(year, fields.day_of_year, fields.calendar_module))
 
   defp possible_week?(%{week_of_year: nil}, _year), do: true
 
@@ -3438,11 +3404,26 @@ defmodule Localize.Date.Parser do
     end)
   end
 
-  defp days_in_year(year, calendar_module) do
-    Enum.reduce(1..calendar_module.months_in_year(year), 0, fn month, days ->
-      days + calendar_module.days_in_month(year, month)
-    end)
+  # A day of a year by its number, as the formatter writes `D`: that day of
+  # the year's days, which the calendar gives (its `year/1`), counted from
+  # the first. A number the year has no day for is no date.
+  defp day_of_year(year, day_of_year, calendar_module) when is_integer(day_of_year) do
+    with {:ok, days} <-
+           Localize.Calendar.ask(
+             calendar_module,
+             :year,
+             [year],
+             "the days of a year",
+             &match?(%Date.Range{}, &1)
+           ),
+         true <- day_of_year in 1..Enum.count(days)//1 do
+      {:ok, Date.add(days.first, day_of_year - 1)}
+    else
+      _no_such_day -> :error
+    end
   end
+
+  defp day_of_year(_year, _day_of_year, _calendar_module), do: :error
 
   # The fields of a date given only as year, month and day, in the shape
   # `extract_fields/5` gives them. It has no week fields, so nothing reads

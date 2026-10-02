@@ -65,7 +65,16 @@ A numeric month (`M`, `MM`, `L`, `LL`) is the CLDR month the month's name uses, 
 
 Week numbers (`Y`, `w`, `W`) are the calendar's own for a calendar that numbers its weeks (user, 2026-10-01), where ICU4C numbers every calendar's weeks by the locale's `firstDay` and `minDays`. `Calendar.ISO` has no weeks of its own, so Localize numbers its weeks by the locale's week data as ICU4C does (user, 2026-10-02): `Y`, `w` and the numeric weekday `e` agree with ICU4C 78.3 on every day of 2019 to 2030 in seventeen locales, the `-u-fw-`, `-u-rg-`, `-u-sd-` and `-u-ca-iso8601` keys included.
 
-`W` differs at a month's ends. TR35 says a month's weeks are "similarly calculated" to a year's, so Localize gives a week to the month that holds at least the locale's minimum days of it, and a pattern with `W` writes its month and year as the week's. ICU4C numbers a week within its date's own month: 0 for the days before the month's week 1, and 5 or 6 for the days after its last whole week. So `MMMMW` for 1 October 2021 is "week 5 of September" in `en-GB`, where ICU4C 78.3 writes "week 0 of October", and for 30 September 2021 it is "week 1 of October" in `en`, where ICU4C writes "week 5 of September". Wherever the week is in its date's own month the two agree.
+`W` differs at a month's ends, and Localize keeps the difference (user, 2026-10-02). TR35 says a month's weeks are "similarly calculated" to a year's, with `minDays` "the minimum number of days in the new month for a week to count as part of that month". So Localize gives a week to the month that holds at least the locale's minimum days of it, and a pattern with `W` writes its month and year as the week's, as `Y` writes the year `w` belongs to. ICU4C numbers a week within its date's own month: 0 for the days before the month's week 1, and 5 or 6 for the days after its last whole week. `MMMMW` is "'week' W 'of' MMMM" in both locales:
+
+| Date | Locale | Localize | ICU4C 78.3 |
+|---|---|---|---|
+| 1 October 2021 | `en-GB` | "week 5 of September" | "week 0 of October" |
+| 30 September 2021 | `en` | "week 1 of October" | "week 5 of September" |
+| 30 June 2026 | `en` | "week 1 of July" | "week 5 of June" |
+| 30 June 2026 | `en-GB` | "week 1 of July" | "week 5 of June" |
+
+The first row is a week holding four days of September under ISO 8601's weeks, and the others are weeks holding enough days of the month after: one in `en`, four in `en-GB`. Wherever the week is in its date's own month the two agree, which over 2019 to 2030 is every day but 432 of 4,383 in `en` and every day but 246 in `en-GB`. Localize's values are asserted from TR35's rule for every day of 2015 to 2026 in `test/localize/calendar_callbacks_test.exs`.
 
 ### Date parsing
 
@@ -78,7 +87,17 @@ TR35 makes `y` the year of the era `G` names, and leaves the reading of a two-di
 
 The two agree on everything else here: "Jun 1, 1 BC" is year 0, and "Jun 1, 44", with no era, is 2044.
 
-ICU4C's parser is lenient about a week the year does not have. In `en`, where 2026 has 52 weeks, it reads "week 53 of 2026" as the week beginning 27 December 2026, week 1 of 2027, which is how TR35's note on week 53 says such a date "should be treated", and "week 60 of 2026" as a week of February 2027. Localize reads only a week the year has, in the weeks it writes, and returns an error for any other, as it does for every field no date has; asserted in `test/localize/impossible_fields_parse_test.exs`.
+A week the year does not have is an error in Localize and a later week in ICU4C, and Localize keeps the difference (user, 2026-10-02). ICU4C's parser is lenient: in `en`, where 2026 has 52 weeks, it reads "week 53 of 2026" as the week beginning 27 December 2026, which is week 1 of 2027, and "week 60 of 2026" as a week of February 2027. TR35's note on week data recommends the first of those readings, saying a week 53 parsed for a year without one "should be treated as in the first week of the following year". Localize reads only a week the year has, in the weeks it writes, and returns a `Localize.DateParseError` for any other, as it does for every field value no date has, so text that names no week is reported rather than moved.
+
+| Input | Locale | Localize | ICU4C 78.3 parses |
+|---|---|---|---|
+| "week 53 of 2022" | `en` | `~D[2022-12-25]` | 25 December 2022 |
+| "week 53 of 2026" | `en` | an error | 27 December 2026 |
+| "week 60 of 2026" | `en` | an error | 14 February 2027 |
+| "Woche 53 des Jahres 2026" | `de` | `~D[2026-12-28]` | 28 December 2026 |
+| "Woche 53 des Jahres 2025" | `de` | an error | 29 December 2025 |
+
+`Calendar.ISO`'s weeks are the locale's, so the weeks a year has depend on the locale: 2026 has 53 weeks in `de` and 52 in `en`. Asserted in `test/localize/impossible_fields_parse_test.exs`.
 
 ### Time parsing
 

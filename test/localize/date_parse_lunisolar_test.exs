@@ -150,6 +150,11 @@ defmodule Localize.DateParseLunisolarTest do
     def month_of_year(_year, month, _day), do: month
     def related_gregorian_year(year, _month, _day), do: year - @offset
 
+    # The era depends on the day, so a date without its month or day is not
+    # this calendar's to answer, as Calendrical's Japanese calendar says of one.
+    def year_of_era(_year, month, day) when is_nil(month) or is_nil(day),
+      do: {:error, :missing_fields}
+
     # Reiwa began on 2019-05-01 and Heisei on 1989-01-08.
     def year_of_era(year, month, day) do
       gregorian = {year - @offset, month, day}
@@ -159,7 +164,9 @@ defmodule Localize.DateParseLunisolarTest do
         else: {year - @offset - 1988, 235}
     end
 
-    def calendar_year(year, month, day), do: elem(year_of_era(year, month, day), 0)
+    def calendar_year(year, month, day) do
+      with {year_of_era, _era} <- year_of_era(year, month, day), do: year_of_era
+    end
 
     def valid_date?(year, month, day), do: Calendar.ISO.valid_date?(year - @offset, month, day)
     def days_in_month(year, month), do: Calendar.ISO.days_in_month(year - @offset, month)
@@ -200,6 +207,11 @@ defmodule Localize.DateParseLunisolarTest do
     def month_of_year(_year, month, _day), do: month
     def era_calendar_type, do: :japanese
 
+    # The era depends on the day, so a date without its month or day is not
+    # this calendar's to answer, as Calendrical's Japanese calendar says of one.
+    def year_of_era(_year, month, day) when is_nil(month) or is_nil(day),
+      do: {:error, :missing_fields}
+
     # Reiwa began on 2019-05-01 and Heisei on 1989-01-08.
     def year_of_era(year, month, day) do
       if {year, month, day} >= {2019, 5, 1},
@@ -207,7 +219,9 @@ defmodule Localize.DateParseLunisolarTest do
         else: {year - 1988, 235}
     end
 
-    def calendar_year(year, month, day), do: elem(year_of_era(year, month, day), 0)
+    def calendar_year(year, month, day) do
+      with {year_of_era, _era} <- year_of_era(year, month, day), do: year_of_era
+    end
 
     defdelegate valid_date?(year, month, day), to: Calendar.ISO
     defdelegate days_in_month(year, month), to: Calendar.ISO

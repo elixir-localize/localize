@@ -9,6 +9,12 @@ defmodule Localize.Test.StandInCalendar do
   # for one of Calendrical's: it uses this module and overrides the answers
   # it is about. `without: [parsing_calendar: 0]` leaves answers out, for a
   # calendar that cannot give them.
+  #
+  # A year's days (`year/1`) and the arithmetic of months and years (`plus/6`
+  # and `diff/3`) are answered from the calendar's own `Calendar` callbacks,
+  # its `months_in_year/1`, `days_in_month/2` and `shift_date/4`, as
+  # Calendrical derives a calendar's from them, so a stand-in that overrides
+  # those answers the rest to match.
 
   @localize_answers [
     cldr_calendar_type: 0,
@@ -22,7 +28,10 @@ defmodule Localize.Test.StandInCalendar do
     week_of_year: 3,
     week_of_month: 3,
     week: 2,
-    quarter: 2
+    quarter: 2,
+    year: 1,
+    plus: 6,
+    diff: 3
   ]
 
   @calendar_callbacks Calendar.behaviour_info(:callbacks) --
@@ -105,6 +114,49 @@ defmodule Localize.Test.StandInCalendar do
     end
   end
 
+  # The days of a year, from the first day of its first month to the last
+  # day of its last, as the calendar using this module counts them.
+  defp definition({:year, 1}) do
+    quote do
+      def year(year) do
+        last_month = months_in_year(year)
+        last_day = days_in_month(year, last_month)
+
+        Date.range(
+          %Date{year: year, month: 1, day: 1, calendar: __MODULE__},
+          %Date{year: year, month: last_month, day: last_day, calendar: __MODULE__}
+        )
+      end
+    end
+  end
+
+  # The date a number of years, quarters, months, weeks or days on, as the
+  # calendar using this module shifts a date (its `shift_date/4`), which
+  # brings the day into a shorter month.
+  defp definition({:plus, 6}) do
+    quote do
+      def plus(year, month, day, date_part, increment, _options) do
+        duration =
+          case date_part do
+            :years -> Duration.new!(year: increment)
+            :quarters -> Duration.new!(month: increment * 3)
+            :months -> Duration.new!(month: increment)
+            :weeks -> Duration.new!(week: increment)
+            :days -> Duration.new!(day: increment)
+          end
+
+        shift_date(year, month, day, duration)
+      end
+    end
+  end
+
+  defp definition({:diff, 3}) do
+    quote do
+      def diff(from, to, date_part),
+        do: Localize.Test.StandInCalendar.diff(__MODULE__, from, to, date_part)
+    end
+  end
+
   defp definition({name, arity}) do
     arguments = Macro.generate_arguments(arity, __MODULE__)
 
@@ -112,5 +164,35 @@ defmodule Localize.Test.StandInCalendar do
       def unquote(name)(unquote_splicing(arguments)),
         do: Calendar.ISO.unquote(name)(unquote_splicing(arguments))
     end
+  end
+
+  # The whole years, quarters, months, weeks or days from one date of a
+  # calendar to another, the inverse of its `plus/6`: the most that adds to
+  # the earlier date without passing the later, and negative when `to` is the
+  # earlier.
+  def diff(calendar, from, to, date_part) do
+    if days(calendar, to) < days(calendar, from),
+      do: -count(calendar, to, from, date_part),
+      else: count(calendar, from, to, date_part)
+  end
+
+  defp count(calendar, from, to, :days), do: days(calendar, to) - days(calendar, from)
+  defp count(calendar, from, to, :weeks), do: div(count(calendar, from, to, :days), 7)
+  defp count(calendar, from, to, :quarters), do: div(count(calendar, from, to, :months), 3)
+
+  defp count(calendar, {year, month, day}, to, date_part) do
+    limit = days(calendar, to)
+
+    past =
+      Enum.find(Stream.iterate(1, &(&1 + 1)), fn count ->
+        days(calendar, calendar.plus(year, month, day, date_part, count, coerce: true)) > limit
+      end)
+
+    past - 1
+  end
+
+  defp days(calendar, {year, month, day}) do
+    {days, _fraction} = calendar.naive_datetime_to_iso_days(year, month, day, 0, 0, 0, {0, 0})
+    days
   end
 end
