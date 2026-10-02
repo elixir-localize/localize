@@ -591,6 +591,10 @@ defmodule Localize.DateTime.Timezone do
     the datetime's `:std_offset`), `:generic`, `:standard`, or
     `:daylight`. The default is `:specific`.
 
+  * `:number_system` is the numbering system whose digits write the
+    offset where the name falls back to `gmt_format/3`. The default is
+    the locale's default numbering system.
+
   ### Returns
 
   * `{:ok, timezone_name}` with the localized non-location name, or
@@ -637,10 +641,10 @@ defmodule Localize.DateTime.Timezone do
         # before the localized GMT format; the specific symbols go straight
         # to GMT.
         type == :generic ->
-          generic_location_or_gmt(datetime, time_zone, locale_id, format)
+          generic_location_or_gmt(datetime, time_zone, locale_id, gmt_options(options))
 
         true ->
-          gmt_format(datetime, locale_id, format: format)
+          gmt_format(datetime, locale_id, gmt_options(options))
       end
     end
   end
@@ -678,11 +682,15 @@ defmodule Localize.DateTime.Timezone do
 
   defp named_zone(time_zone, _datetime), do: time_zone
 
-  defp generic_location_or_gmt(datetime, time_zone, locale_id, format) do
+  defp generic_location_or_gmt(datetime, time_zone, locale_id, gmt_options) do
     case generic_location_format(time_zone, locale_id) do
       {:ok, location} -> {:ok, location}
-      :error -> gmt_format(datetime, locale_id, format: format)
+      :error -> gmt_format(datetime, locale_id, gmt_options)
     end
+  end
+
+  defp gmt_options(options) do
+    [format: Keyword.get(options, :format, :long)] ++ Keyword.take(options, [:number_system])
   end
 
   defp zone_name(time_zone, tz_data, format, type, datetime) when is_binary(time_zone) do
@@ -886,6 +894,11 @@ defmodule Localize.DateTime.Timezone do
     `"GMT+1"`; minutes are dropped when zero). The default is
     `:long`.
 
+  * `:number_system` is the numbering system whose digits write the
+    offset, as TR35 has it written in the locale's digits (`"GMT-४"` in
+    `ne`). The default is the locale's default numbering system. A system
+    without digits of its own writes 0 to 9.
+
   ### Returns
 
   * `{:ok, formatted_string}` (e.g., `"GMT+01:00"`). A zero offset is
@@ -907,6 +920,9 @@ defmodule Localize.DateTime.Timezone do
       iex> Localize.DateTime.Timezone.gmt_format(%{utc_offset: -28800, std_offset: 0}, :en, format: :short)
       {:ok, "GMT-8"}
 
+      iex> Localize.DateTime.Timezone.gmt_format(%{utc_offset: -14400, std_offset: 0}, :ne, format: :short)
+      {:ok, "GMT-४"}
+
   """
   @spec gmt_format(map(), atom(), Keyword.t()) ::
           {:ok, String.t()} | {:error, Exception.t()}
@@ -916,7 +932,7 @@ defmodule Localize.DateTime.Timezone do
     with {:ok, tz_data} <- Localize.Locale.get(locale_id, [:dates, :time_zone_names]) do
       case total_offset(datetime) do
         nil -> {:ok, tz_data[:gmt_unknown_format] || @default_gmt_unknown_format}
-        offset -> {:ok, offset_format(offset, tz_data, options)}
+        offset -> {:ok, offset_format(offset, tz_data, locale_id, options)}
       end
     end
   end
@@ -924,16 +940,36 @@ defmodule Localize.DateTime.Timezone do
   def gmt_format(_datetime, _locale_id, options),
     do: {:error, Localize.Utils.Helpers.invalid_options(options)}
 
-  defp offset_format(offset, tz_data, options) do
+  defp offset_format(offset, tz_data, locale_id, options) do
     gmt_pattern = tz_data[:gmt_format] || @default_gmt_format
     hour_format = tz_data[:hour_format] || @default_hour_format
     format = Keyword.get(options, :format, :long)
 
     offset
     |> format_hour_offset(hour_format, format)
+    |> offset_digits(locale_id, Keyword.get(options, :number_system))
     |> Localize.Substitution.substitute(gmt_pattern)
     |> Enum.join()
   end
+
+  # The offset in the digits of the numbering system asked for, or of the
+  # locale's (TR35, "Time Zone Format Terminology"): "GMT-४" in `ne`,
+  # "غرينتش-٤" in `ar-EG`, as ICU writes them. A system without digits of its
+  # own, or one that is not known, leaves 0 to 9.
+  defp offset_digits(offset, locale_id, number_system) do
+    with {:ok, system} <- offset_number_system(locale_id, number_system),
+         {:ok, digits} <- Localize.Number.System.number_system_digits(system),
+         %{} = map <- Localize.Number.System.generate_transliteration_map("0123456789", digits) do
+      Localize.Number.Transliterate.transliterate_digits(offset, map)
+    else
+      _no_digits -> offset
+    end
+  end
+
+  defp offset_number_system(locale_id, nil),
+    do: Localize.Number.System.number_system_from_locale(locale_id)
+
+  defp offset_number_system(_locale_id, number_system), do: {:ok, number_system}
 
   @doc """
   Parses a fixed UTC offset from a time zone string.

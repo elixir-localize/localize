@@ -116,6 +116,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+* The localized GMT format writes its offset in the locale's digits, as TR35 and ICU do ("GMT-४" in `ne`, "غرينتش-٤" in `ar-EG`), or in those of `-u-nu-` or the formatter's `:number_system`. `Localize.DateTime.Timezone.gmt_format/3` and `non_location_format/3` take a `:number_system` option.
+
 * `Localize.Territory.territory_from_locale/1` returns the region of a `-u-rg-` subdivision, so `en-u-rg-gbsct` (Scotland) is `:GB` where it was `:gbsct`, and such a locale's currency, unit preferences and time zone names are its region's.
 
 * The week fields `Y`, `w`, `W`, `e` and `c` take the locale's week data from the locale as given, so a `-u-fw-` first day and a `-u-rg-` region count, which they ignored: Friday is `e` 5 in `en-u-fw-mon`. `Localize.Calendar.first_day_for_locale/1` and `min_days_for_locale/1` follow TR35's first day algorithm in full, reading `-u-ca-iso8601` (ISO 8601's weeks), a `-u-sd-` subdivision and the world's data where a locale has no region.

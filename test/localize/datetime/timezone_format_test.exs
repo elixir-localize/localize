@@ -183,6 +183,58 @@ defmodule Localize.DateTime.TimezoneFormatTest do
       assert {:ok, "GMT+01:00"} = Timezone.gmt_format(%{utc_offset: 3600, std_offset: 0}, :en)
     end
 
+    # TR35 writes the offset in the locale's digits ("they might be from
+    # ०..९"), and ICU4C 78.3 writes four hours west as "GMT-४" in `ne`, whose
+    # default numbering system is Devanagari, and "غرينتش-٤" in `ar-EG`,
+    # whose is Arabic-Indic.
+    test "the offset is written in the locale's digits" do
+      four_west = %{utc_offset: -14_400, std_offset: 0}
+
+      assert {:ok, "GMT-४"} = Timezone.gmt_format(four_west, :ne, format: :short)
+      assert {:ok, "غرينتش-٤"} = Timezone.gmt_format(four_west, :"ar-EG", format: :short)
+      assert {:ok, "GMT-4"} = Timezone.gmt_format(four_west, :en, format: :short)
+    end
+
+    test "the offset is written in the digits of the numbering system asked for" do
+      four_west = %{utc_offset: -14_400, std_offset: 0}
+
+      assert {:ok, "GMT-4"} =
+               Timezone.gmt_format(four_west, :ne, format: :short, number_system: :latn)
+
+      assert {:ok, "GMT-४"} =
+               Timezone.gmt_format(four_west, :en, format: :short, number_system: :deva)
+
+      # A numbering system without digits of its own writes 0 to 9.
+      assert {:ok, "GMT-4"} =
+               Timezone.gmt_format(four_west, :en, format: :short, number_system: :roman)
+    end
+
+    # The formatter writes the offset in the digits of its other fields:
+    # the locale's, or those `-u-nu-` names.
+    test "a formatted zone's offset takes the digits of the date" do
+      datetime = %DateTime{
+        year: 2026,
+        month: 1,
+        day: 15,
+        hour: 9,
+        minute: 30,
+        second: 0,
+        microsecond: {0, 0},
+        time_zone: "America/New_York",
+        zone_abbr: "EST",
+        utc_offset: -18_000,
+        std_offset: 0
+      }
+
+      assert {:ok, "GMT-५"} = Localize.DateTime.to_string(datetime, locale: "ne", format: "O")
+
+      assert {:ok, "GMT-5"} =
+               Localize.DateTime.to_string(datetime, locale: "ne-u-nu-latn", format: "O")
+
+      assert {:ok, "GMT-०५:००"} =
+               Localize.DateTime.to_string(datetime, locale: "ne", format: "OOOO")
+    end
+
     test "short format drops zero minutes and leading hour zero" do
       assert {:ok, "GMT-8"} =
                Timezone.gmt_format(%{utc_offset: -28_800, std_offset: 0}, :en, format: :short)

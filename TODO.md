@@ -20,8 +20,6 @@ Outstanding work on Localize. The design detail behind these items lives under [
 
 * [ ] **Decide whether specific zone names are qualified** — CLDR's own `TimezoneFormatter` qualifies the specific format (`z`, `zzzz`) as it does the generic one, "Central European Summer Time (Germany)" for Berlin in `en`, where ICU4C never does; a specific name already reads back to its instant, and Localize qualifies only the generic format.
 
-* [ ] **The localized GMT format writes Latin digits** — TR35 writes its offset in the locale's default digits, as ICU4C does (`ar-EG` "غرينتش-٤", `ne` "GMT-४"), where Localize writes "غرينتش-4" and "GMT-4"; the parser reads the two forms alike.
-
 * [ ] **The time parser reads only the Gregorian calendar's time formats** — `Localize.DateTime.parse/2` in another calendar reads its time with the Gregorian patterns, so `de`'s Chinese `Bh` "10 vorm." does not parse where its Gregorian "10 Uhr vorm." does; take the calendar's time formats when `:calendar` is given, as the formatter now does.
 
 * [ ] **Date round trips that fail in eight locales** — `haw` writes months in Roman numerals ("31/xii/24"), `nnh`'s long and full dates do not parse, `gd`'s `yMMM` writes the week-based year ("Dùbh 2025" for 2024-12-31, a CLDR report like `pt`'s), `en-ZW` reads "May 2019" as May 20, and numeric `yMd` dates in `mt`, `sbp`, `ug` and `vai-Latn` are read day-first.
@@ -65,6 +63,8 @@ Outstanding work on Localize. The design detail behind these items lives under [
 * [ ] **`localize_emoji` sibling library** — plan item 11, a separate package on its own schedule. A Phoenix LiveView picker (`localize_emoji_live`) is out of scope for its 0.1.0.
 
 ## Done
+
+* [x] **The localized GMT format writes the locale's digits** — "GMT-४" in `ne` and "غرينتش-٤" in `ar-EG`, as TR35 and ICU4C write them, or the digits of `-u-nu-` and `:number_system`, as the date's other fields are. 2026-10-03, v1.4.0.
 
 * [x] **A `-u-rg-` subdivision gives its region as the territory** — `territory_from_locale/1` returns `:GB` for `en-u-rg-gbsct`, where it returned `:gbsct`, so currency, unit preferences and time zone names take the region, as the week data already did. 2026-10-03, v1.4.0.
 

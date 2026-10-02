@@ -1713,30 +1713,47 @@ defmodule Localize.DateTime.Formatter do
   # z (1-3): Short specific non-location (e.g., "EST")
   # z (4):   Long specific non-location (e.g., "Eastern Standard Time")
   @doc false
-  def zone_short(%{time_zone: _} = datetime, count, locale_id, _options) when count in 1..3 do
-    case Timezone.non_location_format(datetime, locale_id, format: :short, type: :specific) do
+  def zone_short(%{time_zone: _} = datetime, count, locale_id, options) when count in 1..3 do
+    case Timezone.non_location_format(datetime, locale_id,
+           format: :short,
+           type: :specific,
+           number_system: zone_number_system(options)
+         ) do
       {:ok, result} -> result
       _ -> ""
     end
   end
 
-  def zone_short(%{time_zone: _} = datetime, 4, locale_id, _options) do
-    case Timezone.non_location_format(datetime, locale_id, format: :long, type: :specific) do
+  def zone_short(%{time_zone: _} = datetime, 4, locale_id, options) do
+    case Timezone.non_location_format(datetime, locale_id,
+           format: :long,
+           type: :specific,
+           number_system: zone_number_system(options)
+         ) do
       {:ok, result} -> result
       _ -> ""
     end
   end
 
-  def zone_short(%{utc_offset: _} = datetime, count, locale_id, _options) do
+  def zone_short(%{utc_offset: _} = datetime, count, locale_id, options) do
     format = if count in 1..3, do: :short, else: :long
 
-    case Timezone.gmt_format(datetime, locale_id, format: format) do
+    case Timezone.gmt_format(datetime, locale_id,
+           format: format,
+           number_system: zone_number_system(options)
+         ) do
       {:ok, result} -> result
       _ -> ""
     end
   end
 
   def zone_short(_datetime, _count, _locale_id, _options), do: ""
+
+  # The numbering system whose digits write a localized GMT offset: that of
+  # every other numeric field, the locale's own unless `-u-nu-` or the
+  # `:number_system` option names another. No system recorded is 0 to 9,
+  # as the other fields write.
+  defp zone_number_system(options), do: fetch_override(options, "all") || :latn
 
   # Z (1-3): ISO 8601 basic format (+0500)
   # Z (4):   Localized GMT format (GMT+05:00)
@@ -1752,8 +1769,11 @@ defmodule Localize.DateTime.Formatter do
 
   # TR35 groups `ZZZZ` with `O+` as the localized GMT formats: CLDR renders
   # `Etc/GMT` as "GMT+0" for `O` and "GMT+00:00" here.
-  def zone_basic(datetime, 4, locale_id, _options) when has_zone(datetime) do
-    case Timezone.gmt_format(datetime, locale_id, format: :long) do
+  def zone_basic(datetime, 4, locale_id, options) when has_zone(datetime) do
+    case Timezone.gmt_format(datetime, locale_id,
+           format: :long,
+           number_system: zone_number_system(options)
+         ) do
       {:ok, result} -> result
       _ -> ""
     end
@@ -1771,15 +1791,21 @@ defmodule Localize.DateTime.Formatter do
   # O (1): Short localized GMT (GMT+1)
   # O (4): Long localized GMT (GMT+01:00)
   @doc false
-  def zone_gmt(datetime, 1, locale_id, _options) when has_zone(datetime) do
-    case Timezone.gmt_format(datetime, locale_id, format: :short) do
+  def zone_gmt(datetime, 1, locale_id, options) when has_zone(datetime) do
+    case Timezone.gmt_format(datetime, locale_id,
+           format: :short,
+           number_system: zone_number_system(options)
+         ) do
       {:ok, result} -> result
       _ -> ""
     end
   end
 
-  def zone_gmt(datetime, 4, locale_id, _options) when has_zone(datetime) do
-    case Timezone.gmt_format(datetime, locale_id, format: :long) do
+  def zone_gmt(datetime, 4, locale_id, options) when has_zone(datetime) do
+    case Timezone.gmt_format(datetime, locale_id,
+           format: :long,
+           number_system: zone_number_system(options)
+         ) do
       {:ok, result} -> result
       _ -> ""
     end
@@ -1790,17 +1816,21 @@ defmodule Localize.DateTime.Formatter do
   # v (1): Short generic non-location (e.g., "ET")
   # v (4): Long generic non-location (e.g., "Eastern Time")
   @doc false
-  def generic_non_location(%{time_zone: _} = datetime, count, locale_id, _options) do
+  def generic_non_location(%{time_zone: _} = datetime, count, locale_id, options) do
     format = if count == 1, do: :short, else: :long
 
-    case Timezone.non_location_format(datetime, locale_id, format: format, type: :generic) do
+    case Timezone.non_location_format(datetime, locale_id,
+           format: format,
+           type: :generic,
+           number_system: zone_number_system(options)
+         ) do
       {:ok, result} -> result
       _ -> ""
     end
   end
 
-  def generic_non_location(datetime, _count, locale_id, _options) when has_zone(datetime) do
-    case Timezone.gmt_format(datetime, locale_id) do
+  def generic_non_location(datetime, _count, locale_id, options) when has_zone(datetime) do
+    case Timezone.gmt_format(datetime, locale_id, number_system: zone_number_system(options)) do
       {:ok, result} -> result
       _ -> ""
     end
@@ -1845,7 +1875,7 @@ defmodule Localize.DateTime.Formatter do
   # `en` is "Adelaide Time". It falls back to the localized GMT format for a
   # zone that has no city of its own, which is how `Etc/GMT` reaches
   # "GMT+00:00" — and which is what this clause did for every zone.
-  def specific_non_location(%{time_zone: tz} = datetime, 4, locale_id, _options)
+  def specific_non_location(%{time_zone: tz} = datetime, 4, locale_id, options)
       when has_zone(datetime) do
     case Timezone.generic_location_format(tz, locale_id) do
       {:ok, result} ->
@@ -1856,17 +1886,23 @@ defmodule Localize.DateTime.Formatter do
         # carries an explicit offset — hence "GMT+00:00", matching the
         # `location` zoneStyle rows of
         # test/support/data/date_time_formatting.json.
-        case Timezone.gmt_format(datetime, locale_id, format: :long) do
+        case Timezone.gmt_format(datetime, locale_id,
+               format: :long,
+               number_system: zone_number_system(options)
+             ) do
           {:ok, result} -> result
           _no_gmt_format -> ""
         end
     end
   end
 
-  def specific_non_location(datetime, count, locale_id, _options) when has_zone(datetime) do
+  def specific_non_location(datetime, count, locale_id, options) when has_zone(datetime) do
     format = if count in 1..3, do: :short, else: :long
 
-    case Timezone.gmt_format(datetime, locale_id, format: format) do
+    case Timezone.gmt_format(datetime, locale_id,
+           format: format,
+           number_system: zone_number_system(options)
+         ) do
       {:ok, result} -> result
       _ -> ""
     end
