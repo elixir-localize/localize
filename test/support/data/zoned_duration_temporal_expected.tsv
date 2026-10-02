@@ -1,0 +1,3039 @@
+# Durations between two date-times in time zones, as ECMA-262 Temporal's
+# DifferenceZonedDateTime gives them, taken step by step from the specification
+# (tc39/proposal-temporal, spec/zoneddatetime.html, 2026-02-12): the later moment
+# is moved to the earlier's time zone, whole days are counted on that wall clock,
+# and the seconds are the time that passes after them. V8's Temporal (Node 24.9)
+# resolved the wall-clock times; its own until follows an older algorithm.
+# Columns: the earlier's time zone and Unix time, the later's time zone and Unix
+# time, days, seconds, and the specification's seconds where they differ.
+# They differ in one case: the earlier moment is the second occurrence of a time
+# the clocks repeat and no whole day is counted. The specification resolves the
+# earlier's wall-clock time again, at its first occurrence, and so counts the
+# repeated time twice. The seconds here are the time that passes.
+# A sample of 324,207 pairs about 36 changes of clocks in 12 time zones, and in
+# three that have none, every one of which Localize was checked against.
+America/New_York	1696399200	America/New_York	1698988200	29	83400
+America/New_York	1698982200	America/New_York	1698994200	0	12000
+America/New_York	1698985800	America/New_York	1699074000	1	1800
+America/New_York	1698987000	America/New_York	1699080600	1	7200
+America/New_York	1698987540	America/New_York	1699160460	2	120
+America/New_York	1698987600	America/New_York	1699167540	2	7140
+America/New_York	1698987660	America/New_York	1699249200	2	88740
+America/New_York	1698988200	America/New_York	1699164001	1	89401
+America/New_York	1698988200	America/New_York	1699331400	3	80400
+America/New_York	1698989400	America/New_York	1699164060	1	88260
+America/New_York	1698989400	America/New_York	1699340400	4	1800
+America/New_York	1698990000	America/New_York	1699164001	1	87601
+America/New_York	1698990000	America/New_York	1699165800	1	89400
+America/New_York	1698990600	America/New_York	1698995400	0	4800
+America/New_York	1698990600	America/New_York	1699164600	1	87600
+America/New_York	1698991140	America/New_York	1699081140	1	3600
+America/New_York	1698991140	America/New_York	1699164001	1	86461
+America/New_York	1698991140	America/New_York	1699165800	1	88260
+America/New_York	1698991200	America/New_York	1699164060	1	86460
+America/New_York	1698991260	America/New_York	1699250340	2	82680
+America/New_York	1698991800	America/New_York	1699336740	3	82140
+America/New_York	1698993000	America/New_York	1699072200	0	79200
+America/New_York	1698994200	America/New_York	1699160340	1	79740
+America/New_York	1698994740	America/New_York	1699246800	2	75660
+America/New_York	1698994800	America/New_York	1699336200	3	78600
+America/New_York	1698995400	America/New_York	1699077540	0	82140
+America/New_York	1698996600	America/New_York	1699165800	1	82800
+America/New_York	1699000200	America/New_York	1699327800	3	64800
+America/New_York	1699072200	America/New_York	1699077000	0	4800
+America/New_York	1699073400	America/New_York	1699167600	1	7800
+America/New_York	1699073940	America/New_York	1699335000	2	84660
+America/New_York	1699074060	America/New_York	1699155000	0	80940
+America/New_York	1699074600	America/New_York	1699164000	0	89400
+America/New_York	1699074600	America/New_York	1699251000	2	0
+America/New_York	1699075800	America/New_York	1699164001	0	88201
+America/New_York	1699076400	America/New_York	1699078200	0	1800
+America/New_York	1699076400	America/New_York	1699164000	0	87600
+America/New_York	1699076400	America/New_York	1699165200	0	88800
+America/New_York	1699077000	America/New_York	1699164060	0	87060
+America/New_York	1699077000	America/New_York	1699246860	1	83460
+America/New_York	1699077540	America/New_York	1699164000	0	86460
+America/New_York	1699077540	America/New_York	1699165200	0	87660
+America/New_York	1699077600	America/New_York	1699077600	0	0
+America/New_York	1699077660	America/New_York	1699247400	1	79740
+America/New_York	1699078800	America/New_York	1699081200	0	2400
+America/New_York	1699079400	America/New_York	1699253400	1	84000
+America/New_York	1699081140	America/New_York	1699163940	0	82800
+America/New_York	1699081200	America/New_York	1699336860	2	79260
+America/New_York	1699081800	America/New_York	1699249800	1	78000
+America/New_York	1699086600	America/New_York	1699164001	0	77401
+America/New_York	1699117200	America/New_York	1699341000	2	47400
+America/New_York	1699158600	America/New_York	1699333200	1	84600
+America/New_York	1699160340	America/New_York	1699252200	1	1860
+America/New_York	1699160460	America/New_York	1699248600	0	88140
+America/New_York	1699162200	America/New_York	1699246740	0	84540
+America/New_York	1699163400	America/New_York	1699246740	0	83340
+America/New_York	1699163999	America/New_York	1699248600	0	84601
+America/New_York	1699164000	America/New_York	1699249800	0	85800	89400
+America/New_York	1699164001	America/New_York	1699249200	0	85199	88799
+America/New_York	1699164001	America/New_York	1699252200	1	1799
+America/New_York	1699164060	America/New_York	1699247400	0	83340	86940
+America/New_York	1699164600	America/New_York	1699246800	0	82200	85800
+America/New_York	1699164600	America/New_York	1699250340	0	85740	89340
+America/New_York	1699164600	America/New_York	1699333200	1	82200
+America/New_York	1699165200	America/New_York	1699248600	0	83400	87000
+America/New_York	1699165200	America/New_York	1699251000	0	85800	89400
+America/New_York	1699165800	America/New_York	1699249800	0	84000	87600
+America/New_York	1699165800	America/New_York	1699341000	2	2400
+America/New_York	1699167000	America/New_York	1699246800	0	79800	83400
+America/New_York	1699167000	America/New_York	1699250340	0	83340	86940
+America/New_York	1699167540	America/New_York	1699246800	0	79260	82860
+America/New_York	1699167540	America/New_York	1699250340	0	82800	86400
+America/New_York	1699167540	America/New_York	1699253400	0	85860	89460
+America/New_York	1699167600	America/New_York	1699249800	0	82200
+America/New_York	1699168200	America/New_York	1699336860	1	82260
+America/New_York	1699210800	America/New_York	1699253400	0	42600
+America/New_York	1699246200	America/New_York	1699247400	0	1200
+America/New_York	1699246860	America/New_York	1699246860	0	0
+America/New_York	1699249200	America/New_York	1699251000	0	1800
+America/New_York	1699250400	America/New_York	1699335000	0	84600
+America/New_York	1699252200	America/New_York	1699327800	0	75600
+America/New_York	1699254060	America/New_York	1699336200	0	82140
+America/New_York	1699331400	America/New_York	1699336740	0	5340
+America/New_York	1699335000	America/New_York	1699340400	0	5400
+America/New_York	1699340340	America/New_York	1733724000	397	82860
+America/New_York	1699073940	Asia/Karachi	1699252200	2	1860
+America/New_York	1664604000	Etc/UTC	1698994800	398	3600
+America/New_York	1699077540	Etc/UTC	1699165200	0	87660
+America/New_York	1699081140	Etc/UTC	1699250340	1	79200
+America/New_York	1698987660	Pacific/Chatham	1699167660	2	7200
+America/New_York	1699162200	Pacific/Chatham	1699336860	1	84660
+America/New_York	1699164060	Pacific/Chatham	1699250340	0	86280	89880
+America/New_York	1675494000	America/New_York	1710057660	400	3660
+America/New_York	1707289200	America/New_York	1710136800	33	0
+America/New_York	1709872200	America/New_York	1710141600	3	13800
+America/New_York	1709875800	America/New_York	1710222600	4	4800
+America/New_York	1709877000	America/New_York	1710228000	4	9000
+America/New_York	1709877600	America/New_York	1709878200	0	600
+America/New_York	1709877660	America/New_York	1709886600	0	8940
+America/New_York	1709878200	America/New_York	1709968800	1	4200
+America/New_York	1709879400	America/New_York	1710052200	2	0
+America/New_York	1709880000	America/New_York	1710100800	2	48000
+America/New_York	1709880600	America/New_York	1710144000	3	7800
+America/New_York	1709881140	America/New_York	1710228600	4	5460
+America/New_York	1709881260	America/New_York	1709958600	0	77340
+America/New_York	1709881800	America/New_York	1710007200	1	39000
+America/New_York	1709882400	America/New_York	1710059400	2	4200
+America/New_York	1709883000	America/New_York	1710149400	3	10800
+America/New_York	1709884740	America/New_York	1709884740	0	0
+America/New_York	1709884800	America/New_York	1709976600	1	5400
+America/New_York	1709884860	America/New_York	1710135000	2	80940
+America/New_York	1709885400	America/New_York	1710225600	3	84600
+America/New_York	1709890200	America/New_York	1709968200	0	78000
+America/New_York	1709958600	America/New_York	1710058200	1	13200
+America/New_York	1709962200	America/New_York	1710225000	3	7200
+America/New_York	1709963940	America/New_York	1709971800	0	7860
+America/New_York	1709964000	America/New_York	1710138600	2	5400
+America/New_York	1709964060	America/New_York	1710235800	3	16140
+America/New_York	1709965800	America/New_York	1710057540	1	5340
+America/New_York	1709966400	America/New_York	1710226800	3	4800
+America/New_York	1709967540	America/New_York	1710054060	1	120
+America/New_York	1709967600	America/New_York	1710226200	3	3000
+America/New_York	1709968200	America/New_York	1710057000	1	2400
+America/New_York	1709968800	America/New_York	1710229800	3	5400
+America/New_York	1709970600	America/New_York	1710136860	1	79860
+America/New_York	1709971200	America/New_York	1710048600	0	77400
+America/New_York	1709971260	America/New_York	1710223200	2	82740
+America/New_York	1709973000	America/New_York	1710136740	1	80940
+America/New_York	1710007200	America/New_York	1710053400	0	46200
+America/New_York	1710045000	America/New_York	1710230340	2	16140
+America/New_York	1710049800	America/New_York	1710223140	2	4140
+America/New_York	1710050400	America/New_York	1710143400	1	10200
+America/New_York	1710051000	America/New_York	1710140340	1	6540
+America/New_York	1710052800	America/New_York	1710139200	1	3600
+America/New_York	1710053940	America/New_York	1710140340	1	3600
+America/New_York	1710054000	America/New_York	1710143400	1	3000
+America/New_York	1710054060	America/New_York	1710223140	1	82680
+America/New_York	1710055200	America/New_York	1710230340	2	2340
+America/New_York	1710057540	America/New_York	1710136740	0	79200
+America/New_York	1710057660	America/New_York	1710223200	1	79140
+America/New_York	1710063000	America/New_York	1710136860	0	73860
+America/New_York	1710131400	America/New_York	1710229800	1	12000
+America/New_York	1710136740	America/New_York	1710226200	1	3060
+America/New_York	1710137400	America/New_York	1710226800	1	3000
+America/New_York	1710139800	America/New_York	1710235800	1	9600
+America/New_York	1710141000	America/New_York	1710225000	0	84000
+America/New_York	1710143940	America/New_York	1710225600	0	81660
+America/New_York	1710149400	America/New_York	1710149400	0	0
+America/New_York	1710223200	America/New_York	1710228600	0	5400
+America/New_York	1710226860	America/New_York	1710228000	0	1140
+America/New_York	1709877660	Asia/Karachi	1710144600	3	11340
+America/New_York	1710054060	Asia/Karachi	1710131400	0	77340
+America/New_York	1709884860	Etc/UTC	1710048600	1	77340
+America/New_York	1710139800	Etc/UTC	1710222600	0	82800
+America/New_York	1709963940	Pacific/Chatham	1710235800	3	16260
+America/New_York	1696053600	America/New_York	1730439600	397	85200
+America/New_York	1727848800	America/New_York	1730444340	30	3540
+America/New_York	1730431800	America/New_York	1730523600	1	5400
+America/New_York	1730435400	America/New_York	1730529000	1	7200
+America/New_York	1730436600	America/New_York	1730609940	2	540
+America/New_York	1730437140	America/New_York	1730614800	2	4860
+America/New_York	1730437200	America/New_York	1730696400	2	86400
+America/New_York	1730437260	America/New_York	1730703660	3	3600
+America/New_York	1730437800	America/New_York	1730613600	1	89400
+America/New_York	1730437800	America/New_York	1730786460	3	85860
+America/New_York	1730439000	America/New_York	1730613601	1	88201
+America/New_York	1730439600	America/New_York	1730440860	0	1260
+America/New_York	1730439600	America/New_York	1730613600	1	87600
+America/New_York	1730439600	America/New_York	1730614800	1	88800
+America/New_York	1730440200	America/New_York	1730526000	0	85800
+America/New_York	1730440200	America/New_York	1730613660	1	87060
+America/New_York	1730440740	America/New_York	1730610000	1	82860
+America/New_York	1730440740	America/New_York	1730613600	1	86460
+America/New_York	1730440740	America/New_York	1730614800	1	87660
+America/New_York	1730440800	America/New_York	1730660400	2	43200
+America/New_York	1730440860	America/New_York	1730705400	3	1740
+America/New_York	1730441400	America/New_York	1730791800	4	1200
+America/New_York	1730442600	America/New_York	1730527260	0	84660
+America/New_York	1730443800	America/New_York	1730613660	1	83460
+America/New_York	1730444340	America/New_York	1730701800	2	81060
+America/New_York	1730444400	America/New_York	1730790600	3	83400
+America/New_York	1730445000	America/New_York	1730532600	1	1200
+America/New_York	1730446200	America/New_York	1730695800	2	73200
+America/New_York	1730449800	America/New_York	1730786400	3	73800
+America/New_York	1730521800	America/New_York	1730531400	0	9600
+America/New_York	1730523000	America/New_York	1730696460	1	87060
+America/New_York	1730523540	America/New_York	1730790000	3	3660
+America/New_York	1730523660	America/New_York	1730613599	1	3539
+America/New_York	1730523660	America/New_York	1730613601	0	89941
+America/New_York	1730524200	America/New_York	1730781000	2	80400
+America/New_York	1730525400	America/New_York	1730613600	0	88200
+America/New_York	1730525400	America/New_York	1730614800	0	89400
+America/New_York	1730526000	America/New_York	1730604600	0	78600
+America/New_York	1730526000	America/New_York	1730614200	0	88200
+America/New_York	1730526600	America/New_York	1730613601	0	87001
+America/New_York	1730526600	America/New_York	1730615400	0	88800
+America/New_York	1730526600	America/New_York	1730703000	2	0
+America/New_York	1730527140	America/New_York	1730614200	0	87060
+America/New_York	1730527200	America/New_York	1730536200	0	9000
+America/New_York	1730527260	America/New_York	1730703540	1	86280
+America/New_York	1730528400	America/New_York	1730610060	0	81660
+America/New_York	1730529000	America/New_York	1730782800	2	77400
+America/New_York	1730530740	America/New_York	1730617260	0	86520
+America/New_York	1730530800	America/New_York	1733378400	32	79200
+America/New_York	1730531400	America/New_York	1730704200	1	82800
+America/New_York	1730536200	America/New_York	1730622600	0	86400
+America/New_York	1730604600	America/New_York	1730610600	0	6000
+America/New_York	1730608200	America/New_York	1730788200	2	3600
+America/New_York	1730609940	America/New_York	1730782740	1	82800
+America/New_York	1730610060	America/New_York	1730703600	1	3540
+America/New_York	1730611800	America/New_York	1730701200	0	89400
+America/New_York	1730613000	America/New_York	1730701200	0	88200
+America/New_York	1730613599	America/New_York	1730703600	1	1
+America/New_York	1730613600	America/New_York	1730699400	0	85800	89400
+America/New_York	1730613601	America/New_York	1730698800	0	85199	88799
+America/New_York	1730613601	America/New_York	1730782740	1	82739
+America/New_York	1730613660	America/New_York	1730697000	0	83340	86940
+America/New_York	1730614200	America/New_York	1730696400	0	82200	85800
+America/New_York	1730614200	America/New_York	1730699940	0	85740	89340
+America/New_York	1730614200	America/New_York	1730788200	2	1200
+America/New_York	1730614800	America/New_York	1730698200	0	83400	87000
+America/New_York	1730614800	America/New_York	1730700600	0	85800	89400
+America/New_York	1730615400	America/New_York	1730699400	0	84000	87600
+America/New_York	1730616600	America/New_York	1730622600	0	6000
+America/New_York	1730616600	America/New_York	1730696400	0	79800	83400
+America/New_York	1730616600	America/New_York	1730699940	0	83340	86940
+America/New_York	1730617140	America/New_York	1730696400	0	79260	82860
+America/New_York	1730617140	America/New_York	1730699940	0	82800	86400
+America/New_York	1730617140	America/New_York	1730703000	0	85860	89460
+America/New_York	1730617200	America/New_York	1730704200	1	600
+America/New_York	1730617800	America/New_York	1733378400	31	82200
+America/New_York	1730660400	America/New_York	1730782800	1	36000
+America/New_York	1730695800	America/New_York	1730703540	0	7740
+America/New_York	1730696460	America/New_York	1730703000	0	6540
+America/New_York	1730698800	America/New_York	1730781000	0	82200
+America/New_York	1730700000	America/New_York	1730790000	1	3600
+America/New_York	1730701800	America/New_York	1730786400	0	84600
+America/New_York	1730703660	America/New_York	1730790600	1	540
+America/New_York	1730781000	America/New_York	1730791800	0	10800
+America/New_York	1730785200	America/New_York	1730786460	0	1260
+America/New_York	1730790060	America/New_York	1730795400	0	5340
+America/New_York	1730527140	Asia/Karachi	1730610600	0	83460
+America/New_York	1730527140	Asia/Karachi	1730614800	0	87660
+America/New_York	1696053600	Etc/UTC	1730691000	400	73800
+America/New_York	1730604600	Etc/UTC	1730614800	0	10200
+America/New_York	1730440860	Pacific/Chatham	1730441400	0	540
+America/New_York	1730613660	Pacific/Chatham	1730699940	0	86280	89880
+America/New_York	1730613660	Pacific/Chatham	1730784600	1	84540
+Europe/London	1663981200	Europe/London	1698624600	400	79800
+Europe/London	1695776400	Europe/London	1698629400	32	84600
+Europe/London	1698359400	Europe/London	1698709800	4	1200
+Europe/London	1698363000	Europe/London	1698714600	4	2400
+Europe/London	1698364740	Europe/London	1698364740	0	0
+Europe/London	1698364800	Europe/London	1698371940	0	7140
+Europe/London	1698364860	Europe/London	1698454200	1	2940
+Europe/London	1698364860	Europe/London	1698541201	1	89941
+Europe/London	1698365400	Europe/London	1698535800	1	84000
+Europe/London	1698366600	Europe/London	1698541200	1	88200
+Europe/London	1698366600	Europe/London	1698542400	1	89400
+Europe/London	1698366600	Europe/London	1698544200	2	4800
+Europe/London	1698367200	Europe/London	1698541800	1	88200
+Europe/London	1698367200	Europe/London	1698627540	2	87540
+Europe/London	1698367800	Europe/London	1698541201	1	87001
+Europe/London	1698367800	Europe/London	1698543000	1	88800
+Europe/London	1698367800	Europe/London	1698711000	3	80400
+Europe/London	1698368340	Europe/London	1698541800	1	87060
+Europe/London	1698368400	Europe/London	1698368460	0	60
+Europe/London	1698368460	Europe/London	1698454800	0	86340
+Europe/London	1698369000	Europe/London	1698541140	1	85740
+Europe/London	1698369600	Europe/London	1698626400	2	80400
+Europe/London	1698370200	Europe/London	1698713940	3	80940
+Europe/London	1698371940	Europe/London	1698451260	0	79320
+Europe/London	1698372000	Europe/London	1698540600	1	82200
+Europe/London	1698372060	Europe/London	1698627660	2	79200
+Europe/London	1698372600	Europe/London	1698717660	3	82260
+Europe/London	1698377400	Europe/London	1698532200	1	68400
+Europe/London	1698445800	Europe/London	1698625800	2	3600
+Europe/London	1698449400	Europe/London	1698717600	3	5400
+Europe/London	1698451140	Europe/London	1698539400	1	1860
+Europe/London	1698451200	Europe/London	1698631200	2	3600
+Europe/London	1698451260	Europe/London	1698541200	0	89940
+Europe/London	1698451800	Europe/London	1698456000	0	4200
+Europe/London	1698451800	Europe/London	1698541260	0	89460
+Europe/London	1698453000	Europe/London	1698541800	0	88800
+Europe/London	1698453000	Europe/London	1698624000	1	84600
+Europe/London	1698453600	Europe/London	1698541260	0	87660
+Europe/London	1698453600	Europe/London	1698723000	3	6600
+Europe/London	1698454200	Europe/London	1698541200	0	87000
+Europe/London	1698454200	Europe/London	1698542400	0	88200
+Europe/London	1698454740	Europe/London	1698541260	0	86520
+Europe/London	1698454740	Europe/London	1698544200	0	89460
+Europe/London	1698454740	Europe/London	1698588000	1	46860
+Europe/London	1698454800	Europe/London	1698718200	3	600
+Europe/London	1698455400	Europe/London	1698623940	1	78540
+Europe/London	1698456600	Europe/London	1698458340	0	1740
+Europe/London	1698457800	Europe/London	1698630600	1	82800
+Europe/London	1698458400	Europe/London	1698541200	0	82800
+Europe/London	1698458460	Europe/London	1698715800	2	80940
+Europe/London	1698460200	Europe/London	1698628800	1	78600
+Europe/London	1698494400	Europe/London	1698544800	0	50400
+Europe/London	1698535800	Europe/London	1698537600	0	1800
+Europe/London	1698537000	Europe/London	1698715200	2	1800
+Europe/London	1698537600	Europe/London	1698710400	1	82800
+Europe/London	1698538200	Europe/London	1698633000	1	4800
+Europe/London	1698540000	Europe/London	1698631260	1	1260
+Europe/London	1698541140	Europe/London	1698633000	1	1860
+Europe/London	1698541200	Europe/London	1698627000	0	85800	89400
+Europe/London	1698541200	Europe/London	1698710400	1	82800
+Europe/London	1698541201	Europe/London	1698626400	0	85199	88799
+Europe/London	1698541260	Europe/London	1698624600	0	83340	86940
+Europe/London	1698541260	Europe/London	1698715200	2	1140
+Europe/London	1698541800	Europe/London	1698624000	0	82200	85800
+Europe/London	1698541800	Europe/London	1698627540	0	85740	89340
+Europe/London	1698542400	Europe/London	1698625800	0	83400	87000
+Europe/London	1698542400	Europe/London	1698628200	0	85800	89400
+Europe/London	1698543000	Europe/London	1698544800	0	1800
+Europe/London	1698543000	Europe/London	1698627000	0	84000	87600
+Europe/London	1698544200	Europe/London	1698624000	0	79800	83400
+Europe/London	1698544200	Europe/London	1698627540	0	83340	86940
+Europe/London	1698544740	Europe/London	1698624000	0	79260	82860
+Europe/London	1698544740	Europe/London	1698627540	0	82800	86400
+Europe/London	1698544740	Europe/London	1698628800	0	84060	87660
+Europe/London	1698544740	Europe/London	1698630600	0	85860	89460
+Europe/London	1698544860	Europe/London	1698715800	1	84540
+Europe/London	1698550200	Europe/London	1698630600	0	80400
+Europe/London	1698622200	Europe/London	1698623940	0	1740
+Europe/London	1698623940	Europe/London	1698718200	1	7860
+Europe/London	1698624600	Europe/London	1698723000	1	12000
+Europe/London	1698627540	Europe/London	1698631200	0	3660
+Europe/London	1698628200	Europe/London	1698717600	1	3000
+Europe/London	1698631140	Europe/London	1698717660	1	120
+Europe/London	1698636600	Europe/London	1698713940	0	77340
+Europe/London	1698710460	Europe/London	1698711000	0	540
+Europe/London	1698714600	Europe/London	1698714600	0	0
+Europe/London	1698368460	Asia/Karachi	1698456600	1	1740
+Europe/London	1698544860	Asia/Karachi	1698618600	0	73740
+Europe/London	1698372060	Etc/UTC	1698712200	3	77340
+Europe/London	1698705000	Etc/UTC	1698709800	0	4800
+Europe/London	1698454740	Pacific/Chatham	1698627540	1	86400
+Europe/London	1698541260	Pacific/Chatham	1698627540	0	86280	89880
+Europe/London	1677286800	Europe/London	1711677660	398	3660
+Europe/London	1709082000	Europe/London	1711756860	30	82860
+Europe/London	1711665000	Europe/London	1711762200	1	10800
+Europe/London	1711668600	Europe/London	1711842600	2	1200
+Europe/London	1711669800	Europe/London	1711846860	2	4260
+Europe/London	1711670340	Europe/London	1711927800	3	1860
+Europe/London	1711670400	Europe/London	1711935000	3	9000
+Europe/London	1711670460	Europe/London	1712017800	4	5340
+Europe/London	1711671000	Europe/London	1714611600	34	6600
+Europe/London	1711672800	Europe/London	1711751400	0	78600
+Europe/London	1711673400	Europe/London	1711764060	1	4260
+Europe/London	1711673940	Europe/London	1711847400	2	660
+Europe/London	1711674000	Europe/London	1711933140	3	3540
+Europe/London	1711674060	Europe/London	1712019000	4	2940
+Europe/London	1711675200	Europe/London	1711679400	0	4200
+Europe/London	1711675800	Europe/London	1711800000	1	37800
+Europe/London	1711677000	Europe/London	1711893600	2	43800
+Europe/London	1711677540	Europe/London	1712015940	3	82800
+Europe/London	1711677660	Europe/London	1711756200	0	78540
+Europe/London	1711678200	Europe/London	1711845600	1	81000
+Europe/London	1711679400	Europe/London	1711933800	2	85200
+Europe/London	1711683000	Europe/London	1712028600	4	3600
+Europe/London	1711755000	Europe/London	1711845000	1	3600
+Europe/London	1711756200	Europe/London	1711936200	2	10800
+Europe/London	1711756800	Europe/London	1711759200	0	2400
+Europe/London	1711756860	Europe/London	1711851000	1	7740
+Europe/London	1711757400	Europe/London	1712019660	3	6660
+Europe/London	1711759200	Europe/London	1711846799	1	1199
+Europe/London	1711759800	Europe/London	1712016000	3	600
+Europe/London	1711760400	Europe/London	1711846200	0	85800
+Europe/London	1711760460	Europe/London	1712016060	3	0
+Europe/London	1711761600	Europe/London	1711848000	1	0
+Europe/London	1711762200	Europe/London	1712021400	3	3600
+Europe/London	1711763940	Europe/London	1711930200	1	79860
+Europe/London	1711764060	Europe/London	1711843200	0	79140
+Europe/London	1711764600	Europe/London	1712018400	2	84600
+Europe/London	1711769400	Europe/London	1711932600	1	80400
+Europe/London	1711837800	Europe/London	1711848600	0	10800
+Europe/London	1711842600	Europe/London	1711843140	0	540
+Europe/London	1711843140	Europe/London	1712020800	2	8460
+Europe/London	1711843260	Europe/London	1712016600	2	4140
+Europe/London	1711845000	Europe/London	1712015400	2	1200
+Europe/London	1711846200	Europe/London	1712015400	2	0
+Europe/London	1711846799	Europe/London	1712016600	2	601
+Europe/London	1711846801	Europe/London	1712020800	2	1199
+Europe/London	1711848000	Europe/London	1711848600	0	600
+Europe/London	1711849800	Europe/London	1711932600	0	82800
+Europe/London	1711850400	Europe/London	1712018400	1	81600
+Europe/London	1711852200	Europe/London	1711930200	0	78000
+Europe/London	1711893600	Europe/London	1712021400	1	41400
+Europe/London	1711929000	Europe/London	1712016060	1	660
+Europe/London	1711929660	Europe/London	1712016000	0	86340
+Europe/London	1711932000	Europe/London	1712019660	1	1260
+Europe/London	1711933260	Europe/London	1711936200	0	2940
+Europe/London	1711935000	Europe/London	1712028600	1	7200
+Europe/London	1711937400	Europe/London	1712015940	0	78540
+Europe/London	1712015400	Europe/London	1712019000	0	3600
+Europe/London	1712018400	Europe/London	1714611600	30	1200
+Europe/London	1712025000	Europe/London	1746406800	397	81000
+Europe/London	1711760340	Asia/Karachi	1712019660	3	3720
+Europe/London	1711670460	Etc/UTC	1711674600	0	4140
+Europe/London	1711837800	Etc/UTC	1712028600	2	21600
+Europe/London	1711674060	Pacific/Chatham	1711850460	2	3600
+Europe/London	1711850460	Pacific/Chatham	1712017800	1	80940
+Europe/London	1695430800	Europe/London	1730080740	400	86340
+Europe/London	1727226000	Europe/London	1730159940	33	79140
+Europe/London	1729809000	Europe/London	1730164200	4	6000
+Europe/London	1729812600	Europe/London	1764550800	402	1800
+Europe/London	1729814340	Europe/London	1729819200	0	4860
+Europe/London	1729814400	Europe/London	1729900860	1	60
+Europe/London	1729814460	Europe/London	1729908600	1	7740
+Europe/London	1729814460	Europe/London	1729990800	1	89940
+Europe/London	1729815000	Europe/London	1729990800	1	89400
+Europe/London	1729815000	Europe/London	1729990860	1	89460
+Europe/London	1729816200	Europe/London	1729991400	1	88800
+Europe/London	1729816200	Europe/London	1730073540	2	84540
+Europe/London	1729816800	Europe/London	1729990860	1	87660
+Europe/London	1729816800	Europe/London	1730082600	3	3000
+Europe/London	1729817400	Europe/London	1729990800	1	87000
+Europe/London	1729817400	Europe/London	1729992000	1	88200
+Europe/London	1729817400	Europe/London	1730167140	4	540
+Europe/London	1729817940	Europe/London	1729990860	1	86520
+Europe/London	1729817940	Europe/London	1729993800	1	89460
+Europe/London	1729818000	Europe/London	1729895400	0	77400
+Europe/London	1729818060	Europe/London	1729913400	1	8940
+Europe/London	1729818600	Europe/London	1729994460	1	89460
+Europe/London	1729819200	Europe/London	1730080860	2	85260
+Europe/London	1729819800	Europe/London	1730169000	4	0
+Europe/London	1729821540	Europe/London	1729907400	0	85860
+Europe/London	1729821600	Europe/London	1729994400	1	86400
+Europe/London	1729821660	Europe/London	1730154600	3	70140
+Europe/London	1729823400	Europe/London	1729900740	0	77340
+Europe/London	1729827000	Europe/London	1729990799	1	77399
+Europe/London	1729895400	Europe/London	1730080800	2	9000
+Europe/London	1729900200	Europe/London	1729901400	0	1200
+Europe/London	1729900740	Europe/London	1729993800	1	6660
+Europe/London	1729900800	Europe/London	1730160600	2	83400
+Europe/London	1729901400	Europe/London	1729985400	0	84000
+Europe/London	1729901400	Europe/London	1729990801	0	89401
+Europe/London	1729902600	Europe/London	1729990860	0	88260
+Europe/London	1729902600	Europe/London	1730079000	2	0
+Europe/London	1729903200	Europe/London	1729990801	0	87601
+Europe/London	1729903200	Europe/London	1729992600	0	89400
+Europe/London	1729903800	Europe/London	1729907940	0	4140
+Europe/London	1729903800	Europe/London	1729991400	0	87600
+Europe/London	1729904340	Europe/London	1729990801	0	86461
+Europe/London	1729904340	Europe/London	1729992600	0	88260
+Europe/London	1729904340	Europe/London	1730077140	1	86400
+Europe/London	1729904460	Europe/London	1729908000	0	3540
+Europe/London	1729905000	Europe/London	1730078400	1	83400
+Europe/London	1729906200	Europe/London	1729987200	0	81000
+Europe/London	1729907400	Europe/London	1730160000	2	76200
+Europe/London	1729908000	Europe/London	1729996200	0	88200
+Europe/London	1729908600	Europe/London	1729909800	0	1200
+Europe/London	1729909800	Europe/London	1730159400	2	73200
+Europe/London	1729944000	Europe/London	1730073660	1	39660
+Europe/London	1729985400	Europe/London	1729991400	0	6000
+Europe/London	1729987140	Europe/London	1729987140	0	0
+Europe/London	1729987200	Europe/London	1730165400	2	1800
+Europe/London	1729987800	Europe/London	1730163000	1	85200
+Europe/London	1729989600	Europe/London	1730161800	1	82200
+Europe/London	1729990740	Europe/London	1730163000	1	82260
+Europe/London	1729990800	Europe/London	1730076600	0	85800	89400
+Europe/London	1729990800	Europe/London	1730165400	2	1800
+Europe/London	1729990801	Europe/London	1730076000	0	85199	88799
+Europe/London	1729990860	Europe/London	1730074200	0	83340	86940
+Europe/London	1729991400	Europe/London	1729991400	0	0
+Europe/London	1729991400	Europe/London	1730073600	0	82200	85800
+Europe/London	1729991400	Europe/London	1730077140	0	85740	89340
+Europe/London	1729992000	Europe/London	1730075400	0	83400	87000
+Europe/London	1729992000	Europe/London	1730077800	0	85800	89400
+Europe/London	1729992600	Europe/London	1730073660	0	81060	84660
+Europe/London	1729992600	Europe/London	1730076600	0	84000	87600
+Europe/London	1729993800	Europe/London	1730073600	0	79800	83400
+Europe/London	1729993800	Europe/London	1730077140	0	83340	86940
+Europe/London	1729994340	Europe/London	1730073600	0	79260	82860
+Europe/London	1729994340	Europe/London	1730077140	0	82800	86400
+Europe/London	1729994340	Europe/London	1730080200	0	85860	89460
+Europe/London	1729994340	Europe/London	1730159400	1	78660
+Europe/London	1729995000	Europe/London	1729996200	0	1200
+Europe/London	1729999800	Europe/London	1730160000	1	73800
+Europe/London	1730071800	Europe/London	1730078400	0	6600
+Europe/London	1730073600	Europe/London	1730077140	0	3540
+Europe/London	1730075400	Europe/London	1730079000	0	3600
+Europe/London	1730077140	Europe/London	1730160600	0	83460
+Europe/London	1730078400	Europe/London	1730080800	0	2400
+Europe/London	1730080800	Europe/London	1730154600	0	73800
+Europe/London	1730086200	Europe/London	1730169000	0	82800
+Europe/London	1730160060	Europe/London	1730167140	0	7080
+Europe/London	1730164200	Europe/London	1764550800	397	85800
+Europe/London	1729818060	Asia/Karachi	1730081400	3	540
+Europe/London	1730073000	Asia/Karachi	1730077140	0	4140
+Europe/London	1729900740	Etc/UTC	1729992000	1	4860
+Europe/London	1730169000	Etc/UTC	1730172600	0	3600
+Europe/London	1729904340	Pacific/Chatham	1729992000	0	87660
+Europe/London	1729907940	Pacific/Chatham	1729990799	0	82859
+Europe/London	1729990860	Pacific/Chatham	1730077140	0	86280	89880
+Australia/Lord_Howe	1661527800	Australia/Lord_Howe	1695999600	398	84600
+Australia/Lord_Howe	1693323000	Australia/Lord_Howe	1696004400	31	3000
+Australia/Lord_Howe	1695906000	Australia/Lord_Howe	1696083600	2	4800
+Australia/Lord_Howe	1695909600	Australia/Lord_Howe	1696087801	2	5401
+Australia/Lord_Howe	1695910800	Australia/Lord_Howe	1696134600	2	51000
+Australia/Lord_Howe	1695911340	Australia/Lord_Howe	1696174260	3	5520
+Australia/Lord_Howe	1695911400	Australia/Lord_Howe	1696256940	4	1740
+Australia/Lord_Howe	1695911460	Australia/Lord_Howe	1696264200	4	8940
+Australia/Lord_Howe	1695913200	Australia/Lord_Howe	1695918000	0	4800
+Australia/Lord_Howe	1695913800	Australia/Lord_Howe	1696001400	1	1200
+Australia/Lord_Howe	1695914400	Australia/Lord_Howe	1696084800	1	84000
+Australia/Lord_Howe	1695914940	Australia/Lord_Howe	1696165200	2	77460
+Australia/Lord_Howe	1695915000	Australia/Lord_Howe	1696179600	3	7200
+Australia/Lord_Howe	1695915060	Australia/Lord_Howe	1696264800	4	5940
+Australia/Lord_Howe	1695916200	Australia/Lord_Howe	1696000800	0	84600
+Australia/Lord_Howe	1695916800	Australia/Lord_Howe	1696087740	1	84540
+Australia/Lord_Howe	1695918000	Australia/Lord_Howe	1696174140	2	85140
+Australia/Lord_Howe	1695918540	Australia/Lord_Howe	1696261800	3	85860
+Australia/Lord_Howe	1695918660	Australia/Lord_Howe	1696002000	0	83340
+Australia/Lord_Howe	1695919200	Australia/Lord_Howe	1696091340	2	1140
+Australia/Lord_Howe	1695920400	Australia/Lord_Howe	1696255200	3	77400
+Australia/Lord_Howe	1695992400	Australia/Lord_Howe	1696000200	0	7800
+Australia/Lord_Howe	1695996000	Australia/Lord_Howe	1696090800	1	8400
+Australia/Lord_Howe	1695997200	Australia/Lord_Howe	1696257000	3	2400
+Australia/Lord_Howe	1695997800	Australia/Lord_Howe	1696005060	0	7260
+Australia/Lord_Howe	1695997860	Australia/Lord_Howe	1696172400	2	3540
+Australia/Lord_Howe	1695998400	Australia/Lord_Howe	1698852600	33	4800
+Australia/Lord_Howe	1696000200	Australia/Lord_Howe	1696092000	1	5400
+Australia/Lord_Howe	1696000800	Australia/Lord_Howe	1696262400	3	4200
+Australia/Lord_Howe	1696001400	Australia/Lord_Howe	1696091400	1	3600
+Australia/Lord_Howe	1696001460	Australia/Lord_Howe	1696263600	3	4740
+Australia/Lord_Howe	1696002600	Australia/Lord_Howe	1696168800	1	79800
+Australia/Lord_Howe	1696004400	Australia/Lord_Howe	1696004940	0	540
+Australia/Lord_Howe	1696004940	Australia/Lord_Howe	1696177740	2	1800
+Australia/Lord_Howe	1696005060	Australia/Lord_Howe	1696088400	0	83340
+Australia/Lord_Howe	1696005600	Australia/Lord_Howe	1696264260	3	1260
+Australia/Lord_Howe	1696010400	Australia/Lord_Howe	1696178400	1	83400
+Australia/Lord_Howe	1696078800	Australia/Lord_Howe	1696170000	1	6600
+Australia/Lord_Howe	1696083600	Australia/Lord_Howe	1696087860	0	4260
+Australia/Lord_Howe	1696084200	Australia/Lord_Howe	1696084200	0	0
+Australia/Lord_Howe	1696084260	Australia/Lord_Howe	1696264140	2	8880
+Australia/Lord_Howe	1696086000	Australia/Lord_Howe	1696261200	2	4200
+Australia/Lord_Howe	1696087200	Australia/Lord_Howe	1696261200	2	3000
+Australia/Lord_Howe	1696087799	Australia/Lord_Howe	1696264140	2	5341
+Australia/Lord_Howe	1696087860	Australia/Lord_Howe	1696087860	0	0
+Australia/Lord_Howe	1696089000	Australia/Lord_Howe	1696170000	0	81000
+Australia/Lord_Howe	1696090800	Australia/Lord_Howe	1696178400	1	1200
+Australia/Lord_Howe	1696091400	Australia/Lord_Howe	1696264260	2	60
+Australia/Lord_Howe	1696093200	Australia/Lord_Howe	1696177740	0	84540
+Australia/Lord_Howe	1696165200	Australia/Lord_Howe	1696168800	0	3600
+Australia/Lord_Howe	1696170000	Australia/Lord_Howe	1696263600	1	7200
+Australia/Lord_Howe	1696170660	Australia/Lord_Howe	1696262400	1	5340
+Australia/Lord_Howe	1696173000	Australia/Lord_Howe	1698852600	31	1200
+Australia/Lord_Howe	1696174260	Australia/Lord_Howe	1696257000	0	82740
+Australia/Lord_Howe	1696177200	Australia/Lord_Howe	1696255200	0	78000
+Australia/Lord_Howe	1696178400	Australia/Lord_Howe	1696261800	0	83400
+Australia/Lord_Howe	1696256400	Australia/Lord_Howe	1696264800	0	8400
+Australia/Lord_Howe	1696260000	Australia/Lord_Howe	1696264200	0	4200
+Australia/Lord_Howe	1661527800	Asia/Karachi	1695918600	398	3600
+Australia/Lord_Howe	1696004940	Asia/Karachi	1696174140	1	84600
+Australia/Lord_Howe	1695911460	Etc/UTC	1696091460	2	7200
+Australia/Lord_Howe	1696086000	Etc/UTC	1696260660	2	3660
+Australia/Lord_Howe	1695918660	Pacific/Chatham	1695992400	0	73740
+Australia/Lord_Howe	1696170000	Pacific/Chatham	1696264140	1	7740
+Australia/Lord_Howe	1677855600	Australia/Lord_Howe	1712584860	401	81060
+Australia/Lord_Howe	1709650800	Australia/Lord_Howe	1712589600	33	85800
+Australia/Lord_Howe	1712233800	Australia/Lord_Howe	1746975600	402	7200
+Australia/Lord_Howe	1712238600	Australia/Lord_Howe	1712242860	0	4260
+Australia/Lord_Howe	1712239140	Australia/Lord_Howe	1712325000	0	85860
+Australia/Lord_Howe	1712239200	Australia/Lord_Howe	1712332200	1	6600
+Australia/Lord_Howe	1712239260	Australia/Lord_Howe	1712413800	2	1740
+Australia/Lord_Howe	1712239800	Australia/Lord_Howe	1712421000	2	8400
+Australia/Lord_Howe	1712241000	Australia/Lord_Howe	1712503200	3	1200
+Australia/Lord_Howe	1712241600	Australia/Lord_Howe	1712587800	3	85200
+Australia/Lord_Howe	1712242200	Australia/Lord_Howe	1712415600	1	87000
+Australia/Lord_Howe	1712242740	Australia/Lord_Howe	1712243400	0	660
+Australia/Lord_Howe	1712242740	Australia/Lord_Howe	1712415600	1	86460
+Australia/Lord_Howe	1712242740	Australia/Lord_Howe	1712416800	1	87660
+Australia/Lord_Howe	1712242800	Australia/Lord_Howe	1712329200	1	0
+Australia/Lord_Howe	1712242860	Australia/Lord_Howe	1712415000	1	85740
+Australia/Lord_Howe	1712243400	Australia/Lord_Howe	1712499000	2	81000
+Australia/Lord_Howe	1712244000	Australia/Lord_Howe	1712586600	3	81600
+Australia/Lord_Howe	1712245800	Australia/Lord_Howe	1712320200	0	74400
+Australia/Lord_Howe	1712246340	Australia/Lord_Howe	1712411940	1	79200
+Australia/Lord_Howe	1712246400	Australia/Lord_Howe	1712498460	2	77460
+Australia/Lord_Howe	1712246460	Australia/Lord_Howe	1712588400	3	80940
+Australia/Lord_Howe	1712248200	Australia/Lord_Howe	1712330400	0	82200
+Australia/Lord_Howe	1712251800	Australia/Lord_Howe	1712419800	1	81600
+Australia/Lord_Howe	1712320200	Australia/Lord_Howe	1712585400	3	4200
+Australia/Lord_Howe	1712325000	Australia/Lord_Howe	1712332740	0	7740
+Australia/Lord_Howe	1712325540	Australia/Lord_Howe	1712498340	1	86400
+Australia/Lord_Howe	1712325600	Australia/Lord_Howe	1712591940	3	5340
+Australia/Lord_Howe	1712326200	Australia/Lord_Howe	1712415600	1	3000
+Australia/Lord_Howe	1712327400	Australia/Lord_Howe	1712584740	2	82740
+Australia/Lord_Howe	1712328600	Australia/Lord_Howe	1712412000	0	83400
+Australia/Lord_Howe	1712328600	Australia/Lord_Howe	1712415600	0	87000
+Australia/Lord_Howe	1712329140	Australia/Lord_Howe	1712415600	0	86460
+Australia/Lord_Howe	1712329140	Australia/Lord_Howe	1712416800	0	87660
+Australia/Lord_Howe	1712329140	Australia/Lord_Howe	1712507400	2	3660
+Australia/Lord_Howe	1712329260	Australia/Lord_Howe	1712412060	0	82800
+Australia/Lord_Howe	1712329800	Australia/Lord_Howe	1712584200	2	79800
+Australia/Lord_Howe	1712331000	Australia/Lord_Howe	1712416200	0	85200
+Australia/Lord_Howe	1712332200	Australia/Lord_Howe	1712590200	2	83400
+Australia/Lord_Howe	1712332800	Australia/Lord_Howe	1712500800	1	79800
+Australia/Lord_Howe	1712333400	Australia/Lord_Howe	1712414400	0	81000
+Australia/Lord_Howe	1712334600	Australia/Lord_Howe	1712589000	2	79800
+Australia/Lord_Howe	1712368800	Australia/Lord_Howe	1712505000	1	48000
+Australia/Lord_Howe	1712410200	Australia/Lord_Howe	1712493000	0	82800
+Australia/Lord_Howe	1712411940	Australia/Lord_Howe	1712415660	0	3720
+Australia/Lord_Howe	1712412060	Australia/Lord_Howe	1712412600	0	540
+Australia/Lord_Howe	1712412600	Australia/Lord_Howe	1712592600	2	5400
+Australia/Lord_Howe	1712414400	Australia/Lord_Howe	1712592000	2	3000
+Australia/Lord_Howe	1712415540	Australia/Lord_Howe	1712592600	2	2460
+Australia/Lord_Howe	1712415600	Australia/Lord_Howe	1712499000	0	83400	85200
+Australia/Lord_Howe	1712415601	Australia/Lord_Howe	1712415660	0	59
+Australia/Lord_Howe	1712415601	Australia/Lord_Howe	1712497800	0	82199	83999
+Australia/Lord_Howe	1712415601	Australia/Lord_Howe	1712500800	0	85199	86999
+Australia/Lord_Howe	1712415660	Australia/Lord_Howe	1712498340	0	82680	84480
+Australia/Lord_Howe	1712415660	Australia/Lord_Howe	1712501400	0	85740	87540
+Australia/Lord_Howe	1712416200	Australia/Lord_Howe	1712493000	0	76800
+Australia/Lord_Howe	1712416200	Australia/Lord_Howe	1712498400	0	82200	84000
+Australia/Lord_Howe	1712416200	Australia/Lord_Howe	1712501940	0	85740	87540
+Australia/Lord_Howe	1712416800	Australia/Lord_Howe	1712498400	0	81600	83400
+Australia/Lord_Howe	1712416800	Australia/Lord_Howe	1712501940	0	85140	86940
+Australia/Lord_Howe	1712417400	Australia/Lord_Howe	1712505000	1	1200
+Australia/Lord_Howe	1712419140	Australia/Lord_Howe	1712589000	1	83460
+Australia/Lord_Howe	1712419800	Australia/Lord_Howe	1712500800	0	81000
+Australia/Lord_Howe	1712424600	Australia/Lord_Howe	1712590200	1	79200
+Australia/Lord_Howe	1712496600	Australia/Lord_Howe	1712584200	1	1200
+Australia/Lord_Howe	1712498400	Australia/Lord_Howe	1712507400	0	9000
+Australia/Lord_Howe	1712500200	Australia/Lord_Howe	1712584740	0	84540
+Australia/Lord_Howe	1712501940	Australia/Lord_Howe	1712591940	1	3600
+Australia/Lord_Howe	1712503200	Australia/Lord_Howe	1712585400	0	82200
+Australia/Lord_Howe	1712505600	Australia/Lord_Howe	1712588400	0	82800
+Australia/Lord_Howe	1712579400	Australia/Lord_Howe	1712586600	0	7200
+Australia/Lord_Howe	1712585400	Australia/Lord_Howe	1712587800	0	2400
+Australia/Lord_Howe	1712589600	Australia/Lord_Howe	1746975600	397	85200
+Australia/Lord_Howe	1712246460	Asia/Karachi	1712410200	1	77340
+Australia/Lord_Howe	1712501400	Asia/Karachi	1712584200	0	82800
+Australia/Lord_Howe	1712325540	Etc/UTC	1712597400	3	10860
+Australia/Lord_Howe	1712415660	Etc/UTC	1712498460	0	82800	84600
+Australia/Lord_Howe	1677855600	Pacific/Chatham	1712410200	399	81000
+Australia/Lord_Howe	1712332740	Pacific/Chatham	1712591940	2	84600
+Australia/Lord_Howe	1693582200	Australia/Lord_Howe	1728059400	399	3600
+Australia/Lord_Howe	1725377400	Australia/Lord_Howe	1728138540	31	82740
+Australia/Lord_Howe	1727960400	Australia/Lord_Howe	1728142201	2	9001
+Australia/Lord_Howe	1727964000	Australia/Lord_Howe	1728151200	2	14400
+Australia/Lord_Howe	1727965200	Australia/Lord_Howe	1728228540	3	5940
+Australia/Lord_Howe	1727965740	Australia/Lord_Howe	1728306000	3	82860
+Australia/Lord_Howe	1727965800	Australia/Lord_Howe	1728316200	4	6600
+Australia/Lord_Howe	1727966400	Australia/Lord_Howe	1727969340	0	2940
+Australia/Lord_Howe	1727967600	Australia/Lord_Howe	1728052200	0	84600
+Australia/Lord_Howe	1727968200	Australia/Lord_Howe	1728064800	1	10200
+Australia/Lord_Howe	1727968800	Australia/Lord_Howe	1728144000	2	2400
+Australia/Lord_Howe	1727969340	Australia/Lord_Howe	1728228600	3	1860
+Australia/Lord_Howe	1727969400	Australia/Lord_Howe	1728314400	4	1200
+Australia/Lord_Howe	1727970000	Australia/Lord_Howe	1727973060	0	3060
+Australia/Lord_Howe	1727970600	Australia/Lord_Howe	1728060000	1	3000
+Australia/Lord_Howe	1727971200	Australia/Lord_Howe	1728145860	2	3660
+Australia/Lord_Howe	1727972400	Australia/Lord_Howe	1728234000	3	4200
+Australia/Lord_Howe	1727973000	Australia/Lord_Howe	1727973000	0	0
+Australia/Lord_Howe	1727973060	Australia/Lord_Howe	1728133200	1	73740
+Australia/Lord_Howe	1727973600	Australia/Lord_Howe	1728225000	2	80400
+Australia/Lord_Howe	1727974800	Australia/Lord_Howe	1728315060	3	82860
+Australia/Lord_Howe	1728046800	Australia/Lord_Howe	1728059460	0	12660
+Australia/Lord_Howe	1728050400	Australia/Lord_Howe	1728224940	2	3540
+Australia/Lord_Howe	1728051600	Australia/Lord_Howe	1728316800	3	7800
+Australia/Lord_Howe	1728052200	Australia/Lord_Howe	1728139200	1	600
+Australia/Lord_Howe	1728052260	Australia/Lord_Howe	1728232200	2	8940
+Australia/Lord_Howe	1728054000	Australia/Lord_Howe	1728058800	0	4800
+Australia/Lord_Howe	1728054600	Australia/Lord_Howe	1728226800	2	1200
+Australia/Lord_Howe	1728055740	Australia/Lord_Howe	1728055800	0	60
+Australia/Lord_Howe	1728055800	Australia/Lord_Howe	1728225060	1	82860
+Australia/Lord_Howe	1728056400	Australia/Lord_Howe	1728057600	0	1200
+Australia/Lord_Howe	1728057000	Australia/Lord_Howe	1728228660	2	660
+Australia/Lord_Howe	1728058800	Australia/Lord_Howe	1728138600	0	79800
+Australia/Lord_Howe	1728059340	Australia/Lord_Howe	1728311460	2	81120
+Australia/Lord_Howe	1728059460	Australia/Lord_Howe	1728219600	1	75540
+Australia/Lord_Howe	1728061200	Australia/Lord_Howe	1728138000	0	76800
+Australia/Lord_Howe	1728064800	Australia/Lord_Howe	1728313800	2	78000
+Australia/Lord_Howe	1728133200	Australia/Lord_Howe	1728229200	1	11400
+Australia/Lord_Howe	1728138000	Australia/Lord_Howe	1728189000	0	51000
+Australia/Lord_Howe	1728138600	Australia/Lord_Howe	1728142800	0	4200
+Australia/Lord_Howe	1728139200	Australia/Lord_Howe	1728141600	0	2400
+Australia/Lord_Howe	1728140400	Australia/Lord_Howe	1762702200	400	3600
+Australia/Lord_Howe	1728141600	Australia/Lord_Howe	1762702200	400	2400
+Australia/Lord_Howe	1728142200	Australia/Lord_Howe	1728142800	0	600
+Australia/Lord_Howe	1728142260	Australia/Lord_Howe	1728189000	0	46740
+Australia/Lord_Howe	1728143400	Australia/Lord_Howe	1728229200	0	85800
+Australia/Lord_Howe	1728145200	Australia/Lord_Howe	1728313800	1	82200
+Australia/Lord_Howe	1728145860	Australia/Lord_Howe	1728219600	0	73740
+Australia/Lord_Howe	1728147600	Australia/Lord_Howe	1728311460	1	77460
+Australia/Lord_Howe	1728219600	Australia/Lord_Howe	1728228660	0	9060
+Australia/Lord_Howe	1728224940	Australia/Lord_Howe	1728225060	0	120
+Australia/Lord_Howe	1728225600	Australia/Lord_Howe	1728226800	0	1200
+Australia/Lord_Howe	1728228000	Australia/Lord_Howe	1728232200	0	4200
+Australia/Lord_Howe	1728228660	Australia/Lord_Howe	1728316800	1	1740
+Australia/Lord_Howe	1728231600	Australia/Lord_Howe	1728315060	0	83460
+Australia/Lord_Howe	1728234000	Australia/Lord_Howe	1728234000	0	0
+Australia/Lord_Howe	1728311340	Australia/Lord_Howe	1728314400	0	3060
+Australia/Lord_Howe	1728314940	Australia/Lord_Howe	1728316200	0	1260
+Australia/Lord_Howe	1693582200	Asia/Karachi	1728219600	400	77400
+Australia/Lord_Howe	1728133200	Asia/Karachi	1728143400	0	10200
+Australia/Lord_Howe	1727969460	Etc/UTC	1727970000	0	540
+Australia/Lord_Howe	1728142260	Etc/UTC	1728313200	1	84540
+Australia/Lord_Howe	1727973060	Pacific/Chatham	1728225060	2	81000
+Australia/Lord_Howe	1728231600	Pacific/Chatham	1728310800	0	79200
+Asia/Kathmandu	1675494000	Asia/Kathmandu	1710229800	402	3000
+Asia/Kathmandu	1709872200	Asia/Kathmandu	1709872200	0	0
+Asia/Kathmandu	1709875800	Asia/Kathmandu	1709881200	0	5400
+Asia/Kathmandu	1709877000	Asia/Kathmandu	1709958600	0	81600
+Asia/Kathmandu	1709877540	Asia/Kathmandu	1709968200	1	4260
+Asia/Kathmandu	1709877600	Asia/Kathmandu	1710050340	1	86340
+Asia/Kathmandu	1709877660	Asia/Kathmandu	1710057000	2	6540
+Asia/Kathmandu	1709878200	Asia/Kathmandu	1710139200	3	1800
+Asia/Kathmandu	1709879400	Asia/Kathmandu	1710222600	3	84000
+Asia/Kathmandu	1709880000	Asia/Kathmandu	1710231000	4	5400
+Asia/Kathmandu	1709881140	Asia/Kathmandu	1709962200	0	81060
+Asia/Kathmandu	1709881200	Asia/Kathmandu	1709976600	1	9000
+Asia/Kathmandu	1709881260	Asia/Kathmandu	1710057600	2	3540
+Asia/Kathmandu	1709881800	Asia/Kathmandu	1710143940	3	2940
+Asia/Kathmandu	1709882400	Asia/Kathmandu	1710230400	4	2400
+Asia/Kathmandu	1709884200	Asia/Kathmandu	1709967600	0	83400
+Asia/Kathmandu	1709884740	Asia/Kathmandu	1710054060	1	82920
+Asia/Kathmandu	1709884800	Asia/Kathmandu	1710143400	2	85800
+Asia/Kathmandu	1709884860	Asia/Kathmandu	1710235800	4	5340
+Asia/Kathmandu	1709886600	Asia/Kathmandu	1710048600	1	75600
+Asia/Kathmandu	1709890200	Asia/Kathmandu	1710138600	2	75600
+Asia/Kathmandu	1709958600	Asia/Kathmandu	1710230340	3	12540
+Asia/Kathmandu	1709963400	Asia/Kathmandu	1710050400	1	600
+Asia/Kathmandu	1709963940	Asia/Kathmandu	1710141600	2	4860
+Asia/Kathmandu	1709964060	Asia/Kathmandu	1709966400	0	2340
+Asia/Kathmandu	1709964600	Asia/Kathmandu	1710059400	1	8400
+Asia/Kathmandu	1709965800	Asia/Kathmandu	1710228000	3	3000
+Asia/Kathmandu	1709967000	Asia/Kathmandu	1710054600	1	1200
+Asia/Kathmandu	1709967540	Asia/Kathmandu	1710226200	2	85860
+Asia/Kathmandu	1709967660	Asia/Kathmandu	1710055200	1	1140
+Asia/Kathmandu	1709968200	Asia/Kathmandu	1710227400	3	0
+Asia/Kathmandu	1709969400	Asia/Kathmandu	1710131400	1	75600
+Asia/Kathmandu	1709971140	Asia/Kathmandu	1709971200	0	60
+Asia/Kathmandu	1709971200	Asia/Kathmandu	1710144060	2	60
+Asia/Kathmandu	1709971800	Asia/Kathmandu	1710057540	0	85740
+Asia/Kathmandu	1709973000	Asia/Kathmandu	1744614000	400	81000
+Asia/Kathmandu	1710007200	Asia/Kathmandu	1710223200	2	43200
+Asia/Kathmandu	1710048600	Asia/Kathmandu	1710140400	1	5400
+Asia/Kathmandu	1710050340	Asia/Kathmandu	1710100800	0	50460
+Asia/Kathmandu	1710050460	Asia/Kathmandu	1710055800	0	5340
+Asia/Kathmandu	1710052200	Asia/Kathmandu	1710054001	0	1801
+Asia/Kathmandu	1710053400	Asia/Kathmandu	1710054001	0	601
+Asia/Kathmandu	1710053999	Asia/Kathmandu	1710055800	0	1801
+Asia/Kathmandu	1710054001	Asia/Kathmandu	1710100800	0	46799
+Asia/Kathmandu	1710054600	Asia/Kathmandu	1710140400	0	85800
+Asia/Kathmandu	1710055800	Asia/Kathmandu	1710223200	1	81000
+Asia/Kathmandu	1710057540	Asia/Kathmandu	1744614000	399	82860
+Asia/Kathmandu	1710058200	Asia/Kathmandu	1710144060	0	85860
+Asia/Kathmandu	1710100800	Asia/Kathmandu	1710131400	0	30600
+Asia/Kathmandu	1710135000	Asia/Kathmandu	1710227400	1	6000
+Asia/Kathmandu	1710136800	Asia/Kathmandu	1710226200	1	3000
+Asia/Kathmandu	1710138600	Asia/Kathmandu	1710228000	1	3000
+Asia/Kathmandu	1710140400	Asia/Kathmandu	1710141600	0	1200
+Asia/Kathmandu	1710141600	Asia/Kathmandu	1710230340	1	2340
+Asia/Kathmandu	1710144000	Asia/Kathmandu	1710235800	1	5400
+Asia/Kathmandu	1710217800	Asia/Kathmandu	1710230400	0	12600
+Asia/Kathmandu	1710223800	Asia/Kathmandu	1710231000	0	7200
+Asia/Kathmandu	1710229800	Asia/Kathmandu	1710229800	0	0
+Asia/Kathmandu	1709884860	Asia/Karachi	1710225000	3	80940
+Asia/Kathmandu	1710217800	Asia/Karachi	1710222600	0	4800
+Asia/Kathmandu	1709967540	Etc/UTC	1710140340	2	0
+Asia/Kathmandu	1675494000	Pacific/Chatham	1710225000	401	84600
+Asia/Kathmandu	1710045000	Pacific/Chatham	1710144600	1	13200
+Pacific/Apia	1282312800	Pacific/Apia	1316869260	399	82860
+Pacific/Apia	1314108000	Pacific/Apia	1316872860	32	60
+Pacific/Apia	1316691000	Pacific/Apia	1316881800	2	18000
+Pacific/Apia	1316694600	Pacific/Apia	1316958600	3	8400
+Pacific/Apia	1316695800	Pacific/Apia	1316964600	3	13200
+Pacific/Apia	1316696340	Pacific/Apia	1317045600	4	7260
+Pacific/Apia	1316696460	Pacific/Apia	1316696460	0	0
+Pacific/Apia	1316697000	Pacific/Apia	1316705400	0	8400
+Pacific/Apia	1316698200	Pacific/Apia	1316788200	1	3600
+Pacific/Apia	1316698800	Pacific/Apia	1316872200	2	600
+Pacific/Apia	1316699400	Pacific/Apia	1316955000	3	0
+Pacific/Apia	1316699940	Pacific/Apia	1316968200	3	12660
+Pacific/Apia	1316700000	Pacific/Apia	1317049800	4	7800
+Pacific/Apia	1316700600	Pacific/Apia	1316784600	0	84000
+Pacific/Apia	1316701200	Pacific/Apia	1316871000	1	83400
+Pacific/Apia	1316701800	Pacific/Apia	1316956200	2	81600
+Pacific/Apia	1316703000	Pacific/Apia	1317045000	4	0
+Pacific/Apia	1316703600	Pacific/Apia	1316783400	0	79800
+Pacific/Apia	1316703660	Pacific/Apia	1316872799	1	82739
+Pacific/Apia	1316704200	Pacific/Apia	1316961000	3	1200
+Pacific/Apia	1316705400	Pacific/Apia	1319637600	33	84600
+Pacific/Apia	1316777400	Pacific/Apia	1316869800	1	6000
+Pacific/Apia	1316781000	Pacific/Apia	1316960400	2	10200
+Pacific/Apia	1316782740	Pacific/Apia	1316782800	0	60
+Pacific/Apia	1316782800	Pacific/Apia	1316874600	1	5400
+Pacific/Apia	1316782860	Pacific/Apia	1317042600	3	4140
+Pacific/Apia	1316784600	Pacific/Apia	1316869140	0	84540
+Pacific/Apia	1316785200	Pacific/Apia	1316962800	2	8400
+Pacific/Apia	1316786340	Pacific/Apia	1316795400	0	9060
+Pacific/Apia	1316786400	Pacific/Apia	1316962200	2	6600
+Pacific/Apia	1316787000	Pacific/Apia	1316868600	0	81600
+Pacific/Apia	1316787600	Pacific/Apia	1317036600	2	79800
+Pacific/Apia	1316789400	Pacific/Apia	1316873400	0	84000
+Pacific/Apia	1316789940	Pacific/Apia	1317048600	3	3060
+Pacific/Apia	1316790060	Pacific/Apia	1316959200	1	86340
+Pacific/Apia	1316791800	Pacific/Apia	1316872801	0	81001
+Pacific/Apia	1316795400	Pacific/Apia	1317049260	2	84660
+Pacific/Apia	1316863800	Pacific/Apia	1317040200	2	7200
+Pacific/Apia	1316868600	Pacific/Apia	1316959140	1	7740
+Pacific/Apia	1316869200	Pacific/Apia	1316950200	0	81000
+Pacific/Apia	1316869800	Pacific/Apia	1316876400	0	6600
+Pacific/Apia	1316871600	Pacific/Apia	1316875800	0	4200
+Pacific/Apia	1316872740	Pacific/Apia	1316876400	0	3660
+Pacific/Apia	1316872800	Pacific/Apia	1316950200	0	77400
+Pacific/Apia	1316872860	Pacific/Apia	1316959140	0	86280
+Pacific/Apia	1316874000	Pacific/Apia	1317040200	1	79800
+Pacific/Apia	1316875800	Pacific/Apia	1317049260	2	660
+Pacific/Apia	1316876460	Pacific/Apia	1316959200	0	82740
+Pacific/Apia	1316878200	Pacific/Apia	1317048600	1	84000
+Pacific/Apia	1316950200	Pacific/Apia	1317036600	1	0
+Pacific/Apia	1316955540	Pacific/Apia	1316962200	0	6660
+Pacific/Apia	1316956200	Pacific/Apia	1316962800	0	6600
+Pacific/Apia	1316958600	Pacific/Apia	1317042600	0	84000
+Pacific/Apia	1316959800	Pacific/Apia	1316960400	0	600
+Pacific/Apia	1316962200	Pacific/Apia	1319637600	30	83400
+Pacific/Apia	1316964600	Pacific/Apia	1317045000	0	80400
+Pacific/Apia	1317041940	Pacific/Apia	1317049800	0	7860
+Pacific/Apia	1317045600	Pacific/Apia	1317045600	0	0
+Pacific/Apia	1316696460	Asia/Karachi	1316700600	0	4140
+Pacific/Apia	1316863800	Asia/Karachi	1317054600	2	21600
+Pacific/Apia	1316700060	Etc/UTC	1316876460	2	3600
+Pacific/Apia	1316876460	Etc/UTC	1317043800	1	80940
+Pacific/Apia	1316782740	Pacific/Chatham	1316788200	0	5460
+Pacific/Apia	1317043800	Pacific/Chatham	1317045660	0	1860
+Pacific/Apia	1322474400	Pacific/Apia	1325061000	29	81000
+Pacific/Apia	1325057400	Pacific/Apia	1325066400	0	9000
+Pacific/Apia	1325061000	Pacific/Apia	1325075400	0	14400
+Pacific/Apia	1325062200	Pacific/Apia	1325152800	1	4200
+Pacific/Apia	1325062740	Pacific/Apia	1325230200	1	81060
+Pacific/Apia	1325062800	Pacific/Apia	1325239260	2	3660
+Pacific/Apia	1325062860	Pacific/Apia	1325321940	2	86280
+Pacific/Apia	1325063400	Pacific/Apia	1325329260	4	6660
+Pacific/Apia	1325064600	Pacific/Apia	1325412600	5	2400
+Pacific/Apia	1325065800	Pacific/Apia	1325068200	0	2400
+Pacific/Apia	1325066340	Pacific/Apia	1325152860	1	120
+Pacific/Apia	1325066400	Pacific/Apia	1325238600	1	85800
+Pacific/Apia	1325066460	Pacific/Apia	1325322060	3	82800
+Pacific/Apia	1325067000	Pacific/Apia	1325408460	4	82260
+Pacific/Apia	1325068200	Pacific/Apia	1325070060	0	1860
+Pacific/Apia	1325069400	Pacific/Apia	1325161800	1	6000
+Pacific/Apia	1325069940	Pacific/Apia	1325286000	3	43260
+Pacific/Apia	1325070000	Pacific/Apia	1325408400	4	79200
+Pacific/Apia	1325070600	Pacific/Apia	1325149260	0	78660
+Pacific/Apia	1325071800	Pacific/Apia	1325239200	1	81000
+Pacific/Apia	1325075400	Pacific/Apia	1325329200	3	81000
+Pacific/Apia	1325147400	Pacific/Apia	1325149200	0	1800
+Pacific/Apia	1325148600	Pacific/Apia	1325239800	1	4800
+Pacific/Apia	1325149140	Pacific/Apia	1325407800	3	85860
+Pacific/Apia	1325149260	Pacific/Apia	1325156460	0	7200
+Pacific/Apia	1325149800	Pacific/Apia	1325324400	3	1800
+Pacific/Apia	1325151600	Pacific/Apia	1325151600	0	0
+Pacific/Apia	1325152200	Pacific/Apia	1325316600	1	78000
+Pacific/Apia	1325152740	Pacific/Apia	1325416200	4	4260
+Pacific/Apia	1325152860	Pacific/Apia	1325320200	2	80940
+Pacific/Apia	1325153400	Pacific/Apia	1359799200	401	85800
+Pacific/Apia	1325154600	Pacific/Apia	1325325600	2	84600
+Pacific/Apia	1325156340	Pacific/Apia	1325235660	0	79320
+Pacific/Apia	1325156400	Pacific/Apia	1325410200	3	81000
+Pacific/Apia	1325157000	Pacific/Apia	1325322000	2	78600
+Pacific/Apia	1325161800	Pacific/Apia	1325238000	0	76200
+Pacific/Apia	1325192400	Pacific/Apia	1325413800	3	48600
+Pacific/Apia	1325233800	Pacific/Apia	1325334600	2	14400
+Pacific/Apia	1325235540	Pacific/Apia	1325325540	2	3600
+Pacific/Apia	1325235660	Pacific/Apia	1325321400	0	85740
+Pacific/Apia	1325237400	Pacific/Apia	1325248200	0	10800
+Pacific/Apia	1325238600	Pacific/Apia	1325248200	0	9600
+Pacific/Apia	1325239199	Pacific/Apia	1325321400	0	82201
+Pacific/Apia	1325239201	Pacific/Apia	1325325540	0	86339
+Pacific/Apia	1325239800	Pacific/Apia	1325334600	1	8400
+Pacific/Apia	1325241000	Pacific/Apia	1325413800	2	0
+Pacific/Apia	1325242800	Pacific/Apia	1325322000	0	79200
+Pacific/Apia	1325243400	Pacific/Apia	1325410200	1	80400
+Pacific/Apia	1325286000	Pacific/Apia	1325325600	0	39600
+Pacific/Apia	1325320200	Pacific/Apia	1359799200	399	5400
+Pacific/Apia	1325322000	Pacific/Apia	1325416200	1	7800
+Pacific/Apia	1325324400	Pacific/Apia	1325324400	0	0
+Pacific/Apia	1325325600	Pacific/Apia	1325407800	0	82200
+Pacific/Apia	1325327400	Pacific/Apia	1325329200	0	1800
+Pacific/Apia	1325329260	Pacific/Apia	1325408400	0	79140
+Pacific/Apia	1325406600	Pacific/Apia	1325408460	0	1860
+Pacific/Apia	1325410200	Pacific/Apia	1325412600	0	2400
+Pacific/Apia	1325415540	Pacific/Apia	1325415660	0	120
+Pacific/Apia	1325149140	Asia/Karachi	1325240400	1	4860
+Pacific/Apia	1325417400	Asia/Karachi	1325421000	0	3600
+Pacific/Apia	1325156340	Etc/UTC	1325239199	0	82859
+Pacific/Apia	1325062860	Pacific/Chatham	1325157000	1	7740
+Pacific/Apia	1325237400	Pacific/Chatham	1325325540	2	1740
+Pacific/Apia	1298642400	Pacific/Apia	1333203600	400	87600
+Pacific/Apia	1330437600	Pacific/Apia	1333249200	32	43200
+Pacific/Apia	1333020600	Pacific/Apia	1333288200	3	4800
+Pacific/Apia	1333024200	Pacific/Apia	1333293000	3	6000
+Pacific/Apia	1333025400	Pacific/Apia	1333374600	4	0
+Pacific/Apia	1333025940	Pacific/Apia	1333384200	4	9060
+Pacific/Apia	1333026060	Pacific/Apia	1333032600	0	6540
+Pacific/Apia	1333026060	Pacific/Apia	1333202400	1	89940
+Pacific/Apia	1333026600	Pacific/Apia	1333115400	1	2400
+Pacific/Apia	1333026600	Pacific/Apia	1333202460	1	89460
+Pacific/Apia	1333027800	Pacific/Apia	1333198200	1	84000
+Pacific/Apia	1333027800	Pacific/Apia	1333203000	1	88800
+Pacific/Apia	1333028400	Pacific/Apia	1333202460	1	87660
+Pacific/Apia	1333028400	Pacific/Apia	1333206000	2	4800
+Pacific/Apia	1333029000	Pacific/Apia	1333202400	1	87000
+Pacific/Apia	1333029000	Pacific/Apia	1333203600	1	88200
+Pacific/Apia	1333029000	Pacific/Apia	1333289400	2	87600
+Pacific/Apia	1333029540	Pacific/Apia	1333202460	1	86520
+Pacific/Apia	1333029540	Pacific/Apia	1333205400	1	89460
+Pacific/Apia	1333029540	Pacific/Apia	1333375140	3	82800
+Pacific/Apia	1333029660	Pacific/Apia	1333033200	0	3540
+Pacific/Apia	1333030200	Pacific/Apia	1333119600	1	3000
+Pacific/Apia	1333030800	Pacific/Apia	1333205400	1	88200
+Pacific/Apia	1333031400	Pacific/Apia	1333292340	2	84540
+Pacific/Apia	1333032600	Pacific/Apia	1333379400	3	84000
+Pacific/Apia	1333033200	Pacific/Apia	1333119540	0	86340
+Pacific/Apia	1333033260	Pacific/Apia	1333206600	1	86940
+Pacific/Apia	1333033800	Pacific/Apia	1333371540	3	74940
+Pacific/Apia	1333038600	Pacific/Apia	1333114800	0	76200
+Pacific/Apia	1333107000	Pacific/Apia	1333204200	1	10800
+Pacific/Apia	1333110600	Pacific/Apia	1333371000	2	84000
+Pacific/Apia	1333112340	Pacific/Apia	1333117800	0	5460
+Pacific/Apia	1333112400	Pacific/Apia	1333284600	1	85800
+Pacific/Apia	1333112460	Pacific/Apia	1333378740	3	3480
+Pacific/Apia	1333113000	Pacific/Apia	1333202401	0	89401
+Pacific/Apia	1333114200	Pacific/Apia	1333202460	0	88260
+Pacific/Apia	1333114800	Pacific/Apia	1333202401	0	87601
+Pacific/Apia	1333114800	Pacific/Apia	1333204200	0	89400
+Pacific/Apia	1333114800	Pacific/Apia	1333372200	2	81000
+Pacific/Apia	1333115400	Pacific/Apia	1333203000	0	87600
+Pacific/Apia	1333115940	Pacific/Apia	1333201800	0	85860
+Pacific/Apia	1333115940	Pacific/Apia	1333202401	0	86461
+Pacific/Apia	1333115940	Pacific/Apia	1333204200	0	88260
+Pacific/Apia	1333116000	Pacific/Apia	1333371600	2	79200
+Pacific/Apia	1333116600	Pacific/Apia	1333202401	0	85801
+Pacific/Apia	1333117200	Pacific/Apia	1333375200	2	81600
+Pacific/Apia	1333119000	Pacific/Apia	1333279800	1	70800
+Pacific/Apia	1333119600	Pacific/Apia	1333120200	0	600
+Pacific/Apia	1333119660	Pacific/Apia	1333297800	2	1740
+Pacific/Apia	1333121400	Pacific/Apia	1333211400	1	0
+Pacific/Apia	1333155600	Pacific/Apia	1333198800	0	43200
+Pacific/Apia	1333193400	Pacific/Apia	1333375260	2	5460
+Pacific/Apia	1333198200	Pacific/Apia	1333294200	1	6000
+Pacific/Apia	1333198800	Pacific/Apia	1333288800	1	0
+Pacific/Apia	1333199400	Pacific/Apia	1333285260	0	85860
+Pacific/Apia	1333201200	Pacific/Apia	1333285140	0	83940
+Pacific/Apia	1333202340	Pacific/Apia	1333285260	0	82920
+Pacific/Apia	1333202400	Pacific/Apia	1333284600	0	82200	85800
+Pacific/Apia	1333202400	Pacific/Apia	1333287600	0	85200	88800
+Pacific/Apia	1333202400	Pacific/Apia	1333288800	1	0
+Pacific/Apia	1333202401	Pacific/Apia	1333285140	0	82739	86339
+Pacific/Apia	1333202401	Pacific/Apia	1333288200	0	85799	89399
+Pacific/Apia	1333202460	Pacific/Apia	1333285140	0	82680	86280
+Pacific/Apia	1333202460	Pacific/Apia	1333288200	0	85740	89340
+Pacific/Apia	1333202460	Pacific/Apia	1333294200	1	5340
+Pacific/Apia	1333203000	Pacific/Apia	1333285140	0	82140	85740
+Pacific/Apia	1333203000	Pacific/Apia	1333288200	0	85200	88800
+Pacific/Apia	1333203600	Pacific/Apia	1333284600	0	81000	84600
+Pacific/Apia	1333203600	Pacific/Apia	1333287600	0	84000	87600
+Pacific/Apia	1333203600	Pacific/Apia	1333375260	1	85260
+Pacific/Apia	1333204200	Pacific/Apia	1333279800	0	75600	79200
+Pacific/Apia	1333204200	Pacific/Apia	1333285800	0	81600	85200
+Pacific/Apia	1333204200	Pacific/Apia	1333288860	0	84660	88260
+Pacific/Apia	1333205400	Pacific/Apia	1333285140	0	79740	83340
+Pacific/Apia	1333205400	Pacific/Apia	1333288200	0	82800	86400
+Pacific/Apia	1333205400	Pacific/Apia	1333290600	0	85200	88800
+Pacific/Apia	1333205940	Pacific/Apia	1333211400	0	5460
+Pacific/Apia	1333205940	Pacific/Apia	1333285260	0	79320	82920
+Pacific/Apia	1333205940	Pacific/Apia	1333288800	0	82860	86460
+Pacific/Apia	1333206060	Pacific/Apia	1333297800	1	5340
+Pacific/Apia	1333211400	Pacific/Apia	1333279800	0	68400
+Pacific/Apia	1333279800	Pacific/Apia	1333375200	1	9000
+Pacific/Apia	1333285140	Pacific/Apia	1333371600	1	60
+Pacific/Apia	1333285800	Pacific/Apia	1333372200	1	0
+Pacific/Apia	1333288200	Pacific/Apia	1333378740	1	4140
+Pacific/Apia	1333289400	Pacific/Apia	1333371000	0	81600
+Pacific/Apia	1333292340	Pacific/Apia	1333371540	0	79200
+Pacific/Apia	1333294200	Pacific/Apia	1333379400	0	85200
+Pacific/Apia	1333371600	Pacific/Apia	1333375140	0	3540
+Pacific/Apia	1333375200	Pacific/Apia	1333384200	0	9000
+Pacific/Apia	1333026060	Asia/Karachi	1333206060	2	7200
+Pacific/Apia	1333200600	Asia/Karachi	1333375260	1	84660
+Pacific/Apia	1333202460	Asia/Karachi	1333279800	0	77340	80940
+Pacific/Apia	1333033260	Etc/UTC	1333107000	0	73740
+Pacific/Apia	1333284600	Etc/UTC	1333378740	1	7740
+Pacific/Apia	1333112340	Pacific/Chatham	1333293000	2	4260
+Pacific/Apia	1333115940	Pacific/Chatham	1333203600	0	87660
+Pacific/Apia	1333202460	Pacific/Chatham	1333279800	0	77340	80940
+America/Havana	1664600400	America/Havana	1698983940	397	82740
+America/Havana	1696395600	America/Havana	1698987660	30	60
+America/Havana	1698978600	America/Havana	1698996600	0	18000
+America/Havana	1698982200	America/Havana	1699073940	1	5340
+America/Havana	1698983400	America/Havana	1699083000	1	13200
+America/Havana	1698983940	America/Havana	1699160399	2	3659
+America/Havana	1698984000	America/Havana	1699207200	2	50400
+America/Havana	1698984060	America/Havana	1699248000	3	1140
+America/Havana	1698984600	America/Havana	1699160401	1	89401
+America/Havana	1698984600	America/Havana	1699331400	3	84000
+America/Havana	1698985800	America/Havana	1699160460	1	88260
+America/Havana	1698985800	America/Havana	1733720400	401	84600
+America/Havana	1698986400	America/Havana	1699160401	1	87601
+America/Havana	1698986400	America/Havana	1699162200	1	89400
+America/Havana	1698987000	America/Havana	1699070340	0	83340
+America/Havana	1698987000	America/Havana	1699161000	1	87600
+America/Havana	1698987540	America/Havana	1699113600	1	39660
+America/Havana	1698987540	America/Havana	1699160401	1	86461
+America/Havana	1698987540	America/Havana	1699162200	1	88260
+America/Havana	1698987600	America/Havana	1699164000	2	0
+America/Havana	1698987660	America/Havana	1699249800	2	85740
+America/Havana	1698988200	America/Havana	1699336200	3	85200
+America/Havana	1698989400	America/Havana	1699072200	0	82800
+America/Havana	1698990600	America/Havana	1699159800	1	82800
+America/Havana	1698991140	America/Havana	1699246740	2	79200
+America/Havana	1698991200	America/Havana	1699335000	3	81000
+America/Havana	1698991800	America/Havana	1699077000	0	85200
+America/Havana	1698993000	America/Havana	1699165800	1	86400
+America/Havana	1698996600	America/Havana	1699330200	3	70800
+America/Havana	1699068600	America/Havana	1699075800	0	7200
+America/Havana	1699069800	America/Havana	1699237800	1	81600
+America/Havana	1699070340	America/Havana	1699333800	3	660
+America/Havana	1699070460	America/Havana	1699157400	1	540
+America/Havana	1699071000	America/Havana	1699160400	0	89400
+America/Havana	1699071000	America/Havana	1699250460	2	3060
+America/Havana	1699072200	America/Havana	1699160401	0	88201
+America/Havana	1699072800	America/Havana	1699077660	0	4860
+America/Havana	1699072800	America/Havana	1699160400	0	87600
+America/Havana	1699072800	America/Havana	1699161600	0	88800
+America/Havana	1699073400	America/Havana	1699160460	0	87060
+America/Havana	1699073400	America/Havana	1699246800	1	87000
+America/Havana	1699073940	America/Havana	1699160400	0	86460
+America/Havana	1699073940	America/Havana	1699161600	0	87660
+America/Havana	1699074000	America/Havana	1699077540	0	3540
+America/Havana	1699074060	America/Havana	1699246860	1	82800
+America/Havana	1699075200	America/Havana	1699151400	0	76200
+America/Havana	1699075800	America/Havana	1699255800	2	3600
+America/Havana	1699077540	America/Havana	1699161600	0	84060
+America/Havana	1699077600	America/Havana	1699336800	2	82800
+America/Havana	1699078200	America/Havana	1699248600	1	80400
+America/Havana	1699083000	America/Havana	1699163940	0	80940
+America/Havana	1699151400	America/Havana	1699155000	0	3600
+America/Havana	1699155000	America/Havana	1699333140	2	1740
+America/Havana	1699156740	America/Havana	1699252200	1	5460
+America/Havana	1699156860	America/Havana	1699247400	1	540
+America/Havana	1699158600	America/Havana	1699246200	0	87600
+America/Havana	1699159800	America/Havana	1699246200	0	86400
+America/Havana	1699160399	America/Havana	1699247400	0	87001
+America/Havana	1699160401	America/Havana	1699252200	1	5399
+America/Havana	1699161000	America/Havana	1699246860	0	85860	89460
+America/Havana	1699161000	America/Havana	1699333140	1	85740
+America/Havana	1699162200	America/Havana	1699247400	0	85200	88800
+America/Havana	1699163400	America/Havana	1699163940	0	540
+America/Havana	1699163400	America/Havana	1699248600	0	85200	88800
+America/Havana	1699163940	America/Havana	1699249800	0	85860	89460
+America/Havana	1699164000	America/Havana	1699248600	0	84600
+America/Havana	1699164600	America/Havana	1699336800	1	85800
+America/Havana	1699207200	America/Havana	1699255800	0	48600
+America/Havana	1699242600	America/Havana	1699246860	0	4260
+America/Havana	1699243260	America/Havana	1699246800	0	3540
+America/Havana	1699245600	America/Havana	1699250460	0	4860
+America/Havana	1699246800	America/Havana	1699333800	1	600
+America/Havana	1699248600	America/Havana	1699330200	0	81600
+America/Havana	1699250460	America/Havana	1699335000	0	84540
+America/Havana	1699327800	America/Havana	1699336200	0	8400
+America/Havana	1699331400	America/Havana	1733720400	398	1800
+America/Havana	1699336800	America/Havana	1701925200	29	82800
+America/Havana	1699070340	Asia/Karachi	1699342200	3	9060
+America/Havana	1664600400	Etc/UTC	1699155000	399	81000
+America/Havana	1699073940	Etc/UTC	1699161600	0	87660
+America/Havana	1699077540	Etc/UTC	1699336740	2	82800
+America/Havana	1698984060	Pacific/Chatham	1699329000	3	82140
+America/Havana	1699160460	Pacific/Chatham	1699243260	0	82800
+America/Havana	1675486800	America/Havana	1710127800	400	81000
+America/Havana	1707282000	America/Havana	1710133140	33	3540
+America/Havana	1709865000	America/Havana	1710137400	3	16800
+America/Havana	1709868600	America/Havana	1710218400	4	7800
+America/Havana	1709869800	America/Havana	1710223800	4	12000
+America/Havana	1709870400	America/Havana	1709874060	0	3660
+America/Havana	1709870460	America/Havana	1709956800	0	86340
+America/Havana	1709871000	America/Havana	1709964600	1	7200
+America/Havana	1709872200	America/Havana	1710046801	2	1801
+America/Havana	1709872800	America/Havana	1710129660	3	1260
+America/Havana	1709873400	America/Havana	1710214200	3	85200
+America/Havana	1709873940	America/Havana	1710225000	4	9060
+America/Havana	1709874060	America/Havana	1709957400	0	83340
+America/Havana	1709874600	America/Havana	1710043260	1	82260
+America/Havana	1709875200	America/Havana	1710129540	2	81540
+America/Havana	1709875800	America/Havana	1710216060	3	84660
+America/Havana	1709877540	America/Havana	1709951400	0	73860
+America/Havana	1709877600	America/Havana	1710043200	1	79200
+America/Havana	1709877660	America/Havana	1710131400	2	84540
+America/Havana	1709878200	America/Havana	1710220800	4	600
+America/Havana	1709883000	America/Havana	1709964060	0	81060
+America/Havana	1709951400	America/Havana	1710129000	2	8400
+America/Havana	1709955000	America/Havana	1710220200	3	9600
+America/Havana	1709956740	America/Havana	1710042600	0	85860
+America/Havana	1709956800	America/Havana	1710133800	2	7800
+America/Havana	1709957400	America/Havana	1709959800	0	2400
+America/Havana	1709958600	America/Havana	1710093600	1	48600
+America/Havana	1709959200	America/Havana	1710223140	3	8340
+America/Havana	1709960340	America/Havana	1710050400	1	3660
+America/Havana	1709960400	America/Havana	1710221400	3	5400
+America/Havana	1709961000	America/Havana	1710055800	1	8400
+America/Havana	1709961600	America/Havana	1710228600	3	11400
+America/Havana	1709963400	America/Havana	1710133200	2	600
+America/Havana	1709964000	America/Havana	1710045000	0	81000
+America/Havana	1709964060	America/Havana	1710219540	2	86280
+America/Havana	1709965800	America/Havana	1710132600	1	84000
+America/Havana	1710000000	America/Havana	1710047400	0	47400
+America/Havana	1710037800	America/Havana	1712811600	32	12600
+America/Havana	1710042600	America/Havana	1710219000	2	7200
+America/Havana	1710043200	America/Havana	1710142200	1	16200
+America/Havana	1710043800	America/Havana	1710136200	1	9600
+America/Havana	1710045600	America/Havana	1710134400	1	6000
+America/Havana	1710046740	America/Havana	1710136200	1	6660
+America/Havana	1710046800	America/Havana	1710142200	1	9000
+America/Havana	1710046860	America/Havana	1710219000	1	85740
+America/Havana	1710048000	America/Havana	1712811600	31	85200
+America/Havana	1710050340	America/Havana	1710132600	0	82260
+America/Havana	1710050460	America/Havana	1710219540	1	82680
+America/Havana	1710055800	America/Havana	1710133200	0	77400
+America/Havana	1710124200	America/Havana	1710228600	1	18000
+America/Havana	1710129540	America/Havana	1710221400	1	5460
+America/Havana	1710130200	America/Havana	1710223140	1	6540
+America/Havana	1710133140	America/Havana	1710133800	0	660
+America/Havana	1710133800	America/Havana	1710220200	1	0
+America/Havana	1710136740	America/Havana	1710220800	0	84060
+America/Havana	1710142200	America/Havana	1710216060	0	73860
+America/Havana	1710216000	America/Havana	1710225000	0	9000
+America/Havana	1710219660	America/Havana	1710223800	0	4140
+America/Havana	1709874060	Asia/Karachi	1709874600	0	540
+America/Havana	1710046860	Asia/Karachi	1710217800	1	84540
+America/Havana	1709877660	Etc/UTC	1710129660	2	82800
+America/Havana	1710136200	Etc/UTC	1710215400	0	79200
+America/Havana	1709960340	Pacific/Chatham	1710046799	1	59
+America/Havana	1696050000	America/Havana	1730438400	398	1200
+America/Havana	1727845200	America/Havana	1730514600	30	77400
+America/Havana	1730428200	America/Havana	1730523540	1	8940
+America/Havana	1730431800	America/Havana	1730529000	1	10800
+America/Havana	1730433000	America/Havana	1730609400	2	3600
+America/Havana	1730433540	America/Havana	1730614200	2	7860
+America/Havana	1730433600	America/Havana	1730696340	2	89940
+America/Havana	1730433660	America/Havana	1730778600	3	82140
+America/Havana	1730434200	America/Havana	1730610000	1	89400
+America/Havana	1730434200	America/Havana	1730786400	4	3000
+America/Havana	1730435400	America/Havana	1730610001	1	88201
+America/Havana	1730436000	America/Havana	1730440800	0	4800
+America/Havana	1730436000	America/Havana	1730610000	1	87600
+America/Havana	1730436000	America/Havana	1730611200	1	88800
+America/Havana	1730436600	America/Havana	1730524800	1	1800
+America/Havana	1730436600	America/Havana	1730610060	1	87060
+America/Havana	1730437140	America/Havana	1730609940	2	0
+America/Havana	1730437140	America/Havana	1730610000	1	86460
+America/Havana	1730437140	America/Havana	1730611200	1	87660
+America/Havana	1730437200	America/Havana	1730692860	2	79260
+America/Havana	1730437260	America/Havana	1730779200	3	79140
+America/Havana	1730438400	America/Havana	1730440200	0	1800
+America/Havana	1730439000	America/Havana	1730527200	1	1800
+America/Havana	1730440200	America/Havana	1730613600	1	87000
+America/Havana	1730440740	America/Havana	1730701800	2	84660
+America/Havana	1730440860	America/Havana	1730441400	0	540
+America/Havana	1730441400	America/Havana	1730606340	1	78540
+America/Havana	1730442600	America/Havana	1730695200	2	76200
+America/Havana	1730446200	America/Havana	1730786340	3	77340
+America/Havana	1730518200	America/Havana	1730605800	1	1200
+America/Havana	1730519400	America/Havana	1730696400	2	600
+America/Havana	1730519940	America/Havana	1765170000	401	60
+America/Havana	1730520060	America/Havana	1730610001	0	89941
+America/Havana	1730520060	America/Havana	1730611800	1	5340
+America/Havana	1730520600	America/Havana	1730781000	2	84000
+America/Havana	1730521800	America/Havana	1730610000	0	88200
+America/Havana	1730521800	America/Havana	1730611200	0	89400
+America/Havana	1730522400	America/Havana	1730607000	0	84600
+America/Havana	1730522400	America/Havana	1730610600	0	88200
+America/Havana	1730523000	America/Havana	1730610001	0	87001
+America/Havana	1730523000	America/Havana	1730611800	0	88800
+America/Havana	1730523000	America/Havana	1730705400	2	6000
+America/Havana	1730523540	America/Havana	1730610600	0	87060
+America/Havana	1730523600	America/Havana	1730606400	0	82800
+America/Havana	1730523660	America/Havana	1730773800	2	73740
+America/Havana	1730524800	America/Havana	1730609999	0	85199
+America/Havana	1730525400	America/Havana	1730782740	2	80940
+America/Havana	1730527140	America/Havana	1730691000	1	73860
+America/Havana	1730527260	America/Havana	1730563200	0	35940
+America/Havana	1730527800	America/Havana	1730779140	2	74940
+America/Havana	1730532600	America/Havana	1730692800	1	70200
+America/Havana	1730601000	America/Havana	1730610000	0	9000
+America/Havana	1730604600	America/Havana	1730788200	2	7200
+America/Havana	1730606340	America/Havana	1730782200	1	85860
+America/Havana	1730606460	America/Havana	1730777400	1	80940
+America/Havana	1730608200	America/Havana	1730700600	1	2400
+America/Havana	1730609400	America/Havana	1730700600	1	1200
+America/Havana	1730609999	America/Havana	1730777400	1	77401
+America/Havana	1730610001	America/Havana	1730782200	1	85799
+America/Havana	1730610600	America/Havana	1730788200	2	4800
+America/Havana	1730611200	America/Havana	1730696460	0	85260	88860
+America/Havana	1730613000	America/Havana	1730692800	0	79800
+America/Havana	1730613000	America/Havana	1730696400	0	83400	87000
+America/Havana	1730613540	America/Havana	1730696460	0	82920	86520
+America/Havana	1730613600	America/Havana	1730779140	1	79140
+America/Havana	1730615400	America/Havana	1730691000	0	75600
+America/Havana	1730656800	America/Havana	1730782740	1	39540
+America/Havana	1730692200	America/Havana	1730773800	0	81600
+America/Havana	1730692860	America/Havana	1730705400	0	12540
+America/Havana	1730695200	America/Havana	1730781000	0	85800
+America/Havana	1730696400	America/Havana	1765170000	399	0
+America/Havana	1730698200	America/Havana	1730786340	1	1740
+America/Havana	1730700600	America/Havana	1730701800	0	1200
+America/Havana	1730778600	America/Havana	1730779200	0	600
+America/Havana	1730781600	America/Havana	1730786400	0	4800
+America/Havana	1730787000	America/Havana	1733374800	29	82200
+America/Havana	1730523540	Asia/Karachi	1730611200	0	87660
+America/Havana	1730523540	Asia/Karachi	1730696340	1	86400
+America/Havana	1696050000	Etc/UTC	1730781000	401	81000
+America/Havana	1730601000	Etc/UTC	1730700600	1	9600
+America/Havana	1730437260	Pacific/Chatham	1730527800	1	4140
+America/Havana	1730613660	Pacific/Chatham	1730692860	0	79200
+Asia/Tehran	1581798600	Asia/Tehran	1616445060	401	3660
+Asia/Tehran	1613593800	Asia/Tehran	1616450400	33	9000
+Asia/Tehran	1616176800	Asia/Tehran	1616530200	4	11400
+Asia/Tehran	1616180400	Asia/Tehran	1616535060	4	12660
+Asia/Tehran	1616182140	Asia/Tehran	1616185200	0	3060
+Asia/Tehran	1616182200	Asia/Tehran	1616263200	0	81000
+Asia/Tehran	1616182260	Asia/Tehran	1616274000	1	5340
+Asia/Tehran	1616182800	Asia/Tehran	1616356800	2	1200
+Asia/Tehran	1616184000	Asia/Tehran	1616367600	2	10800
+Asia/Tehran	1616184600	Asia/Tehran	1616448000	3	7800
+Asia/Tehran	1616185200	Asia/Tehran	1616531460	4	4260
+Asia/Tehran	1616185800	Asia/Tehran	1616189400	0	3600
+Asia/Tehran	1616185860	Asia/Tehran	1616275740	1	3480
+Asia/Tehran	1616186400	Asia/Tehran	1616359800	2	600
+Asia/Tehran	1616187000	Asia/Tehran	1616446200	3	3600
+Asia/Tehran	1616187600	Asia/Tehran	1616534400	4	4800
+Asia/Tehran	1616189340	Asia/Tehran	1616272200	0	82860
+Asia/Tehran	1616189400	Asia/Tehran	1616359200	2	600
+Asia/Tehran	1616189460	Asia/Tehran	1616448600	3	3540
+Asia/Tehran	1616191200	Asia/Tehran	1616191200	0	0
+Asia/Tehran	1616194800	Asia/Tehran	1616355600	1	74400
+Asia/Tehran	1616263200	Asia/Tehran	1616445600	2	13200
+Asia/Tehran	1616266800	Asia/Tehran	1650918600	401	9000
+Asia/Tehran	1616268540	Asia/Tehran	1616358601	1	3661
+Asia/Tehran	1616268600	Asia/Tehran	1616526000	3	1800
+Asia/Tehran	1616269200	Asia/Tehran	1616276400	0	7200
+Asia/Tehran	1616270400	Asia/Tehran	1616444940	2	5340
+Asia/Tehran	1616271600	Asia/Tehran	1616272260	0	660
+Asia/Tehran	1616272140	Asia/Tehran	1616441460	2	120
+Asia/Tehran	1616272260	Asia/Tehran	1616272800	0	540
+Asia/Tehran	1616272800	Asia/Tehran	1616444400	2	2400
+Asia/Tehran	1616274000	Asia/Tehran	1616311800	0	37800
+Asia/Tehran	1616275200	Asia/Tehran	1616454000	2	9600
+Asia/Tehran	1616275800	Asia/Tehran	1616361600	1	3000
+Asia/Tehran	1616275860	Asia/Tehran	1616536800	3	5340
+Asia/Tehran	1616277600	Asia/Tehran	1616449200	2	2400
+Asia/Tehran	1616311800	Asia/Tehran	1616436000	1	41400
+Asia/Tehran	1616353200	Asia/Tehran	1616358540	0	5340
+Asia/Tehran	1616354400	Asia/Tehran	1616535600	2	12000
+Asia/Tehran	1616355000	Asia/Tehran	1616531340	2	7140
+Asia/Tehran	1616355600	Asia/Tehran	1616527800	2	3000
+Asia/Tehran	1616357400	Asia/Tehran	1616527200	2	600
+Asia/Tehran	1616358540	Asia/Tehran	1616527800	2	60
+Asia/Tehran	1616358600	Asia/Tehran	1616531340	1	86340
+Asia/Tehran	1616358660	Asia/Tehran	1616535600	2	4140
+Asia/Tehran	1616360400	Asia/Tehran	1616436000	0	75600
+Asia/Tehran	1616362140	Asia/Tehran	1616449200	1	660
+Asia/Tehran	1616362260	Asia/Tehran	1616536800	2	1740
+Asia/Tehran	1616367600	Asia/Tehran	1616454000	1	0
+Asia/Tehran	1616439600	Asia/Tehran	1616444400	0	4800
+Asia/Tehran	1616441400	Asia/Tehran	1616441460	0	60
+Asia/Tehran	1616443200	Asia/Tehran	1616444940	0	1740
+Asia/Tehran	1616444940	Asia/Tehran	1616526000	0	81060
+Asia/Tehran	1616445600	Asia/Tehran	1650918600	398	85800
+Asia/Tehran	1616448600	Asia/Tehran	1616448600	0	0
+Asia/Tehran	1616454000	Asia/Tehran	1616534400	0	80400
+Asia/Tehran	1616527860	Asia/Tehran	1616531460	0	3600
+Asia/Tehran	1616532000	Asia/Tehran	1616535060	0	3060
+Asia/Tehran	1616185860	Asia/Karachi	1616362260	2	3600
+Asia/Tehran	1616362260	Asia/Karachi	1616529600	1	80940
+Asia/Tehran	1616268540	Etc/UTC	1616274000	0	5460
+Asia/Tehran	1616529600	Etc/UTC	1616531460	0	1860
+Asia/Tehran	1616272140	Pacific/Chatham	1616534940	3	7200
+Asia/Tehran	1597692600	Asia/Tehran	1632162000	398	82200
+Asia/Tehran	1629487800	Asia/Tehran	1632166200	31	0
+Asia/Tehran	1632070800	Asia/Tehran	1632171600	1	14400
+Asia/Tehran	1632074400	Asia/Tehran	1632251400	2	4200
+Asia/Tehran	1632075600	Asia/Tehran	1632256200	2	7800
+Asia/Tehran	1632076140	Asia/Tehran	1632337200	2	88260
+Asia/Tehran	1632076200	Asia/Tehran	1632344400	3	5400
+Asia/Tehran	1632076260	Asia/Tehran	1632252601	1	89941
+Asia/Tehran	1632076260	Asia/Tehran	1632426000	4	540
+Asia/Tehran	1632078000	Asia/Tehran	1632079800	0	1800
+Asia/Tehran	1632078000	Asia/Tehran	1632252600	1	88200
+Asia/Tehran	1632078000	Asia/Tehran	1632253800	1	89400
+Asia/Tehran	1632078600	Asia/Tehran	1632163200	0	84600
+Asia/Tehran	1632078600	Asia/Tehran	1632253200	1	88200
+Asia/Tehran	1632079200	Asia/Tehran	1632247200	1	81600
+Asia/Tehran	1632079200	Asia/Tehran	1632252601	1	87001
+Asia/Tehran	1632079200	Asia/Tehran	1632254400	1	88800
+Asia/Tehran	1632079740	Asia/Tehran	1632253200	1	87060
+Asia/Tehran	1632079740	Asia/Tehran	1632256260	2	3720
+Asia/Tehran	1632079800	Asia/Tehran	1632342000	2	85800
+Asia/Tehran	1632079860	Asia/Tehran	1632427200	3	84540
+Asia/Tehran	1632081000	Asia/Tehran	1632162600	0	81600
+Asia/Tehran	1632081600	Asia/Tehran	1632249060	1	81060
+Asia/Tehran	1632082800	Asia/Tehran	1632335460	2	76260
+Asia/Tehran	1632083340	Asia/Tehran	1632424800	3	78660
+Asia/Tehran	1632083460	Asia/Tehran	1632165000	0	81540
+Asia/Tehran	1632084000	Asia/Tehran	1632252660	1	82260
+Asia/Tehran	1632085200	Asia/Tehran	1632342660	2	81060
+Asia/Tehran	1632157200	Asia/Tehran	1632162540	0	5340
+Asia/Tehran	1632160800	Asia/Tehran	1632252601	1	5401
+Asia/Tehran	1632162000	Asia/Tehran	1632348000	2	9600
+Asia/Tehran	1632162600	Asia/Tehran	1632167400	0	4800
+Asia/Tehran	1632162660	Asia/Tehran	1632252600	0	89940
+Asia/Tehran	1632162660	Asia/Tehran	1632334800	1	85740
+Asia/Tehran	1632163200	Asia/Tehran	1632252660	0	89460
+Asia/Tehran	1632163200	Asia/Tehran	1632429000	3	3000
+Asia/Tehran	1632164400	Asia/Tehran	1632253200	0	88800
+Asia/Tehran	1632165000	Asia/Tehran	1632252660	0	87660
+Asia/Tehran	1632165000	Asia/Tehran	1632254400	0	89400
+Asia/Tehran	1632165600	Asia/Tehran	1632252600	0	87000
+Asia/Tehran	1632165600	Asia/Tehran	1632253800	0	88200
+Asia/Tehran	1632165600	Asia/Tehran	1632425340	2	83340
+Asia/Tehran	1632166140	Asia/Tehran	1632252660	0	86520
+Asia/Tehran	1632166140	Asia/Tehran	1632255600	0	89460
+Asia/Tehran	1632166200	Asia/Tehran	1632253200	0	87000
+Asia/Tehran	1632166260	Asia/Tehran	1632425400	2	82740
+Asia/Tehran	1632167400	Asia/Tehran	1632256800	0	89400
+Asia/Tehran	1632168000	Asia/Tehran	1632430800	3	0
+Asia/Tehran	1632169740	Asia/Tehran	1632339060	1	79320
+Asia/Tehran	1632169860	Asia/Tehran	1632252540	0	82680
+Asia/Tehran	1632170400	Asia/Tehran	1632426600	2	79800
+Asia/Tehran	1632175200	Asia/Tehran	1632340800	1	75600
+Asia/Tehran	1632243600	Asia/Tehran	1632258000	0	14400
+Asia/Tehran	1632248400	Asia/Tehran	1632252000	0	3600
+Asia/Tehran	1632248940	Asia/Tehran	1632429600	2	4260
+Asia/Tehran	1632249060	Asia/Tehran	1632425460	2	0
+Asia/Tehran	1632250800	Asia/Tehran	1632424200	1	83400
+Asia/Tehran	1632252000	Asia/Tehran	1632424200	1	82200
+Asia/Tehran	1632252599	Asia/Tehran	1632425460	1	82861
+Asia/Tehran	1632252600	Asia/Tehran	1632256260	0	3660	7260
+Asia/Tehran	1632252600	Asia/Tehran	1632333600	0	81000	84600
+Asia/Tehran	1632252600	Asia/Tehran	1632337200	0	84600	88200
+Asia/Tehran	1632252601	Asia/Tehran	1632256800	0	4199	7799
+Asia/Tehran	1632252601	Asia/Tehran	1632334800	0	82199	85799
+Asia/Tehran	1632252601	Asia/Tehran	1632337800	0	85199	88799
+Asia/Tehran	1632252601	Asia/Tehran	1632429600	2	4199
+Asia/Tehran	1632252660	Asia/Tehran	1632256800	0	4140	7740
+Asia/Tehran	1632252660	Asia/Tehran	1632334800	0	82140	85740
+Asia/Tehran	1632252660	Asia/Tehran	1632337800	0	85140	88740
+Asia/Tehran	1632253200	Asia/Tehran	1632256800	0	3600	7200
+Asia/Tehran	1632253200	Asia/Tehran	1632334800	0	81600	85200
+Asia/Tehran	1632253200	Asia/Tehran	1632337800	0	84600	88200
+Asia/Tehran	1632253800	Asia/Tehran	1632256260	0	2460	6060
+Asia/Tehran	1632253800	Asia/Tehran	1632258000	0	4200	7800
+Asia/Tehran	1632253800	Asia/Tehran	1632333600	0	79800	83400
+Asia/Tehran	1632253800	Asia/Tehran	1632337200	0	83400	87000
+Asia/Tehran	1632253800	Asia/Tehran	1632339600	0	85800	89400
+Asia/Tehran	1632254400	Asia/Tehran	1632299400	0	45000	48600
+Asia/Tehran	1632254400	Asia/Tehran	1632335460	0	81060	84660
+Asia/Tehran	1632254400	Asia/Tehran	1632339000	0	84600	88200
+Asia/Tehran	1632255600	Asia/Tehran	1632256800	0	1200	4800
+Asia/Tehran	1632255600	Asia/Tehran	1632334800	0	79200	82800
+Asia/Tehran	1632255600	Asia/Tehran	1632337800	0	82200	85800
+Asia/Tehran	1632255600	Asia/Tehran	1632340200	0	84600	88200
+Asia/Tehran	1632255600	Asia/Tehran	1632340800	0	85200	88800
+Asia/Tehran	1632256140	Asia/Tehran	1632261600	0	5460	9060
+Asia/Tehran	1632256140	Asia/Tehran	1632335400	0	79260	82860
+Asia/Tehran	1632256140	Asia/Tehran	1632338940	0	82800	86400
+Asia/Tehran	1632256140	Asia/Tehran	1632342000	0	85860	89460
+Asia/Tehran	1632256200	Asia/Tehran	1632426600	1	84000
+Asia/Tehran	1632258000	Asia/Tehran	1632339060	0	81060
+Asia/Tehran	1632299400	Asia/Tehran	1632430800	1	45000
+Asia/Tehran	1632334800	Asia/Tehran	1632425400	1	4200
+Asia/Tehran	1632335460	Asia/Tehran	1632425340	1	3480
+Asia/Tehran	1632337800	Asia/Tehran	1632429000	1	4800
+Asia/Tehran	1632339060	Asia/Tehran	1632348000	0	8940
+Asia/Tehran	1632342000	Asia/Tehran	1632342660	0	660
+Asia/Tehran	1632343200	Asia/Tehran	1632424800	0	81600
+Asia/Tehran	1632421200	Asia/Tehran	1632427200	0	6000
+Asia/Tehran	1632424800	Asia/Tehran	1632426000	0	1200
+Asia/Tehran	1666812600	Asia/Tehran	1666812600	0	0
+Asia/Tehran	1632169740	Asia/Karachi	1632252599	0	82859
+Asia/Tehran	1632076260	Etc/UTC	1632170400	1	7740
+Asia/Tehran	1632250800	Etc/UTC	1632338940	0	88140
+Asia/Tehran	1632252660	Etc/UTC	1632330000	0	77340	80940
+Asia/Tehran	1632079860	Pacific/Chatham	1632421200	3	78540
+Asia/Tehran	1632252660	Pacific/Chatham	1632338940	0	86280	89880
+Asia/Tehran	1632334800	Pacific/Chatham	1632340800	0	6000
+Asia/Tehran	1613334600	Asia/Tehran	1648058400	401	81000
+Asia/Tehran	1645129800	Asia/Tehran	1648066800	34	3000
+Asia/Tehran	1647712800	Asia/Tehran	1648071060	4	16260
+Asia/Tehran	1647717600	Asia/Tehran	1647720000	0	2400
+Asia/Tehran	1647718140	Asia/Tehran	1647726000	0	7860
+Asia/Tehran	1647718200	Asia/Tehran	1647808200	1	3600
+Asia/Tehran	1647718260	Asia/Tehran	1647890400	1	85740
+Asia/Tehran	1647718800	Asia/Tehran	1647897600	2	6000
+Asia/Tehran	1647720000	Asia/Tehran	1647980400	3	4800
+Asia/Tehran	1647720600	Asia/Tehran	1648063800	4	1200
+Asia/Tehran	1647721200	Asia/Tehran	1650659400	34	4200
+Asia/Tehran	1647721800	Asia/Tehran	1647805200	0	83400
+Asia/Tehran	1647721860	Asia/Tehran	1647891000	1	82740
+Asia/Tehran	1647722400	Asia/Tehran	1647975600	2	80400
+Asia/Tehran	1647723000	Asia/Tehran	1648063200	3	84600
+Asia/Tehran	1647724800	Asia/Tehran	1647725400	0	600
+Asia/Tehran	1647725340	Asia/Tehran	1647817200	1	5460
+Asia/Tehran	1647725400	Asia/Tehran	1647972000	2	77400
+Asia/Tehran	1647725460	Asia/Tehran	1648064400	3	83340
+Asia/Tehran	1647727200	Asia/Tehran	1647807600	0	80400
+Asia/Tehran	1647730800	Asia/Tehran	1647896400	1	79200
+Asia/Tehran	1647799200	Asia/Tehran	1648062000	3	7200
+Asia/Tehran	1647804000	Asia/Tehran	1647808260	0	4260
+Asia/Tehran	1647804540	Asia/Tehran	1647903600	1	12660
+Asia/Tehran	1647804600	Asia/Tehran	1648067460	3	7260
+Asia/Tehran	1647805200	Asia/Tehran	1647892800	1	1200
+Asia/Tehran	1647806400	Asia/Tehran	1647986400	2	10800
+Asia/Tehran	1647807600	Asia/Tehran	1647847800	0	40200
+Asia/Tehran	1647808140	Asia/Tehran	1647984000	2	6660
+Asia/Tehran	1647808260	Asia/Tehran	1647885600	0	77340
+Asia/Tehran	1647808800	Asia/Tehran	1647985200	2	7200
+Asia/Tehran	1647810000	Asia/Tehran	1647894540	0	84540
+Asia/Tehran	1647811200	Asia/Tehran	1648067340	3	540
+Asia/Tehran	1647811800	Asia/Tehran	1647977340	1	82740
+Asia/Tehran	1647812400	Asia/Tehran	1647890940	0	78540
+Asia/Tehran	1647813600	Asia/Tehran	1648066200	2	83400
+Asia/Tehran	1647847800	Asia/Tehran	1647981000	1	50400
+Asia/Tehran	1647889200	Asia/Tehran	1647898260	0	9060
+Asia/Tehran	1647890940	Asia/Tehran	1647894000	0	3060
+Asia/Tehran	1647891000	Asia/Tehran	1648072800	2	12600
+Asia/Tehran	1647891600	Asia/Tehran	1648069200	2	8400
+Asia/Tehran	1647893400	Asia/Tehran	1648068000	2	5400
+Asia/Tehran	1647894540	Asia/Tehran	1648069200	2	5460
+Asia/Tehran	1647894600	Asia/Tehran	1648072800	2	5400
+Asia/Tehran	1647895200	Asia/Tehran	1647898260	0	3060
+Asia/Tehran	1647896400	Asia/Tehran	1647981000	0	84600
+Asia/Tehran	1647898140	Asia/Tehran	1648066200	1	81660
+Asia/Tehran	1647898800	Asia/Tehran	1647977340	0	78540
+Asia/Tehran	1647903600	Asia/Tehran	1648067340	1	77340
+Asia/Tehran	1647975600	Asia/Tehran	1647985200	0	9600
+Asia/Tehran	1647977400	Asia/Tehran	1647984000	0	6600
+Asia/Tehran	1647979200	Asia/Tehran	1647986400	0	7200
+Asia/Tehran	1647980940	Asia/Tehran	1648067460	1	120
+Asia/Tehran	1647982200	Asia/Tehran	1648062000	0	79800
+Asia/Tehran	1647984600	Asia/Tehran	1648064400	0	79800
+Asia/Tehran	1648058400	Asia/Tehran	1648063200	0	4800
+Asia/Tehran	1648063860	Asia/Tehran	1650659400	30	3540
+Asia/Tehran	1648068600	Asia/Tehran	1648071060	0	2460
+Asia/Tehran	1647725460	Asia/Karachi	1647799200	0	73740
+Asia/Tehran	1647976800	Asia/Karachi	1648070940	1	7740
+Asia/Tehran	1647804540	Etc/UTC	1647985200	2	11460
+Asia/Tehran	1613334600	Pacific/Chatham	1647799200	398	77400
+Asia/Tehran	1647811740	Pacific/Chatham	1647982800	2	1860
+Asia/Tehran	1629228600	Asia/Tehran	1663702800	399	600
+Asia/Tehran	1661023800	Asia/Tehran	1663711200	31	9000
+Asia/Tehran	1663606800	Asia/Tehran	1663787400	2	7800
+Asia/Tehran	1663610400	Asia/Tehran	1663792140	2	8940
+Asia/Tehran	1663611600	Asia/Tehran	1663871460	2	87060
+Asia/Tehran	1663612140	Asia/Tehran	1663878600	3	3660
+Asia/Tehran	1663612200	Asia/Tehran	1663960800	3	85800
+Asia/Tehran	1663612260	Asia/Tehran	1663788600	1	89940
+Asia/Tehran	1663612260	Asia/Tehran	1698348600	401	86340
+Asia/Tehran	1663612800	Asia/Tehran	1663788660	1	89460
+Asia/Tehran	1663614000	Asia/Tehran	1663624800	0	10800
+Asia/Tehran	1663614000	Asia/Tehran	1663789200	1	88800
+Asia/Tehran	1663614600	Asia/Tehran	1663705740	1	4740
+Asia/Tehran	1663614600	Asia/Tehran	1663788660	1	87660
+Asia/Tehran	1663615200	Asia/Tehran	1663788600	1	87000
+Asia/Tehran	1663615200	Asia/Tehran	1663789800	1	88200
+Asia/Tehran	1663615740	Asia/Tehran	1663788660	1	86520
+Asia/Tehran	1663615740	Asia/Tehran	1663791600	1	89460
+Asia/Tehran	1663615740	Asia/Tehran	1663872000	2	83460
+Asia/Tehran	1663615800	Asia/Tehran	1663957800	3	79200
+Asia/Tehran	1663616400	Asia/Tehran	1663617000	0	600
+Asia/Tehran	1663617000	Asia/Tehran	1663704000	1	600
+Asia/Tehran	1663617600	Asia/Tehran	1663789800	1	85800
+Asia/Tehran	1663618800	Asia/Tehran	1663878000	2	82800
+Asia/Tehran	1663619340	Asia/Tehran	1663965600	3	83460
+Asia/Tehran	1663619460	Asia/Tehran	1663705860	1	0
+Asia/Tehran	1663620000	Asia/Tehran	1663835400	2	39000
+Asia/Tehran	1663621200	Asia/Tehran	1663959600	3	75600
+Asia/Tehran	1663693200	Asia/Tehran	1663703400	0	10200
+Asia/Tehran	1663696800	Asia/Tehran	1663797600	1	14400
+Asia/Tehran	1663698000	Asia/Tehran	1663961340	3	540
+Asia/Tehran	1663698600	Asia/Tehran	1663783200	0	84600
+Asia/Tehran	1663698660	Asia/Tehran	1663875600	2	540
+Asia/Tehran	1663699200	Asia/Tehran	1663788601	0	89401
+Asia/Tehran	1663700400	Asia/Tehran	1663702200	0	1800
+Asia/Tehran	1663700400	Asia/Tehran	1663788660	0	88260
+Asia/Tehran	1663701000	Asia/Tehran	1663788601	0	87601
+Asia/Tehran	1663701000	Asia/Tehran	1663790400	0	89400
+Asia/Tehran	1663701000	Asia/Tehran	1663870800	1	83400
+Asia/Tehran	1663701600	Asia/Tehran	1663789200	0	87600
+Asia/Tehran	1663701600	Asia/Tehran	1663966800	3	2400
+Asia/Tehran	1663702140	Asia/Tehran	1663788601	0	86461
+Asia/Tehran	1663702140	Asia/Tehran	1663790400	0	88260
+Asia/Tehran	1663702200	Asia/Tehran	1663866000	1	73800
+Asia/Tehran	1663702260	Asia/Tehran	1663970400	3	5340
+Asia/Tehran	1663703400	Asia/Tehran	1663873200	1	79800
+Asia/Tehran	1663705200	Asia/Tehran	1663741800	0	36600
+Asia/Tehran	1663705740	Asia/Tehran	1663952400	2	70260
+Asia/Tehran	1663705860	Asia/Tehran	1663792260	0	86400
+Asia/Tehran	1663707600	Asia/Tehran	1663707600	0	0
+Asia/Tehran	1663711200	Asia/Tehran	1663957740	2	70140
+Asia/Tehran	1663779600	Asia/Tehran	1663873800	1	4200
+Asia/Tehran	1663784400	Asia/Tehran	1663792200	0	7800
+Asia/Tehran	1663785000	Asia/Tehran	1663788540	0	3540
+Asia/Tehran	1663785060	Asia/Tehran	1666553400	31	86340
+Asia/Tehran	1663786800	Asia/Tehran	1663965060	2	1860
+Asia/Tehran	1663788000	Asia/Tehran	1663965060	2	660
+Asia/Tehran	1663788599	Asia/Tehran	1666553400	31	82801
+Asia/Tehran	1663788600	Asia/Tehran	1663835400	0	46800	50400
+Asia/Tehran	1663788600	Asia/Tehran	1663871460	0	82860	86460
+Asia/Tehran	1663788601	Asia/Tehran	1663792200	0	3599	7199
+Asia/Tehran	1663788601	Asia/Tehran	1663866000	0	77399	80999
+Asia/Tehran	1663788601	Asia/Tehran	1663872000	0	83399	86999
+Asia/Tehran	1663788660	Asia/Tehran	1663792200	0	3540	7140
+Asia/Tehran	1663788660	Asia/Tehran	1663866000	0	77340	80940
+Asia/Tehran	1663788660	Asia/Tehran	1663872000	0	83340	86940
+Asia/Tehran	1663789200	Asia/Tehran	1663792200	0	3000	6600
+Asia/Tehran	1663789200	Asia/Tehran	1663866000	0	76800	80400
+Asia/Tehran	1663789200	Asia/Tehran	1663872000	0	82800	86400
+Asia/Tehran	1663789200	Asia/Tehran	1663875060	0	85860	89460
+Asia/Tehran	1663789800	Asia/Tehran	1663835400	0	45600	49200
+Asia/Tehran	1663789800	Asia/Tehran	1663871460	0	81660	85260
+Asia/Tehran	1663789800	Asia/Tehran	1663873800	0	84000	87600
+Asia/Tehran	1663789800	Asia/Tehran	1663875000	0	85200	88800
+Asia/Tehran	1663790400	Asia/Tehran	1663794000	0	3600	7200
+Asia/Tehran	1663790400	Asia/Tehran	1663871340	0	80940	84540
+Asia/Tehran	1663790400	Asia/Tehran	1663874400	0	84000	87600
+Asia/Tehran	1663791600	Asia/Tehran	1663792200	0	600	4200
+Asia/Tehran	1663791600	Asia/Tehran	1663866000	0	74400	78000
+Asia/Tehran	1663791600	Asia/Tehran	1663872000	0	80400	84000
+Asia/Tehran	1663791600	Asia/Tehran	1663875060	0	83460	87060
+Asia/Tehran	1663791600	Asia/Tehran	1663957740	1	79740
+Asia/Tehran	1663792140	Asia/Tehran	1663792800	0	660	4260
+Asia/Tehran	1663792140	Asia/Tehran	1663870800	0	78660	82260
+Asia/Tehran	1663792140	Asia/Tehran	1663873800	0	81660	85260
+Asia/Tehran	1663792140	Asia/Tehran	1663876200	0	84060	87660
+Asia/Tehran	1663792260	Asia/Tehran	1663792260	0	0
+Asia/Tehran	1663794000	Asia/Tehran	1663952400	1	72000
+Asia/Tehran	1663866000	Asia/Tehran	1663873200	0	7200
+Asia/Tehran	1663870800	Asia/Tehran	1663970400	1	13200
+Asia/Tehran	1663871460	Asia/Tehran	1663966800	1	8940
+Asia/Tehran	1663874400	Asia/Tehran	1663875600	0	1200
+Asia/Tehran	1663875060	Asia/Tehran	1663961340	0	86280
+Asia/Tehran	1663878000	Asia/Tehran	1663959600	0	81600
+Asia/Tehran	1663879200	Asia/Tehran	1663965600	1	0
+Asia/Tehran	1663957740	Asia/Tehran	1663957800	0	60
+Asia/Tehran	1663960800	Asia/Tehran	1698348600	398	600
+Asia/Tehran	1629228600	Asia/Karachi	1663783200	399	81000
+Asia/Tehran	1663705740	Asia/Karachi	1663964940	2	82800
+Asia/Tehran	1663788660	Asia/Karachi	1663874940	0	86280	89880
+Asia/Tehran	1663612260	Etc/UTC	1663957200	3	82140
+Asia/Tehran	1663788660	Etc/UTC	1663871460	0	82800	86400
+Asia/Tehran	1663619460	Pacific/Chatham	1663785600	1	79740
+Asia/Tehran	1663702140	Pacific/Chatham	1663789800	0	87660
+Asia/Tehran	1663788660	Pacific/Chatham	1663866000	0	77340	80940
+Asia/Tehran	1663874400	Pacific/Chatham	1663959600	0	85200
+Africa/Casablanca	1675476000	Africa/Casablanca	1710208800	401	82800
+Africa/Casablanca	1707271200	Africa/Casablanca	1710213000	34	600
+Africa/Casablanca	1709857800	Africa/Casablanca	1709860200	0	2400
+Africa/Casablanca	1709859000	Africa/Casablanca	1709866800	0	7800
+Africa/Casablanca	1709859540	Africa/Casablanca	1709948400	1	2460
+Africa/Casablanca	1709859600	Africa/Casablanca	1709958600	1	12600
+Africa/Casablanca	1709859660	Africa/Casablanca	1710036001	1	89941
+Africa/Casablanca	1709860200	Africa/Casablanca	1710036001	1	89401
+Africa/Casablanca	1709860200	Africa/Casablanca	1710118740	2	85740
+Africa/Casablanca	1709861400	Africa/Casablanca	1710036060	1	88260
+Africa/Casablanca	1709861400	Africa/Casablanca	1710126600	3	2400
+Africa/Casablanca	1709862000	Africa/Casablanca	1710036001	1	87601
+Africa/Casablanca	1709862000	Africa/Casablanca	1710037800	1	89400
+Africa/Casablanca	1709862000	Africa/Casablanca	1710210600	3	85800
+Africa/Casablanca	1709862600	Africa/Casablanca	1710036600	1	87600
+Africa/Casablanca	1709863140	Africa/Casablanca	1709866860	0	3720
+Africa/Casablanca	1709863140	Africa/Casablanca	1710036001	1	86461
+Africa/Casablanca	1709863140	Africa/Casablanca	1710037800	1	88260
+Africa/Casablanca	1709863200	Africa/Casablanca	1709953140	1	3540
+Africa/Casablanca	1709863260	Africa/Casablanca	1710036600	1	86940
+Africa/Casablanca	1709863800	Africa/Casablanca	1710122460	2	82260
+Africa/Casablanca	1709864400	Africa/Casablanca	1710209400	3	82200
+Africa/Casablanca	1709866200	Africa/Casablanca	1709946600	0	80400
+Africa/Casablanca	1709866740	Africa/Casablanca	1710035400	1	82260
+Africa/Casablanca	1709866800	Africa/Casablanca	1710122400	2	79200
+Africa/Casablanca	1709866860	Africa/Casablanca	1710212340	3	82680
+Africa/Casablanca	1709868600	Africa/Casablanca	1709953800	0	85200
+Africa/Casablanca	1709872200	Africa/Casablanca	1710118200	2	69600
+Africa/Casablanca	1709940600	Africa/Casablanca	1710208860	3	5460
+Africa/Casablanca	1709945400	Africa/Casablanca	1709989200	0	43800
+Africa/Casablanca	1709945940	Africa/Casablanca	1710121800	1	89460
+Africa/Casablanca	1709946000	Africa/Casablanca	1712800800	33	0
+Africa/Casablanca	1709946600	Africa/Casablanca	1710036000	0	89400
+Africa/Casablanca	1709946600	Africa/Casablanca	1710039000	1	6000
+Africa/Casablanca	1709947800	Africa/Casablanca	1710036001	0	88201
+Africa/Casablanca	1709947800	Africa/Casablanca	1710208200	2	84000
+Africa/Casablanca	1709948400	Africa/Casablanca	1710036000	0	87600
+Africa/Casablanca	1709948400	Africa/Casablanca	1710037200	0	88800
+Africa/Casablanca	1709949000	Africa/Casablanca	1710035940	1	540
+Africa/Casablanca	1709949000	Africa/Casablanca	1710036060	0	87060
+Africa/Casablanca	1709949540	Africa/Casablanca	1710036000	0	86460
+Africa/Casablanca	1709949540	Africa/Casablanca	1710037200	0	87660
+Africa/Casablanca	1709949540	Africa/Casablanca	1710205200	2	79260
+Africa/Casablanca	1709949660	Africa/Casablanca	1710035999	0	86339
+Africa/Casablanca	1709950200	Africa/Casablanca	1710207600	2	81000
+Africa/Casablanca	1709951400	Africa/Casablanca	1710039660	0	88260
+Africa/Casablanca	1709952600	Africa/Casablanca	1710214200	2	85200
+Africa/Casablanca	1709953200	Africa/Casablanca	1710123600	1	80400
+Africa/Casablanca	1709953800	Africa/Casablanca	1710036060	0	82260
+Africa/Casablanca	1709955000	Africa/Casablanca	1710212460	2	81060
+Africa/Casablanca	1709989200	Africa/Casablanca	1710131400	1	52200
+Africa/Casablanca	1710030600	Africa/Casablanca	1710119400	0	88800
+Africa/Casablanca	1710032340	Africa/Casablanca	1710039600	0	7260
+Africa/Casablanca	1710032460	Africa/Casablanca	1710036000	0	3540
+Africa/Casablanca	1710034200	Africa/Casablanca	1710034800	0	600
+Africa/Casablanca	1710034800	Africa/Casablanca	1744596000	400	1200
+Africa/Casablanca	1710035999	Africa/Casablanca	1710036000	0	1
+Africa/Casablanca	1710036000	Africa/Casablanca	1710118800	0	82800	86400
+Africa/Casablanca	1710036000	Africa/Casablanca	1710122340	0	86340	89940
+Africa/Casablanca	1710036001	Africa/Casablanca	1710039600	0	3599
+Africa/Casablanca	1710036001	Africa/Casablanca	1710119400	0	83399	86999
+Africa/Casablanca	1710036060	Africa/Casablanca	1710117000	0	80940	84540
+Africa/Casablanca	1710036060	Africa/Casablanca	1710120600	0	84540	88140
+Africa/Casablanca	1710036600	Africa/Casablanca	1710118200	0	81600	85200
+Africa/Casablanca	1710036600	Africa/Casablanca	1710119400	0	82800	86400
+Africa/Casablanca	1710036600	Africa/Casablanca	1710121200	0	84600	88200
+Africa/Casablanca	1710037200	Africa/Casablanca	1710118200	0	81000	84600
+Africa/Casablanca	1710037200	Africa/Casablanca	1710121200	0	84000	87600
+Africa/Casablanca	1710037800	Africa/Casablanca	1710117000	0	79200	82800
+Africa/Casablanca	1710037800	Africa/Casablanca	1710120600	0	82800	86400
+Africa/Casablanca	1710037800	Africa/Casablanca	1710123000	0	85200	88800
+Africa/Casablanca	1710037800	Africa/Casablanca	1710131400	1	7200
+Africa/Casablanca	1710039000	Africa/Casablanca	1710118860	0	79860	83460
+Africa/Casablanca	1710039000	Africa/Casablanca	1710122400	0	83400	87000
+Africa/Casablanca	1710039540	Africa/Casablanca	1710118200	0	78660	82260
+Africa/Casablanca	1710039540	Africa/Casablanca	1710121200	0	81660	85260
+Africa/Casablanca	1710039540	Africa/Casablanca	1710123600	0	84060	87660
+Africa/Casablanca	1710039540	Africa/Casablanca	1710212460	2	120
+Africa/Casablanca	1710040200	Africa/Casablanca	1710123600	0	83400
+Africa/Casablanca	1710045000	Africa/Casablanca	1710214200	1	82800
+Africa/Casablanca	1710117000	Africa/Casablanca	1710207600	1	4200
+Africa/Casablanca	1710118800	Africa/Casablanca	1710205200	1	0
+Africa/Casablanca	1710120600	Africa/Casablanca	1710208200	1	1200
+Africa/Casablanca	1710122340	Africa/Casablanca	1712800800	31	60
+Africa/Casablanca	1710123600	Africa/Casablanca	1710208860	0	85260
+Africa/Casablanca	1710126000	Africa/Casablanca	1710212340	0	86340
+Africa/Casablanca	1710199800	Africa/Casablanca	1710209400	0	9600
+Africa/Casablanca	1710205800	Africa/Casablanca	1710210600	0	4800
+Africa/Casablanca	1710210600	Africa/Casablanca	1710213000	0	2400
+Africa/Casablanca	1709866860	Asia/Karachi	1710118860	2	75600
+Africa/Casablanca	1710125400	Asia/Karachi	1710204600	0	79200
+Africa/Casablanca	1709949540	Etc/UTC	1710035999	1	59
+Africa/Casablanca	1709949540	Etc/UTC	1710037200	0	87660
+Africa/Casablanca	1710036060	Etc/UTC	1710122340	0	86280	89880
+Africa/Casablanca	1675476000	Pacific/Chatham	1710118860	400	79260
+Africa/Casablanca	1710027000	Pacific/Chatham	1710039660	0	12660
+Africa/Casablanca	1678500000	Africa/Casablanca	1713051000	399	73800
+Africa/Casablanca	1710295200	Africa/Casablanca	1713059400	31	85800
+Africa/Casablanca	1712878200	Africa/Casablanca	1713063540	2	12540
+Africa/Casablanca	1712881800	Africa/Casablanca	1713142800	3	5400
+Africa/Casablanca	1712883000	Africa/Casablanca	1713149400	3	10800
+Africa/Casablanca	1712883540	Africa/Casablanca	1713229800	4	4260
+Africa/Casablanca	1712883600	Africa/Casablanca	1713237000	4	11400
+Africa/Casablanca	1712884200	Africa/Casablanca	1712890200	0	6000
+Africa/Casablanca	1712885400	Africa/Casablanca	1712973540	1	1740
+Africa/Casablanca	1712886000	Africa/Casablanca	1713056400	1	84000
+Africa/Casablanca	1712886600	Africa/Casablanca	1713065400	2	6000
+Africa/Casablanca	1712887140	Africa/Casablanca	1713149940	3	7200
+Africa/Casablanca	1712887200	Africa/Casablanca	1713234600	4	5400
+Africa/Casablanca	1712887800	Africa/Casablanca	1712969400	0	81600
+Africa/Casablanca	1712888400	Africa/Casablanca	1713055800	1	81000
+Africa/Casablanca	1712889000	Africa/Casablanca	1713141000	2	79200
+Africa/Casablanca	1712890200	Africa/Casablanca	1713229200	3	83400
+Africa/Casablanca	1712890800	Africa/Casablanca	1712968200	0	77400
+Africa/Casablanca	1712890860	Africa/Casablanca	1713057000	1	79740
+Africa/Casablanca	1712891400	Africa/Casablanca	1713146340	2	85740
+Africa/Casablanca	1712892600	Africa/Casablanca	1713236400	4	1800
+Africa/Casablanca	1712964600	Africa/Casablanca	1713054600	1	3600
+Africa/Casablanca	1712968200	Africa/Casablanca	1713145800	2	8400
+Africa/Casablanca	1712969400	Africa/Casablanca	1713238200	3	13200
+Africa/Casablanca	1712970000	Africa/Casablanca	1713060000	1	3600
+Africa/Casablanca	1712970060	Africa/Casablanca	1713227400	3	1740
+Africa/Casablanca	1712971800	Africa/Casablanca	1712982600	0	10800
+Africa/Casablanca	1712972400	Africa/Casablanca	1713147000	2	5400
+Africa/Casablanca	1712973540	Africa/Casablanca	1712977140	0	3600
+Africa/Casablanca	1712973600	Africa/Casablanca	1713146400	2	3600
+Africa/Casablanca	1712974200	Africa/Casablanca	1712979000	0	4800
+Africa/Casablanca	1712974800	Africa/Casablanca	1713150000	2	6000
+Africa/Casablanca	1712976600	Africa/Casablanca	1713059940	0	83340
+Africa/Casablanca	1712977140	Africa/Casablanca	1713232800	3	60
+Africa/Casablanca	1712977260	Africa/Casablanca	1713143400	1	83340
+Africa/Casablanca	1712979000	Africa/Casablanca	1713058800	0	79800
+Africa/Casablanca	1712982600	Africa/Casablanca	1713234000	2	82200
+Africa/Casablanca	1713051000	Africa/Casablanca	1713150060	1	16260
+Africa/Casablanca	1713055800	Africa/Casablanca	1713142860	1	4260
+Africa/Casablanca	1713056400	Africa/Casablanca	1713063660	0	7260
+Africa/Casablanca	1713057000	Africa/Casablanca	1713060600	0	3600
+Africa/Casablanca	1713058800	Africa/Casablanca	1713060001	0	1201
+Africa/Casablanca	1713059940	Africa/Casablanca	1713060600	0	660
+Africa/Casablanca	1713060000	Africa/Casablanca	1713063660	0	3660
+Africa/Casablanca	1713060060	Africa/Casablanca	1713142860	0	82800
+Africa/Casablanca	1713061200	Africa/Casablanca	1713150060	1	2460
+Africa/Casablanca	1713063000	Africa/Casablanca	1713234000	1	84600
+Africa/Casablanca	1713063660	Africa/Casablanca	1713143400	0	79740
+Africa/Casablanca	1713065400	Africa/Casablanca	1713232800	1	81000
+Africa/Casablanca	1713137400	Africa/Casablanca	1713150000	0	12600
+Africa/Casablanca	1713142740	Africa/Casablanca	1713146400	0	3660
+Africa/Casablanca	1713143400	Africa/Casablanca	1713147000	0	3600
+Africa/Casablanca	1713145800	Africa/Casablanca	1713227400	0	81600
+Africa/Casablanca	1713146460	Africa/Casablanca	1713238200	1	5340
+Africa/Casablanca	1713149400	Africa/Casablanca	1713236400	1	600
+Africa/Casablanca	1713151800	Africa/Casablanca	1713229200	0	77400
+Africa/Casablanca	1713229140	Africa/Casablanca	1713234600	0	5460
+Africa/Casablanca	1713232740	Africa/Casablanca	1713237000	0	4260
+Africa/Casablanca	1678500000	Asia/Karachi	1713231000	401	84600
+Africa/Casablanca	1713051000	Asia/Karachi	1713150600	1	16800
+Africa/Casablanca	1712887260	Etc/UTC	1712977800	1	4140
+Africa/Casablanca	1713063660	Etc/UTC	1713142860	0	79200
+Africa/Casablanca	1712890860	Pacific/Chatham	1713232860	4	0
+Africa/Casablanca	1713223800	Pacific/Chatham	1713231000	0	7200
+America/Sao_Paulo	1473476400	America/Sao_Paulo	1508218200	402	12600
+America/Sao_Paulo	1507854600	America/Sao_Paulo	1507860600	0	6000
+America/Sao_Paulo	1507858200	America/Sao_Paulo	1507867140	0	8940
+America/Sao_Paulo	1507859400	America/Sao_Paulo	1507947000	1	1200
+America/Sao_Paulo	1507859940	America/Sao_Paulo	1507953660	1	7320
+America/Sao_Paulo	1507860000	America/Sao_Paulo	1508035800	2	3000
+America/Sao_Paulo	1507860060	America/Sao_Paulo	1508045400	2	12540
+America/Sao_Paulo	1507860600	America/Sao_Paulo	1508124000	3	7800
+America/Sao_Paulo	1507861800	America/Sao_Paulo	1508208000	4	4200
+America/Sao_Paulo	1507863000	America/Sao_Paulo	1507863540	0	540
+America/Sao_Paulo	1507863540	America/Sao_Paulo	1507948200	0	84660
+America/Sao_Paulo	1507863600	America/Sao_Paulo	1508032800	1	82800
+America/Sao_Paulo	1507863660	America/Sao_Paulo	1508113800	2	77340
+America/Sao_Paulo	1507864200	America/Sao_Paulo	1508200200	3	80400
+America/Sao_Paulo	1507864800	America/Sao_Paulo	1542596400	402	2400
+America/Sao_Paulo	1507866600	America/Sao_Paulo	1507953540	1	540
+America/Sao_Paulo	1507867140	America/Sao_Paulo	1508040000	2	60
+America/Sao_Paulo	1507867200	America/Sao_Paulo	1508131800	3	9000
+America/Sao_Paulo	1507867800	America/Sao_Paulo	1507941000	0	73200
+America/Sao_Paulo	1507869000	America/Sao_Paulo	1508034600	1	79200
+America/Sao_Paulo	1507872600	America/Sao_Paulo	1508123400	2	81600
+America/Sao_Paulo	1507941000	America/Sao_Paulo	1510801200	33	12600
+America/Sao_Paulo	1507945800	America/Sao_Paulo	1508036340	1	4140
+America/Sao_Paulo	1507946340	America/Sao_Paulo	1508127000	2	11460
+America/Sao_Paulo	1507946460	America/Sao_Paulo	1507951200	0	4740
+America/Sao_Paulo	1507947000	America/Sao_Paulo	1508119140	2	2940
+America/Sao_Paulo	1507948200	America/Sao_Paulo	1508213400	3	9600
+America/Sao_Paulo	1507949400	America/Sao_Paulo	1508040060	1	4260
+America/Sao_Paulo	1507949940	America/Sao_Paulo	1508211000	3	5460
+America/Sao_Paulo	1507950060	America/Sao_Paulo	1508040600	1	4140
+America/Sao_Paulo	1507950600	America/Sao_Paulo	1508212860	3	6660
+America/Sao_Paulo	1507951800	America/Sao_Paulo	1508119800	1	81600
+America/Sao_Paulo	1507953540	America/Sao_Paulo	1508027400	0	73860
+America/Sao_Paulo	1507953600	America/Sao_Paulo	1508205000	2	82200
+America/Sao_Paulo	1507954200	America/Sao_Paulo	1508083200	1	46200
+America/Sao_Paulo	1507959000	America/Sao_Paulo	1508032740	0	73740
+America/Sao_Paulo	1507989600	America/Sao_Paulo	1508209140	2	50340
+America/Sao_Paulo	1508031000	America/Sao_Paulo	1508126340	1	12540
+America/Sao_Paulo	1508032740	America/Sao_Paulo	1508119260	1	3720
+America/Sao_Paulo	1508032860	America/Sao_Paulo	1508041800	0	8940
+America/Sao_Paulo	1508034600	America/Sao_Paulo	1508039940	0	5340
+America/Sao_Paulo	1508035800	America/Sao_Paulo	1508039940	0	4140
+America/Sao_Paulo	1508036399	America/Sao_Paulo	1508041800	0	5401
+America/Sao_Paulo	1508036401	America/Sao_Paulo	1508119260	0	82859
+America/Sao_Paulo	1508037000	America/Sao_Paulo	1508126340	1	2940
+America/Sao_Paulo	1508038200	America/Sao_Paulo	1508209140	1	84540
+America/Sao_Paulo	1508040000	America/Sao_Paulo	1508083200	0	43200
+America/Sao_Paulo	1508040600	America/Sao_Paulo	1508205000	1	78000
+America/Sao_Paulo	1508083200	America/Sao_Paulo	1508119800	0	36600
+America/Sao_Paulo	1508117400	America/Sao_Paulo	1508212860	1	9060
+America/Sao_Paulo	1508119200	America/Sao_Paulo	1508211000	1	5400
+America/Sao_Paulo	1508121000	America/Sao_Paulo	1508213400	1	6000
+America/Sao_Paulo	1508122800	America/Sao_Paulo	1508127000	0	4200
+America/Sao_Paulo	1508124000	America/Sao_Paulo	1510801200	30	85200
+America/Sao_Paulo	1508126460	America/Sao_Paulo	1508131800	0	5340
+America/Sao_Paulo	1508200200	America/Sao_Paulo	1542596400	398	9000
+America/Sao_Paulo	1508207400	America/Sao_Paulo	1508208000	0	600
+America/Sao_Paulo	1508212200	America/Sao_Paulo	1508218200	0	6000
+America/Sao_Paulo	1507946340	Asia/Karachi	1507951800	0	5460
+America/Sao_Paulo	1508207400	Asia/Karachi	1508209260	0	1860
+America/Sao_Paulo	1507949940	Etc/UTC	1508212740	3	7200
+America/Sao_Paulo	1507860060	Pacific/Chatham	1507867200	0	7140
+America/Sao_Paulo	1508034600	Pacific/Chatham	1508036399	0	1799
+America/Sao_Paulo	1484359200	America/Sao_Paulo	1518919199	399	86399
+America/Sao_Paulo	1516154400	America/Sao_Paulo	1518922800	32	0
+America/Sao_Paulo	1518737400	America/Sao_Paulo	1519002000	3	1800
+America/Sao_Paulo	1518741000	America/Sao_Paulo	1519007400	3	3600
+America/Sao_Paulo	1518742200	America/Sao_Paulo	1519088400	3	83400
+America/Sao_Paulo	1518742740	America/Sao_Paulo	1519095540	4	3600
+America/Sao_Paulo	1518742860	America/Sao_Paulo	1518746400	0	3540
+America/Sao_Paulo	1518743400	America/Sao_Paulo	1518829200	0	85800
+America/Sao_Paulo	1518743400	America/Sao_Paulo	1518919200	1	89400
+America/Sao_Paulo	1518744600	America/Sao_Paulo	1518838200	1	7200
+America/Sao_Paulo	1518744600	America/Sao_Paulo	1518919201	1	88201
+America/Sao_Paulo	1518745200	America/Sao_Paulo	1518919200	1	87600
+America/Sao_Paulo	1518745200	America/Sao_Paulo	1518919800	1	88200
+America/Sao_Paulo	1518745200	America/Sao_Paulo	1518920400	1	88800
+America/Sao_Paulo	1518745800	America/Sao_Paulo	1518919260	1	87060
+America/Sao_Paulo	1518745800	America/Sao_Paulo	1519004400	2	85800
+America/Sao_Paulo	1518746340	America/Sao_Paulo	1518919200	1	86460
+America/Sao_Paulo	1518746340	America/Sao_Paulo	1518920400	1	87660
+America/Sao_Paulo	1518746340	America/Sao_Paulo	1519088460	3	79320
+America/Sao_Paulo	1518746460	America/Sao_Paulo	1518747000	0	540
+America/Sao_Paulo	1518747000	America/Sao_Paulo	1518833400	1	0
+America/Sao_Paulo	1518747600	America/Sao_Paulo	1518919201	1	85201
+America/Sao_Paulo	1518748200	America/Sao_Paulo	1519005660	2	81060
+America/Sao_Paulo	1518749400	America/Sao_Paulo	1519093800	3	81600
+America/Sao_Paulo	1518750000	America/Sao_Paulo	1518832860	0	82860
+America/Sao_Paulo	1518750060	America/Sao_Paulo	1518921000	1	84540
+America/Sao_Paulo	1518750600	America/Sao_Paulo	1519011000	2	84000
+America/Sao_Paulo	1518755400	America/Sao_Paulo	1518829140	0	73740
+America/Sao_Paulo	1518823800	America/Sao_Paulo	1518919200	1	9000
+America/Sao_Paulo	1518827400	America/Sao_Paulo	1519009800	2	6000
+America/Sao_Paulo	1518829140	America/Sao_Paulo	1518832740	0	3600
+America/Sao_Paulo	1518829200	America/Sao_Paulo	1518924600	1	9000
+America/Sao_Paulo	1518829260	America/Sao_Paulo	1518919201	0	89941
+America/Sao_Paulo	1518829260	America/Sao_Paulo	1519092060	3	0
+America/Sao_Paulo	1518831000	America/Sao_Paulo	1518918600	1	1200
+America/Sao_Paulo	1518831000	America/Sao_Paulo	1518919200	0	88200
+America/Sao_Paulo	1518831000	America/Sao_Paulo	1518920400	0	89400
+America/Sao_Paulo	1518831600	America/Sao_Paulo	1518919800	0	88200
+America/Sao_Paulo	1518831600	America/Sao_Paulo	1519086600	2	78600
+America/Sao_Paulo	1518832200	America/Sao_Paulo	1518919201	0	87001
+America/Sao_Paulo	1518832200	America/Sao_Paulo	1518921000	0	88800
+America/Sao_Paulo	1518832740	America/Sao_Paulo	1518915600	0	82860
+America/Sao_Paulo	1518832740	America/Sao_Paulo	1518919800	0	87060
+America/Sao_Paulo	1518832800	America/Sao_Paulo	1519014600	2	5400
+America/Sao_Paulo	1518833400	America/Sao_Paulo	1518918000	0	84600
+America/Sao_Paulo	1518834000	America/Sao_Paulo	1519089000	2	78600
+America/Sao_Paulo	1518835800	America/Sao_Paulo	1518922860	0	87060
+America/Sao_Paulo	1518836340	America/Sao_Paulo	1519101000	3	1860
+America/Sao_Paulo	1518836460	America/Sao_Paulo	1519009140	1	82680
+America/Sao_Paulo	1518838200	America/Sao_Paulo	1518922740	0	84540
+America/Sao_Paulo	1518872400	America/Sao_Paulo	1518872400	0	0
+America/Sao_Paulo	1518910200	America/Sao_Paulo	1519090200	2	3600
+America/Sao_Paulo	1518915000	America/Sao_Paulo	1519008600	1	3600
+America/Sao_Paulo	1518915600	America/Sao_Paulo	1519002600	0	87000
+America/Sao_Paulo	1518916200	America/Sao_Paulo	1518996600	0	80400
+America/Sao_Paulo	1518918000	America/Sao_Paulo	1518928200	0	10200
+America/Sao_Paulo	1518919140	America/Sao_Paulo	1518996600	0	77460
+America/Sao_Paulo	1518919200	America/Sao_Paulo	1518924600	0	5400	9000
+America/Sao_Paulo	1518919200	America/Sao_Paulo	1519001940	0	82740	86340
+America/Sao_Paulo	1518919200	America/Sao_Paulo	1519002600	0	83400	87000
+America/Sao_Paulo	1518919200	America/Sao_Paulo	1519005000	0	85800	89400
+America/Sao_Paulo	1518919201	America/Sao_Paulo	1518928200	0	8999	12599
+America/Sao_Paulo	1518919201	America/Sao_Paulo	1519002000	0	82799	86399
+America/Sao_Paulo	1518919201	America/Sao_Paulo	1519005540	0	86339	89939
+America/Sao_Paulo	1518919260	America/Sao_Paulo	1518928200	0	8940	12540
+America/Sao_Paulo	1518919260	America/Sao_Paulo	1519002000	0	82740	86340
+America/Sao_Paulo	1518919260	America/Sao_Paulo	1519005540	0	86280	89880
+America/Sao_Paulo	1518919260	America/Sao_Paulo	1519008600	1	2940
+America/Sao_Paulo	1518919800	America/Sao_Paulo	1518928200	0	8400	12000
+America/Sao_Paulo	1518919800	America/Sao_Paulo	1519002000	0	82200	85800
+America/Sao_Paulo	1518919800	America/Sao_Paulo	1519005540	0	85740	89340
+America/Sao_Paulo	1518920400	America/Sao_Paulo	1518924600	0	4200	7800
+America/Sao_Paulo	1518920400	America/Sao_Paulo	1519001940	0	81540	85140
+America/Sao_Paulo	1518920400	America/Sao_Paulo	1519005000	0	84600	88200
+America/Sao_Paulo	1518920400	America/Sao_Paulo	1519090200	1	83400
+America/Sao_Paulo	1518921000	America/Sao_Paulo	1518922860	0	1860	5460
+America/Sao_Paulo	1518921000	America/Sao_Paulo	1519000200	0	79200	82800
+America/Sao_Paulo	1518921000	America/Sao_Paulo	1519003800	0	82800	86400
+America/Sao_Paulo	1518921000	America/Sao_Paulo	1519006200	0	85200	88800
+America/Sao_Paulo	1518922200	America/Sao_Paulo	1518928200	0	6000	9600
+America/Sao_Paulo	1518922200	America/Sao_Paulo	1519002000	0	79800	83400
+America/Sao_Paulo	1518922200	America/Sao_Paulo	1519005540	0	83340	86940
+America/Sao_Paulo	1518922740	America/Sao_Paulo	1518922740	0	0
+America/Sao_Paulo	1518922740	America/Sao_Paulo	1518922800	0	60	3660
+America/Sao_Paulo	1518922740	America/Sao_Paulo	1518996600	0	73860	77460
+America/Sao_Paulo	1518922740	America/Sao_Paulo	1519002600	0	79860	83460
+America/Sao_Paulo	1518922740	America/Sao_Paulo	1519005660	0	82920	86520
+America/Sao_Paulo	1518922860	America/Sao_Paulo	1519009140	0	86280
+America/Sao_Paulo	1518924600	America/Sao_Paulo	1519101000	2	3600
+America/Sao_Paulo	1518996600	America/Sao_Paulo	1519089000	1	6000
+America/Sao_Paulo	1519001940	America/Sao_Paulo	1519014600	0	12660
+America/Sao_Paulo	1519002600	America/Sao_Paulo	1519086600	0	84000
+America/Sao_Paulo	1519005000	America/Sao_Paulo	1519092060	1	660
+America/Sao_Paulo	1519006200	America/Sao_Paulo	1519009800	0	3600
+America/Sao_Paulo	1519009140	America/Sao_Paulo	1519011000	0	1860
+America/Sao_Paulo	1519011000	America/Sao_Paulo	1519093800	0	82800
+America/Sao_Paulo	1519088400	America/Sao_Paulo	1519088460	0	60
+America/Sao_Paulo	1519092000	America/Sao_Paulo	1519095540	0	3540
+America/Sao_Paulo	1518742860	Asia/Karachi	1518837000	1	7740
+America/Sao_Paulo	1518832740	Asia/Karachi	1518920400	0	87660
+America/Sao_Paulo	1518917400	Asia/Karachi	1519005540	0	88140
+America/Sao_Paulo	1518919260	Asia/Karachi	1518996600	0	77340	80940
+America/Sao_Paulo	1518746460	Etc/UTC	1519087800	3	78540
+America/Sao_Paulo	1518919260	Etc/UTC	1519005540	0	86280	89880
+America/Sao_Paulo	1519001400	Etc/UTC	1519007400	0	6000
+America/Sao_Paulo	1518829140	Pacific/Chatham	1518922860	1	7320
+America/Sao_Paulo	1506740400	America/Sao_Paulo	1506740400	0	0
+America/Sao_Paulo	1538535600	America/Sao_Paulo	1541125800	29	84600
+America/Sao_Paulo	1541118600	America/Sao_Paulo	1541131140	0	12540
+America/Sao_Paulo	1541122200	America/Sao_Paulo	1541210460	1	1860
+America/Sao_Paulo	1541123400	America/Sao_Paulo	1541217540	1	7740
+America/Sao_Paulo	1541123940	America/Sao_Paulo	1541297400	2	660
+America/Sao_Paulo	1541124000	America/Sao_Paulo	1541304000	2	7200
+America/Sao_Paulo	1541124060	America/Sao_Paulo	1541386200	3	6540
+America/Sao_Paulo	1541124600	America/Sao_Paulo	1541469000	4	2400
+America/Sao_Paulo	1541125800	America/Sao_Paulo	1541476860	4	9060
+America/Sao_Paulo	1541127000	America/Sao_Paulo	1541133000	0	6000
+America/Sao_Paulo	1541127540	America/Sao_Paulo	1541217600	1	3660
+America/Sao_Paulo	1541127600	America/Sao_Paulo	1541301000	2	600
+America/Sao_Paulo	1541127660	America/Sao_Paulo	1541386800	3	3540
+America/Sao_Paulo	1541128200	America/Sao_Paulo	1541473200	4	3000
+America/Sao_Paulo	1541129400	America/Sao_Paulo	1541209800	0	80400
+America/Sao_Paulo	1541130600	America/Sao_Paulo	1541296800	1	79800
+America/Sao_Paulo	1541131140	America/Sao_Paulo	1541383260	2	79320
+America/Sao_Paulo	1541131200	America/Sao_Paulo	1541473140	3	86340
+America/Sao_Paulo	1541131800	America/Sao_Paulo	1541214000	0	82200
+America/Sao_Paulo	1541133000	America/Sao_Paulo	1541303400	2	1200
+America/Sao_Paulo	1541136600	America/Sao_Paulo	1541467800	3	75600
+America/Sao_Paulo	1541208600	America/Sao_Paulo	1541213940	0	5340
+America/Sao_Paulo	1541209800	America/Sao_Paulo	1541304060	1	7860
+America/Sao_Paulo	1541210340	America/Sao_Paulo	1541472000	3	6060
+America/Sao_Paulo	1541210460	America/Sao_Paulo	1541295000	0	84540
+America/Sao_Paulo	1541211000	America/Sao_Paulo	1541388000	2	7800
+America/Sao_Paulo	1541212800	America/Sao_Paulo	1541215200	0	2400
+America/Sao_Paulo	1541213400	America/Sao_Paulo	1541383800	2	1200
+America/Sao_Paulo	1541214000	America/Sao_Paulo	1541214060	0	60
+America/Sao_Paulo	1541214060	America/Sao_Paulo	1541385000	2	1740
+America/Sao_Paulo	1541215200	America/Sao_Paulo	1541217660	0	2460
+America/Sao_Paulo	1541215800	America/Sao_Paulo	1541390340	2	5340
+America/Sao_Paulo	1541217540	America/Sao_Paulo	1541300399	0	82859
+America/Sao_Paulo	1541217600	America/Sao_Paulo	1541473800	3	600
+America/Sao_Paulo	1541218200	America/Sao_Paulo	1541386740	1	85740
+America/Sao_Paulo	1541223000	America/Sao_Paulo	1541300460	0	77460
+America/Sao_Paulo	1541253600	America/Sao_Paulo	1541478600	2	55800
+America/Sao_Paulo	1541295000	America/Sao_Paulo	1541469660	2	5460
+America/Sao_Paulo	1541296740	America/Sao_Paulo	1541389800	1	10260
+America/Sao_Paulo	1541296860	America/Sao_Paulo	1541385600	1	5940
+America/Sao_Paulo	1541298600	America/Sao_Paulo	1541383200	1	1800
+America/Sao_Paulo	1541299800	America/Sao_Paulo	1541383200	1	600
+America/Sao_Paulo	1541300399	America/Sao_Paulo	1541385600	1	2401
+America/Sao_Paulo	1541300401	America/Sao_Paulo	1541389800	1	2999
+America/Sao_Paulo	1541301000	America/Sao_Paulo	1541469660	1	82260
+America/Sao_Paulo	1541302200	America/Sao_Paulo	1541478600	2	3600
+America/Sao_Paulo	1541304000	America/Sao_Paulo	1541386740	0	82740
+America/Sao_Paulo	1541304600	America/Sao_Paulo	1541473800	1	82800
+America/Sao_Paulo	1541347200	America/Sao_Paulo	1541390340	0	43140
+America/Sao_Paulo	1541382600	America/Sao_Paulo	1541385000	0	2400
+America/Sao_Paulo	1541383260	America/Sao_Paulo	1541383800	0	540
+America/Sao_Paulo	1541385600	America/Sao_Paulo	1541388000	0	2400
+America/Sao_Paulo	1541386800	America/Sao_Paulo	1541472000	0	85200
+America/Sao_Paulo	1541388600	America/Sao_Paulo	1541467800	0	79200
+America/Sao_Paulo	1541390460	America/Sao_Paulo	1541473140	0	82680
+America/Sao_Paulo	1541467800	America/Sao_Paulo	1541473200	0	5400
+America/Sao_Paulo	1541471400	America/Sao_Paulo	1541476860	0	5460
+America/Sao_Paulo	1541476800	America/Sao_Paulo	1541476800	0	0
+America/Sao_Paulo	1541210340	Asia/Karachi	1541391000	2	11460
+America/Sao_Paulo	1506740400	Etc/UTC	1541205000	398	77400
+America/Sao_Paulo	1541217540	Etc/UTC	1541388600	2	1860
+America/Sao_Paulo	1541124060	Pacific/Chatham	1541377800	2	80940
+America/Sao_Paulo	1541298600	Pacific/Chatham	1541476740	2	8940
+Pacific/Chatham	1660917600	Pacific/Chatham	1695481800	400	4200
+Pacific/Chatham	1692712800	Pacific/Chatham	1695560460	33	60
+Pacific/Chatham	1695295800	Pacific/Chatham	1695565800	3	14400
+Pacific/Chatham	1695299400	Pacific/Chatham	1695646740	4	5340
+Pacific/Chatham	1695300600	Pacific/Chatham	1695652200	4	9600
+Pacific/Chatham	1695301200	Pacific/Chatham	1695303000	0	1800
+Pacific/Chatham	1695301260	Pacific/Chatham	1695313800	0	12540
+Pacific/Chatham	1695301800	Pacific/Chatham	1695393000	1	4800
+Pacific/Chatham	1695303000	Pacific/Chatham	1695476400	2	600
+Pacific/Chatham	1695303600	Pacific/Chatham	1695555000	2	78600
+Pacific/Chatham	1695304200	Pacific/Chatham	1695567660	3	7860
+Pacific/Chatham	1695304740	Pacific/Chatham	1695653400	4	6660
+Pacific/Chatham	1695304860	Pacific/Chatham	1695385800	0	80940
+Pacific/Chatham	1695305400	Pacific/Chatham	1695468600	1	76800
+Pacific/Chatham	1695306000	Pacific/Chatham	1695486600	2	7800
+Pacific/Chatham	1695306600	Pacific/Chatham	1695641400	3	79200
+Pacific/Chatham	1695308340	Pacific/Chatham	1695308400	0	60
+Pacific/Chatham	1695308400	Pacific/Chatham	1695430800	1	36000
+Pacific/Chatham	1695308460	Pacific/Chatham	1695559800	2	82140
+Pacific/Chatham	1695309000	Pacific/Chatham	1695649800	3	85200
+Pacific/Chatham	1695313800	Pacific/Chatham	1695392400	0	78600
+Pacific/Chatham	1695382200	Pacific/Chatham	1695483000	1	14400
+Pacific/Chatham	1695385800	Pacific/Chatham	1695649200	3	7800
+Pacific/Chatham	1695387540	Pacific/Chatham	1695396600	0	9060
+Pacific/Chatham	1695387600	Pacific/Chatham	1695562800	2	6000
+Pacific/Chatham	1695387660	Pacific/Chatham	1698242400	33	7140
+Pacific/Chatham	1695389400	Pacific/Chatham	1695481200	1	5400
+Pacific/Chatham	1695390000	Pacific/Chatham	1695650460	3	4860
+Pacific/Chatham	1695391140	Pacific/Chatham	1695478200	1	660
+Pacific/Chatham	1695391200	Pacific/Chatham	1695650340	3	3540
+Pacific/Chatham	1695391800	Pacific/Chatham	1695481140	1	2940
+Pacific/Chatham	1695392400	Pacific/Chatham	1695653940	3	5940
+Pacific/Chatham	1695394200	Pacific/Chatham	1695561000	1	80400
+Pacific/Chatham	1695394800	Pacific/Chatham	1695473400	0	78600
+Pacific/Chatham	1695394860	Pacific/Chatham	1695646860	2	82800
+Pacific/Chatham	1695396600	Pacific/Chatham	1695560400	1	81000
+Pacific/Chatham	1695430800	Pacific/Chatham	1695477540	0	46740
+Pacific/Chatham	1695468600	Pacific/Chatham	1695654000	2	16200
+Pacific/Chatham	1695473400	Pacific/Chatham	1695646800	2	4200
+Pacific/Chatham	1695474000	Pacific/Chatham	1695567540	1	10740
+Pacific/Chatham	1695474600	Pacific/Chatham	1695564000	1	6600
+Pacific/Chatham	1695476400	Pacific/Chatham	1695563400	1	4200
+Pacific/Chatham	1695477540	Pacific/Chatham	1695564000	1	3660
+Pacific/Chatham	1695477600	Pacific/Chatham	1695567540	1	3540
+Pacific/Chatham	1695477660	Pacific/Chatham	1695646800	1	82740
+Pacific/Chatham	1695478800	Pacific/Chatham	1695654000	2	2400
+Pacific/Chatham	1695481140	Pacific/Chatham	1695560400	0	79260
+Pacific/Chatham	1695481260	Pacific/Chatham	1695646860	1	79200
+Pacific/Chatham	1695486600	Pacific/Chatham	1695561000	0	74400
+Pacific/Chatham	1695555000	Pacific/Chatham	1695653940	1	12540
+Pacific/Chatham	1695560340	Pacific/Chatham	1695650340	1	3600
+Pacific/Chatham	1695561000	Pacific/Chatham	1695650460	1	3060
+Pacific/Chatham	1695563400	Pacific/Chatham	1698242400	31	600
+Pacific/Chatham	1695564600	Pacific/Chatham	1695649200	0	84600
+Pacific/Chatham	1695567540	Pacific/Chatham	1695649800	0	82260
+Pacific/Chatham	1695573000	Pacific/Chatham	1695641400	0	68400
+Pacific/Chatham	1695646800	Pacific/Chatham	1695653400	0	6600
+Pacific/Chatham	1695650460	Pacific/Chatham	1695652200	0	1740
+Pacific/Chatham	1695301260	Asia/Karachi	1695646200	4	2940
+Pacific/Chatham	1695477660	Asia/Karachi	1695560460	0	82800
+Pacific/Chatham	1695308460	Etc/UTC	1695474600	1	79740
+Pacific/Chatham	1695563400	Etc/UTC	1695648600	0	85200
+Pacific/Chatham	1695391140	Pacific/Chatham	1695391140	0	0
+Pacific/Chatham	1677852000	Pacific/Chatham	1712238600	397	85800
+Pacific/Chatham	1709647200	Pacific/Chatham	1712242800	30	3600
+Pacific/Chatham	1712230200	Pacific/Chatham	1712322060	1	5460
+Pacific/Chatham	1712233800	Pacific/Chatham	1712328600	1	8400
+Pacific/Chatham	1712235000	Pacific/Chatham	1712408400	2	600
+Pacific/Chatham	1712235540	Pacific/Chatham	1712413800	2	5460
+Pacific/Chatham	1712235600	Pacific/Chatham	1712494860	2	86460
+Pacific/Chatham	1712235660	Pacific/Chatham	1712412001	1	89941
+Pacific/Chatham	1712235660	Pacific/Chatham	1712502600	3	4140
+Pacific/Chatham	1712236200	Pacific/Chatham	1712585400	4	0
+Pacific/Chatham	1712237400	Pacific/Chatham	1712412000	1	88200
+Pacific/Chatham	1712237400	Pacific/Chatham	1712413200	1	89400
+Pacific/Chatham	1712238000	Pacific/Chatham	1712239800	0	1800
+Pacific/Chatham	1712238000	Pacific/Chatham	1712412600	1	88200
+Pacific/Chatham	1712238600	Pacific/Chatham	1712325000	1	0
+Pacific/Chatham	1712238600	Pacific/Chatham	1712412001	1	87001
+Pacific/Chatham	1712238600	Pacific/Chatham	1712413800	1	88800
+Pacific/Chatham	1712239140	Pacific/Chatham	1712408460	1	82920
+Pacific/Chatham	1712239140	Pacific/Chatham	1712412600	1	87060
+Pacific/Chatham	1712239200	Pacific/Chatham	1712489400	2	73800
+Pacific/Chatham	1712239260	Pacific/Chatham	1712507400	3	5340
+Pacific/Chatham	1712239800	Pacific/Chatham	1712593800	4	4800
+Pacific/Chatham	1712241000	Pacific/Chatham	1712326200	0	85200
+Pacific/Chatham	1712242200	Pacific/Chatham	1712412600	1	84000
+Pacific/Chatham	1712242740	Pacific/Chatham	1712501400	2	82260
+Pacific/Chatham	1712242800	Pacific/Chatham	1712590200	3	84600
+Pacific/Chatham	1712243400	Pacific/Chatham	1712334600	1	4800
+Pacific/Chatham	1712244600	Pacific/Chatham	1712494740	2	73740
+Pacific/Chatham	1712248200	Pacific/Chatham	1712584860	3	73860
+Pacific/Chatham	1712320200	Pacific/Chatham	1712331000	0	10800
+Pacific/Chatham	1712321400	Pacific/Chatham	1712495400	1	87600
+Pacific/Chatham	1712321940	Pacific/Chatham	1712588460	3	3720
+Pacific/Chatham	1712322060	Pacific/Chatham	1712412000	0	89940
+Pacific/Chatham	1712322600	Pacific/Chatham	1712412060	0	89460
+Pacific/Chatham	1712322600	Pacific/Chatham	1712580600	2	81600
+Pacific/Chatham	1712323800	Pacific/Chatham	1712412600	0	88800
+Pacific/Chatham	1712324400	Pacific/Chatham	1712406600	0	82200
+Pacific/Chatham	1712324400	Pacific/Chatham	1712412060	0	87660
+Pacific/Chatham	1712325000	Pacific/Chatham	1712412000	0	87000
+Pacific/Chatham	1712325000	Pacific/Chatham	1712413200	0	88200
+Pacific/Chatham	1712325000	Pacific/Chatham	1712501940	2	540
+Pacific/Chatham	1712325540	Pacific/Chatham	1712412060	0	86520
+Pacific/Chatham	1712325540	Pacific/Chatham	1712415000	0	89460
+Pacific/Chatham	1712325600	Pacific/Chatham	1712365200	0	39600
+Pacific/Chatham	1712325660	Pacific/Chatham	1712502000	1	86340
+Pacific/Chatham	1712326800	Pacific/Chatham	1712409000	0	82200
+Pacific/Chatham	1712327400	Pacific/Chatham	1712581260	2	77460
+Pacific/Chatham	1712329140	Pacific/Chatham	1712416200	0	87060
+Pacific/Chatham	1712329200	Pacific/Chatham	1746972000	400	79200
+Pacific/Chatham	1712329800	Pacific/Chatham	1712503800	1	84000
+Pacific/Chatham	1712334600	Pacific/Chatham	1712458800	1	34200
+Pacific/Chatham	1712403000	Pacific/Chatham	1712410200	0	7200
+Pacific/Chatham	1712406600	Pacific/Chatham	1712587800	2	4800
+Pacific/Chatham	1712408340	Pacific/Chatham	1712581200	1	82860
+Pacific/Chatham	1712408460	Pacific/Chatham	1712502060	1	3600
+Pacific/Chatham	1712410200	Pacific/Chatham	1712500200	1	0
+Pacific/Chatham	1712411400	Pacific/Chatham	1712500200	0	88800
+Pacific/Chatham	1712411999	Pacific/Chatham	1712502060	1	61
+Pacific/Chatham	1712412000	Pacific/Chatham	1712493000	0	81000	84600
+Pacific/Chatham	1712412000	Pacific/Chatham	1712496600	0	84600	88200
+Pacific/Chatham	1712412001	Pacific/Chatham	1712494200	0	82199	85799
+Pacific/Chatham	1712412001	Pacific/Chatham	1712497200	0	85199	88799
+Pacific/Chatham	1712412001	Pacific/Chatham	1712581200	1	82799
+Pacific/Chatham	1712412060	Pacific/Chatham	1712494200	0	82140	85740
+Pacific/Chatham	1712412060	Pacific/Chatham	1712497200	0	85140	88740
+Pacific/Chatham	1712412600	Pacific/Chatham	1712494200	0	81600	85200
+Pacific/Chatham	1712412600	Pacific/Chatham	1712497200	0	84600	88200
+Pacific/Chatham	1712412600	Pacific/Chatham	1712587800	2	2400
+Pacific/Chatham	1712413200	Pacific/Chatham	1712493000	0	79800	83400
+Pacific/Chatham	1712413200	Pacific/Chatham	1712496600	0	83400	87000
+Pacific/Chatham	1712413200	Pacific/Chatham	1712499000	0	85800	89400
+Pacific/Chatham	1712413800	Pacific/Chatham	1712494860	0	81060	84660
+Pacific/Chatham	1712413800	Pacific/Chatham	1712498400	0	84600	88200
+Pacific/Chatham	1712415000	Pacific/Chatham	1712458800	0	43800
+Pacific/Chatham	1712415000	Pacific/Chatham	1712494200	0	79200	82800
+Pacific/Chatham	1712415000	Pacific/Chatham	1712497200	0	82200	85800
+Pacific/Chatham	1712415000	Pacific/Chatham	1712499600	0	84600	88200
+Pacific/Chatham	1712415540	Pacific/Chatham	1712494800	0	79260	82860
+Pacific/Chatham	1712415540	Pacific/Chatham	1712498340	0	82800	86400
+Pacific/Chatham	1712415540	Pacific/Chatham	1712501400	0	85860	89460
+Pacific/Chatham	1712415600	Pacific/Chatham	1712503800	1	1800
+Pacific/Chatham	1712416200	Pacific/Chatham	1746972000	399	82200
+Pacific/Chatham	1712458800	Pacific/Chatham	1712581260	1	36060
+Pacific/Chatham	1712494200	Pacific/Chatham	1712502000	0	7800
+Pacific/Chatham	1712494860	Pacific/Chatham	1712501940	0	7080
+Pacific/Chatham	1712497200	Pacific/Chatham	1712580600	0	83400
+Pacific/Chatham	1712498400	Pacific/Chatham	1712588460	1	3660
+Pacific/Chatham	1712500200	Pacific/Chatham	1712584860	0	84660
+Pacific/Chatham	1712502060	Pacific/Chatham	1712590200	1	1740
+Pacific/Chatham	1712579400	Pacific/Chatham	1712593800	0	14400
+Pacific/Chatham	1712583600	Pacific/Chatham	1712585400	0	1800
+Pacific/Chatham	1712588460	Pacific/Chatham	1715176800	29	82740
+Pacific/Chatham	1712325540	Asia/Karachi	1712411999	1	59
+Pacific/Chatham	1677852000	Etc/UTC	1712494860	400	79260
+Pacific/Chatham	1712403000	Etc/UTC	1712415660	0	12660
+Pacific/Chatham	1712412060	Etc/UTC	1712498340	0	86280	89880
+Pacific/Chatham	1712239260	Pacific/Chatham	1712242800	0	3540
+Pacific/Chatham	1712412060	Pacific/Chatham	1712584860	2	0
+Pacific/Chatham	1692972000	Pacific/Chatham	1727616600	401	1800
+Pacific/Chatham	1724767200	Pacific/Chatham	1727621400	33	6600
+Pacific/Chatham	1727350200	Pacific/Chatham	1727701140	4	8940
+Pacific/Chatham	1727353800	Pacific/Chatham	1727706000	4	10200
+Pacific/Chatham	1727355540	Pacific/Chatham	1727355600	0	60
+Pacific/Chatham	1727355600	Pacific/Chatham	1727362800	0	7200
+Pacific/Chatham	1727355660	Pacific/Chatham	1727445540	1	3480
+Pacific/Chatham	1727356200	Pacific/Chatham	1727527800	1	85200
+Pacific/Chatham	1727357400	Pacific/Chatham	1727535540	2	5340
+Pacific/Chatham	1727358000	Pacific/Chatham	1727618400	3	4800
+Pacific/Chatham	1727358600	Pacific/Chatham	1727703000	4	2400
+Pacific/Chatham	1727359200	Pacific/Chatham	1727359800	0	600
+Pacific/Chatham	1727359260	Pacific/Chatham	1727445660	1	0
+Pacific/Chatham	1727359800	Pacific/Chatham	1727531999	1	85799
+Pacific/Chatham	1727360400	Pacific/Chatham	1727617800	3	1800
+Pacific/Chatham	1727361000	Pacific/Chatham	1727704800	4	1800
+Pacific/Chatham	1727362740	Pacific/Chatham	1727442600	0	79860
+Pacific/Chatham	1727362800	Pacific/Chatham	1727531940	1	82740
+Pacific/Chatham	1727362860	Pacific/Chatham	1727619000	3	540
+Pacific/Chatham	1727363400	Pacific/Chatham	1727709000	4	3600
+Pacific/Chatham	1727368200	Pacific/Chatham	1727526600	1	72000
+Pacific/Chatham	1727436600	Pacific/Chatham	1727617200	2	11400
+Pacific/Chatham	1727440200	Pacific/Chatham	1727708460	3	12660
+Pacific/Chatham	1727441940	Pacific/Chatham	1727530800	1	2460
+Pacific/Chatham	1727442000	Pacific/Chatham	1727622060	2	10860
+Pacific/Chatham	1727442600	Pacific/Chatham	1727447400	0	4800
+Pacific/Chatham	1727443800	Pacific/Chatham	1727614860	2	1860
+Pacific/Chatham	1727444400	Pacific/Chatham	1730296800	33	4800
+Pacific/Chatham	1727445540	Pacific/Chatham	1727609400	1	77460
+Pacific/Chatham	1727445600	Pacific/Chatham	1727710200	3	9000
+Pacific/Chatham	1727446200	Pacific/Chatham	1727614800	1	82200
+Pacific/Chatham	1727447400	Pacific/Chatham	1727449200	0	1800
+Pacific/Chatham	1727448600	Pacific/Chatham	1727621940	2	4140
+Pacific/Chatham	1727449200	Pacific/Chatham	1727532001	1	1
+Pacific/Chatham	1727449260	Pacific/Chatham	1727707800	3	2940
+Pacific/Chatham	1727451000	Pacific/Chatham	1727620200	2	0
+Pacific/Chatham	1727485200	Pacific/Chatham	1727535660	0	50460
+Pacific/Chatham	1727526600	Pacific/Chatham	1727528460	0	1860
+Pacific/Chatham	1727527800	Pacific/Chatham	1727706600	2	9600
+Pacific/Chatham	1727528400	Pacific/Chatham	1727701260	2	3660
+Pacific/Chatham	1727529000	Pacific/Chatham	1727627400	1	15600
+Pacific/Chatham	1727530800	Pacific/Chatham	1727622600	1	9000
+Pacific/Chatham	1727531940	Pacific/Chatham	1727627400	1	12660
+Pacific/Chatham	1727532000	Pacific/Chatham	1727701260	1	82860
+Pacific/Chatham	1727532060	Pacific/Chatham	1727706600	2	1740
+Pacific/Chatham	1727533800	Pacific/Chatham	1727535660	0	1860
+Pacific/Chatham	1727535540	Pacific/Chatham	1727620200	0	84660
+Pacific/Chatham	1727535660	Pacific/Chatham	1727707800	1	85740
+Pacific/Chatham	1727541000	Pacific/Chatham	1727621940	0	80940
+Pacific/Chatham	1727613000	Pacific/Chatham	1727614800	0	1800
+Pacific/Chatham	1727614740	Pacific/Chatham	1727710200	1	9060
+Pacific/Chatham	1727615400	Pacific/Chatham	1730296800	31	3000
+Pacific/Chatham	1727618340	Pacific/Chatham	1727622060	0	3720
+Pacific/Chatham	1727619000	Pacific/Chatham	1727708460	1	3060
+Pacific/Chatham	1727621940	Pacific/Chatham	1727709000	1	660
+Pacific/Chatham	1727627400	Pacific/Chatham	1727704800	0	77400
+Pacific/Chatham	1727701260	Pacific/Chatham	1727703000	0	1740
+Pacific/Chatham	1727705400	Pacific/Chatham	1727706000	0	600
+Pacific/Chatham	1727359260	Asia/Karachi	1727449800	1	4140
+Pacific/Chatham	1727535660	Asia/Karachi	1727614860	0	79200
+Pacific/Chatham	1727362860	Etc/UTC	1727704860	4	0
+Pacific/Chatham	1727695800	Etc/UTC	1727703000	0	7200
+Pacific/Chatham	1727445540	Pacific/Chatham	1727620200	2	5460
+Europe/Dublin	1663981200	Europe/Dublin	1698372600	398	4200
+Europe/Dublin	1695776400	Europe/Dublin	1698451800	30	83400
+Europe/Dublin	1698359400	Europe/Dublin	1698457800	1	12000
+Europe/Dublin	1698363000	Europe/Dublin	1698537540	2	1740
+Europe/Dublin	1698364200	Europe/Dublin	1698541800	2	4800
+Europe/Dublin	1698364740	Europe/Dublin	1698623400	2	85860
+Europe/Dublin	1698364800	Europe/Dublin	1698630600	3	3000
+Europe/Dublin	1698364860	Europe/Dublin	1698541200	1	89940
+Europe/Dublin	1698364860	Europe/Dublin	1698712800	3	85140
+Europe/Dublin	1698365400	Europe/Dublin	1698541260	1	89460
+Europe/Dublin	1698365400	Europe/Dublin	1733101200	401	85800
+Europe/Dublin	1698366600	Europe/Dublin	1698541800	1	88800
+Europe/Dublin	1698367200	Europe/Dublin	1698449400	0	82200
+Europe/Dublin	1698367200	Europe/Dublin	1698541260	1	87660
+Europe/Dublin	1698367800	Europe/Dublin	1698459000	1	4800
+Europe/Dublin	1698367800	Europe/Dublin	1698541200	1	87000
+Europe/Dublin	1698367800	Europe/Dublin	1698542400	1	88200
+Europe/Dublin	1698368340	Europe/Dublin	1698541260	1	86520
+Europe/Dublin	1698368340	Europe/Dublin	1698542400	1	87660
+Europe/Dublin	1698368340	Europe/Dublin	1698544200	1	89460
+Europe/Dublin	1698368400	Europe/Dublin	1698627600	2	82800
+Europe/Dublin	1698368460	Europe/Dublin	1698713940	3	82680
+Europe/Dublin	1698369600	Europe/Dublin	1698377400	0	7800
+Europe/Dublin	1698370200	Europe/Dublin	1698532200	1	75600
+Europe/Dublin	1698371400	Europe/Dublin	1698618600	2	70800
+Europe/Dublin	1698371940	Europe/Dublin	1698710400	3	75660
+Europe/Dublin	1698372060	Europe/Dublin	1698451140	0	79080
+Europe/Dublin	1698372600	Europe/Dublin	1698540600	1	81600
+Europe/Dublin	1698373800	Europe/Dublin	1698628800	2	78600
+Europe/Dublin	1698377400	Europe/Dublin	1701306000	33	73800
+Europe/Dublin	1698449400	Europe/Dublin	1698540000	1	4200
+Europe/Dublin	1698450600	Europe/Dublin	1698631140	2	4140
+Europe/Dublin	1698451200	Europe/Dublin	1698454200	0	3000
+Europe/Dublin	1698451260	Europe/Dublin	1698546600	1	8940
+Europe/Dublin	1698451800	Europe/Dublin	1698541201	0	89401
+Europe/Dublin	1698451800	Europe/Dublin	1698714600	3	0
+Europe/Dublin	1698453000	Europe/Dublin	1698541260	0	88260
+Europe/Dublin	1698453600	Europe/Dublin	1698541200	0	87600
+Europe/Dublin	1698453600	Europe/Dublin	1698541201	0	87601
+Europe/Dublin	1698453600	Europe/Dublin	1698543000	0	89400
+Europe/Dublin	1698454200	Europe/Dublin	1698541800	0	87600
+Europe/Dublin	1698454200	Europe/Dublin	1698710460	2	79860
+Europe/Dublin	1698454740	Europe/Dublin	1698541201	0	86461
+Europe/Dublin	1698454740	Europe/Dublin	1698543000	0	88260
+Europe/Dublin	1698454800	Europe/Dublin	1698541140	0	86340
+Europe/Dublin	1698454860	Europe/Dublin	1698711000	2	79740
+Europe/Dublin	1698456000	Europe/Dublin	1698543000	0	87000
+Europe/Dublin	1698456600	Europe/Dublin	1698717000	2	84000
+Europe/Dublin	1698458340	Europe/Dublin	1698625800	1	77460
+Europe/Dublin	1698458460	Europe/Dublin	1698537660	0	79200
+Europe/Dublin	1698459000	Europe/Dublin	1698713400	2	78000
+Europe/Dublin	1698463800	Europe/Dublin	1698627540	1	73740
+Europe/Dublin	1698532200	Europe/Dublin	1698544200	0	12000
+Europe/Dublin	1698537000	Europe/Dublin	1698537600	0	600
+Europe/Dublin	1698537540	Europe/Dublin	1698715800	2	1860
+Europe/Dublin	1698537660	Europe/Dublin	1698712200	1	84540
+Europe/Dublin	1698539400	Europe/Dublin	1698710340	1	80940
+Europe/Dublin	1698540600	Europe/Dublin	1698710340	1	79740
+Europe/Dublin	1698541199	Europe/Dublin	1698712200	1	81001
+Europe/Dublin	1698541200	Europe/Dublin	1698624600	0	83400	87000
+Europe/Dublin	1698541201	Europe/Dublin	1698624060	0	82859	86459
+Europe/Dublin	1698541201	Europe/Dublin	1698627600	0	86399	89999
+Europe/Dublin	1698541201	Europe/Dublin	1698715800	2	1799
+Europe/Dublin	1698541260	Europe/Dublin	1698627000	0	85740	89340
+Europe/Dublin	1698541800	Europe/Dublin	1698625800	0	84000	87600
+Europe/Dublin	1698542400	Europe/Dublin	1698544200	0	1800
+Europe/Dublin	1698542400	Europe/Dublin	1698624000	0	81600	85200
+Europe/Dublin	1698542400	Europe/Dublin	1698627540	0	85140	88740
+Europe/Dublin	1698543000	Europe/Dublin	1698624600	0	81600	85200
+Europe/Dublin	1698543000	Europe/Dublin	1698627660	0	84660	88260
+Europe/Dublin	1698544200	Europe/Dublin	1698625800	0	81600	85200
+Europe/Dublin	1698544200	Europe/Dublin	1698627540	0	83340	86940
+Europe/Dublin	1698544200	Europe/Dublin	1698628200	0	84000	87600
+Europe/Dublin	1698544740	Europe/Dublin	1698625800	0	81060	84660
+Europe/Dublin	1698544740	Europe/Dublin	1698628200	0	83460	87060
+Europe/Dublin	1698544800	Europe/Dublin	1698713400	1	82200
+Europe/Dublin	1698546600	Europe/Dublin	1698625800	0	79200
+Europe/Dublin	1698588000	Europe/Dublin	1698717000	1	42600
+Europe/Dublin	1698623400	Europe/Dublin	1698711000	1	1200
+Europe/Dublin	1698624060	Europe/Dublin	1698710460	1	0
+Europe/Dublin	1698626400	Europe/Dublin	1698714600	1	1800
+Europe/Dublin	1698627660	Europe/Dublin	1698631140	0	3480
+Europe/Dublin	1698629400	Europe/Dublin	1701306000	30	84600
+Europe/Dublin	1698631800	Europe/Dublin	1698710400	0	78600
+Europe/Dublin	1698709800	Europe/Dublin	1698713940	0	4140
+Europe/Dublin	1698712800	Europe/Dublin	1733101200	398	1200
+Europe/Dublin	1698723000	Europe/Dublin	1698723000	0	0
+Europe/Dublin	1698454740	Asia/Karachi	1698717540	3	0
+Europe/Dublin	1698364860	Etc/UTC	1698372000	0	7140
+Europe/Dublin	1698539400	Etc/UTC	1698541199	0	1799
+Europe/Dublin	1698541260	Etc/UTC	1698624060	0	82800	86400
+Europe/Dublin	1698368460	Pacific/Chatham	1698618600	2	73740
+Europe/Dublin	1698454740	Pacific/Chatham	1698542400	0	87660
+Europe/Dublin	1698544860	Pacific/Chatham	1698714060	1	82800
+Europe/Dublin	1677286800	Europe/Dublin	1711936800	401	7200
+Europe/Dublin	1709082000	Europe/Dublin	1712016000	34	0
+Europe/Dublin	1711665000	Europe/Dublin	1712020800	4	13800
+Europe/Dublin	1711669800	Europe/Dublin	1711669800	0	0
+Europe/Dublin	1711670340	Europe/Dublin	1711675800	0	5460
+Europe/Dublin	1711670400	Europe/Dublin	1711757400	1	600
+Europe/Dublin	1711670460	Europe/Dublin	1711765800	1	8940
+Europe/Dublin	1711671000	Europe/Dublin	1711846801	2	3001
+Europe/Dublin	1711672200	Europe/Dublin	1711929600	3	1800
+Europe/Dublin	1711672800	Europe/Dublin	1711942200	3	13800
+Europe/Dublin	1711673400	Europe/Dublin	1712023200	4	7800
+Europe/Dublin	1711674000	Europe/Dublin	1711755000	0	81000
+Europe/Dublin	1711674060	Europe/Dublin	1711800000	1	39540
+Europe/Dublin	1711674600	Europe/Dublin	1711851000	2	3600
+Europe/Dublin	1711675200	Europe/Dublin	1711937400	3	6600
+Europe/Dublin	1711675800	Europe/Dublin	1712028600	4	10800
+Europe/Dublin	1711677540	Europe/Dublin	1711763940	1	0
+Europe/Dublin	1711677600	Europe/Dublin	1711850460	2	3660
+Europe/Dublin	1711677660	Europe/Dublin	1712014200	3	80940
+Europe/Dublin	1711679400	Europe/Dublin	1711756800	0	77400
+Europe/Dublin	1711683000	Europe/Dublin	1711846800	1	77400
+Europe/Dublin	1711751400	Europe/Dublin	1711936860	2	16260
+Europe/Dublin	1711756200	Europe/Dublin	1711758600	0	2400
+Europe/Dublin	1711756740	Europe/Dublin	1711850340	1	7200
+Europe/Dublin	1711756800	Europe/Dublin	1712017800	3	5400
+Europe/Dublin	1711757400	Europe/Dublin	1711842600	0	85200
+Europe/Dublin	1711758600	Europe/Dublin	1711936200	2	8400
+Europe/Dublin	1711759800	Europe/Dublin	1711764000	0	4200
+Europe/Dublin	1711760340	Europe/Dublin	1711933200	2	3660
+Europe/Dublin	1711760460	Europe/Dublin	1711764060	0	3600
+Europe/Dublin	1711761000	Europe/Dublin	1711935000	2	4800
+Europe/Dublin	1711762200	Europe/Dublin	1711843260	0	81060
+Europe/Dublin	1711763400	Europe/Dublin	1712016060	2	83460
+Europe/Dublin	1711764000	Europe/Dublin	1711855800	1	9000
+Europe/Dublin	1711764600	Europe/Dublin	1711769400	0	4800
+Europe/Dublin	1711765800	Europe/Dublin	1712015940	2	80940
+Europe/Dublin	1711800000	Europe/Dublin	1711930200	1	47400
+Europe/Dublin	1711841400	Europe/Dublin	1711848000	0	6600
+Europe/Dublin	1711843140	Europe/Dublin	1711843200	0	60
+Europe/Dublin	1711843200	Europe/Dublin	1712022600	2	10200
+Europe/Dublin	1711843800	Europe/Dublin	1712019540	2	6540
+Europe/Dublin	1711845600	Europe/Dublin	1712018400	2	3600
+Europe/Dublin	1711846740	Europe/Dublin	1712019540	2	3600
+Europe/Dublin	1711846800	Europe/Dublin	1712022600	2	3000
+Europe/Dublin	1711847400	Europe/Dublin	1711848000	0	600
+Europe/Dublin	1711848600	Europe/Dublin	1711930200	0	81600
+Europe/Dublin	1711850340	Europe/Dublin	1712015940	1	79200
+Europe/Dublin	1711851000	Europe/Dublin	1711855800	0	4800
+Europe/Dublin	1711855800	Europe/Dublin	1712016060	1	73860
+Europe/Dublin	1711927800	Europe/Dublin	1711935000	0	7200
+Europe/Dublin	1711929600	Europe/Dublin	1711933200	0	3600
+Europe/Dublin	1711931400	Europe/Dublin	1711936200	0	4800
+Europe/Dublin	1711933140	Europe/Dublin	1712017800	0	84660
+Europe/Dublin	1711934400	Europe/Dublin	1711936860	0	2460
+Europe/Dublin	1711936800	Europe/Dublin	1712014200	0	77400
+Europe/Dublin	1711942200	Europe/Dublin	1712028600	1	0
+Europe/Dublin	1712016060	Europe/Dublin	1712023200	0	7140
+Europe/Dublin	1712020800	Europe/Dublin	1712020800	0	0
+Europe/Dublin	1711674060	Asia/Karachi	1712015400	3	85740
+Europe/Dublin	1711929000	Asia/Karachi	1711935000	0	6000
+Europe/Dublin	1711756740	Etc/UTC	1711850460	1	7320
+Europe/Dublin	1677286800	Pacific/Chatham	1677286800	0	0
+Europe/Dublin	1711763940	Pacific/Chatham	1711848000	0	84060
+Europe/Dublin	1695430800	Europe/Dublin	1729903200	398	85200
+Europe/Dublin	1727226000	Europe/Dublin	1729907940	31	3540
+Europe/Dublin	1729809000	Europe/Dublin	1729987140	2	5340
+Europe/Dublin	1729812600	Europe/Dublin	1729990860	2	5460
+Europe/Dublin	1729813800	Europe/Dublin	1730068200	2	81600
+Europe/Dublin	1729814340	Europe/Dublin	1730077800	3	660
+Europe/Dublin	1729814400	Europe/Dublin	1730160000	3	82800
+Europe/Dublin	1729814460	Europe/Dublin	1730167260	4	3600
+Europe/Dublin	1729815000	Europe/Dublin	1729990801	1	89401
+Europe/Dublin	1729816200	Europe/Dublin	1729821540	0	5340
+Europe/Dublin	1729816200	Europe/Dublin	1729990860	1	88260
+Europe/Dublin	1729816800	Europe/Dublin	1729904460	1	1260
+Europe/Dublin	1729816800	Europe/Dublin	1729990801	1	87601
+Europe/Dublin	1729816800	Europe/Dublin	1729992600	1	89400
+Europe/Dublin	1729817400	Europe/Dublin	1729989000	1	85200
+Europe/Dublin	1729817400	Europe/Dublin	1729991400	1	87600
+Europe/Dublin	1729817940	Europe/Dublin	1729990801	1	86461
+Europe/Dublin	1729817940	Europe/Dublin	1729992600	1	88260
+Europe/Dublin	1729817940	Europe/Dublin	1730071800	2	81060
+Europe/Dublin	1729818000	Europe/Dublin	1730086200	3	5400
+Europe/Dublin	1729818060	Europe/Dublin	1730169000	4	1740
+Europe/Dublin	1729819200	Europe/Dublin	1729904340	0	85140
+Europe/Dublin	1729819800	Europe/Dublin	1729990799	1	84599
+Europe/Dublin	1729821000	Europe/Dublin	1730077200	2	79800
+Europe/Dublin	1729821540	Europe/Dublin	1730165400	3	81060
+Europe/Dublin	1729821660	Europe/Dublin	1729905600	0	83940
+Europe/Dublin	1729822200	Europe/Dublin	1729994400	1	85800
+Europe/Dublin	1729823400	Europe/Dublin	1730159400	3	73200
+Europe/Dublin	1729895400	Europe/Dublin	1729903800	0	8400
+Europe/Dublin	1729899000	Europe/Dublin	1729994340	1	8940
+Europe/Dublin	1729900200	Europe/Dublin	1730160060	2	83460
+Europe/Dublin	1729900800	Europe/Dublin	1729908600	0	7800
+Europe/Dublin	1729900860	Europe/Dublin	1730076000	1	88740
+Europe/Dublin	1729901400	Europe/Dublin	1729990800	0	89400
+Europe/Dublin	1729901400	Europe/Dublin	1764550800	400	85800
+Europe/Dublin	1729902600	Europe/Dublin	1729990801	0	88201
+Europe/Dublin	1729903200	Europe/Dublin	1729990800	0	87600
+Europe/Dublin	1729903200	Europe/Dublin	1729992000	0	88800
+Europe/Dublin	1729903200	Europe/Dublin	1729996200	1	6600
+Europe/Dublin	1729903800	Europe/Dublin	1729990860	0	87060
+Europe/Dublin	1729903800	Europe/Dublin	1730166600	3	0
+Europe/Dublin	1729904340	Europe/Dublin	1729990800	0	86460
+Europe/Dublin	1729904340	Europe/Dublin	1729992000	0	87660
+Europe/Dublin	1729904400	Europe/Dublin	1729994460	1	60
+Europe/Dublin	1729904460	Europe/Dublin	1730167140	2	86280
+Europe/Dublin	1729905600	Europe/Dublin	1730073000	1	77400
+Europe/Dublin	1729907400	Europe/Dublin	1729908000	0	600
+Europe/Dublin	1729907940	Europe/Dublin	1730080800	1	82860
+Europe/Dublin	1729908060	Europe/Dublin	1729992000	0	83940
+Europe/Dublin	1729908600	Europe/Dublin	1730167800	2	82800
+Europe/Dublin	1729913400	Europe/Dublin	1730082600	1	79200
+Europe/Dublin	1729981800	Europe/Dublin	1730073540	1	1740
+Europe/Dublin	1729986600	Europe/Dublin	1729991400	0	4800
+Europe/Dublin	1729987200	Europe/Dublin	1729987260	0	60
+Europe/Dublin	1729987260	Europe/Dublin	1730167200	2	3540
+Europe/Dublin	1729989000	Europe/Dublin	1730164800	1	85800
+Europe/Dublin	1729990200	Europe/Dublin	1730164800	1	84600
+Europe/Dublin	1729990799	Europe/Dublin	1730167200	2	1
+Europe/Dublin	1729990800	Europe/Dublin	1730074200	0	83400	87000
+Europe/Dublin	1729990801	Europe/Dublin	1730073660	0	82859	86459
+Europe/Dublin	1729990801	Europe/Dublin	1730077200	0	86399	89999
+Europe/Dublin	1729990860	Europe/Dublin	1729991400	0	540
+Europe/Dublin	1729990860	Europe/Dublin	1730076600	0	85740	89340
+Europe/Dublin	1729991400	Europe/Dublin	1730075400	0	84000	87600
+Europe/Dublin	1729992000	Europe/Dublin	1730073540	0	81540
+Europe/Dublin	1729992000	Europe/Dublin	1730073600	0	81600	85200
+Europe/Dublin	1729992000	Europe/Dublin	1730077140	0	85140	88740
+Europe/Dublin	1729992600	Europe/Dublin	1730074200	0	81600	85200
+Europe/Dublin	1729992600	Europe/Dublin	1730077260	0	84660	88260
+Europe/Dublin	1729993800	Europe/Dublin	1730075400	0	81600	85200
+Europe/Dublin	1729993800	Europe/Dublin	1730077800	0	84000	87600
+Europe/Dublin	1729993800	Europe/Dublin	1730082600	1	2400
+Europe/Dublin	1729994340	Europe/Dublin	1730075400	0	81060	84660
+Europe/Dublin	1729994340	Europe/Dublin	1730077800	0	83460	87060
+Europe/Dublin	1729994400	Europe/Dublin	1730167800	2	600
+Europe/Dublin	1729996200	Europe/Dublin	1730080800	0	84600
+Europe/Dublin	1730068200	Europe/Dublin	1730073000	0	4800
+Europe/Dublin	1730073000	Europe/Dublin	1730167140	1	7740
+Europe/Dublin	1730073660	Europe/Dublin	1730166600	1	6540
+Europe/Dublin	1730076000	Europe/Dublin	1764550800	399	1200
+Europe/Dublin	1730077260	Europe/Dublin	1730160060	0	82800
+Europe/Dublin	1730080200	Europe/Dublin	1730159400	0	79200
+Europe/Dublin	1730081400	Europe/Dublin	1730165400	0	84000
+Europe/Dublin	1730159400	Europe/Dublin	1730169000	0	9600
+Europe/Dublin	1730163000	Europe/Dublin	1730167260	0	4260
+Europe/Dublin	1695430800	Asia/Karachi	1729895400	398	77400
+Europe/Dublin	1729907940	Asia/Karachi	1730079000	1	81060
+Europe/Dublin	1729814460	Etc/UTC	1730068200	2	80940
+Europe/Dublin	1729904340	Etc/UTC	1729992000	0	87660
+Europe/Dublin	1729989000	Etc/UTC	1730167140	2	1740
+Europe/Dublin	1729990860	Etc/UTC	1730073660	0	82800	86400
+Europe/Dublin	1729821660	Pacific/Chatham	1729900860	0	79200
+Europe/Dublin	1730073000	Pacific/Chatham	1730172600	1	13200
+Asia/Karachi	1675494000	Asia/Karachi	1710223800	401	83400
+Asia/Karachi	1707289200	Asia/Karachi	1710228600	34	1800
+Asia/Karachi	1709875800	Asia/Karachi	1709875800	0	0
+Asia/Karachi	1709877000	Asia/Karachi	1709881800	0	4800
+Asia/Karachi	1709877540	Asia/Karachi	1709963940	1	0
+Asia/Karachi	1709877600	Asia/Karachi	1709971140	1	7140
+Asia/Karachi	1709877660	Asia/Karachi	1710052800	2	2340
+Asia/Karachi	1709878200	Asia/Karachi	1710063000	2	12000
+Asia/Karachi	1709879400	Asia/Karachi	1710142200	3	3600
+Asia/Karachi	1709880000	Asia/Karachi	1710226740	4	1140
+Asia/Karachi	1709881140	Asia/Karachi	1709882400	0	1260
+Asia/Karachi	1709881200	Asia/Karachi	1709967660	1	60
+Asia/Karachi	1709881260	Asia/Karachi	1710053940	1	86280
+Asia/Karachi	1709881800	Asia/Karachi	1710138600	2	84000
+Asia/Karachi	1709882400	Asia/Karachi	1710225600	3	84000
+Asia/Karachi	1709884200	Asia/Karachi	1709962200	0	78000
+Asia/Karachi	1709884740	Asia/Karachi	1710050400	1	79260
+Asia/Karachi	1709884800	Asia/Karachi	1710137400	2	79800
+Asia/Karachi	1709884860	Asia/Karachi	1710226860	3	82800
+Asia/Karachi	1709886600	Asia/Karachi	1709969400	0	82800
+Asia/Karachi	1709890200	Asia/Karachi	1710059400	1	82800
+Asia/Karachi	1709958600	Asia/Karachi	1710225000	3	7200
+Asia/Karachi	1709963400	Asia/Karachi	1709971200	0	7800
+Asia/Karachi	1709963940	Asia/Karachi	1710136800	2	60
+Asia/Karachi	1709964000	Asia/Karachi	1710230400	3	7200
+Asia/Karachi	1709964600	Asia/Karachi	1710054001	1	3001
+Asia/Karachi	1709965800	Asia/Karachi	1710223200	2	84600
+Asia/Karachi	1709967000	Asia/Karachi	1710050460	0	83460
+Asia/Karachi	1709967540	Asia/Karachi	1710149400	2	9060
+Asia/Karachi	1709967660	Asia/Karachi	1710051000	0	83340
+Asia/Karachi	1709968200	Asia/Karachi	1710223140	2	82140
+Asia/Karachi	1709969400	Asia/Karachi	1710055200	0	85800
+Asia/Karachi	1709970600	Asia/Karachi	1710229800	3	0
+Asia/Karachi	1709971200	Asia/Karachi	1710139800	1	82200
+Asia/Karachi	1709971800	Asia/Karachi	1710053400	0	81600
+Asia/Karachi	1709973000	Asia/Karachi	1710228000	2	82200
+Asia/Karachi	1710007200	Asia/Karachi	1710143940	1	50340
+Asia/Karachi	1710048600	Asia/Karachi	1710135000	1	0
+Asia/Karachi	1710050340	Asia/Karachi	1710054600	0	4260
+Asia/Karachi	1710050460	Asia/Karachi	1710052200	0	1740
+Asia/Karachi	1710051000	Asia/Karachi	1710232200	2	8400
+Asia/Karachi	1710052800	Asia/Karachi	1710230460	2	4860
+Asia/Karachi	1710053940	Asia/Karachi	1710232200	2	5460
+Asia/Karachi	1710054001	Asia/Karachi	1710054600	0	599
+Asia/Karachi	1710054600	Asia/Karachi	1710135000	0	80400
+Asia/Karachi	1710055800	Asia/Karachi	1710143940	1	1740
+Asia/Karachi	1710057540	Asia/Karachi	1710228000	1	84060
+Asia/Karachi	1710058200	Asia/Karachi	1710139800	0	81600
+Asia/Karachi	1710063000	Asia/Karachi	1710229800	1	80400
+Asia/Karachi	1710135000	Asia/Karachi	1710223140	1	1740
+Asia/Karachi	1710136800	Asia/Karachi	1710149400	0	12600
+Asia/Karachi	1710138600	Asia/Karachi	1710223200	0	84600
+Asia/Karachi	1710140340	Asia/Karachi	1710230400	1	3660
+Asia/Karachi	1710141600	Asia/Karachi	1710225000	0	83400
+Asia/Karachi	1710144000	Asia/Karachi	1710226860	0	82860
+Asia/Karachi	1710217800	Asia/Karachi	1710225600	0	7800
+Asia/Karachi	1710223800	Asia/Karachi	1710226740	0	2940
+Asia/Karachi	1710228600	Asia/Karachi	1710228600	0	0
+Asia/Karachi	1709884860	Asia/Karachi	1710051000	1	79740
+Asia/Karachi	1710139800	Asia/Karachi	1710225000	0	85200
+Asia/Karachi	1709967540	Etc/UTC	1709967540	0	0
+Asia/Karachi	1675494000	Pacific/Chatham	1710051000	399	83400
+Asia/Karachi	1709971140	Pacific/Chatham	1710235800	3	5460
+Etc/UTC	1675494000	Etc/UTC	1709971260	399	3660
+Etc/UTC	1707289200	Etc/UTC	1710050400	31	82800
+Etc/UTC	1709872200	Etc/UTC	1710054060	2	9060
+Etc/UTC	1709875800	Etc/UTC	1710100800	2	52200
+Etc/UTC	1709877000	Etc/UTC	1710140400	3	4200
+Etc/UTC	1709877540	Etc/UTC	1710221400	3	84660
+Etc/UTC	1709877600	Etc/UTC	1710228600	4	5400
+Etc/UTC	1709878200	Etc/UTC	1709881200	0	3000
+Etc/UTC	1709879400	Etc/UTC	1709964060	0	84660
+Etc/UTC	1709880000	Etc/UTC	1710007200	1	40800
+Etc/UTC	1709880600	Etc/UTC	1710057000	2	3600
+Etc/UTC	1709881140	Etc/UTC	1710140460	3	120
+Etc/UTC	1709881200	Etc/UTC	1710226740	3	86340
+Etc/UTC	1709881800	Etc/UTC	1709885400	0	3600
+Etc/UTC	1709882400	Etc/UTC	1709973000	1	4200
+Etc/UTC	1709883000	Etc/UTC	1710058200	2	2400
+Etc/UTC	1709884200	Etc/UTC	1710149400	3	6000
+Etc/UTC	1709884800	Etc/UTC	1709884860	0	60
+Etc/UTC	1709884860	Etc/UTC	1710048600	1	77340
+Etc/UTC	1709885400	Etc/UTC	1710136860	2	78660
+Etc/UTC	1709886600	Etc/UTC	1710227400	3	81600
+Etc/UTC	1709958600	Etc/UTC	1709971800	0	13200
+Etc/UTC	1709962200	Etc/UTC	1710136800	2	1800
+Etc/UTC	1709963400	Etc/UTC	1710229800	3	7200
+Etc/UTC	1709964000	Etc/UTC	1710052200	1	1800
+Etc/UTC	1709964060	Etc/UTC	1710144060	2	7200
+Etc/UTC	1709965800	Etc/UTC	1709971140	0	5340
+Etc/UTC	1709966400	Etc/UTC	1710139200	2	0
+Etc/UTC	1709967540	Etc/UTC	1709967660	0	120
+Etc/UTC	1709967600	Etc/UTC	1710137400	1	83400
+Etc/UTC	1709968200	Etc/UTC	1709970600	0	2400
+Etc/UTC	1709968800	Etc/UTC	1710141000	1	85800
+Etc/UTC	1709970600	Etc/UTC	1710050460	0	79860
+Etc/UTC	1709971140	Etc/UTC	1710223800	2	79860
+Etc/UTC	1709971260	Etc/UTC	1710135000	1	77340
+Etc/UTC	1709973000	Etc/UTC	1710050340	0	77340
+Etc/UTC	1709976600	Etc/UTC	1710226200	2	76800
+Etc/UTC	1710045000	Etc/UTC	1710141600	1	10200
+Etc/UTC	1710049800	Etc/UTC	1710131400	0	81600
+Etc/UTC	1710050400	Etc/UTC	1710055200	0	4800
+Etc/UTC	1710051000	Etc/UTC	1710053940	0	2940
+Etc/UTC	1710052800	Etc/UTC	1710052800	0	0
+Etc/UTC	1710053940	Etc/UTC	1710053940	0	0
+Etc/UTC	1710054000	Etc/UTC	1710055200	0	1200
+Etc/UTC	1710054060	Etc/UTC	1710131400	0	77340
+Etc/UTC	1710055200	Etc/UTC	1710141600	1	0
+Etc/UTC	1710057000	Etc/UTC	1710226200	1	82800
+Etc/UTC	1710057660	Etc/UTC	1710135000	0	77340
+Etc/UTC	1710059400	Etc/UTC	1710223800	1	78000
+Etc/UTC	1710131400	Etc/UTC	1710141000	0	9600
+Etc/UTC	1710136740	Etc/UTC	1710137400	0	660
+Etc/UTC	1710137400	Etc/UTC	1710139200	0	1800
+Etc/UTC	1710139800	Etc/UTC	1710144060	0	4260
+Etc/UTC	1710140460	Etc/UTC	1710229800	1	2940
+Etc/UTC	1710143400	Etc/UTC	1710227400	0	84000
+Etc/UTC	1710145800	Etc/UTC	1710149400	0	3600
+Etc/UTC	1710223140	Etc/UTC	1710226740	0	3600
+Etc/UTC	1710226740	Etc/UTC	1710228600	0	1860
+Etc/UTC	1675494000	Asia/Karachi	1710136860	400	82860
+Etc/UTC	1710045000	Asia/Karachi	1710057660	0	12660
+Etc/UTC	1709881260	Etc/UTC	1709884800	0	3540
+Etc/UTC	1710054060	Etc/UTC	1710226860	2	0
+Etc/UTC	1709884860	Pacific/Chatham	1710140340	2	82680
+Etc/UTC	1710143400	Pacific/Chatham	1710225000	0	81600
+America/St_Johns	1664598600	America/St_Johns	1699334940	401	86340
+America/St_Johns	1698976800	America/St_Johns	1698980400	0	3600
+America/St_Johns	1698980400	America/St_Johns	1698985860	0	5460
+America/St_Johns	1698981600	America/St_Johns	1699066800	0	85200
+America/St_Johns	1698982140	America/St_Johns	1699073400	1	4860
+America/St_Johns	1698982200	America/St_Johns	1699155000	2	0
+America/St_Johns	1698982260	America/St_Johns	1699162140	2	7080
+America/St_Johns	1698982800	America/St_Johns	1699158600	1	89400
+America/St_Johns	1698982800	America/St_Johns	1699244400	2	88800
+America/St_Johns	1698984000	America/St_Johns	1699158601	1	88201
+America/St_Johns	1698984000	America/St_Johns	1699327740	3	80940
+America/St_Johns	1698984600	America/St_Johns	1699158600	1	87600
+America/St_Johns	1698984600	America/St_Johns	1699159800	1	88800
+America/St_Johns	1698984600	America/St_Johns	1699336800	4	3000
+America/St_Johns	1698985200	America/St_Johns	1699158660	1	87060
+America/St_Johns	1698985740	America/St_Johns	1699068000	0	82260
+America/St_Johns	1698985740	America/St_Johns	1699158600	1	86460
+America/St_Johns	1698985740	America/St_Johns	1699159800	1	87660
+America/St_Johns	1698985800	America/St_Johns	1699111800	1	39600
+America/St_Johns	1698985860	America/St_Johns	1699162260	2	0
+America/St_Johns	1698986400	America/St_Johns	1699248600	2	85800
+America/St_Johns	1698987000	America/St_Johns	1699335060	3	85260
+America/St_Johns	1698988800	America/St_Johns	1699072260	0	83460
+America/St_Johns	1698989340	America/St_Johns	1699159200	1	83460
+America/St_Johns	1698989400	America/St_Johns	1699248540	2	82740
+America/St_Johns	1698989460	America/St_Johns	1701923400	33	79140
+America/St_Johns	1698991200	America/St_Johns	1699154400	1	76800
+America/St_Johns	1698994800	America/St_Johns	1699243800	2	72600
+America/St_Johns	1699063200	America/St_Johns	1699335000	3	9000
+America/St_Johns	1699068000	America/St_Johns	1699155060	1	660
+America/St_Johns	1699068540	America/St_Johns	1699246800	2	1860
+America/St_Johns	1699068660	America/St_Johns	1699071600	0	2940
+America/St_Johns	1699068660	America/St_Johns	1699158601	0	89941
+America/St_Johns	1699069200	America/St_Johns	1699167600	1	12000
+America/St_Johns	1699070400	America/St_Johns	1699158600	0	88200
+America/St_Johns	1699070400	America/St_Johns	1699159800	0	89400
+America/St_Johns	1699070400	America/St_Johns	1699333200	3	0
+America/St_Johns	1699071000	America/St_Johns	1699159200	0	88200
+America/St_Johns	1699071600	America/St_Johns	1699158601	0	87001
+America/St_Johns	1699071600	America/St_Johns	1699159800	0	88200
+America/St_Johns	1699071600	America/St_Johns	1699160400	0	88800
+America/St_Johns	1699072140	America/St_Johns	1699159200	0	87060
+America/St_Johns	1699072140	America/St_Johns	1699331340	2	82800
+America/St_Johns	1699072260	America/St_Johns	1699160400	0	88140
+America/St_Johns	1699072800	America/St_Johns	1699332600	2	83400
+America/St_Johns	1699074000	America/St_Johns	1699239600	1	75600
+America/St_Johns	1699075740	America/St_Johns	1699075860	0	120
+America/St_Johns	1699075800	America/St_Johns	1699249200	1	83400
+America/St_Johns	1699076400	America/St_Johns	1699162200	0	85800
+America/St_Johns	1699081200	America/St_Johns	1699081200	0	0
+America/St_Johns	1699111800	America/St_Johns	1699327860	2	39660
+America/St_Johns	1699153200	America/St_Johns	1699245060	1	1860
+America/St_Johns	1699154940	America/St_Johns	1699236000	0	81060
+America/St_Johns	1699155060	America/St_Johns	1699161600	0	6540
+America/St_Johns	1699156800	America/St_Johns	1699158660	0	1860
+America/St_Johns	1699158000	America/St_Johns	1699158660	0	660
+America/St_Johns	1699158599	America/St_Johns	1699161600	0	3001
+America/St_Johns	1699158600	America/St_Johns	1699242000	0	83400	87000
+America/St_Johns	1699158601	America/St_Johns	1699236000	0	77399
+America/St_Johns	1699158601	America/St_Johns	1699241460	0	82859	86459
+America/St_Johns	1699158601	America/St_Johns	1699245000	0	86399	89999
+America/St_Johns	1699158660	America/St_Johns	1699244400	0	85740	89340
+America/St_Johns	1699159200	America/St_Johns	1699243200	0	84000	87600
+America/St_Johns	1699159200	America/St_Johns	1699245060	0	85860	89460
+America/St_Johns	1699159800	America/St_Johns	1699241400	0	81600	85200
+America/St_Johns	1699159800	America/St_Johns	1699244940	0	85140	88740
+America/St_Johns	1699160400	America/St_Johns	1699242000	0	81600	85200
+America/St_Johns	1699160400	America/St_Johns	1699245060	0	84660	88260
+America/St_Johns	1699160400	America/St_Johns	1699327860	1	81060
+America/St_Johns	1699161600	America/St_Johns	1699243200	0	81600	85200
+America/St_Johns	1699161600	America/St_Johns	1699245600	0	84000	87600
+America/St_Johns	1699162140	America/St_Johns	1699243200	0	81060	84660
+America/St_Johns	1699162140	America/St_Johns	1699245600	0	83460	87060
+America/St_Johns	1699162200	America/St_Johns	1699162200	0	0
+America/St_Johns	1699162800	America/St_Johns	1699249200	1	0
+America/St_Johns	1699205400	America/St_Johns	1699239600	0	34200
+America/St_Johns	1699239600	America/St_Johns	1699332600	1	6600
+America/St_Johns	1699241400	America/St_Johns	1699331340	1	3540
+America/St_Johns	1699243200	America/St_Johns	1699333200	1	3600
+America/St_Johns	1699245000	America/St_Johns	1699246800	0	1800
+America/St_Johns	1699246200	America/St_Johns	1699335000	1	2400
+America/St_Johns	1699248600	America/St_Johns	1701923400	30	82800
+America/St_Johns	1699322400	America/St_Johns	1699335060	0	12660
+America/St_Johns	1699328400	America/St_Johns	1699336800	0	8400
+America/St_Johns	1699334400	America/St_Johns	1699334940	0	540
+America/St_Johns	1698989460	Asia/Karachi	1699331460	3	79200
+America/St_Johns	1699072140	Asia/Karachi	1699159800	0	87660
+America/St_Johns	1699322400	Asia/Karachi	1699329600	0	7200
+America/St_Johns	1699072140	Etc/UTC	1699246800	1	88260
+America/St_Johns	1699158660	Etc/UTC	1699241460	0	82800	86400
+America/St_Johns	1664598600	Pacific/Chatham	1699331460	401	82860
+America/St_Johns	1699149600	Pacific/Chatham	1699327200	2	1200
+America/St_Johns	1675488600	America/St_Johns	1710045600	399	83400
+America/St_Johns	1707283800	America/St_Johns	1710049200	32	600
+America/St_Johns	1709866800	America/St_Johns	1710095400	2	55800
+America/St_Johns	1709870400	America/St_Johns	1710134940	3	8940
+America/St_Johns	1709871600	America/St_Johns	1710144000	3	16800
+America/St_Johns	1709872140	America/St_Johns	1710221460	4	7320
+America/St_Johns	1709872260	America/St_Johns	1709872800	0	540
+America/St_Johns	1709872800	America/St_Johns	1709884800	0	12000
+America/St_Johns	1709874000	America/St_Johns	1709965200	1	4800
+America/St_Johns	1709874600	America/St_Johns	1710048540	2	1140
+America/St_Johns	1709875200	America/St_Johns	1710131340	3	540
+America/St_Johns	1709875740	America/St_Johns	1710212400	3	81060
+America/St_Johns	1709875800	America/St_Johns	1710226800	4	9000
+America/St_Johns	1709876400	America/St_Johns	1709961000	0	84600
+America/St_Johns	1709877000	America/St_Johns	1710047400	1	84000
+America/St_Johns	1709877600	America/St_Johns	1710133200	3	0
+America/St_Johns	1709878800	America/St_Johns	1710221340	4	540
+America/St_Johns	1709879400	America/St_Johns	1709960400	0	81000
+America/St_Johns	1709879460	America/St_Johns	1710048600	1	82740
+America/St_Johns	1709880000	America/St_Johns	1710138000	3	2400
+America/St_Johns	1709881200	America/St_Johns	1744608600	401	84600
+America/St_Johns	1709953200	America/St_Johns	1710046800	1	7200
+America/St_Johns	1709956800	America/St_Johns	1710136800	2	10800
+America/St_Johns	1709958540	America/St_Johns	1709958660	0	120
+America/St_Johns	1709958600	America/St_Johns	1710051600	1	6600
+America/St_Johns	1709958660	America/St_Johns	1710219600	3	5340
+America/St_Johns	1709960400	America/St_Johns	1710045000	0	84600
+America/St_Johns	1709961000	America/St_Johns	1710138660	2	8460
+America/St_Johns	1709962140	America/St_Johns	1710001800	0	39660
+America/St_Johns	1709962200	America/St_Johns	1710138540	2	7140
+America/St_Johns	1709962800	America/St_Johns	1710044940	0	82140
+America/St_Johns	1709963400	America/St_Johns	1710216000	2	83400
+America/St_Johns	1709965200	America/St_Johns	1710049800	0	84600
+America/St_Johns	1709965740	America/St_Johns	1710224940	3	3600
+America/St_Johns	1709965860	America/St_Johns	1710135060	2	0
+America/St_Johns	1709967600	America/St_Johns	1710048660	0	81060
+America/St_Johns	1709971200	America/St_Johns	1710225600	2	85200
+America/St_Johns	1710039600	America/St_Johns	1710217200	2	8400
+America/St_Johns	1710044400	America/St_Johns	1710135000	1	7800
+America/St_Johns	1710045000	America/St_Johns	1710129600	1	1800
+America/St_Johns	1710045600	America/St_Johns	1710052260	0	6660
+America/St_Johns	1710047400	America/St_Johns	1710052140	0	4740
+America/St_Johns	1710048540	America/St_Johns	1710052260	0	3720
+America/St_Johns	1710048600	America/St_Johns	1710129600	0	81000
+America/St_Johns	1710048660	America/St_Johns	1710135000	0	86340
+America/St_Johns	1710049800	America/St_Johns	1710217200	1	81000
+America/St_Johns	1710051600	America/St_Johns	1710225600	2	1200
+America/St_Johns	1710052260	America/St_Johns	1710135060	0	82800
+America/St_Johns	1710054000	America/St_Johns	1710224940	1	84540
+America/St_Johns	1710126000	America/St_Johns	1710216000	1	3600
+America/St_Johns	1710131340	America/St_Johns	1710138540	0	7200
+America/St_Johns	1710132000	America/St_Johns	1710138660	0	6660
+America/St_Johns	1710134400	America/St_Johns	1710219600	0	85200
+America/St_Johns	1710135600	America/St_Johns	1710136800	0	1200
+America/St_Johns	1710138000	America/St_Johns	1744608600	398	83400
+America/St_Johns	1710140400	America/St_Johns	1710221340	0	80940
+America/St_Johns	1710217740	America/St_Johns	1710226800	0	9060
+America/St_Johns	1710221400	America/St_Johns	1710221460	0	60
+America/St_Johns	1709872260	Asia/Karachi	1709879400	0	7140
+America/St_Johns	1710046800	Asia/Karachi	1710048599	0	1799
+America/St_Johns	1709875860	Etc/UTC	1710126000	2	77340
+America/St_Johns	1710052260	Etc/UTC	1710221460	1	82800
+America/St_Johns	1709958540	Pacific/Chatham	1709966400	0	7860
+America/St_Johns	1710219600	Pacific/Chatham	1710224940	0	5340
+America/St_Johns	1727843400	America/St_Johns	1730431200	29	82200
+America/St_Johns	1730426400	America/St_Johns	1730435460	0	9060
+America/St_Johns	1730430000	America/St_Johns	1730512800	0	82800
+America/St_Johns	1730431200	America/St_Johns	1730521860	1	4260
+America/St_Johns	1730431740	America/St_Johns	1730602800	1	84660
+America/St_Johns	1730431800	America/St_Johns	1730608800	2	4200
+America/St_Johns	1730431860	America/St_Johns	1730608201	1	89941
+America/St_Johns	1730431860	America/St_Johns	1730691000	2	86340
+America/St_Johns	1730432400	America/St_Johns	1730698800	3	3600
+America/St_Johns	1730433600	America/St_Johns	1730608200	1	88200
+America/St_Johns	1730433600	America/St_Johns	1730609400	1	89400
+America/St_Johns	1730433600	America/St_Johns	1730782200	3	85800
+America/St_Johns	1730434200	America/St_Johns	1730608800	1	88200
+America/St_Johns	1730434800	America/St_Johns	1730438400	0	3600
+America/St_Johns	1730434800	America/St_Johns	1730608201	1	87001
+America/St_Johns	1730434800	America/St_Johns	1730610000	1	88800
+America/St_Johns	1730435340	America/St_Johns	1730522400	1	660
+America/St_Johns	1730435340	America/St_Johns	1730608800	1	87060
+America/St_Johns	1730435400	America/St_Johns	1730608140	1	86340
+America/St_Johns	1730435460	America/St_Johns	1730691600	2	79740
+America/St_Johns	1730436000	America/St_Johns	1730778000	3	79200
+America/St_Johns	1730437200	America/St_Johns	1730439600	0	2400
+America/St_Johns	1730438400	America/St_Johns	1730561400	1	36600
+America/St_Johns	1730438940	America/St_Johns	1730685600	2	70260
+America/St_Johns	1730439000	America/St_Johns	1730777460	3	75660
+America/St_Johns	1730439600	America/St_Johns	1730518800	0	79200
+America/St_Johns	1730440800	America/St_Johns	1730608201	1	81001
+America/St_Johns	1730444400	America/St_Johns	1730698260	2	77460
+America/St_Johns	1730516400	America/St_Johns	1730518260	0	1860
+America/St_Johns	1730517600	America/St_Johns	1730609400	1	5400
+America/St_Johns	1730518140	America/St_Johns	1730777340	2	82800
+America/St_Johns	1730518260	America/St_Johns	1730526000	0	7740
+America/St_Johns	1730518260	America/St_Johns	1730608200	0	89940
+America/St_Johns	1730518800	America/St_Johns	1730608260	0	89460
+America/St_Johns	1730518800	America/St_Johns	1730694000	1	88800
+America/St_Johns	1730520000	America/St_Johns	1730608800	0	88800
+America/St_Johns	1730520600	America/St_Johns	1730521200	0	600
+America/St_Johns	1730520600	America/St_Johns	1730608260	0	87660
+America/St_Johns	1730521200	America/St_Johns	1730608200	0	87000
+America/St_Johns	1730521200	America/St_Johns	1730609400	0	88200
+America/St_Johns	1730521200	America/St_Johns	1730689200	1	81600
+America/St_Johns	1730521740	America/St_Johns	1730608260	0	86520
+America/St_Johns	1730521740	America/St_Johns	1730611200	0	89460
+America/St_Johns	1730521740	America/St_Johns	1730786400	3	1860
+America/St_Johns	1730521860	America/St_Johns	1730690400	1	78540
+America/St_Johns	1730523000	America/St_Johns	1730523000	0	0
+America/St_Johns	1730523600	America/St_Johns	1730694660	1	81060
+America/St_Johns	1730525340	America/St_Johns	1730605200	0	79860
+America/St_Johns	1730525400	America/St_Johns	1730779800	2	78000
+America/St_Johns	1730526000	America/St_Johns	1730691060	1	75060
+America/St_Johns	1730530800	America/St_Johns	1730607600	0	76800
+America/St_Johns	1730561400	America/St_Johns	1730784000	2	46200
+America/St_Johns	1730602800	America/St_Johns	1730772000	1	79200
+America/St_Johns	1730604540	America/St_Johns	1730694600	1	60
+America/St_Johns	1730604660	America/St_Johns	1730690940	0	86280
+America/St_Johns	1730606400	America/St_Johns	1730655000	0	48600
+America/St_Johns	1730607600	America/St_Johns	1730655000	0	47400
+America/St_Johns	1730608199	America/St_Johns	1730690940	0	82741
+America/St_Johns	1730608200	America/St_Johns	1730691600	0	83400	87000
+America/St_Johns	1730608201	America/St_Johns	1730691060	0	82859	86459
+America/St_Johns	1730608201	America/St_Johns	1730694600	0	86399	89999
+America/St_Johns	1730608260	America/St_Johns	1730694000	0	85740	89340
+America/St_Johns	1730608800	America/St_Johns	1730692800	0	84000	87600
+America/St_Johns	1730608800	America/St_Johns	1730772000	1	76800
+America/St_Johns	1730609400	America/St_Johns	1730691000	0	81600	85200
+America/St_Johns	1730609400	America/St_Johns	1730694540	0	85140	88740
+America/St_Johns	1730610000	America/St_Johns	1730691600	0	81600	85200
+America/St_Johns	1730610000	America/St_Johns	1730694660	0	84660	88260
+America/St_Johns	1730610000	America/St_Johns	1730784000	2	1200
+America/St_Johns	1730611200	America/St_Johns	1730692800	0	81600	85200
+America/St_Johns	1730611200	America/St_Johns	1730695200	0	84000	87600
+America/St_Johns	1730611740	America/St_Johns	1730692800	0	81060	84660
+America/St_Johns	1730611740	America/St_Johns	1730695200	0	83460	87060
+America/St_Johns	1730611800	America/St_Johns	1730691060	0	79260
+America/St_Johns	1730612400	America/St_Johns	1730779800	1	81000
+America/St_Johns	1730655000	America/St_Johns	1730694660	0	39660
+America/St_Johns	1730690400	America/St_Johns	1730690400	0	0
+America/St_Johns	1730691000	America/St_Johns	1730786400	1	9000
+America/St_Johns	1730693400	America/St_Johns	1730694000	0	600
+America/St_Johns	1730694600	America/St_Johns	1730777340	0	82740
+America/St_Johns	1730696400	America/St_Johns	1730698260	0	1860
+America/St_Johns	1730698260	America/St_Johns	1730777460	0	79200
+America/St_Johns	1730775600	America/St_Johns	1730778000	0	2400
+America/St_Johns	1730779200	America/St_Johns	1730782200	0	3000
+America/St_Johns	1730784540	America/St_Johns	1730785200	0	660
+America/St_Johns	1730518140	Asia/Karachi	1730611860	1	7320
+America/St_Johns	1696048200	Etc/UTC	1696048200	0	0
+America/St_Johns	1730525340	Etc/UTC	1730609400	0	84060
+America/St_Johns	1730608260	Etc/UTC	1730691060	0	82800	86400
+America/St_Johns	1730431860	Pacific/Chatham	1730602800	1	84540
+America/St_Johns	1730606400	Pacific/Chatham	1730696400	1	0
+Australia/Adelaide	1661531400	Australia/Adelaide	1696093200	400	1800
+Australia/Adelaide	1693326600	Australia/Adelaide	1696168800	32	77400
+Australia/Adelaide	1695909600	Australia/Adelaide	1696177740	3	12540
+Australia/Adelaide	1695913200	Australia/Adelaide	1696183200	3	14400
+Australia/Adelaide	1695914400	Australia/Adelaide	1696264140	4	7740
+Australia/Adelaide	1695914940	Australia/Adelaide	1698856200	34	7260
+Australia/Adelaide	1695915060	Australia/Adelaide	1695922140	0	7080
+Australia/Adelaide	1695915600	Australia/Adelaide	1696004940	1	2940
+Australia/Adelaide	1695916800	Australia/Adelaide	1696087740	1	84540
+Australia/Adelaide	1695917400	Australia/Adelaide	1696095060	2	4860
+Australia/Adelaide	1695918000	Australia/Adelaide	1696179000	3	5400
+Australia/Adelaide	1695918540	Australia/Adelaide	1696264200	4	3660
+Australia/Adelaide	1695918660	Australia/Adelaide	1695922260	0	3600
+Australia/Adelaide	1695919200	Australia/Adelaide	1696008660	1	3060
+Australia/Adelaide	1695919800	Australia/Adelaide	1696094940	2	2340
+Australia/Adelaide	1695920400	Australia/Adelaide	1696181400	3	5400
+Australia/Adelaide	1695921600	Australia/Adelaide	1696269600	4	6000
+Australia/Adelaide	1695922200	Australia/Adelaide	1696008600	1	0
+Australia/Adelaide	1695922260	Australia/Adelaide	1696096800	2	5340
+Australia/Adelaide	1695922800	Australia/Adelaide	1696260600	3	82200
+Australia/Adelaide	1695927600	Australia/Adelaide	1696004400	0	76800
+Australia/Adelaide	1695996000	Australia/Adelaide	1696094400	1	12000
+Australia/Adelaide	1695999600	Australia/Adelaide	1696260540	3	5340
+Australia/Adelaide	1696001340	Australia/Adelaide	1696008000	0	6660
+Australia/Adelaide	1696001400	Australia/Adelaide	1696174140	2	3540
+Australia/Adelaide	1696001460	Australia/Adelaide	1696267800	3	10740
+Australia/Adelaide	1696003200	Australia/Adelaide	1696092000	1	2400
+Australia/Adelaide	1696003800	Australia/Adelaide	1696262400	3	3000
+Australia/Adelaide	1696004940	Australia/Adelaide	1696091340	1	0
+Australia/Adelaide	1696005000	Australia/Adelaide	1696260660	3	60
+Australia/Adelaide	1696005600	Australia/Adelaide	1696091460	0	85860
+Australia/Adelaide	1696006200	Australia/Adelaide	1696264260	3	2460
+Australia/Adelaide	1696008000	Australia/Adelaide	1696172400	1	78000
+Australia/Adelaide	1696008600	Australia/Adelaide	1696010400	0	1800
+Australia/Adelaide	1696008660	Australia/Adelaide	1696255200	2	77340
+Australia/Adelaide	1696010400	Australia/Adelaide	1696138200	1	45000
+Australia/Adelaide	1696044600	Australia/Adelaide	1696087860	0	43260
+Australia/Adelaide	1696082400	Australia/Adelaide	1696264800	2	13200
+Australia/Adelaide	1696087200	Australia/Adelaide	1696186800	1	16800
+Australia/Adelaide	1696087800	Australia/Adelaide	1696177860	1	7260
+Australia/Adelaide	1696088400	Australia/Adelaide	1696174800	1	3600
+Australia/Adelaide	1696090200	Australia/Adelaide	1696174200	1	1200
+Australia/Adelaide	1696091340	Australia/Adelaide	1696174800	1	660
+Australia/Adelaide	1696091400	Australia/Adelaide	1696177860	1	60
+Australia/Adelaide	1696091460	Australia/Adelaide	1696186800	1	8940
+Australia/Adelaide	1696092600	Australia/Adelaide	1696264800	1	85800
+Australia/Adelaide	1696094940	Australia/Adelaide	1696138200	0	43260
+Australia/Adelaide	1696095060	Australia/Adelaide	1696255200	1	73740
+Australia/Adelaide	1696100400	Australia/Adelaide	1696172400	0	72000
+Australia/Adelaide	1696168800	Australia/Adelaide	1696264260	1	9060
+Australia/Adelaide	1696174140	Australia/Adelaide	1696260660	1	120
+Australia/Adelaide	1696174800	Australia/Adelaide	1696262400	1	1200
+Australia/Adelaide	1696177200	Australia/Adelaide	1696267800	1	4200
+Australia/Adelaide	1696178400	Australia/Adelaide	1696260540	0	82140
+Australia/Adelaide	1696181340	Australia/Adelaide	1696260600	0	79260
+Australia/Adelaide	1696183200	Australia/Adelaide	1696269600	1	0
+Australia/Adelaide	1696260600	Australia/Adelaide	1696264200	0	3600
+Australia/Adelaide	1696264200	Australia/Adelaide	1698856200	30	0
+Australia/Adelaide	1695915060	Asia/Karachi	1696168800	2	80940
+Australia/Adelaide	1696089600	Asia/Karachi	1696267740	2	8940
+Australia/Adelaide	1695922260	Etc/UTC	1696001460	0	79200
+Australia/Adelaide	1696173600	Etc/UTC	1696273200	1	13200
+Australia/Adelaide	1696001340	Pacific/Chatham	1696260000	3	3060
+Australia/Adelaide	1677861000	Australia/Adelaide	1712244600	397	82800
+Australia/Adelaide	1709656200	Australia/Adelaide	1712248800	30	600
+Australia/Adelaide	1712239200	Australia/Adelaide	1712325600	1	0
+Australia/Adelaide	1712242800	Australia/Adelaide	1712334600	1	5400
+Australia/Adelaide	1712244000	Australia/Adelaide	1712374200	1	43800
+Australia/Adelaide	1712244540	Australia/Adelaide	1712421000	2	3660
+Australia/Adelaide	1712244600	Australia/Adelaide	1712498400	2	81000
+Australia/Adelaide	1712244660	Australia/Adelaide	1712421000	1	89940
+Australia/Adelaide	1712244660	Australia/Adelaide	1712509200	3	1740
+Australia/Adelaide	1712245200	Australia/Adelaide	1712421060	1	89460
+Australia/Adelaide	1712245200	Australia/Adelaide	1712592600	3	84600
+Australia/Adelaide	1712246400	Australia/Adelaide	1712421600	1	88800
+Australia/Adelaide	1712247000	Australia/Adelaide	1712247000	0	0
+Australia/Adelaide	1712247000	Australia/Adelaide	1712421060	1	87660
+Australia/Adelaide	1712247600	Australia/Adelaide	1712331000	0	83400
+Australia/Adelaide	1712247600	Australia/Adelaide	1712421000	1	87000
+Australia/Adelaide	1712247600	Australia/Adelaide	1712422200	1	88200
+Australia/Adelaide	1712248140	Australia/Adelaide	1712412000	1	77460
+Australia/Adelaide	1712248140	Australia/Adelaide	1712421060	1	86520
+Australia/Adelaide	1712248140	Australia/Adelaide	1712424000	1	89460
+Australia/Adelaide	1712248200	Australia/Adelaide	1712424660	2	60
+Australia/Adelaide	1712248260	Australia/Adelaide	1712510940	2	86280
+Australia/Adelaide	1712248800	Australia/Adelaide	1712597340	3	85740
+Australia/Adelaide	1712250000	Australia/Adelaide	1712333400	0	83400
+Australia/Adelaide	1712251200	Australia/Adelaide	1712420940	1	83340
+Australia/Adelaide	1712251740	Australia/Adelaide	1712507400	2	79260
+Australia/Adelaide	1712251800	Australia/Adelaide	1712596800	3	82200
+Australia/Adelaide	1712252400	Australia/Adelaide	1712338140	0	85740
+Australia/Adelaide	1712253600	Australia/Adelaide	1712430000	2	0
+Australia/Adelaide	1712257200	Australia/Adelaide	1712592000	3	72000
+Australia/Adelaide	1712329200	Australia/Adelaide	1712337600	0	8400
+Australia/Adelaide	1712330400	Australia/Adelaide	1712502000	1	85200
+Australia/Adelaide	1712330940	Australia/Adelaide	1712595000	3	1260
+Australia/Adelaide	1712331060	Australia/Adelaide	1712419200	1	1740
+Australia/Adelaide	1712331600	Australia/Adelaide	1712421001	0	89401
+Australia/Adelaide	1712331600	Australia/Adelaide	1712511600	2	3600
+Australia/Adelaide	1712332800	Australia/Adelaide	1712421060	0	88260
+Australia/Adelaide	1712333400	Australia/Adelaide	1712338800	0	5400
+Australia/Adelaide	1712333400	Australia/Adelaide	1712421001	0	87601
+Australia/Adelaide	1712333400	Australia/Adelaide	1712422800	0	89400
+Australia/Adelaide	1712334000	Australia/Adelaide	1712421600	0	87600
+Australia/Adelaide	1712334000	Australia/Adelaide	1712507460	1	87060
+Australia/Adelaide	1712334540	Australia/Adelaide	1712421001	0	86461
+Australia/Adelaide	1712334540	Australia/Adelaide	1712422800	0	88260
+Australia/Adelaide	1712334600	Australia/Adelaide	1712338200	0	3600
+Australia/Adelaide	1712334660	Australia/Adelaide	1712508000	1	83340
+Australia/Adelaide	1712335800	Australia/Adelaide	1712415600	0	79800
+Australia/Adelaide	1712336400	Australia/Adelaide	1712584800	2	72000
+Australia/Adelaide	1712338140	Australia/Adelaide	1712422800	0	84660
+Australia/Adelaide	1712338200	Australia/Adelaide	1712597460	2	82860
+Australia/Adelaide	1712338800	Australia/Adelaide	1712510400	1	81600
+Australia/Adelaide	1712343600	Australia/Adelaide	1712424600	0	81000
+Australia/Adelaide	1712412000	Australia/Adelaide	1712416800	0	4800
+Australia/Adelaide	1712415600	Australia/Adelaide	1712593800	2	1800
+Australia/Adelaide	1712417340	Australia/Adelaide	1712516400	1	9060
+Australia/Adelaide	1712417460	Australia/Adelaide	1712508600	1	1140
+Australia/Adelaide	1712419200	Australia/Adelaide	1712507340	0	88140
+Australia/Adelaide	1712420400	Australia/Adelaide	1712507340	0	86940
+Australia/Adelaide	1712420999	Australia/Adelaide	1712508600	0	87601
+Australia/Adelaide	1712421000	Australia/Adelaide	1712503740	0	82740	86340
+Australia/Adelaide	1712421000	Australia/Adelaide	1712506800	0	85800	89400
+Australia/Adelaide	1712421001	Australia/Adelaide	1712503860	0	82859	86459
+Australia/Adelaide	1712421001	Australia/Adelaide	1712507400	0	86399	89999
+Australia/Adelaide	1712421001	Australia/Adelaide	1712516400	1	8999
+Australia/Adelaide	1712421060	Australia/Adelaide	1712504400	0	83340	86940
+Australia/Adelaide	1712421600	Australia/Adelaide	1712502000	0	80400	84000
+Australia/Adelaide	1712421600	Australia/Adelaide	1712505600	0	84000	87600
+Australia/Adelaide	1712421600	Australia/Adelaide	1712593800	1	85800
+Australia/Adelaide	1712422200	Australia/Adelaide	1712502000	0	79800	83400
+Australia/Adelaide	1712422200	Australia/Adelaide	1712505600	0	83400	87000
+Australia/Adelaide	1712422200	Australia/Adelaide	1712508000	0	85800	89400
+Australia/Adelaide	1712422800	Australia/Adelaide	1712504400	0	81600	85200
+Australia/Adelaide	1712422800	Australia/Adelaide	1712507460	0	84660	88260
+Australia/Adelaide	1712424000	Australia/Adelaide	1712424600	0	600
+Australia/Adelaide	1712424000	Australia/Adelaide	1712503800	0	79800	83400
+Australia/Adelaide	1712424000	Australia/Adelaide	1712507340	0	83340	86940
+Australia/Adelaide	1712424540	Australia/Adelaide	1712502000	0	77460	81060
+Australia/Adelaide	1712424540	Australia/Adelaide	1712505600	0	81060	84660
+Australia/Adelaide	1712424540	Australia/Adelaide	1712508000	0	83460	87060
+Australia/Adelaide	1712424600	Australia/Adelaide	1712510400	0	85800
+Australia/Adelaide	1712425200	Australia/Adelaide	1712597460	1	85860
+Australia/Adelaide	1712467800	Australia/Adelaide	1712584800	1	30600
+Australia/Adelaide	1712503200	Australia/Adelaide	1712508000	0	4800
+Australia/Adelaide	1712503860	Australia/Adelaide	1712507460	0	3600
+Australia/Adelaide	1712506200	Australia/Adelaide	1712511600	0	5400
+Australia/Adelaide	1712507400	Australia/Adelaide	1712595000	1	1200
+Australia/Adelaide	1712509200	Australia/Adelaide	1712592000	0	82800
+Australia/Adelaide	1712511060	Australia/Adelaide	1712596800	0	85740
+Australia/Adelaide	1712588400	Australia/Adelaide	1712597340	0	8940
+Australia/Adelaide	1712592600	Australia/Adelaide	1712592600	0	0
+Australia/Adelaide	1712597400	Australia/Adelaide	1746981000	397	82800
+Australia/Adelaide	1712334540	Asia/Karachi	1712334540	0	0
+Australia/Adelaide	1677861000	Etc/UTC	1712418000	399	83400
+Australia/Adelaide	1712338140	Etc/UTC	1712602800	3	1860
+Australia/Adelaide	1712421060	Etc/UTC	1712503860	0	82800	86400
+Australia/Adelaide	1712244660	Pacific/Chatham	1712592000	3	84540
+Australia/Adelaide	1712334540	Pacific/Chatham	1712422200	0	87660
+Australia/Adelaide	1712421060	Pacific/Chatham	1712507340	0	86280	89880
+Australia/Adelaide	1693585800	Australia/Adelaide	1728228000	400	82200
+Australia/Adelaide	1725381000	Australia/Adelaide	1728232200	33	3600
+Australia/Adelaide	1727964000	Australia/Adelaide	1728237600	3	18000
+Australia/Adelaide	1727967600	Australia/Adelaide	1728318000	4	8400
+Australia/Adelaide	1727968800	Australia/Adelaide	1728324000	4	13200
+Australia/Adelaide	1727969400	Australia/Adelaide	1727973600	0	4200
+Australia/Adelaide	1727969460	Australia/Adelaide	1728055860	1	0
+Australia/Adelaide	1727970000	Australia/Adelaide	1728064800	1	8400
+Australia/Adelaide	1727971200	Australia/Adelaide	1728145860	2	1860
+Australia/Adelaide	1727971800	Australia/Adelaide	1728229200	3	1800
+Australia/Adelaide	1727972400	Australia/Adelaide	1728314400	4	0
+Australia/Adelaide	1727972940	Australia/Adelaide	1728327600	4	12660
+Australia/Adelaide	1727973060	Australia/Adelaide	1728057600	0	84540
+Australia/Adelaide	1727973600	Australia/Adelaide	1728142800	1	82800
+Australia/Adelaide	1727974200	Australia/Adelaide	1728228600	2	81600
+Australia/Adelaide	1727974800	Australia/Adelaide	1728315600	3	85200
+Australia/Adelaide	1727976540	Australia/Adelaide	1728054000	0	77460
+Australia/Adelaide	1727976600	Australia/Adelaide	1728142260	1	79260
+Australia/Adelaide	1727976660	Australia/Adelaide	1728231000	2	85140
+Australia/Adelaide	1727977200	Australia/Adelaide	1728320400	4	1200
+Australia/Adelaide	1727982000	Australia/Adelaide	1728063600	0	81600
+Australia/Adelaide	1728050400	Australia/Adelaide	1728228540	2	8940
+Australia/Adelaide	1728054000	Australia/Adelaide	1728319800	3	10200
+Australia/Adelaide	1728055740	Australia/Adelaide	1728142140	1	0
+Australia/Adelaide	1728055800	Australia/Adelaide	1728233400	2	8400
+Australia/Adelaide	1728056400	Australia/Adelaide	1728059340	0	2940
+Australia/Adelaide	1728057600	Australia/Adelaide	1728223200	1	79200
+Australia/Adelaide	1728058200	Australia/Adelaide	1728322200	3	8400
+Australia/Adelaide	1728059340	Australia/Adelaide	1728149460	1	3720
+Australia/Adelaide	1728059400	Australia/Adelaide	1728321600	3	6600
+Australia/Adelaide	1728060000	Australia/Adelaide	1728192600	1	46200
+Australia/Adelaide	1728060600	Australia/Adelaide	1730910600	33	2400
+Australia/Adelaide	1728062400	Australia/Adelaide	1728232260	2	660
+Australia/Adelaide	1728063000	Australia/Adelaide	1728144600	0	81600
+Australia/Adelaide	1728063060	Australia/Adelaide	1728318600	2	86340
+Australia/Adelaide	1728064800	Australia/Adelaide	1728232140	1	84540
+Australia/Adelaide	1728099000	Australia/Adelaide	1728147000	0	48000
+Australia/Adelaide	1728136800	Australia/Adelaide	1762705800	400	12600
+Australia/Adelaide	1728141600	Australia/Adelaide	1728318540	2	7740
+Australia/Adelaide	1728142200	Australia/Adelaide	1728309600	1	84600
+Australia/Adelaide	1728142800	Australia/Adelaide	1728235740	1	10140
+Australia/Adelaide	1728144600	Australia/Adelaide	1728234000	1	6600
+Australia/Adelaide	1728145740	Australia/Adelaide	1728235740	1	7200
+Australia/Adelaide	1728145800	Australia/Adelaide	1728309600	1	77400
+Australia/Adelaide	1728145860	Australia/Adelaide	1728318540	1	86280
+Australia/Adelaide	1728147000	Australia/Adelaide	1762705800	399	85200
+Australia/Adelaide	1728149340	Australia/Adelaide	1728232140	0	82800
+Australia/Adelaide	1728149460	Australia/Adelaide	1728318600	1	82740
+Australia/Adelaide	1728154800	Australia/Adelaide	1728232260	0	77460
+Australia/Adelaide	1728223200	Australia/Adelaide	1730910600	31	9000
+Australia/Adelaide	1728228540	Australia/Adelaide	1728321600	1	6660
+Australia/Adelaide	1728229200	Australia/Adelaide	1728322200	1	6600
+Australia/Adelaide	1728232140	Australia/Adelaide	1728233400	0	1260
+Australia/Adelaide	1728232800	Australia/Adelaide	1728319800	1	600
+Australia/Adelaide	1728235740	Australia/Adelaide	1728320400	0	84660
+Australia/Adelaide	1728241200	Australia/Adelaide	1728315600	0	74400
+Australia/Adelaide	1728315000	Australia/Adelaide	1728327600	0	12600
+Australia/Adelaide	1728318660	Australia/Adelaide	1728324000	0	5340
+Australia/Adelaide	1727973060	Asia/Karachi	1727976600	0	3540
+Australia/Adelaide	1728145860	Asia/Karachi	1728318660	2	0
+Australia/Adelaide	1727976660	Etc/UTC	1728232140	2	86280
+Australia/Adelaide	1728235200	Etc/UTC	1728316800	0	81600
+Australia/Adelaide	1728059340	Pacific/Chatham	1728147000	1	1260

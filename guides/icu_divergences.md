@@ -76,6 +76,15 @@ Week numbers (`Y`, `w`, `W`) are the calendar's own for a calendar that numbers 
 
 The first row is a week holding four days of September under ISO 8601's weeks, and the others are weeks holding enough days of the month after: one in `en`, four in `en-GB`. Wherever the week is in its date's own month the two agree, which over 2019 to 2030 is every day but 432 of 4,383 in `en` and every day but 246 in `en-GB`. Localize's values are asserted from TR35's rule for every day of 2015 to 2026 in `test/localize/calendar_callbacks_test.exs`.
 
+The extended year (`u`) is the calendar's own answer, its `extended_year/3`. TR35 calls it "a single number designating the year of this calendar system, encompassing all supra-year fields", with the Julian calendar's 1 BCE as year 0 for its example and 4601 for its sample value. ICU4C 78.3 writes the same number in the calendars whose years it counts as Calendrical does: the Gregorian, Julian, Japanese, Coptic, Ethiopic, Hebrew, Indian, Persian and Islamic calendars. In four others it writes a Gregorian year, where Localize writes the calendar's own (user, 2026-10-02), asserted in Calendrical's `test/localize_extended_year_test.exs`:
+
+| Calendar | Localize, 15 June 2026 | ICU4C 78.3 |
+|---|---|---|
+| Buddhist | 2569 | 2026, the Gregorian year |
+| ROC | 115 | 2026, the Gregorian year |
+| Chinese | 4663 | 2026, the related Gregorian year `r` writes |
+| Dangi | 4359 | 2026, the related Gregorian year `r` writes |
+
 ### Date parsing
 
 TR35 makes `y` the year of the era `G` names, and leaves the reading of a two-digit year to the implementation. ICU4C 78.3 reads any two-digit year as one within 80 years before and 20 after today, even beside an era, so it cannot read back the "44 BC" it formats itself. Localize takes a year its era qualifies as written where the format writes the year in full (`y`), and applies the pivot to a year written without an era and, as ICU does, to one the format writes as `yy`, its two low-order digits; asserted in `test/localize/date_parse_era_test.exs` and `test/localize/date_parse_lunisolar_test.exs`.
@@ -155,6 +164,16 @@ Without `:unit`, `Localize.DateTime.Relative` takes the largest unit of which a 
 * **A repeated hour.** Temporal compares the wall clocks first, and 01:10 is short of 01:50. ICU reaches days and weeks by adding elapsed time, which lands on the first 01:50, but months and years through its fields, which resolve a repeated time at its second occurrence (`UCAL_WALLTIME_LAST`), so its answer turns on the unit.
 
 * **A leap month.** Temporal takes a leap month that the next year lacks as the ordinary month it doubles (its skip-backward rule for the Chinese and Dangi calendars). ICU takes the next new moon, the month after it.
+
+### Durations
+
+`Localize.Duration.new/2` measures two date-times in time zones as the same specification does (user, 2026-10-02): the later is moved to the earlier's time zone, whole days are counted on that wall clock, and the hours, minutes and seconds are the time that passes after them. It agrees with a step-by-step implementation of `DifferenceZonedDateTime` on 322,464 of 324,207 pairs about 36 changes of clocks in twelve time zones, and differs in one case, which it keeps. A sample of the pairs is asserted in `test/localize/duration_zoned_matrix_test.exs`.
+
+| From → to | Localize | The specification's steps |
+|---|---|---|
+| New York, the second 01:30 on 3 November 2024 → 01:10 on 4 November | 23 hours 40 minutes | 24 hours 40 minutes |
+
+* **From the second occurrence of a repeated time.** Where no whole day lies between the two, the specification finds the earlier moment again from its wall-clock time, which it resolves at its first occurrence, an hour before the moment itself. Localize counts from the earlier moment, so the hours are the time that passes, which is what `DateTime.diff/3` gives.
 
 ## Not divergences
 

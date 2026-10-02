@@ -734,13 +734,15 @@ defmodule Localize.DateTime.Formatter do
     end
   end
 
-  # An era, and a year counted in one, need only the year where the
-  # calendar's eras begin with its years. Where one began mid-year, as in
-  # the Japanese calendar, a partial date in the year or month of the
+  # An era, a year counted in one and the extended year need only the year
+  # where the calendar's eras begin with its years. Where one began mid-year,
+  # as in the Japanese calendar, a partial date in the year or month of the
   # change also needs the fields that settle which era it falls in.
+  @era_handlers [:era, :year, :extended_year]
+
   defp unsettled_era_fields(value, tokens, unusable) do
     handlers =
-      for {handler, _line, _count} <- tokens, handler in [:era, :year], uniq: true, do: handler
+      for {handler, _line, _count} <- tokens, handler in @era_handlers, uniq: true, do: handler
 
     if handlers == [] or :year in unusable do
       []
@@ -753,6 +755,9 @@ defmodule Localize.DateTime.Formatter do
 
   defp era_answer_fields(:year, value),
     do: settled_fields(Localize.Calendar.displayed_year(value))
+
+  defp era_answer_fields(:extended_year, value),
+    do: settled_fields(Localize.Calendar.extended_year(value))
 
   defp settled_fields({:ok, _answer}), do: []
   defp settled_fields({:error, fields}) when is_list(fields), do: fields
@@ -986,9 +991,24 @@ defmodule Localize.DateTime.Formatter do
 
   # ── Extended year (u) ──────────────────────────────────────
 
+  # TR35's extended year is one number for the year through every era of the
+  # date's calendar, which the calendar answers (its `extended_year/3`): the
+  # year itself in `Calendar.ISO`, whose year 0 is 1 BC, and 0 for a Julian
+  # year -1, which is 1 BC too. Every length is a minimum number of digits,
+  # and a year before the first is written with its sign. A partial date
+  # shows the year its days agree on, as `y` does (`era_year/1`).
   @doc false
-  def extended_year(%{year: year}, count, locale_id, options) do
-    year |> pad(count) |> apply_ns(locale_id, options, "u")
+  def extended_year(%{year: year} = date, count, locale_id, options) when is_integer(year) do
+    case Localize.Calendar.extended_year(date) do
+      {:ok, extended} ->
+        extended |> pad(count) |> apply_ns(locale_id, options, "u")
+
+      {:error, fields} when is_list(fields) ->
+        year |> pad(count) |> apply_ns(locale_id, options, "u")
+
+      {:error, _exception} = error ->
+        error
+    end
   end
 
   def extended_year(_date, _count, _locale_id, _options), do: ""

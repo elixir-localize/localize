@@ -973,6 +973,24 @@ defmodule Localize.DateTime.RelativeTest do
       assert {:error, %Localize.InvalidValueError{}} =
                Relative.to_string(~D[2026-07-01], relative_to: noon, locale: :en)
     end
+
+    # A date-time built by hand need not hold the offsets and the time zone a
+    # moment is counted from: without them it is an error, where it raised.
+    test "a date-time in a time zone without its offsets or its zone" do
+      whole = ~U[2026-07-01 12:00:00Z]
+
+      for broken <- [
+            %{whole | utc_offset: nil},
+            %{whole | std_offset: nil},
+            %{whole | time_zone: nil}
+          ] do
+        assert {:error, %Localize.InvalidValueError{}} =
+                 Relative.to_string(broken, relative_to: whole, locale: :en)
+
+        assert {:error, %Localize.InvalidValueError{}} =
+                 Relative.to_string(whole, relative_to: broken, locale: :en)
+      end
+    end
   end
 
   describe "to_string/2 narrow and short exact forms" do

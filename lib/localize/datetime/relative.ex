@@ -10,6 +10,8 @@ defmodule Localize.DateTime.Relative do
 
   import Localize.Utils.Helpers, only: [is_keyword_list: 1]
 
+  alias Localize.DateTime.WallClock
+
   # A number of seconds has no calendar, so it is counted only in units of a
   # fixed length, largest first. A difference between two dates or times is
   # always counted with the calendar's own arithmetic, never through these.
@@ -348,12 +350,17 @@ defmodule Localize.DateTime.Relative do
   # in which a wall-clock time between them is resolved, for a date-time in a
   # zone whose offset can change.
   defp moments(%DateTime{} = relative, %DateTime{} = relative_to) do
-    naive = DateTime.to_naive(relative)
-    zone = zone(relative)
+    with :ok <- WallClock.validate(relative),
+         :ok <- WallClock.validate(relative_to) do
+      naive = DateTime.to_naive(relative)
+      zone = WallClock.zone(relative)
+      at_value_offset = WallClock.at_offset(relative_to, WallClock.offset(relative))
+      at_value_place = WallClock.at_place_of(relative_to, relative)
 
-    with {:ok, moment, baseline} <- moments(naive, wall_clock(relative_to, relative)),
-         {:ok, _moment, elapsed} <- moments(naive, at_offset(relative_to, offset(relative))) do
-      {:ok, %{moment | zone: zone}, %{baseline | clock: elapsed.clock, zone: zone}}
+      with {:ok, moment, baseline} <- moments(naive, at_value_place),
+           {:ok, _moment, elapsed} <- moments(naive, at_value_offset) do
+        {:ok, %{moment | zone: zone}, %{baseline | clock: elapsed.clock, zone: zone}}
+      end
     end
   end
 
@@ -422,35 +429,6 @@ defmodule Localize.DateTime.Relative do
      invalid_baseline(relative_to, "a value convertible to #{inspect(relative.calendar)}")}
   end
 
-  # The baseline's wall clock at the value's place: shifted into the value's
-  # time zone by the time zone database, or, for a fixed offset or where no
-  # database can, taken to the value's offset.
-  defp wall_clock(%DateTime{} = relative_to, %DateTime{} = relative) do
-    shifted =
-      if fixed_offset?(relative),
-        do: :fixed_offset,
-        else:
-          DateTime.shift_zone(relative_to, relative.time_zone, Calendar.get_time_zone_database())
-
-    case shifted do
-      {:ok, baseline} -> DateTime.to_naive(baseline)
-      _no_shift -> at_offset(relative_to, offset(relative))
-    end
-  end
-
-  # The baseline's clock at a UTC offset.
-  defp at_offset(%DateTime{} = relative_to, offset) do
-    NaiveDateTime.add(DateTime.to_naive(relative_to), offset - offset(relative_to))
-  end
-
-  # A fixed offset is carried under `Etc/UTC`, as parsing a localized GMT
-  # format gives it.
-  defp fixed_offset?(%DateTime{time_zone: "Etc/UTC"} = datetime), do: offset(datetime) != 0
-  defp fixed_offset?(_datetime), do: false
-
-  defp offset(%DateTime{utc_offset: utc_offset, std_offset: std_offset}),
-    do: utc_offset + std_offset
-
   defp date_and_time(%NaiveDateTime{} = datetime),
     do: fields(NaiveDateTime.to_date(datetime), NaiveDateTime.to_time(datetime))
 
@@ -459,12 +437,6 @@ defmodule Localize.DateTime.Relative do
 
   defp fields(date, time),
     do: %{date: date, time: time, clock: %{date: date, time: time}, zone: nil}
-
-  defp zone(%DateTime{} = datetime) do
-    if fixed_offset?(datetime),
-      do: nil,
-      else: {datetime.time_zone, offset(datetime), Calendar.get_time_zone_database()}
-  end
 
   # ── Calendar arithmetic ───────────────────────────────────
 
@@ -679,20 +651,11 @@ defmodule Localize.DateTime.Relative do
 
   defp reached?(%{zone: {time_zone, offset, database}} = later, date, earlier) do
     with {:ok, wall} <- NaiveDateTime.new(date, earlier.time),
-         {:ok, resolved} <- offset_at(wall, time_zone, database),
+         {:ok, resolved} <- WallClock.offset_at(wall, time_zone, database),
          {:ok, later_clock} <- NaiveDateTime.new(later.clock.date, later.clock.time) do
       NaiveDateTime.compare(NaiveDateTime.add(wall, offset - resolved), later_clock) != :gt
     else
       _unresolved -> true
-    end
-  end
-
-  defp offset_at(wall, time_zone, database) do
-    case DateTime.from_naive(wall, time_zone, database) do
-      {:ok, datetime} -> {:ok, offset(datetime)}
-      {:ambiguous, first, _second} -> {:ok, offset(first)}
-      {:gap, before, _after} -> {:ok, offset(before)}
-      {:error, _reason} = error -> error
     end
   end
 

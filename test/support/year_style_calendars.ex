@@ -72,8 +72,9 @@ defmodule Localize.Test.NoYearZeroCalendar do
 
   # `Calendar.ISO` with its years numbered as the Julian calendar numbers
   # them, with no year 0: the year before year 1 is year -1, ISO's year 0. A
-  # year's number is then not always one more than the year before's.
-  # Calendrical's `Calendrical.Julian` numbers its years this way, and
+  # year's number is then not always one more than the year before's, and
+  # its extended year, which runs on through both eras, is: year -1, 1 BC,
+  # is 0. Calendrical's `Calendrical.Julian` numbers its years this way, and
   # Localize cannot load it.
   use Localize.Test.StandInCalendar
 
@@ -82,6 +83,11 @@ defmodule Localize.Test.NoYearZeroCalendar do
       do: Calendar.ISO.valid_date?(iso_year(year), month, day)
 
   def valid_date?(_year, _month, _day), do: false
+
+  def year_of_era(year, _month, _day) when year > 0, do: {year, 1}
+  def year_of_era(year, _month, _day), do: {-year, 0}
+
+  def extended_year(year, _month, _day), do: iso_year(year)
 
   def naive_datetime_to_iso_days(year, month, day, hour, minute, second, microsecond) do
     Calendar.ISO.naive_datetime_to_iso_days(

@@ -1358,6 +1358,15 @@ defmodule Localize.Calendar do
   @spec displayed_year(term()) :: {:ok, Calendar.year()} | {:error, [atom()] | Exception.t()}
   def displayed_year(date), do: settle(date, &displayed_year_on/2)
 
+  @doc false
+  # A date's extended year, TR35's `u`: one number for its year through every
+  # era of its calendar, as the calendar's `extended_year/3` answers. It is
+  # the year itself where a calendar's years run on through its eras, as
+  # `Calendar.ISO`'s do, year 0 being 1 BC, and it is not where they do not:
+  # a Julian year -1, which is 1 BC, is 0.
+  @spec extended_year(term()) :: {:ok, Calendar.year()} | {:error, [atom()] | Exception.t()}
+  def extended_year(date), do: settle(date, &extended_year_on/2)
+
   # The calendar is asked with the fields the date has, the others `nil`. A
   # whole date is one day and that is its answer. A partial date could be any
   # day of its month, or of its year when it has no month, and a calendar
@@ -1423,11 +1432,13 @@ defmodule Localize.Calendar do
   # The first and last days a partial date could be, and the fields that
   # would say which: its month when it has a month the calendar has, and
   # otherwise its year. The calendar measures both. A year's days are its
-  # `year/1`. A month's run from its first to the last day the calendar has
-  # there, which is its `days_in_month/2` wherever the month field is a
-  # month; a calendar of weeks counts a period's days by that name, not its
-  # week's, so the day is checked (`valid_date?/3`) and the last one the
-  # calendar has is taken.
+  # `year/1`. A month's run from its first to the day its `days_in_month/2`
+  # counts, the days of whatever the month field holds: a month's, or the
+  # seven of a calendar of weeks' week. Where a reform took days out of a
+  # month the count can name one of them (December 1582 in Belgium has 21
+  # days, the 1st to the 14th and the 25th to the 31st), so the day is
+  # checked (`valid_date?/3`) and the last one the calendar has at or below
+  # the count is taken.
   defp date_span(date, calendar, year) do
     measure = answering(calendar)
     month = Map.get(date, :month)
@@ -1481,6 +1492,10 @@ defmodule Localize.Calendar do
     with {:ok, {year_of_era, _era}} <- year_of_era_on(calendar, date), do: {:ok, year_of_era}
   end
 
+  defp extended_year_on(calendar, {year, month, day}) do
+    ask(calendar, :extended_year, [year, month, day], "an extended year", &is_integer/1)
+  end
+
   defp quarter_or_first(%{year: year, month: month} = date)
        when is_integer(year) and is_integer(month),
        do: quarter_of_year(date)
@@ -1507,6 +1522,7 @@ defmodule Localize.Calendar do
              month_of_year: 3,
              cardinal_month: 1,
              calendar_year: 3,
+             extended_year: 3,
              related_gregorian_year: 3,
              cyclic_year: 3,
              week_of_year: 3,
@@ -1646,6 +1662,26 @@ defmodule Localize.Calendar do
       calendar,
       :plus,
       [year, month, day, date_part, count, [coerce: true]],
+      "a year, a month and a day",
+      &date_fields?/1
+    )
+  end
+
+  @doc false
+  # The date a number of years and then months on from a date, as its
+  # calendar shifts it (its `shift_date/4`, which `Date.shift/2` calls). A
+  # calendar composes the two in its own way: a calendar of months counts
+  # the years as months and brings the day into the month reached once, and
+  # a calendar of weeks keeps the week in the year reached and counts its
+  # months on from there. An error when the calendar answers with something
+  # that is not a year, a month and a day.
+  @spec shift(module(), date_fields(), integer(), integer()) ::
+          {:ok, date_fields()} | {:error, Exception.t()}
+  def shift(calendar, {year, month, day}, years, months) do
+    ask(
+      calendar,
+      :shift_date,
+      [year, month, day, Duration.new!(year: years, month: months)],
       "a year, a month and a day",
       &date_fields?/1
     )

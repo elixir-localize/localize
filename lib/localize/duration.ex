@@ -32,6 +32,8 @@ defmodule Localize.Duration do
   import Kernel, except: [to_string: 1]
   import Localize.Utils.Helpers, only: [is_keyword_list: 1]
 
+  alias Localize.DateTime.WallClock
+
   @struct_list [year: 0, month: 0, day: 0, hour: 0, minute: 0, second: 0, microsecond: {0, 6}]
   @keys Keyword.keys(@struct_list)
   defstruct @struct_list
@@ -65,7 +67,11 @@ defmodule Localize.Duration do
   @doc """
   Calculates the calendar duration between two dates, times, or datetimes.
 
-  The years, months and days are counted by the values' own calendar, never from their fields: the whole months from `from` to `to`, then the days left after them, with the whole years taken out of the months. A day of the month is brought into a shorter month, so 31 January to 29 February is one month. The duration is the span that `Date.shift/2` adds to `from` to reach `to`. Between two datetimes the time between their times of day is added, and where `to`'s time of day is the earlier of the two, the dates are counted to the day before `to`.
+  The years, months and days are the span the values' own calendar adds to `from` to reach `to`, as `Date.shift/2` adds it: the most years that do not pass `to`, then the most months after them, then the days left. They are never counted from the values' fields. A day of the month is brought into a shorter month, so 31 January to 29 February is one month. Between two datetimes the time between their times of day is added, and where `to`'s time of day is the earlier of the two, the dates are counted to the day before `to`.
+
+  Two `t:DateTime.t/0` values are two moments, measured where `from` is, as ECMA-262 Temporal measures two zoned date-times: `to` is moved to `from`'s time zone, the years, months and days are counted on that wall clock, and the hours, minutes and seconds are the time that passes after them. So 10:00 UTC to 18:00 in Karachi is three hours, noon to noon across a change of clocks is one day, and 23:00 to 04:00 across an hour the clocks skip is four hours. Where the clocks repeat an hour the hours can be 24 or more. A time zone is known through Elixir's time zone database (`Calendar.get_time_zone_database/0`); without one that knows `from`'s zone, `to` is taken to the UTC offset `from` carries.
+
+  Any other two values are measured on the wall clocks they are written in. A date paired with a datetime is taken at midnight, and a time paired with a datetime is measured against its time of day.
 
   ### Arguments
 
@@ -93,55 +99,49 @@ defmodule Localize.Duration do
       iex> {d.hour, d.minute, d.second}
       {2, 30, 45}
 
+      iex> karachi = DateTime.new!(~D[2026-06-15], ~T[18:00:00], "Asia/Karachi")
+      iex> {:ok, d} = Localize.Duration.new(~U[2026-06-15 10:00:00Z], karachi)
+      iex> {d.day, d.hour}
+      {0, 3}
+
   """
   @spec new(from :: date_or_time_or_datetime(), to :: date_or_time_or_datetime()) ::
           {:ok, t()} | {:error, Exception.t() | atom()}
-  @dialyzer {:nowarn_function, new: 2}
 
+  # Two date-times. Two in time zones are measured in the earlier's, and any
+  # other two on the wall clocks they are written in.
   def new(
         %{year: _, month: _, day: _, hour: _, minute: _, second: _} = from,
         %{year: _, month: _, day: _, hour: _, minute: _, second: _} = to
       ) do
-    with :ok <- confirm_fields(from),
-         :ok <- confirm_fields(to),
-         :ok <- confirm_same_calendar(from, to),
-         :ok <- Localize.Calendar.validate_value(from),
-         :ok <- Localize.Calendar.validate_value(to),
-         :ok <- confirm_same_time_zone(from, to),
-         :ok <- confirm_date_order(from, to) do
-      datetime_duration(from, to, time_duration(from, to))
+    with :ok <- confirm_date_times(from, to) do
+      measure(from, to)
     end
   end
 
+  # Two dates, or a date and a date-time. A date has no time zone, so it is
+  # taken at midnight on the wall clock the date-time is written in.
   def new(
         %{year: _, month: _, day: _} = from,
         %{year: _, month: _, day: _} = to
       ) do
-    with {:ok, from_dt} <- cast_to_datetime(from),
-         {:ok, to_dt} <- cast_to_datetime(to) do
-      new(from_dt, to_dt)
+    with {:ok, from_wall} <- wall_clock(from),
+         {:ok, to_wall} <- wall_clock(to),
+         :ok <- confirm_date_times(from_wall, to_wall) do
+      wall_clock_duration(from_wall, to_wall, from, to)
     end
   end
 
+  # Two times, or a time and a date-time, which is measured from its time of
+  # day: a time has no date.
   def new(
         %{hour: _, minute: _, second: _} = from,
         %{hour: _, minute: _, second: _} = to
       ) do
-    with {:ok, from_dt} <- cast_to_datetime(from),
-         {:ok, to_dt} <- cast_to_datetime(to),
-         :ok <- confirm_order(DateTime.compare(from_dt, to_dt), from, to) do
-      time_diff = time_duration(from_dt, to_dt)
-      {seconds, microseconds} = div_mod(time_diff, @microseconds_in_second)
-      {minutes, seconds} = div_mod(seconds, 60)
-      {hours, minutes} = div_mod(minutes, 60)
-
-      {:ok,
-       struct(__MODULE__,
-         hour: hours,
-         minute: minutes,
-         second: seconds,
-         microsecond: microsecond_precision(microseconds)
-       )}
+    with {:ok, from_time} <- time_of_day(from),
+         {:ok, to_time} <- time_of_day(to),
+         :ok <- confirm_order(Time.compare(from_time, to_time), from, to) do
+      {:ok, merge(%__MODULE__{}, Time.diff(to_time, from_time, :microsecond))}
     end
   end
 
@@ -789,11 +789,113 @@ defmodule Localize.Duration do
 
   # ── Private: duration calculation ───────────────────────────────
 
-  # The duration between two date-times: the years, months and days between
-  # their dates and the time between their times of day. Where the later
-  # value's time of day is the earlier of the two, the dates are counted to
-  # the day before it, as its calendar reaches that day, and the time runs on
-  # through midnight.
+  # Two date-times in time zones are two moments, and the earlier's time zone
+  # relates them. Any other two date-times have only the wall clocks they are
+  # written in: a date-time without a time zone cannot be placed against one
+  # with.
+  defp measure(%DateTime{} = from, %DateTime{} = to) do
+    with :ok <- WallClock.validate(from),
+         :ok <- WallClock.validate(to),
+         :ok <- confirm_order(DateTime.compare(from, to), from, to) do
+      zoned_duration(from, to)
+    end
+  end
+
+  defp measure(from, to), do: wall_clock_duration(from, to, from, to)
+
+  # The duration between two date-times on one wall clock, `from` and `to`
+  # being the values as they were given.
+  defp wall_clock_duration(from_wall, to_wall, from, to) do
+    with :ok <- confirm_order(NaiveDateTime.compare(from_wall, to_wall), from, to) do
+      datetime_duration(from_wall, to_wall, time_duration(from_wall, to_wall))
+    end
+  end
+
+  # The duration between two date-times in time zones, measured where the
+  # earlier is, as ECMA-262 Temporal measures two zoned date-times
+  # (`DifferenceZonedDateTime`) and as relative time does. The later is moved
+  # to the earlier's time zone. The years, months and days are counted on that
+  # wall clock, and the hours, minutes and seconds are the time that passes
+  # after them. So noon to noon across a change of clocks is a day, though 23
+  # hours pass or 25, and 23:00 to 04:00 across an hour the clocks skip is
+  # four hours.
+  #
+  # The dates are counted to the last day on which the earlier's time of day
+  # is not past the later moment: the later's own day, or a day before it
+  # where its time of day is the earlier of the two, or where the earlier's
+  # falls that day in an hour the clocks skip. `to_clock` is the later moment
+  # at the earlier's own UTC offset, so the time that passes can be counted
+  # from a wall-clock time resolved to that offset.
+  defp zoned_duration(%{calendar: calendar} = from, to) do
+    from_wall = DateTime.to_naive(from)
+    to_wall = WallClock.at_place_of(to, from)
+    to_clock = WallClock.at_offset(to, WallClock.offset(from))
+    days_back = if clock_fields(to_wall) < clock_fields(from_wall), do: 1, else: 0
+
+    with {:ok, {date, microseconds}} <-
+           day_reached(from, from_wall, date_fields(to_wall), to_clock, days_back),
+         {:ok, duration} <- date_duration(calendar, date_fields(from_wall), date) do
+      {:ok, merge(duration, microseconds)}
+    end
+  end
+
+  # The date `days_back` days before the later's on which the earlier's time
+  # of day is at or before the later moment, and the time from then to the
+  # later moment. A day before that is tried where it is not. The earlier's
+  # own day is the earlier moment itself, whichever occurrence of a repeated
+  # time it is.
+  defp day_reached(%{calendar: calendar} = from, from_wall, to_date, to_clock, days_back) do
+    from_date = date_fields(from_wall)
+
+    with {:ok, date} <- Localize.Calendar.plus(calendar, to_date, :days, -days_back),
+         {:ok, days_on} <- Localize.Calendar.diff(calendar, from_date, date, :days),
+         {:ok, {date, moment}} <- moment_on(date, days_on, from, from_wall) do
+      case NaiveDateTime.diff(to_clock, moment, :microsecond) do
+        microseconds when microseconds >= 0 -> {:ok, {date, microseconds}}
+        _not_reached -> day_reached(from, from_wall, to_date, to_clock, days_back + 1)
+      end
+    end
+  end
+
+  # The date, and the moment the earlier's time of day comes on it, on the
+  # earlier's own UTC offset clock: the earlier moment itself on its own
+  # date or before, and otherwise its wall-clock time on that date, resolved
+  # in its time zone. Without a time zone database that knows the zone, and
+  # for a fixed offset, the wall clock keeps the earlier's offset.
+  defp moment_on(_date, days_on, _from, from_wall) when days_on <= 0,
+    do: {:ok, {date_fields(from_wall), from_wall}}
+
+  defp moment_on({year, month, day} = date, _days_on, from, from_wall) do
+    %{hour: hour, minute: minute, second: second, microsecond: microsecond} = from_wall
+
+    case NaiveDateTime.new(year, month, day, hour, minute, second, microsecond, from.calendar) do
+      {:ok, wall} ->
+        {:ok, {date, NaiveDateTime.add(wall, WallClock.offset(from) - offset_on(wall, from))}}
+
+      {:error, _reason} ->
+        {:error,
+         Localize.InvalidValueError.exception(
+           value: {year, month, day},
+           expected: "a date its calendar has",
+           context: inspect(from.calendar)
+         )}
+    end
+  end
+
+  defp offset_on(wall, from) do
+    with {time_zone, _offset, database} <- WallClock.zone(from),
+         {:ok, offset} <- WallClock.offset_at(wall, time_zone, database) do
+      offset
+    else
+      _unresolved -> WallClock.offset(from)
+    end
+  end
+
+  # The duration between two date-times on one wall clock: the years, months
+  # and days between their dates and the time between their times of day.
+  # Where the later value's time of day is the earlier of the two, the dates
+  # are counted to the day before it, as its calendar reaches that day, and
+  # the time runs on through midnight.
   defp datetime_duration(%{calendar: calendar} = from, to, time_diff) when time_diff < 0 do
     with {:ok, day_before} <- Localize.Calendar.plus(calendar, date_fields(to), :days, -1),
          {:ok, duration} <- date_duration(calendar, date_fields(from), day_before) do
@@ -809,88 +911,163 @@ defmodule Localize.Duration do
 
   defp date_fields(%{year: year, month: month, day: day}), do: {year, month, day}
 
+  defp clock_fields(%{hour: hour, minute: minute, second: second, microsecond: {microsecond, _}}),
+    do: {hour, minute, second, microsecond}
+
   defp time_duration(from, to) do
     Time.diff(to, from, :microsecond)
   end
 
-  # The years, months and days from one date to a later one, counted by their
-  # calendar and never from the dates' fields: its `diff/3` counts whole
-  # periods and its `plus/6` reaches the date a number of them on. The months
-  # are the whole months between the two and the days are those left after
-  # them, so the duration added to the earlier date, months and then days, is
-  # the later date, as `Date.shift/2` adds it. The years are the whole years
-  # between the two, and take their months out of the count: twelve a year,
-  # or thirteen where a Hebrew year has them.
+  # The years, months and days from one date to a later one are the span the
+  # calendar itself adds to the earlier to reach the later, its
+  # `shift_date/4`, which `Date.shift/2` calls: the most years that do not
+  # pass the later date, then the most months after them, then the days
+  # left. They are never counted from the dates' fields.
+  #
+  # The calendar's `diff/3` gives a first count of the years and of the
+  # months, and its shifting settles each, since a calendar composes a shift
+  # of years and months in its own way. A calendar of months counts the
+  # years as months, twelve a year or thirteen where a Hebrew year has them,
+  # and brings the day into the month reached once. A calendar of weeks
+  # keeps the week in the year reached and counts its months on from there,
+  # so a year and twelve months on from its week 53 are different days.
   defp date_duration(calendar, from, to) do
-    with {:ok, months} <- Localize.Calendar.diff(calendar, from, to, :months),
-         {:ok, reached} <- Localize.Calendar.plus(calendar, from, :months, months),
-         {:ok, days} <- Localize.Calendar.diff(calendar, reached, to, :days),
+    with {:ok, span} <- Localize.Calendar.diff(calendar, from, to, :days),
          {:ok, years} <- Localize.Calendar.diff(calendar, from, to, :years),
-         {:ok, years_on} <- Localize.Calendar.plus(calendar, from, :years, years),
-         {:ok, months_of_years} <- Localize.Calendar.diff(calendar, from, years_on, :months) do
-      {:ok, %__MODULE__{year: years, month: months - months_of_years, day: days}}
+         {:ok, years} <- most(calendar, from, to, years, &{&1, 0}, span),
+         {:ok, years_on} <- Localize.Calendar.shift(calendar, from, years, 0),
+         {:ok, months} <- Localize.Calendar.diff(calendar, years_on, to, :months),
+         {:ok, months} <- most(calendar, from, to, months, &{years, &1}, span),
+         {:ok, reached} <- Localize.Calendar.shift(calendar, from, years, months),
+         {:ok, days} <- Localize.Calendar.diff(calendar, reached, to, :days) do
+      {:ok, %__MODULE__{year: years, month: months, day: days}}
     end
   end
 
+  # The largest count of years, or of months after the years, whose shift
+  # from `from` does not pass `to`, stepped to from a first count. `shift`
+  # gives the years and months of a count. A year or a month is more than a
+  # day, so a count that reaches the days between the two dates is that of a
+  # calendar whose shifting does not move on, which is an error and not a
+  # count without end.
+  defp most(calendar, from, to, count, shift, limit) when count > 0 do
+    case passes?(calendar, from, to, shift.(count)) do
+      {:ok, true} -> most(calendar, from, to, count - 1, shift, limit)
+      {:ok, false} -> more(calendar, from, to, count, shift, limit)
+      {:error, _exception} = error -> error
+    end
+  end
+
+  defp most(calendar, from, to, _count, shift, limit),
+    do: more(calendar, from, to, 0, shift, limit)
+
+  defp more(_calendar, _from, _to, 0, _shift, 0), do: {:ok, 0}
+
+  defp more(calendar, from, to, count, shift, limit) when count < limit do
+    case passes?(calendar, from, to, shift.(count + 1)) do
+      {:ok, true} -> {:ok, count}
+      {:ok, false} -> more(calendar, from, to, count + 1, shift, limit)
+      {:error, _exception} = error -> error
+    end
+  end
+
+  defp more(calendar, from, _to, count, shift, _limit) do
+    {:error,
+     Localize.InvalidValueError.exception(
+       value: {from, shift.(count)},
+       expected: "a later date from a longer shift of years and months",
+       context: inspect(calendar)
+     )}
+  end
+
+  defp passes?(calendar, from, to, {years, months}) do
+    with {:ok, reached} <- Localize.Calendar.shift(calendar, from, years, months),
+         {:ok, days} <- Localize.Calendar.diff(calendar, reached, to, :days) do
+      {:ok, days < 0}
+    end
+  end
+
+  # The time that passes is at least a day where the clocks repeat an hour,
+  # so the hours are not bounded by a day's.
   defp merge(duration, microseconds) do
     {seconds, microseconds} = div_mod(microseconds, @microseconds_in_second)
-    {hours, minutes, seconds} = :calendar.seconds_to_time(seconds)
+    {minutes, seconds} = div_mod(seconds, 60)
+    {hours, minutes} = div_mod(minutes, 60)
 
-    duration
-    |> Map.put(:hour, hours)
-    |> Map.put(:minute, minutes)
-    |> Map.put(:second, seconds)
-    |> Map.put(:microsecond, microsecond_precision(microseconds))
+    %{
+      duration
+      | hour: hours,
+        minute: minutes,
+        second: seconds,
+        microsecond: microsecond_precision(microseconds)
+    }
   end
 
   # ── Private: type casting ───────────────────────────────────────
 
-  # A date is taken at midnight and a time on a day of its own, each at UTC,
-  # so that two of a kind are measured as date-times are. A value its
-  # calendar does not have is an error.
-  defp cast_to_datetime(%{__struct__: _, year: _, month: _, day: _, hour: _} = dt) do
-    {:ok, dt}
-  end
+  # A value's wall clock, to be measured against another's: a date-time's
+  # own, as it is written, and a date's at midnight. A value its calendar
+  # does not have is an error.
+  defp wall_clock(%DateTime{} = datetime), do: {:ok, DateTime.to_naive(datetime)}
 
-  defp cast_to_datetime(%{__struct__: _, year: y, month: m, day: d} = date)
+  defp wall_clock(%{__struct__: _, year: _, month: _, day: _, hour: _} = datetime),
+    do: {:ok, datetime}
+
+  defp wall_clock(%{__struct__: _, year: y, month: m, day: d} = date)
        when is_integer(y) and is_integer(m) and is_integer(d) do
     calendar = Map.get(date, :calendar, Calendar.ISO)
 
     with :ok <- Localize.Calendar.validate_value(date) do
-      at_utc(NaiveDateTime.new(y, m, d, 0, 0, 0, {0, 6}, calendar), date)
+      its_calendar_has(NaiveDateTime.new(y, m, d, 0, 0, 0, {0, 6}, calendar), date)
     end
   end
 
-  defp cast_to_datetime(%{__struct__: _, hour: h, minute: m, second: s} = time)
+  defp wall_clock(value), do: {:error, not_a_date_or_time(value)}
+
+  # A time, or a date-time's time of day on the wall clock it is written in.
+  # Hours, minutes and seconds are `Calendar.ISO`'s in every calendar.
+  defp time_of_day(%{__struct__: _, hour: h, minute: m, second: s} = value)
        when is_integer(h) and is_integer(m) and is_integer(s) do
-    case Map.get(time, :microsecond, {0, 6}) do
+    case Map.get(value, :microsecond, {0, 6}) do
       {microsecond, precision} = fraction when is_integer(microsecond) and precision in 0..6 ->
-        at_utc(NaiveDateTime.new(1, 1, 1, h, m, s, fraction), time)
+        its_calendar_has(Time.new(h, m, s, fraction), value)
 
       _not_a_fraction ->
-        at_utc({:error, :invalid_time}, time)
+        its_calendar_has({:error, :invalid_time}, value)
     end
   end
 
-  defp cast_to_datetime(value) do
+  defp time_of_day(value), do: {:error, not_a_date_or_time(value)}
+
+  defp its_calendar_has({:ok, _value} = ok, _given), do: ok
+
+  defp its_calendar_has({:error, _reason}, given) do
     {:error,
      Localize.InvalidValueError.exception(
-       value: value,
-       expected: "a date, a time or a datetime"
-     )}
-  end
-
-  defp at_utc({:ok, naive}, _value), do: DateTime.from_naive(naive, "Etc/UTC")
-
-  defp at_utc({:error, _reason}, value) do
-    {:error,
-     Localize.InvalidValueError.exception(
-       value: value,
+       value: given,
        expected: "a date or a time its calendar has"
      )}
   end
 
+  defp not_a_date_or_time(value) do
+    Localize.InvalidValueError.exception(
+      value: value,
+      expected: "a date, a time or a datetime"
+    )
+  end
+
   # ── Private: validation ─────────────────────────────────────────
+
+  # Two date-times are measured in one calendar, and each is a date and a
+  # time that calendar has.
+  defp confirm_date_times(from, to) do
+    with :ok <- confirm_fields(from),
+         :ok <- confirm_fields(to),
+         :ok <- confirm_same_calendar(from, to),
+         :ok <- Localize.Calendar.validate_value(from) do
+      Localize.Calendar.validate_value(to)
+    end
+  end
 
   # The fields counted are integers in a date or a time Elixir builds, which
   # a struct built by hand need not hold.
@@ -923,18 +1100,6 @@ defmodule Localize.Duration do
        "The two values must use the same calendar. " <>
          "Found #{inspect(from)} and #{inspect(to)}"
      )}
-  end
-
-  defp confirm_same_time_zone(%{time_zone: zone}, %{time_zone: zone}), do: :ok
-  defp confirm_same_time_zone(%{time_zone: _}, %{time_zone: _} = _to), do: :ok
-  defp confirm_same_time_zone(_, _), do: :ok
-
-  defp confirm_date_order(%{utc_offset: _} = from, %{utc_offset: _} = to) do
-    confirm_order(DateTime.compare(from, to), from, to)
-  end
-
-  defp confirm_date_order(from, to) do
-    confirm_order(NaiveDateTime.compare(from, to), from, to)
   end
 
   defp confirm_order(comparison, from, to) do

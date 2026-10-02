@@ -4,11 +4,9 @@ Outstanding work on Localize. The design detail behind these items lives under [
 
 ## Open
 
+* [ ] **A week alone in a calendar of weeks is written in its notation** — `Localize.Date.to_string(%{year: 2026, month: 25, calendar: Calendrical.ISOWeek})` is "M06 2026 AD" ("6/2026 AD" short), the week's period under the generic calendar's month name, where the whole date is written as its calendar writes it, "2026-W25-2" ("output the same as the input"). By the same rule a year and a week are "2026-W25" (user, in the Tempo session, 2026-10-02). `date_to_string/3` writes a whole date only, so the calendar needs a callback that writes a year and a week, which Calendrical's week calendars lack. Tempo's `to_string/2` of `~o"2026-W25"W` waits on it, and writes the week's first and last days until then ("2026-W25-1 – 2026-W25-7").
+
 * [ ] **A `-u-rg-` subdivision is returned as the territory** — `Localize.Territory.territory_from_locale("en-u-rg-gbsct")` is `{:ok, :gbsct}`, where TR35 lets a region override name a subdivision whose region, GB, is the territory. The week data lookup reads the region (`Localize.Calendar.first_day_for_locale/1`); currency, unit preference and the other callers of `territory_from_locale/1` do not.
-
-* [ ] **`Localize.Duration.new/2` measures two datetimes on their wall clocks** — it counts the time between their clock fields whatever zones they are in (`confirm_same_time_zone/2` accepts any two), so 10:00 UTC to 18:00 in `Asia/Karachi` the same day, three hours later, is "8 hours". Move the later value into the earlier's zone first, as relative time does, or refuse two zones.
-
-* [ ] **`u` writes the year field, not the calendar's extended year** — TR35's extended year counts 1 BCE as year 0, but the formatter writes a date's `year` as it stands and never asks its calendar's `extended_year/3`, so 15 June 1 BC in `Calendrical.Julian`, whose year is -1, is "-1". The calendar must answer it too: `Calendrical.Julian.extended_year/3` returns the year as given (Calendrical's `TODO.md`).
 
 * [ ] **Settle the location format of a non-location zone with CLDR** — TR35 49 says a zone with no region (`PST8PDT`, `Etc/GMT+5`) falls back to the offset format, then gives "PST8PDT, generic → Unknown Location Time" as its worked example. Localize follows the first; the conformance data has no case. Worth a CLDR ticket.
 
@@ -69,6 +67,12 @@ Outstanding work on Localize. The design detail behind these items lives under [
 * [ ] **`localize_emoji` sibling library** — plan item 11, a separate package on its own schedule. A Phoenix LiveView picker (`localize_emoji_live`) is out of scope for its 0.1.0.
 
 ## Done
+
+* [x] **A duration is the span the calendar's own shifting adds** — the years, months and days of `Localize.Duration.new/2` are the most years, then the most months, that the calendar's `shift_date/4` adds without passing the later date, its `diff/3` giving a first count, since a calendar of weeks shifts by its years and then its months: 2026-W53-1 to 2027-W52-1 is a year, where it was a year and 28 days. Found by measuring every calendar's durations against `Date.shift/2`. 2026-10-02, v1.4.0.
+
+* [x] **`Localize.Duration.new/2` measures two date-times in time zones as two moments** — the later is moved to the earlier's time zone, days and longer are counted on that wall clock and the hours, minutes and seconds are the time that passes, as ECMA-262 Temporal and relative time reckon (user, 2026-10-02), so 10:00 UTC to 18:00 in Karachi is 3 hours. A time paired with a naive date-time no longer raises, and no pairing of kinds gives a negative duration. 2026-10-02, v1.4.0.
+
+* [x] **`u` writes the calendar's extended year** — the formatter asks the calendar's `extended_year/3`, so 15 June 1 BC in `Calendrical.Julian`, whose year is -1, is "0". The Buddhist, ROC, Chinese and Dangi calendars keep their own year, where ICU4C writes a Gregorian one (user, 2026-10-02), recorded in the ICU divergences guide. 2026-10-02, v1.4.0.
 
 * [x] **A year or a week alone in a calendar of weeks formats** — a partial date's year and era are asked of its calendar with the fields it has, and a span of days it could be ends on a day the calendar has (`year/1`, `valid_date?/3`), never one composed from `months_in_year/1` and `days_in_month/2`, so a year alone in `Calendrical.ISOWeek` writes "2026 AD", as its whole date does, where it was a `Localize.InvalidValueError`. Found through Tempo. 2026-10-02, v1.4.0.
 

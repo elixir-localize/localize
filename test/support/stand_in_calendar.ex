@@ -23,6 +23,7 @@ defmodule Localize.Test.StandInCalendar do
     month_of_year: 3,
     cardinal_month: 1,
     calendar_year: 3,
+    extended_year: 3,
     related_gregorian_year: 3,
     cyclic_year: 3,
     week_of_year: 3,
@@ -63,6 +64,9 @@ defmodule Localize.Test.StandInCalendar do
 
   defp definition({:calendar_year, 3}),
     do: quote(do: def(calendar_year(year, _month, _day), do: year))
+
+  defp definition({:extended_year, 3}),
+    do: quote(do: def(extended_year(year, _month, _day), do: year))
 
   defp definition({:related_gregorian_year, 3}),
     do: quote(do: def(related_gregorian_year(year, _month, _day), do: year))

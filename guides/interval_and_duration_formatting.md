@@ -193,7 +193,7 @@ iex> {d.hour, d.minute, d.second}
 {2, 30, 45}
 ```
 
-The years, months and days between two dates are counted by the dates' own calendar: the whole months between the two, then the days left after them, with the whole years taken out of the months. The duration is the span `Date.shift/2` adds to the earlier date to reach the later. A day of the month is brought into a shorter month, so 31 January to 29 February is one month:
+The years, months and days between two dates are the span the dates' own calendar adds to the earlier to reach the later, as `Date.shift/2` adds it: the most years that do not pass the later date, then the most months after them, then the days left. A day of the month is brought into a shorter month, so 31 January to 29 February is one month:
 
 ```elixir
 iex> {:ok, d} = Localize.Duration.new(~D[2023-01-14], ~D[2023-07-13])
@@ -204,6 +204,31 @@ iex> {:ok, d} = Localize.Duration.new(~D[2024-01-31], ~D[2024-02-29])
 iex> {d.month, d.day}
 {1, 0}
 ```
+
+Two date-times in time zones are two moments, measured where the earlier is, as ECMA-262 Temporal measures two zoned date-times. The later is moved to the earlier's time zone, the years, months and days are counted on that wall clock, and the hours, minutes and seconds are the time that passes after them. So 10:00 UTC to 18:00 in Karachi is three hours, noon to noon across a change of clocks is one day though 23 hours pass, and 23:00 to 04:00 across the hour the clocks skip is four hours:
+
+```elixir
+iex> karachi = DateTime.new!(~D[2026-06-15], ~T[18:00:00], "Asia/Karachi")
+iex> {:ok, d} = Localize.Duration.new(~U[2026-06-15 10:00:00Z], karachi)
+iex> {d.day, d.hour}
+{0, 3}
+
+iex> noon = DateTime.new!(~D[2024-03-09], ~T[12:00:00], "America/New_York")
+iex> next_noon = DateTime.new!(~D[2024-03-10], ~T[12:00:00], "America/New_York")
+iex> {:ok, d} = Localize.Duration.new(noon, next_noon)
+iex> {d.day, d.hour}
+{1, 0}
+
+iex> late = DateTime.new!(~D[2024-03-09], ~T[23:00:00], "America/New_York")
+iex> early = DateTime.new!(~D[2024-03-10], ~T[04:00:00], "America/New_York")
+iex> {:ok, d} = Localize.Duration.new(late, early)
+iex> {d.day, d.hour}
+{0, 4}
+```
+
+A time zone is known through the time zone database the application configures, such as [tz](https://hex.pm/packages/tz). Without one that knows the earlier value's zone, the later is taken to the UTC offset the earlier carries. Where the clocks repeat an hour, the hours that pass can be 24 or more.
+
+Any other two values are measured on the wall clocks they are written in: a date paired with a date-time is taken at midnight, and a time paired with a date-time is measured against its time of day.
 
 From a number of seconds:
 

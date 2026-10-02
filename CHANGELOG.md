@@ -132,7 +132,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 * `Localize.DateTime.Relative.to_string/2` counts a number of seconds beyond the range of a float, where it raised `ArithmeticError`.
 
-* `Localize.Duration.new/2` counts years, months and days with the calendar's own arithmetic, its `diff/3` and `plus/6`, so the duration is the span `Date.shift/2` adds to the earlier date to reach the later: 14 January to 13 July is 5 months and 29 days, where it was 30, and a calendar of weeks or a lunisolar leap year no longer gives negative months. A date its calendar does not have is an error, where it raised, and a calendar that does not implement the Calendrical behaviour is refused, as it is in formatting.
+* `Localize.Duration.new/2` counts years, months and days as the calendar's own shifting adds them, its `shift_date/4` from a first count by its `diff/3`, so the duration is the span `Date.shift/2` adds to the earlier date to reach the later: 14 January to 13 July is 5 months and 29 days, where it was 30, and a calendar of weeks or a lunisolar leap year no longer gives negative months. A date its calendar does not have is an error, where it raised, and a calendar that does not implement the Calendrical behaviour is refused, as it is in formatting.
+
+* `Localize.Duration.new/2` measures two date-times in time zones as two moments, as ECMA-262 Temporal does: the later is moved to the earlier's time zone, days and longer are counted on that wall clock and the hours, minutes and seconds are the time that passes, so 10:00 UTC to 18:00 in Karachi is 3 hours, where it was 8. A time paired with a naive date-time no longer raises, and no pairing of a date, a time and a date-time gives a negative duration.
+
+* `Localize.DateTime.Relative.to_string/2` returns an error for a `DateTime` built by hand without its offsets from UTC or its time zone, where it raised `ArithmeticError`.
+
+* `u` writes the calendar's extended year, its `extended_year/3`, where it wrote the date's year: 15 June 1 BC in the Julian calendar, whose year is -1, is "0", as TR35 defines it. A calendar without `extended_year/3` is refused, as one without any other answer is.
 
 * A parsed range of dates is ascending or inverted by its calendar's days, where the dates' fields decided: in a calendar whose year turns after its first month, as a Julian year reckoned from 25 March does, 31 December to 1 January of the same year is no longer refused as inverted.
 
