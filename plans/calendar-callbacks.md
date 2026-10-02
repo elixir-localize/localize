@@ -1,6 +1,6 @@
 # Calendar callbacks
 
-**Status:** in progress, 2026-10-02
+**Status:** implemented (v1.4.0), 2026-10-02
 
 Localize formats a date but never digs into its calendar's implementation: every answer a format or a parse needs comes from a callback on the date's own calendar module, and `Calendar.ISO`, which has none of those callbacks, is the only calendar Localize answers for itself (user, 2026-10-01; the rule is in `CLAUDE.md`, "Localize formats; calendars answer"). The date code probed calendars with `function_exported?/3` and fell back to raw fields, introspected them, and branched on CLDR calendar types; this plan removes all of it. No date code probes a calendar or branches on its identity, a calendar of weeks is parsed through the calendar it names, and its dates are written in its own notation. `Calendar.ISO`, which has no weeks of its own, takes the locale's, and one module, `Localize.Calendar.ISO`, answers the whole Calendrical behaviour for it. The calculations Localize made itself are the calendar's. The MF2 `calendar` option is deferred.
 
