@@ -1293,29 +1293,7 @@ defmodule Localize.Calendar do
     end
   end
 
-  # The region of a region override or of a subdivision: "gbzzzz" and "gbsct"
-  # are both the United Kingdom's. The region is the identifier's first two
-  # letters or three digits; one CLDR does not know is no region.
-  defp region_of(subdivision) when is_atom(subdivision) and not is_nil(subdivision) do
-    region =
-      case Atom.to_string(subdivision) do
-        <<a, b, c, _suffix::binary>> = name when a in ?0..?9 and b in ?0..?9 and c in ?0..?9 ->
-          binary_part(name, 0, 3)
-
-        <<_a, _b, _suffix::binary>> = name ->
-          binary_part(name, 0, 2)
-
-        name ->
-          name
-      end
-
-    case Localize.validate_territory(region) do
-      {:ok, territory} -> territory
-      {:error, _unknown_territory} -> nil
-    end
-  end
-
-  defp region_of(_no_subdivision), do: nil
+  defp region_of(subdivision), do: Localize.Territory.region_of(subdivision)
 
   # ── Private helpers ─────────────────────────────────────────────
 

@@ -1317,8 +1317,9 @@ defmodule Localize.Territory do
 
   Resolves the territory using the following precedence:
 
-  1. The `rg` (region override) Unicode extension parameter,
-     if present (e.g., `"en-US-u-rg-gbzzzz"` → `:GB`).
+  1. The region of the `rg` (region override) Unicode extension
+     parameter, if present (e.g., `"en-US-u-rg-gbzzzz"` → `:GB`,
+     and `"en-u-rg-gbsct"`, Scotland, → `:GB`).
 
   2. The explicit territory in the language tag (e.g.,
      `"en-AU"` → `:AU`).
@@ -1349,6 +1350,9 @@ defmodule Localize.Territory do
       iex> Localize.Territory.territory_from_locale("de")
       {:ok, :DE}
 
+      iex> Localize.Territory.territory_from_locale("en-u-rg-gbsct")
+      {:ok, :GB}
+
   """
   @spec territory_from_locale(Localize.LanguageTag.t() | String.t() | atom()) ::
           {:ok, atom()} | {:error, Exception.t()}
@@ -1369,12 +1373,21 @@ defmodule Localize.Territory do
   def territory_from_locale(locale),
     do: {:error, Localize.InvalidLocaleError.exception(locale_id: locale)}
 
-  defp tag_territory(%Localize.LanguageTag{locale: %{rg: rg}})
+  # A region override names a region, or a subdivision of one, whose region
+  # is the territory (TR35, "Region Override").
+  defp tag_territory(%Localize.LanguageTag{locale: %{rg: rg}} = tag)
        when not is_nil(rg) and is_atom(rg) do
-    {:ok, rg}
+    case region_of(rg) do
+      nil -> territory_of(tag)
+      region -> {:ok, region}
+    end
   end
 
-  defp tag_territory(%Localize.LanguageTag{territory: territory})
+  defp tag_territory(%Localize.LanguageTag{} = tag) do
+    territory_of(tag)
+  end
+
+  defp territory_of(%Localize.LanguageTag{territory: territory})
        when not is_nil(territory) do
     {:ok, territory}
   end
@@ -1383,7 +1396,7 @@ defmodule Localize.Territory do
   # `Localize.validate_locale/1` is no substitute: given a struct it matches
   # a CLDR locale but adds no subtags, which left "fr" with the default
   # locale's territory rather than France.
-  defp tag_territory(%Localize.LanguageTag{} = tag) do
+  defp territory_of(%Localize.LanguageTag{} = tag) do
     case Localize.LanguageTag.add_likely_subtags(tag) do
       {:ok, %{territory: territory}} when not is_nil(territory) ->
         {:ok, territory}
@@ -1392,4 +1405,31 @@ defmodule Localize.Territory do
         {:ok, Localize.default_locale().territory}
     end
   end
+
+  @doc false
+  # The region of a region override or of a subdivision: `:GB` (from
+  # "gbzzzz") and `:gbsct` are both the United Kingdom's. The region is the
+  # identifier's first two letters or three digits; one CLDR does not know
+  # is no region.
+  @spec region_of(atom() | nil) :: atom() | nil
+  def region_of(subdivision) when is_atom(subdivision) and not is_nil(subdivision) do
+    region =
+      case Atom.to_string(subdivision) do
+        <<a, b, c, _suffix::binary>> = name when a in ?0..?9 and b in ?0..?9 and c in ?0..?9 ->
+          binary_part(name, 0, 3)
+
+        <<_a, _b, _suffix::binary>> = name ->
+          binary_part(name, 0, 2)
+
+        name ->
+          name
+      end
+
+    case Localize.validate_territory(region) do
+      {:ok, territory} -> territory
+      {:error, _unknown_territory} -> nil
+    end
+  end
+
+  def region_of(_no_subdivision), do: nil
 end

@@ -6,8 +6,6 @@ Outstanding work on Localize. The design detail behind these items lives under [
 
 * [ ] **A week alone in a calendar of weeks is written in its notation** — `Localize.Date.to_string(%{year: 2026, month: 25, calendar: Calendrical.ISOWeek})` is "M06 2026 AD" ("6/2026 AD" short), the week's period under the generic calendar's month name, where the whole date is written as its calendar writes it, "2026-W25-2" ("output the same as the input"). By the same rule a year and a week are "2026-W25" (user, in the Tempo session, 2026-10-02). `date_to_string/3` writes a whole date only, so the calendar needs a callback that writes a year and a week, which Calendrical's week calendars lack. Tempo's `to_string/2` of `~o"2026-W25"W` waits on it, and writes the week's first and last days until then ("2026-W25-1 – 2026-W25-7").
 
-* [ ] **A `-u-rg-` subdivision is returned as the territory** — `Localize.Territory.territory_from_locale("en-u-rg-gbsct")` is `{:ok, :gbsct}`, where TR35 lets a region override name a subdivision whose region, GB, is the territory. The week data lookup reads the region (`Localize.Calendar.first_day_for_locale/1`); currency, unit preference and the other callers of `territory_from_locale/1` do not.
-
 * [ ] **Settle the location format of a non-location zone with CLDR** — TR35 49 says a zone with no region (`PST8PDT`, `Etc/GMT+5`) falls back to the offset format, then gives "PST8PDT, generic → Unknown Location Time" as its worked example. Localize follows the first; the conformance data has no case. Worth a CLDR ticket.
 
 * [ ] Currency parsing - when presented with an ambiguous currency text, resolve it by ordering the locales by the match distance to the current locale (either parameter, or Localize.get_locale/1)
@@ -67,6 +65,8 @@ Outstanding work on Localize. The design detail behind these items lives under [
 * [ ] **`localize_emoji` sibling library** — plan item 11, a separate package on its own schedule. A Phoenix LiveView picker (`localize_emoji_live`) is out of scope for its 0.1.0.
 
 ## Done
+
+* [x] **A `-u-rg-` subdivision gives its region as the territory** — `territory_from_locale/1` returns `:GB` for `en-u-rg-gbsct`, where it returned `:gbsct`, so currency, unit preferences and time zone names take the region, as the week data already did. 2026-10-03, v1.4.0.
 
 * [x] **A duration is the span the calendar's own shifting adds** — the years, months and days of `Localize.Duration.new/2` are the most years, then the most months, that the calendar's `shift_date/4` adds without passing the later date, its `diff/3` giving a first count, since a calendar of weeks shifts by its years and then its months: 2026-W53-1 to 2027-W52-1 is a year, where it was a year and 28 days. Found by measuring every calendar's durations against `Date.shift/2`. 2026-10-02, v1.4.0.
 

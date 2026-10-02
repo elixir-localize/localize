@@ -116,6 +116,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+* `Localize.Territory.territory_from_locale/1` returns the region of a `-u-rg-` subdivision, so `en-u-rg-gbsct` (Scotland) is `:GB` where it was `:gbsct`, and such a locale's currency, unit preferences and time zone names are its region's.
+
 * The week fields `Y`, `w`, `W`, `e` and `c` take the locale's week data from the locale as given, so a `-u-fw-` first day and a `-u-rg-` region count, which they ignored: Friday is `e` 5 in `en-u-fw-mon`. `Localize.Calendar.first_day_for_locale/1` and `min_days_for_locale/1` follow TR35's first day algorithm in full, reading `-u-ca-iso8601` (ISO 8601's weeks), a `-u-sd-` subdivision and the world's data where a locale has no region.
 
 * A datetime interval splits a skeleton into its date and time fields, as TR35's interval algorithm does, so one day's `format: :yMMMdHm` is "Jun 15, 2026, 10:00 – 14:30" where it was an error and `format: :Hm` writes the times alone where it wrote "10:00, 10:00 – 14:30". A skeleton of date fields alone formats the dates as a date interval does, "Jun 15 – 16, 2026".

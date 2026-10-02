@@ -476,6 +476,33 @@ defmodule Localize.TerritoryTest do
       assert Territory.territory_from_locale(tag) == {:ok, :ES}
     end
 
+    # TR35's region override names a region ("gbzzzz") or one of its
+    # subdivisions (ISO 3166-2's GB-SCT, Scotland, and US-CA, California),
+    # whose region is the territory.
+    test "territory_from_locale/1 takes the region of a -u-rg- subdivision" do
+      assert Territory.territory_from_locale("en-u-rg-gbsct") == {:ok, :GB}
+      assert Territory.territory_from_locale("en-AU-u-rg-gbsct") == {:ok, :GB}
+      assert Territory.territory_from_locale("fr-u-rg-usca") == {:ok, :US}
+      assert Territory.territory_from_locale("en-US-u-rg-gbzzzz") == {:ok, :GB}
+    end
+
+    test "a -u-rg- subdivision gives its region to the functions of a territory" do
+      {:ok, scotland} = Localize.validate_locale("en-u-rg-gbsct")
+
+      assert Localize.Currency.current_currency_from_locale(scotland) == {:ok, :GBP}
+      assert {:ok, subdivisions} = Localize.Territory.Subdivision.for_territory(scotland)
+      assert :gbsct in subdivisions
+    end
+
+    # A struct built by hand can carry an override that names no region,
+    # which is reported rather than passed on.
+    test "territory_from_locale/1 reports an override that names no region" do
+      {:ok, tag} = Localize.validate_locale("en-AU")
+
+      assert {:error, %Localize.InvalidLocaleError{}} =
+               Territory.territory_from_locale(%{tag | locale: Map.put(tag.locale, :rg, :x)})
+    end
+
     test "unicode_flag/1 uses the tag territory", %{tag: tag} do
       assert Territory.unicode_flag(tag) == {:ok, "🇬🇧"}
     end
