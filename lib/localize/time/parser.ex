@@ -81,16 +81,24 @@ defmodule Localize.Time.Parser do
     as = Keyword.get(options, :as, :struct)
     input = Localize.Date.Parser.normalise_input(input)
 
-    case try_iso(input) do
-      {:ok, time} ->
-        {:ok, finalise_time(time, as), nil}
+    with {:ok, calendar} <- Localize.Date.Parser.calendar_option(options) do
+      case try_iso(input) do
+        {:ok, time} ->
+          {:ok, finalise_time(time, as), nil}
 
-      :error ->
-        input
-        |> try_locale_patterns(locale, as)
-        |> put_map_zone_fields(options)
+        :error ->
+          input
+          |> try_locale_patterns(locale, cldr_calendars(calendar), as)
+          |> put_map_zone_fields(options)
+      end
     end
   end
+
+  # A time is read in the time formats of the calendar it is written for,
+  # which the formatter writes it with (`de`'s Chinese `Bh` "10 vorm."), and
+  # then in the Gregorian calendar's ("10 Uhr vorm.").
+  defp cldr_calendars(calendar),
+    do: Enum.uniq([Localize.Calendar.cldr_calendar_type(calendar), :gregorian])
 
   # A zone captured in the map form carries the fields it resolves to
   # without a date — a fixed offset's `DateTime` zone fields, or else the
@@ -135,10 +143,14 @@ defmodule Localize.Time.Parser do
   # the available formats come from. So `ms` "11:59 PTG" is its short
   # "h:mm a", 23:59, not "HH:mm v" in a zone "PTG", and "11:59:59 PM" is
   # not read by a `B` pattern whose locale names no flexible day periods.
-  defp try_locale_patterns(input, locale, as) do
-    with {:ok, available} <- Format.available_formats(locale, :gregorian),
-         {:ok, day_periods} <- LCalendar.day_periods(locale, :gregorian) do
-      standard = collect_patterns(Format.standard_format_entries(locale, :gregorian))
+  defp try_locale_patterns(input, locale, cldr_calendars, as) do
+    with {:ok, available} <- available_formats(locale, cldr_calendars),
+         {:ok, day_periods} <- calendar_day_periods(locale, cldr_calendars) do
+      standard =
+        cldr_calendars
+        |> Enum.flat_map(&Format.standard_format_entries(locale, &1))
+        |> collect_patterns()
+
       standard_patterns = MapSet.new(standard, fn {_skeleton, pattern} -> pattern end)
 
       patterns =
@@ -152,7 +164,7 @@ defmodule Localize.Time.Parser do
 
       day_periods = Map.put(day_periods, :rules, day_period_rules(locale))
       lenient = load_lenient_date(locale)
-      regexes = pattern_regexes(patterns, locale, day_periods, lenient)
+      regexes = pattern_regexes(patterns, locale, cldr_calendars, day_periods, lenient)
 
       # A time is written in the digits of the locale's number system, as
       # `bn`'s "১০:০৫ AM" and `fa`'s "۱۰:۰۵" are, and read as the date
@@ -161,6 +173,30 @@ defmodule Localize.Time.Parser do
       |> Localize.Date.Parser.transliterate_digits(locale)
       |> match_patterns(patterns, regexes, day_periods, as, locale)
       |> Kernel.||({:error, no_match_error(input, locale)})
+    end
+  end
+
+  # The available formats of each calendar, the calendar asked for first. A
+  # calendar the locale has no formats for adds none; the Gregorian
+  # calendar's are the locale's.
+  defp available_formats(locale, cldr_calendars) do
+    with {:ok, gregorian} <- Format.available_formats(locale, :gregorian) do
+      own =
+        for cldr_calendar <- cldr_calendars,
+            cldr_calendar != :gregorian,
+            {:ok, available} <- [Format.available_formats(locale, cldr_calendar)],
+            entry <- available,
+            do: entry
+
+      {:ok, own ++ Enum.to_list(gregorian)}
+    end
+  end
+
+  # The day periods of the calendar asked for, or the Gregorian calendar's.
+  defp calendar_day_periods(locale, [cldr_calendar | _gregorian]) do
+    case LCalendar.day_periods(locale, cldr_calendar) do
+      {:ok, day_periods} -> {:ok, day_periods}
+      {:error, _no_day_periods} -> LCalendar.day_periods(locale, :gregorian)
     end
   end
 
@@ -227,10 +263,11 @@ defmodule Localize.Time.Parser do
   end
 
   # %{pattern => {compiled_regex_or_nil, tokens}} cached in :persistent_term
-  # keyed by locale. The regex and tokens are pure functions of the locale's
-  # day-period names and lenient rules, so the whole set is built once.
-  defp pattern_regexes(patterns, locale, day_periods, lenient) do
-    key = {__MODULE__, :pattern_regexes, locale}
+  # keyed by locale and the calendars whose patterns are read. The regex and
+  # tokens are pure functions of the patterns, the day-period names and the
+  # lenient rules, so each set is built once.
+  defp pattern_regexes(patterns, locale, cldr_calendars, day_periods, lenient) do
+    key = {__MODULE__, :pattern_regexes, locale, cldr_calendars}
 
     case :persistent_term.get(key, nil) do
       nil ->

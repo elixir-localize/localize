@@ -773,6 +773,11 @@ defmodule Localize.Time do
   * `:locale` is a locale identifier. The default is the locale returned by
     `Localize.get_locale/0`.
 
+  * `:calendar` is the calendar module the time is written for, whose time
+    formats are read before the Gregorian calendar's. The default is
+    `Calendar.ISO`. Anything that is not a calendar module, a CLDR
+    calendar type included, is a `t:Localize.UnknownCalendarError.t/0`.
+
   * `:as` is `:struct` or `:map`. `:map` returns only the fields the input
     actually carried, rather than completing them; a minute or second no
     time has is an error in both forms. A fixed offset
