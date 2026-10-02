@@ -116,6 +116,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+* A Hebrew date written in Hebrew numerals parses, as `he` writes it ("כ״ב בטבת ה׳תשפ״ד" is 22 Tevet 5784): a `hebr` year is read by its letters' values, its thousands marked by a geresh, where none of `he`'s Hebrew dates read back.
+
 * `Localize.Time.parse/2`, and the time of `Localize.DateTime.parse/2`, read the time formats of the `:calendar` given before the Gregorian calendar's, so `de`'s Chinese "10 vorm." parses as the formatter writes it. A `:calendar` that is not a calendar module is a `Localize.UnknownCalendarError`, as it is for a date.
 
 * The localized GMT format writes its offset in the locale's digits, as TR35 and ICU do ("GMT-४" in `ne`, "غرينتش-٤" in `ar-EG`), or in those of `-u-nu-` or the formatter's `:number_system`. `Localize.DateTime.Timezone.gmt_format/3` and `non_location_format/3` take a `:number_system` option.

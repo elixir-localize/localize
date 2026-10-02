@@ -22,7 +22,7 @@ Outstanding work on Localize. The design detail behind these items lives under [
 
 * [ ] **Date round trips that fail in eight locales** — `haw` writes months in Roman numerals ("31/xii/24"), `nnh`'s long and full dates do not parse, `gd`'s `yMMM` writes the week-based year ("Dùbh 2025" for 2024-12-31, a CLDR report like `pt`'s), `en-ZW` reads "May 2019" as May 20, and numeric `yMd` dates in `mt`, `sbp`, `ug` and `vai-Latn` are read day-first.
 
-* [ ] **Hebrew dates in `he` do not parse** — `he` writes a Hebrew calendar date's day and year in Hebrew numerals ("כ״ב בטבת ה׳תשפ״ד"), the `hebr` numbering, which the parser does not read as it reads `hanidays` and `hanidec`, so none of `he`'s Hebrew dates round-trip.
+* [ ] **RBNF formatting takes tens of milliseconds a number** — `Localize.Number.to_string(5784, locale: :he, format: :hebrew)`, which writes each Hebrew-numeral field of `he`'s Hebrew dates, took about 50 ms a call, and the 9,999 numerals of the years 1 to 9999 more than four minutes, so a `he` Hebrew date formats in a tenth of a second. Find where the time goes.
 
 * [ ] **Decide how a calendar's ISO-shaped numeric date is read** — the parser reads any `y-MM-dd` text as an ISO 8601 date and converts it, so `he`'s Chinese short date "2023-11-22" (related year 2023, month 11, day 22) comes back as Gregorian 22 November 2023; a calendar's own pattern written that way never round-trips.
 
@@ -61,6 +61,8 @@ Outstanding work on Localize. The design detail behind these items lives under [
 * [ ] **`localize_emoji` sibling library** — plan item 11, a separate package on its own schedule. A Phoenix LiveView picker (`localize_emoji_live`) is out of scope for its 0.1.0.
 
 ## Done
+
+* [x] **Hebrew dates in `he` parse** — a year in Hebrew numerals ("ה׳תשפ״ד") is read by its letters' values (`Localize.Number.HebrewNumerals`), and the day was already read as the formatter writes it, so `he`'s Hebrew dates read back. 2026-10-03, v1.4.0.
 
 * [x] **The time parser reads the calendar's time formats** — the `:calendar`'s patterns, then the Gregorian calendar's, so `de`'s Chinese "10 vorm." parses; the compiled patterns are cached per calendar, where the first calendar parsed in a locale kept its patterns for every other. 2026-10-03, v1.4.0.
 

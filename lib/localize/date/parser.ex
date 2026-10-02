@@ -950,7 +950,20 @@ defmodule Localize.Date.Parser do
     end
   end
 
-  defp parse_year(raw), do: raw |> String.replace("−", "-") |> Integer.parse()
+  # A year in digits, or in the Hebrew numerals the year field captures
+  # only where its pattern writes them.
+  defp parse_year(raw) do
+    case raw |> String.replace("−", "-") |> Integer.parse() do
+      {_year, ""} = year ->
+        year
+
+      _not_digits ->
+        case Localize.Number.HebrewNumerals.parse(raw) do
+          {:ok, year} -> {year, ""}
+          :error -> :error
+        end
+    end
+  end
 
   # A two-digit year is read in the century window around the reference
   # year, in any calendar, when no era qualifies it, or when the pattern
@@ -2094,9 +2107,16 @@ defmodule Localize.Date.Parser do
     digit = digit_class(ctx, "y")
 
     regex =
-      case count do
-        2 -> "(?P<year>#{digit}{2})"
-        _ -> "(?P<year>[-−]?#{digit}{1,4})"
+      cond do
+        # `he` writes a Hebrew date's year in Hebrew numerals, "ה׳תשפ״ד".
+        field_numbering(ctx, "y") == :hebr ->
+          "(?P<year>#{Localize.Number.HebrewNumerals.regex_source()})"
+
+        count == 2 ->
+          "(?P<year>#{digit}{2})"
+
+        true ->
+          "(?P<year>[-−]?#{digit}{1,4})"
       end
 
     {:capture, :year, regex}
