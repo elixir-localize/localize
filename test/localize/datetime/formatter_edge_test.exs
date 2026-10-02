@@ -223,22 +223,40 @@ defmodule Localize.DateTime.FormatterEdgeTest do
     end
   end
 
-  # Week numbers are the calendar's, never the locale's week data (user,
-  # 2026-10-01): `Calendar.ISO`'s are ISO 8601's in every locale.
-  describe "the calendar's weeks (Y, w, W)" do
-    test "a date before week one belongs to the previous week-aligned year in every locale" do
-      # 2022-01-01 is a Saturday, in ISO 8601's week 52 of 2021
-      # (`:calendar.iso_week_number/1`), whether the locale's weeks begin
-      # on Monday (de) or Sunday (en).
+  # `Calendar.ISO` has no weeks of its own, so its week numbers are the
+  # locale's, as TR35 numbers them from the locale's week data (user,
+  # 2026-10-02). The expected values are ICU4C 78.3's.
+  describe "Calendar.ISO's weeks (Y, w, W)" do
+    test "a date before week one belongs to the previous week-aligned year" do
+      # 2022-01-01 is a Saturday. In `de`, whose weeks are ISO 8601's, it is
+      # in week 52 of 2021 (`:calendar.iso_week_number/1`); in `en`, whose
+      # weeks begin on Sunday and whose week 1 holds 1 January, it ends
+      # week 1 of 2022.
       assert date_format(~D[2022-01-01], "YYYY-ww", :de) == "2021-52"
-      assert date_format(~D[2022-01-01], "YYYY-ww", :en) == "2021-52"
+      assert date_format(~D[2022-01-01], "YYYY-ww", :en) == "2022-01"
     end
 
     test "W puts the days of a short first week in the month before" do
-      # 2021-10-01 is a Friday; its week holds Thursday 30 September, so
-      # it is the last week of September, its fifth, where ICU writes 0.
+      # 2021-10-01 is a Friday. In `de` its week holds four days of
+      # September, so it is the last week of September, its fifth, where ICU
+      # writes 0. In `en` the week holds two days of October, enough for it
+      # to be week 1 of October, and 30 September, in the same week, is in
+      # week 1 of October too, where ICU writes week 5 of September.
       assert date_format(~D[2021-10-01], "W", :de) == "5"
       assert date_format(~D[2021-10-04], "W", :de) == "1"
+      assert date_format(~D[2021-10-01], "W", :en) == "1"
+      assert date_format(~D[2021-09-30], "W", :en) == "1"
+      assert date_format(~D[2021-10-03], "W", :en) == "2"
+    end
+
+    test "the locale's -u-fw-, -u-rg- and -u-ca-iso8601 keys choose the weeks" do
+      # 2027-01-01 is a Friday. A Monday first day keeps en's one-day week 1,
+      # so it is in week 1 of 2027; the United Kingdom's weeks and the
+      # `iso8601` calendar's are ISO 8601's, week 53 of 2026.
+      assert date_format(~D[2027-01-01], "Y w e", :en) == "2027 1 6"
+      assert date_format(~D[2027-01-01], "Y w e", "en-u-fw-mon") == "2027 1 5"
+      assert date_format(~D[2027-01-01], "Y w e", "en-u-rg-gbzzzz") == "2026 53 5"
+      assert date_format(~D[2027-01-01], "Y w e", "en-u-ca-iso8601") == "2026 53 5"
     end
   end
 

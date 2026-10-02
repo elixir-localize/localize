@@ -4,6 +4,10 @@ Outstanding work on Localize. The design detail behind these items lives under [
 
 ## Open
 
+* [ ] **Decide how a week 53 the year does not have is parsed** — TR35's note on week data says such a date "should be treated as in the first week of the following year", and ICU4C 78.3 reads `en`'s "week 53 of 2026" as the week of 27 December 2026; Localize returns an error, as for every field no date has. Now that `Calendar.ISO`'s weeks are the locale's, week text written in one locale can name a week another does not have.
+
+* [ ] **A `-u-rg-` subdivision is returned as the territory** — `Localize.Territory.territory_from_locale("en-u-rg-gbsct")` is `{:ok, :gbsct}`, where TR35 lets a region override name a subdivision whose region, GB, is the territory. The week data lookup reads the region (`Localize.Calendar.first_day_for_locale/1`); currency, unit preference and the other callers of `territory_from_locale/1` do not.
+
 * [ ] **Settle the location format of a non-location zone with CLDR** — TR35 49 says a zone with no region (`PST8PDT`, `Etc/GMT+5`) falls back to the offset format, then gives "PST8PDT, generic → Unknown Location Time" as its worked example. Localize follows the first; the conformance data has no case. Worth a CLDR ticket.
 
 * [ ] Currency parsing - when presented with an ambiguous currency text, resolve it by ordering the locales by the match distance to the current locale (either parameter, or Localize.get_locale/1)
@@ -63,6 +67,8 @@ Outstanding work on Localize. The design detail behind these items lives under [
 * [ ] **`localize_emoji` sibling library** — plan item 11, a separate package on its own schedule. A Phoenix LiveView picker (`localize_emoji_live`) is out of scope for its 0.1.0.
 
 ## Done
+
+* [x] **`Calendar.ISO`'s weeks are the locale's** — `w`, `Y` and `W` follow the locale's week data by TR35's rule, in this one case only (user, 2026-10-02), with TR35's first day algorithm in full (`-u-fw-`, `-u-rg-`, `-u-sd-`, `-u-ca-iso8601`) and `e` and `c` honouring it; `Y`, `w` and `e` agree with ICU4C 78.3 on 74,511 locale-days, and `W` gives a week to the month holding the minimum days of it. [plans/calendar-callbacks.md](plans/calendar-callbacks.md). 2026-10-02, v1.4.0.
 
 * [x] **A week calendar's date is written in its own notation** — "2026-W25-2" from the calendar's `date_to_string/3` at every standard format, in a date and time and in an interval, read back through its `parse_date/1`, with a pattern's months named by CLDR's generic calendar ("M06"), replacing `281b9990`'s Gregorian day (user, 2026-10-02). 2026-10-02, v1.4.0.
 

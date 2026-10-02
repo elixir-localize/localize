@@ -2836,7 +2836,8 @@ defmodule Localize.Date.Parser do
         day_of_week_in_month: extract_optional_int(caps, "day_of_week_in_month"),
         weekday_name_index: extract_optional_weekday_name(caps),
         calendar_module: calendar_module,
-        own_calendar: own_calendar
+        own_calendar: own_calendar,
+        week_config: week_config
       })
     end
   end
@@ -3282,21 +3283,16 @@ defmodule Localize.Date.Parser do
   end
 
   # Build a date from a week-based year, a week and a day of the week in
-  # the calendar's own weeks, as the formatter writes `Y` and `w`: the days
-  # its `week/2` gives (ISO 8601's for `Calendar.ISO`), and of them the one
+  # the weeks the formatter writes `Y` and `w` in: the calendar's own, the
+  # days its `week/2` gives, or the locale's for `Calendar.ISO`, which has
+  # none of its own (`Localize.Calendar.week/4`). Of those days it is the one
   # on the ISO day of the week, or the first. They are the weeks of the
   # calendar asked for even where it reads its dates as Gregorian ones
   # (`fields.own_calendar`), and the date is taken into the calendar the
   # input is read in.
   defp date_from_week(week_year, week, day_of_week, fields, calendar_module) do
     with {:ok, days} <-
-           Localize.Calendar.ask(
-             fields.own_calendar,
-             :week,
-             [week_year, week],
-             "the days of a week",
-             &match?(%Date.Range{}, &1)
-           ),
+           Localize.Calendar.week(fields.own_calendar, week_year, week, fields.week_config),
          %Date{} = date <- day_in_week(days, day_of_week),
          {:ok, date} <- convert_value(date, calendar_module) do
       {:ok, date}
@@ -3405,9 +3401,9 @@ defmodule Localize.Date.Parser do
   end
 
   # The weeks of a month, numbered as the formatter numbers `W`: the
-  # calendar's own weeks of the month (its `week_of_month/3`) that its days
-  # fall in and that belong to it.
-  defp weeks_of_month(year, month, %{calendar_module: calendar_module}) do
+  # calendar's own weeks of the month (its `week_of_month/3`), or the
+  # locale's for `Calendar.ISO`, that its days fall in and that belong to it.
+  defp weeks_of_month(year, month, %{calendar_module: calendar_module} = fields) do
     days_in_month =
       Localize.Calendar.ask(
         calendar_module,
@@ -3421,7 +3417,8 @@ defmodule Localize.Date.Parser do
       {:ok, days} ->
         for day <- 1..days,
             date = %{year: year, month: month, day: day, calendar: calendar_module},
-            {:ok, {^month, week}} <- [Localize.Calendar.week_of_month(date)],
+            {:ok, {^month, week}} <-
+              [Localize.Calendar.week_of_month(date, fields.week_config)],
             uniq: true,
             do: week
 
@@ -3448,7 +3445,8 @@ defmodule Localize.Date.Parser do
   end
 
   # The fields of a date given only as year, month and day, in the shape
-  # `extract_fields/5` gives them.
+  # `extract_fields/5` gives them. It has no week fields, so nothing reads
+  # the week data.
   defp date_fields(year, month, day, calendar_module) do
     %{
       year: year,
@@ -3463,7 +3461,8 @@ defmodule Localize.Date.Parser do
       day_of_week_in_month: nil,
       weekday_name_index: nil,
       calendar_module: calendar_module,
-      own_calendar: calendar_module
+      own_calendar: calendar_module,
+      week_config: nil
     }
   end
 

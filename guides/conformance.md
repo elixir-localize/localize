@@ -281,7 +281,7 @@ Two areas are explicitly out of scope:
 | Feature | Status | Notes |
 |---------|--------|-------|
 | Calendar preferences per territory | Implemented | Supplemental data loaded from ETF. |
-| Week data (firstDay, minDays) | Implemented | `Localize.Calendar.first_day_for_locale/1` and `Localize.Calendar.min_days_for_locale/1`. |
+| Week data (firstDay, minDays) | Implemented | `Localize.Calendar.first_day_for_locale/1` and `Localize.Calendar.min_days_for_locale/1`, by TR35's first day algorithm: `-u-fw-`, `-u-rg-`, `-u-ca-iso8601`, the region, `-u-sd-`, likely subtags, the world. |
 | Weekend data | Implemented | Via week data. |
 | Time data (preferred hour cycle) | Implemented | Time preferences data from ETF. |
 | Day period rules | Implemented | The CLDR day-period rule sets (format and selection) are part of the supplemental data pipeline; the `b` and `B` format symbols select periods from them. |

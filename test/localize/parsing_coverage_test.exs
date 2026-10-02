@@ -138,9 +138,10 @@ defmodule Localize.ParsingCoverageTest do
       assert Localize.Date.parse("Q2 2026", locale: :en) == {:ok, ~D[2026-04-01]}
       assert Localize.Date.parse("2nd quarter 2026", locale: :en) == {:ok, ~D[2026-04-01]}
 
-      # Calendar.ISO's weeks are ISO 8601's, so week 20 of 2026 begins on
-      # Monday 11 May, whatever en's week data says.
-      assert Localize.Date.parse("week 20 of 2026", locale: :en) == {:ok, ~D[2026-05-11]}
+      # Calendar.ISO's weeks are the locale's: en's begin on Sunday and its
+      # week 1 holds 1 January, so week 20 of 2026 begins on Sunday 10 May,
+      # as ICU4C 78.3 reads it.
+      assert Localize.Date.parse("week 20 of 2026", locale: :en) == {:ok, ~D[2026-05-10]}
     end
 
     test "trailing weekday name is validated against the date in :ja" do
@@ -1108,30 +1109,46 @@ defmodule Localize.ParsingCoverageTest do
     end
   end
 
-  # ── Week-of-year text is the calendar's weeks ──
+  # ── Week-of-year text is the locale's weeks for Calendar.ISO ──
 
   describe "week-of-year parsing" do
-    # Calendar.ISO's weeks are ISO 8601's whatever the locale's week data
-    # says, so in locales whose weeks start on Sunday (en, pt-BR), Saturday
-    # (ar-EG, fa) or Monday (en-GB, de) alike, a date's week text reads back
-    # as the Monday of its week.
+    # Calendar.ISO has no weeks of its own, so its week text is the locale's
+    # weeks, and a date's week text reads back as the first day of its week:
+    # Sunday in en, pt-BR and ja, Saturday in ar-EG and fa, Monday in en-GB
+    # and de, and the day a `-u-fw-` key, a `-u-rg-` region or the
+    # `iso8601` calendar gives (CLDR's weekData and TR35's first day
+    # algorithm, as ICU4C 78.3 gives each locale's first day).
     test "the week text of every day around a year boundary round trips" do
-      for locale <- [:en, :"pt-BR", :"ar-EG", :fa, :"en-GB", :de, :ja],
+      for {locale, first_day} <- [
+            {"en", 7},
+            {"pt-BR", 7},
+            {"ja", 7},
+            {"ar-EG", 6},
+            {"fa", 6},
+            {"en-GB", 1},
+            {"de", 1},
+            {"en-u-fw-mon", 1},
+            {"en-u-fw-wed", 3},
+            {"en-u-rg-gbzzzz", 1},
+            {"en-u-ca-iso8601", 1}
+          ],
           date <- Date.range(~D[2026-12-20], ~D[2027-01-10]) do
         {:ok, week_text} = Localize.Date.to_string(date, locale: locale, format: :yw)
 
         assert {:ok, parsed} = Localize.Date.parse(week_text, locale: locale)
         assert Localize.Date.to_string(parsed, locale: locale, format: :yw) == {:ok, week_text}
-        assert Date.day_of_week(parsed) == 1
+        assert Date.day_of_week(parsed) == first_day
         assert Date.diff(date, parsed) in 0..6
-
-        assert :calendar.iso_week_number(Date.to_erl(parsed)) ==
-                 :calendar.iso_week_number(Date.to_erl(date))
       end
     end
 
-    test "week 1 of 2027 in en starts on Monday 4 January 2027" do
-      assert Localize.Date.parse("week 1 of 2027", locale: :en) == {:ok, ~D[2027-01-04]}
+    # 2027 begins on a Friday. In en its week holds 1 January, so it is week
+    # 1 and begins on Sunday 27 December 2026; in en-GB, whose weeks are ISO
+    # 8601's, week 1 begins on Monday 4 January (ICU4C 78.3 reads both so).
+    test "week 1 of 2027 starts on the locale's first day" do
+      assert Localize.Date.parse("week 1 of 2027", locale: :en) == {:ok, ~D[2026-12-27]}
+      assert Localize.Date.parse("week 1 of 2027", locale: :"en-GB") == {:ok, ~D[2027-01-04]}
+      assert :calendar.iso_week_number({2027, 1, 4}) == {2027, 1}
     end
 
     test "week 53 of 2026 in de starts on Monday 28 December 2026" do

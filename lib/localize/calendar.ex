@@ -1148,9 +1148,11 @@ defmodule Localize.Calendar do
   @doc """
   Returns the first day of the week for a locale.
 
-  A `fw` value in the locale's `-u-` extension takes precedence
-  per TR35; otherwise the territory derived from the locale
-  determines the first day.
+  The day is found as TR35's first day algorithm finds it: a `-u-fw-`
+  day, else the first day of a `-u-rg-` region, else Monday for the
+  `-u-ca-iso8601` calendar, else the first day of the locale's region,
+  of its `-u-sd-` subdivision's region, of the region its likely
+  subtags add, or of the world.
 
   ### Arguments
 
@@ -1171,6 +1173,12 @@ defmodule Localize.Calendar do
       iex> Localize.Calendar.first_day_for_locale("en-u-fw-mon")
       1
 
+      iex> Localize.Calendar.first_day_for_locale("en-u-rg-gbzzzz")
+      1
+
+      iex> Localize.Calendar.first_day_for_locale("en-u-ca-iso8601")
+      1
+
   """
   @spec first_day_for_locale(Localize.locale()) :: integer() | {:error, Exception.t()}
   # A struct built by hand can carry fields of the wrong shape, including a
@@ -1178,7 +1186,7 @@ defmodule Localize.Calendar do
   # rather than raised on.
   def first_day_for_locale(%LanguageTag{} = language_tag) do
     with {:ok, tag} <- LanguageTag.validate_fields(language_tag) do
-      first_day_for_tag(tag, Map.get(@first_day_from_fw, first_day_keyword(tag)))
+      first_day_for_tag(tag)
     end
   end
 
@@ -1188,20 +1196,27 @@ defmodule Localize.Calendar do
     end
   end
 
-  defp first_day_for_tag(_tag, first_day) when is_integer(first_day), do: first_day
-
-  defp first_day_for_tag(tag, nil) do
-    with {:ok, territory} <- territory_from_locale(tag) do
-      first_day_for_territory(territory)
+  # TR35's first day of the week (tr35-dates, "First Day Overrides").
+  # `iso8601` is the one calendar that names a first day of its own: BCP 47
+  # defines it as the Gregorian calendar with ISO 8601's week rules.
+  defp first_day_for_tag(%LanguageTag{} = tag) do
+    cond do
+      day = Map.get(@first_day_from_fw, locale_keyword(tag, :fw)) -> day
+      region = region_of(locale_keyword(tag, :rg)) -> first_day_for_territory(region)
+      locale_keyword(tag, :ca) == :iso8601 -> 1
+      true -> first_day_for_territory(week_region(tag))
     end
   end
-
-  defp first_day_keyword(%LanguageTag{locale: %{fw: fw}}), do: fw
-  defp first_day_keyword(%LanguageTag{}), do: nil
 
   @doc """
   Returns the minimum days in the first week of the year
   for a locale.
+
+  The `-u-ca-iso8601` calendar's weeks hold four days, as ISO 8601's
+  do. Any other locale takes the minimum days of the region TR35's
+  first day algorithm finds for it: a `-u-rg-` region, else the
+  locale's region, its `-u-sd-` subdivision's region, the region its
+  likely subtags add, or the world.
 
   ### Arguments
 
@@ -1222,13 +1237,85 @@ defmodule Localize.Calendar do
       iex> Localize.Calendar.min_days_for_locale(:de)
       4
 
+      iex> Localize.Calendar.min_days_for_locale("en-u-ca-iso8601")
+      4
+
   """
   @spec min_days_for_locale(Localize.locale()) :: integer() | {:error, Exception.t()}
-  def min_days_for_locale(locale) do
-    with {:ok, territory} <- territory_from_locale(locale) do
-      min_days_for_territory(territory)
+  def min_days_for_locale(%LanguageTag{} = language_tag) do
+    with {:ok, tag} <- LanguageTag.validate_fields(language_tag) do
+      if locale_keyword(tag, :ca) == :iso8601,
+        do: 4,
+        else: min_days_for_territory(region_of(locale_keyword(tag, :rg)) || week_region(tag))
     end
   end
+
+  def min_days_for_locale(locale) do
+    with {:ok, language_tag} <- Localize.validate_locale(locale) do
+      min_days_for_locale(language_tag)
+    end
+  end
+
+  # The value of a `-u-` key in a tag whose fields have been validated, which
+  # leaves a tag without the extension an empty map.
+  defp locale_keyword(%LanguageTag{locale: keywords}, key), do: Map.get(keywords, key)
+
+  # The region whose week data a locale takes when no `-u-rg-` override
+  # names one, as TR35's first day algorithm orders them: the region subtag
+  # the identifier carries, else its `-u-sd-` subdivision's region, else the
+  # region its likely subtags add, else the world.
+  defp week_region(%LanguageTag{} = tag) do
+    case region_of(locale_keyword(tag, :sd)) do
+      nil -> likely_region(tag)
+      subdivision_region -> explicit_region(tag) || subdivision_region
+    end
+  end
+
+  # The region subtag an identifier carries itself. A validated tag's
+  # territory may be one its likely subtags added, so the identifier is read
+  # again; a struct built by hand has only the territory it was given.
+  defp explicit_region(%LanguageTag{canonical_locale_id: identifier} = tag)
+       when is_binary(identifier) do
+    case LanguageTag.parse(identifier) do
+      {:ok, %LanguageTag{territory: territory}} -> territory
+      {:error, _exception} -> tag.territory
+    end
+  end
+
+  defp explicit_region(%LanguageTag{territory: territory}), do: territory
+
+  defp likely_region(%LanguageTag{territory: territory}) when not is_nil(territory), do: territory
+
+  defp likely_region(%LanguageTag{} = tag) do
+    case LanguageTag.add_likely_subtags(tag) do
+      {:ok, %LanguageTag{territory: territory}} when not is_nil(territory) -> territory
+      _no_region -> @the_world
+    end
+  end
+
+  # The region of a region override or of a subdivision: "gbzzzz" and "gbsct"
+  # are both the United Kingdom's. The region is the identifier's first two
+  # letters or three digits; one CLDR does not know is no region.
+  defp region_of(subdivision) when is_atom(subdivision) and not is_nil(subdivision) do
+    region =
+      case Atom.to_string(subdivision) do
+        <<a, b, c, _suffix::binary>> = name when a in ?0..?9 and b in ?0..?9 and c in ?0..?9 ->
+          binary_part(name, 0, 3)
+
+        <<_a, _b, _suffix::binary>> = name ->
+          binary_part(name, 0, 2)
+
+        name ->
+          name
+      end
+
+    case Localize.validate_territory(region) do
+      {:ok, territory} -> territory
+      {:error, _unknown_territory} -> nil
+    end
+  end
+
+  defp region_of(_no_subdivision), do: nil
 
   # ── Private helpers ─────────────────────────────────────────────
 
@@ -1702,19 +1789,58 @@ defmodule Localize.Calendar do
     )
   end
 
+  # A calendar's weeks are its own: its `week_of_year/3`, `week_of_month/3`
+  # and `week/2` answer for them. `Calendar.ISO` has no weeks of its own, so
+  # its weeks are the locale's, numbered as TR35 numbers them from the
+  # locale's week data: the first day of the week and the fewest days of a
+  # year, or a month, that its week 1 holds (`Localize.DateTime.Week.config/1`).
+  # The questions below take that data and put it, with the question, to
+  # `Calendar.ISO` alone (user, 2026-10-02).
+  @typedoc false
+  @type week_data :: {1..7, 1..7}
+
+  defp week_question(Calendar.ISO, arguments, week_data), do: arguments ++ [week_data]
+  defp week_question(_calendar, arguments, _week_data), do: arguments
+
+  @doc false
+  # The week-based year a date's week belongs to and its week of that year,
+  # as its calendar answers them (its `week_of_year/3`), or in the locale's
+  # weeks for `Calendar.ISO`. A map without a calendar is an ISO date. An
+  # error when the calendar answers with something that is not a year and a
+  # week.
+  @spec week_of_year(map(), week_data()) ::
+          {:ok, {integer(), pos_integer()}} | {:error, Exception.t()}
+  def week_of_year(%{year: year, month: month, day: day} = date, week_data) do
+    calendar = Map.get(date, :calendar, Calendar.ISO)
+
+    ask(
+      calendar,
+      :week_of_year,
+      week_question(calendar, [year, month, day], week_data),
+      "a week-based year and a week",
+      fn
+        {week_year, week} -> is_integer(week_year) and is_integer(week)
+        _other -> false
+      end
+    )
+  end
+
   @doc false
   # The week of the month a date is in and the month that week belongs to,
-  # as its calendar answers them (its `week_of_month/3`): ISO 8601's rule for
-  # `Calendar.ISO`, and each calendar's own week of the month otherwise. A
-  # map without a calendar is an ISO date. An error when the calendar answers
-  # with something that is not a month and a week.
-  @spec week_of_month(map()) :: {:ok, {Calendar.month(), pos_integer()}} | {:error, Exception.t()}
-  def week_of_month(%{year: year, month: month, day: day} = date)
+  # as its calendar answers them (its `week_of_month/3`), or in the locale's
+  # weeks for `Calendar.ISO`. A map without a calendar is an ISO date. An
+  # error when the calendar answers with something that is not a month and a
+  # week.
+  @spec week_of_month(map(), week_data()) ::
+          {:ok, {Calendar.month(), pos_integer()}} | {:error, Exception.t()}
+  def week_of_month(%{year: year, month: month, day: day} = date, week_data)
       when is_integer(year) and is_integer(month) and is_integer(day) do
+    calendar = Map.get(date, :calendar, Calendar.ISO)
+
     ask(
-      Map.get(date, :calendar, Calendar.ISO),
+      calendar,
       :week_of_month,
-      [year, month, day],
+      week_question(calendar, [year, month, day], week_data),
       "a month and a week of the month",
       fn
         {month, week} -> is_integer(month) and is_integer(week)
@@ -1724,45 +1850,61 @@ defmodule Localize.Calendar do
   end
 
   @doc false
+  # The days of week `week` of week-based year `year` in a calendar's own
+  # weeks, as it answers them (its `week/2`), or in the locale's weeks for
+  # `Calendar.ISO`: the days the formatter writes that year and week for.
+  @spec week(module(), integer(), integer(), week_data()) ::
+          {:ok, Date.Range.t()} | {:error, Exception.t()}
+  def week(calendar, year, week, week_data) do
+    ask(
+      calendar,
+      :week,
+      week_question(calendar, [year, week], week_data),
+      "the days of a week",
+      &match?(%Date.Range{}, &1)
+    )
+  end
+
+  @doc false
   # The day a date's week of the month is named by: the date itself when its
   # week belongs to its own month, else the nearest day of that week in the
-  # month the week belongs to, which the calendar's rule for a month's weeks
-  # can make the month before or after the date's. A pattern with `W` writes
-  # its month, and the year and era the month is in, from this day, as `Y`
+  # month the week belongs to, which the rule for a month's weeks can make
+  # the month before or after the date's. A pattern with `W` writes its
+  # month, and the year and era the month is in, from this day, as `Y`
   # writes the year `w` belongs to, so "week W of MMMM" names the week's
-  # month. The days of the week are the days the calendar gives the same week
-  # of the same month, so a calendar of weeks, whose week never leaves its
-  # month, names it by the date.
-  @spec week_month_day(map()) :: {:ok, map()} | {:error, Exception.t()}
-  def week_month_day(%{year: year, month: month, day: day} = date)
+  # month. The days of the week are the days given the same week of the same
+  # month, so a calendar of weeks, whose week never leaves its month, names
+  # it by the date.
+  @spec week_month_day(map(), week_data()) :: {:ok, map()} | {:error, Exception.t()}
+  def week_month_day(%{year: year, month: month, day: day} = date, week_data)
       when is_integer(year) and is_integer(month) and is_integer(day) do
-    case week_of_month(date) do
+    case week_of_month(date, week_data) do
       {:ok, {^month, _week}} -> {:ok, date}
-      {:ok, answer} -> {:ok, day_in_week_month(date, answer)}
+      {:ok, answer} -> {:ok, day_in_week_month(date, answer, week_data)}
       {:error, _not_an_answer} = error -> error
     end
   end
 
-  def week_month_day(date), do: {:ok, date}
+  def week_month_day(date, _week_data), do: {:ok, date}
 
   # The other days of a week, nearest a day first.
   @days_either_side Enum.flat_map(1..6, &[&1, -&1])
 
-  defp day_in_week_month(date, answer) do
+  defp day_in_week_month(date, answer, week_data) do
     calendar = Map.get(date, :calendar, Calendar.ISO)
 
     with {:ok, start} <- Date.new(date.year, date.month, date.day, calendar),
          %Date{} = day <-
-           Enum.find_value(@days_either_side, &week_month_day_at(start, &1, answer)) do
+           Enum.find_value(@days_either_side, &week_month_day_at(start, &1, answer, week_data)) do
       Map.merge(date, Map.take(day, [:year, :month, :day]))
     else
       _no_day -> date
     end
   end
 
-  defp week_month_day_at(start, days, {week_month, _week} = answer) do
+  defp week_month_day_at(start, days, {week_month, _week} = answer, week_data) do
     day = Date.add(start, days)
-    if day.month == week_month and week_of_month(day) == {:ok, answer}, do: day
+    if day.month == week_month and week_of_month(day, week_data) == {:ok, answer}, do: day
   end
 
   # CLDR's leap-year name of a month (`7_yeartype_leap`, the Hebrew "Adar II")
@@ -1799,9 +1941,5 @@ defmodule Localize.Calendar do
     else
       _no_leap_month_pattern -> name
     end
-  end
-
-  defp territory_from_locale(locale) do
-    Localize.Territory.territory_from_locale(locale)
   end
 end

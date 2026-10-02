@@ -189,7 +189,8 @@ defmodule Localize.DateTime.Formatter do
          tokens = substitute_numeric_separators(tokens, datetime, locale_id, options),
          valid_tokens = Enum.filter(tokens, &valid_length?/1),
          :ok <- validate_fields(datetime, valid_tokens, format_string),
-         {:ok, week_month_day} <- week_month_day(datetime, valid_tokens) do
+         options = with_week_data(options, valid_tokens, locale_id),
+         {:ok, week_month_day} <- week_month_day(datetime, valid_tokens, locale_id, options) do
       options = with_displayed_precision(options, valid_tokens)
 
       results =
@@ -235,7 +236,8 @@ defmodule Localize.DateTime.Formatter do
          tokens = substitute_numeric_separators(tokens, datetime, locale_id, options),
          valid_tokens = Enum.filter(tokens, &valid_length?/1),
          :ok <- validate_fields(datetime, valid_tokens, format_string),
-         {:ok, week_month_day} <- week_month_day(datetime, valid_tokens) do
+         options = with_week_data(options, valid_tokens, locale_id),
+         {:ok, week_month_day} <- week_month_day(datetime, valid_tokens, locale_id, options) do
       options = with_displayed_precision(options, valid_tokens)
 
       results =
@@ -504,7 +506,7 @@ defmodule Localize.DateTime.Formatter do
   # A pattern with `W` writes its month, and the quarter, year and era the
   # month is in, as the month its week belongs to, as `Y` writes the year
   # `w` belongs to: "week W of MMMM" names the week's month, which can be the
-  # month before or after the date's (`Localize.Calendar.week_month_day/1`).
+  # month before or after the date's (`Localize.Calendar.week_month_day/2`).
   # The day and everything below it stay the date's.
   @week_month_handlers [
     :era,
@@ -518,9 +520,9 @@ defmodule Localize.DateTime.Formatter do
     :standalone_month
   ]
 
-  defp week_month_day(datetime, tokens) do
+  defp week_month_day(datetime, tokens, locale_id, options) do
     if Enum.any?(tokens, &match?({:week_of_month, _line, _count}, &1)),
-      do: Localize.Calendar.week_month_day(datetime),
+      do: Localize.Calendar.week_month_day(datetime, week_data(locale_id, options)),
       else: {:ok, datetime}
   end
 
@@ -962,20 +964,20 @@ defmodule Localize.DateTime.Formatter do
 
   @doc false
   def week_aligned_year(date, 1, locale_id, options) when is_date(date) do
-    with {:ok, {year, _week}} <- calendar_week_of_year(date) do
+    with {:ok, {year, _week}} <- week_of_year_answer(date, locale_id, options) do
       year |> Kernel.to_string() |> apply_ns(locale_id, options, "Y")
     end
   end
 
   def week_aligned_year(date, 2, locale_id, options) when is_date(date) do
-    with {:ok, {year, _week}} <- calendar_week_of_year(date) do
+    with {:ok, {year, _week}} <- week_of_year_answer(date, locale_id, options) do
       year |> rem(100) |> pad(2) |> apply_ns(locale_id, options, "Y")
     end
   end
 
   # TR35 defines `YYYYY+`: any width of three or more is a minimum digit count.
   def week_aligned_year(date, count, locale_id, options) when is_date(date) and count >= 3 do
-    with {:ok, {year, _week}} <- calendar_week_of_year(date) do
+    with {:ok, {year, _week}} <- week_of_year_answer(date, locale_id, options) do
       year |> pad(count) |> apply_ns(locale_id, options, "Y")
     end
   end
@@ -1197,13 +1199,13 @@ defmodule Localize.DateTime.Formatter do
 
   @doc false
   def week_of_year(date, 1, locale_id, options) when is_date(date) do
-    with {:ok, {_year, week}} <- calendar_week_of_year(date) do
+    with {:ok, {_year, week}} <- week_of_year_answer(date, locale_id, options) do
       apply_ns(week, locale_id, options, "w")
     end
   end
 
   def week_of_year(date, 2, locale_id, options) when is_date(date) do
-    with {:ok, {_year, week}} <- calendar_week_of_year(date) do
+    with {:ok, {_year, week}} <- week_of_year_answer(date, locale_id, options) do
       week |> pad(2) |> apply_ns(locale_id, options, "w")
     end
   end
@@ -1213,11 +1215,12 @@ defmodule Localize.DateTime.Formatter do
   # ── Week of Month (W) ──────────────────────────────────────
 
   @doc false
-  # The calendar's own week of the month, its `week_of_month/3`, whatever
-  # the locale's week data: ISO 8601's rule for `Calendar.ISO`, a week being
-  # the month's that holds four or more of its days.
+  # The calendar's own week of the month, its `week_of_month/3`, and the
+  # locale's for `Calendar.ISO`, which has no weeks of its own: a week is the
+  # month's that holds at least the locale's fewest days of it.
   def week_of_month(date, _count, locale_id, options) when is_date(date) do
-    with {:ok, {_month, week}} <- Localize.Calendar.week_of_month(date) do
+    with {:ok, {_month, week}} <-
+           Localize.Calendar.week_of_month(date, week_data(locale_id, options)) do
       apply_ns(week, locale_id, options, "W")
     end
   end
@@ -1313,11 +1316,12 @@ defmodule Localize.DateTime.Formatter do
 
   @doc false
   def day_of_week(date, 1, locale_id, options) when is_date(date) do
-    with {:ok, day} <- local_day(date, locale_id), do: apply_ns(day, locale_id, options, "e")
+    with {:ok, day} <- local_day(date, locale_id, options),
+         do: apply_ns(day, locale_id, options, "e")
   end
 
   def day_of_week(date, 2, locale_id, options) when is_date(date) do
-    with {:ok, day} <- local_day(date, locale_id) do
+    with {:ok, day} <- local_day(date, locale_id, options) do
       day |> pad(2) |> apply_ns(locale_id, options, "e")
     end
   end
@@ -1335,7 +1339,8 @@ defmodule Localize.DateTime.Formatter do
   # is not zero-padded.
   def standalone_day_of_week(date, count, locale_id, options)
       when is_date(date) and count in 1..2 do
-    with {:ok, day} <- local_day(date, locale_id), do: apply_ns(day, locale_id, options, "c")
+    with {:ok, day} <- local_day(date, locale_id, options),
+         do: apply_ns(day, locale_id, options, "c")
   end
 
   def standalone_day_of_week(date, count, locale_id, _options)
@@ -1883,22 +1888,43 @@ defmodule Localize.DateTime.Formatter do
 
   # ── Calendar derivation helpers ────────────────────────────
 
-  # The week of the year and the year it belongs to in the calendar's own
-  # weeks, its `week_of_year/3`, never the locale's week data: ISO 8601's for
-  # `Calendar.ISO`, and its own for a calendar of weeks or one that numbers
-  # them from 1 January.
-  defp calendar_week_of_year(%{year: year, month: month, day: day} = date) do
-    Localize.Calendar.ask(
-      Map.get(date, :calendar, Calendar.ISO),
-      :week_of_year,
-      [year, month, day],
-      "a week-based year and a week",
-      fn
-        {week_year, week} -> is_integer(week_year) and is_integer(week)
-        _other -> false
-      end
-    )
+  # The week of the year and the year it belongs to. A calendar's weeks are
+  # its own, its `week_of_year/3`: a calendar of weeks', or one that numbers
+  # them from 1 January. `Calendar.ISO` has no weeks of its own, so its weeks
+  # are the locale's, as TR35 numbers them (`Localize.Calendar.week_of_year/2`).
+  defp week_of_year_answer(date, locale_id, options),
+    do: Localize.Calendar.week_of_year(date, week_data(locale_id, options))
+
+  # The locale's week data, its first day of the week and the fewest days of
+  # a year that its week 1 holds, from the locale as it was given, so that a
+  # `-u-fw-` first day and a `-u-rg-` region count. A format resolves it
+  # once, for the fields that read it (`with_week_data/3`).
+  defp week_data(locale_id, options) do
+    case options do
+      %{week_data: week_data} -> week_data
+      _unresolved -> Localize.DateTime.Week.config(options[:locale] || locale_id)
+    end
   end
+
+  defp with_week_data(options, tokens, locale_id) do
+    if Enum.any?(tokens, &reads_week_data?/1),
+      do:
+        Map.put(options, :week_data, Localize.DateTime.Week.config(options[:locale] || locale_id)),
+      else: Map.delete(options, :week_data)
+  end
+
+  # The fields that read the locale's week data: the week-based year and the
+  # weeks, which are the locale's for a `Calendar.ISO` date, and the day of
+  # the week as a number, which is not read for its name.
+  defp reads_week_data?({handler, _line, _count})
+       when handler in [:week_aligned_year, :week_of_year, :week_of_month],
+       do: true
+
+  defp reads_week_data?({handler, _line, count})
+       when handler in [:day_of_week, :standalone_day_of_week],
+       do: count in 1..2
+
+  defp reads_week_data?(_token), do: false
 
   defp compute_day_of_year(%{year: year, month: month, day: day} = date) do
     Localize.Calendar.ask(
@@ -1913,8 +1939,8 @@ defmodule Localize.DateTime.Formatter do
   # The numeric `e` and `c` fields count from the locale's first day of
   # the week, per TR35, so Saturday is 7 in `en` and 6 in `de`. The day is
   # the date's calendar's answer; a map without a calendar is an ISO date.
-  defp local_day(date, locale_id) do
-    {first_day, _min_days} = Localize.DateTime.Week.config(locale_id)
+  defp local_day(date, locale_id, options) do
+    {first_day, _min_days} = week_data(locale_id, options)
 
     with {:ok, day} <- Localize.Calendar.day_of_week(date) do
       {:ok, Localize.DateTime.Week.local_day_of_week(day, first_day)}

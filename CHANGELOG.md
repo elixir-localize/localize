@@ -70,9 +70,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 * **Breaking.** A quarter is the calendar's own, its `quarter_of_year/3` and, when parsed, its `quarter/2`, so a Coptic or Hebrew thirteenth month is in the fourth quarter and an ISO week date in its own thirteen-week quarter, where they were Q5 and Q9. `Q` and `q` need the year as well as the month, and `Localize.Calendar.localize/3` names a date without one as the first quarter.
 
-* **Breaking.** Week numbers are the calendar's, never the locale's week data: `Y` and `w` are the calendar's own week-based year and week (`week_of_year/3`), ISO 8601's for `Calendar.ISO`, so 1 January 2027 is in week 53 of 2026 in `en` as in `de`, and `W` is the calendar's own week of the month (`week_of_month/3`), ISO 8601's rule for `Calendar.ISO`. Week text parses back in those weeks, so a calendar of weeks' week text and an ISO 8601 week date such as "2026-W25-2" round-trip.
+* **Breaking.** A calendar's week numbers are its own, `Y` and `w` from its `week_of_year/3` and `W` from its `week_of_month/3`, where every calendar's followed the locale's week data; `Calendar.ISO`, which has no weeks of its own, keeps the locale's, so 1 January 2027 is in week 1 of 2027 in `en` and week 53 of 2026 in `de`. Week text parses back in the weeks it was written in, and an ISO 8601 week date such as "2026-W25-2" is always ISO 8601's.
 
-* **Breaking.** A pattern with `W` writes its month, and the year and era that month is in, as the month the week belongs to, as `Y` writes the year `w` belongs to: `MMMMW` writes 1 October 2021, in ISO 8601's fifth week of September, as "week 5 of September".
+* **Breaking.** `W` numbers a month's weeks as a year's are numbered, giving a week to the month that holds the locale's minimum days of it, and a pattern with `W` writes its month, year and era as that month's, as `Y` writes the year `w` belongs to. `MMMMW` writes 1 October 2021 as "week 5 of September" in `en-GB`, where it was "week 0 of October", and 30 September 2021 as "week 1 of October" in `en`.
 
 * **Breaking.** An interval joins a date and a time with the locale's standard date-time pattern, as TR35 says an interval takes, where it took the "at" pattern: "June 15, 2026, 10:00 – 14:30" and "June 15, 2026, 10:00 – June 16, 2026, 14:30" in `en`. `style: :at` restores it.
 
@@ -115,6 +115,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 * **Breaking.** A zero offset is spelled out wherever a localized GMT format is used, `"GMT+00:00"` long and `"GMT+0"` short, as TR35's examples and ICU give it. `Localize.DateTime.Timezone.gmt_format/3` drops its `:zero_format` option, which selected between the two.
 
 ### Fixed
+
+* The week fields `Y`, `w`, `W`, `e` and `c` take the locale's week data from the locale as given, so a `-u-fw-` first day and a `-u-rg-` region count, which they ignored: Friday is `e` 5 in `en-u-fw-mon`. `Localize.Calendar.first_day_for_locale/1` and `min_days_for_locale/1` follow TR35's first day algorithm in full, reading `-u-ca-iso8601` (ISO 8601's weeks), a `-u-sd-` subdivision and the world's data where a locale has no region.
 
 * A datetime interval splits a skeleton into its date and time fields, as TR35's interval algorithm does, so one day's `format: :yMMMdHm` is "Jun 15, 2026, 10:00 – 14:30" where it was an error and `format: :Hm` writes the times alone where it wrote "10:00, 10:00 – 14:30". A skeleton of date fields alone formats the dates as a date interval does, "Jun 15 – 16, 2026".
 

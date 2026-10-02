@@ -63,7 +63,9 @@ TR35 is CLDR's specification, and the rule applies to it as to the data. Its Dat
 
 A numeric month (`M`, `MM`, `L`, `LL`) is the CLDR month the month's name uses, as the date's calendar answers it through `month_of_year/3` and `cardinal_month/1`. CLDR numbers the Hebrew months 1 to 13 in every year, Adar 7 and Nisan 8, so in a common year, which has no Adar I, Localize writes Adar 1, 5785 as "7/1/5785" where ICU4C writes the month's place in the year, "6/1/5785". A leap year's months are numbered alike by both.
 
-Week numbers (`Y`, `w`, `W`) are the calendar's, never the locale's week data (user, 2026-10-01). ICU4C numbers a Gregorian week by the locale's `firstDay` and `minDays`, so `en`'s week 1 of 2027 begins on Sunday 27 December 2026; Localize numbers `Calendar.ISO`'s weeks by ISO 8601 in every locale, so 1 January 2027 is in week 53 of 2026 and week 1 begins on Monday 4 January, as `de` writes it in both. `Calendar.ISO`'s `W` follows ISO 8601's rule in the month, so the days of a first week the month holds fewer than four of are in the last week of the month before, where ICU4C writes week 0; another calendar's `W` is its own week of the month. A pattern with `W` writes its month and year as the week's, so `MMMMW` is "week 5 of September" for 1 October 2021 in every locale, where ICU4C 78.3 writes "week 1 of October" in `en` and "week 0 of October" in `en-GB`.
+Week numbers (`Y`, `w`, `W`) are the calendar's own for a calendar that numbers its weeks (user, 2026-10-01), where ICU4C numbers every calendar's weeks by the locale's `firstDay` and `minDays`. `Calendar.ISO` has no weeks of its own, so Localize numbers its weeks by the locale's week data as ICU4C does (user, 2026-10-02): `Y`, `w` and the numeric weekday `e` agree with ICU4C 78.3 on every day of 2019 to 2030 in seventeen locales, the `-u-fw-`, `-u-rg-`, `-u-sd-` and `-u-ca-iso8601` keys included.
+
+`W` differs at a month's ends. TR35 says a month's weeks are "similarly calculated" to a year's, so Localize gives a week to the month that holds at least the locale's minimum days of it, and a pattern with `W` writes its month and year as the week's. ICU4C numbers a week within its date's own month: 0 for the days before the month's week 1, and 5 or 6 for the days after its last whole week. So `MMMMW` for 1 October 2021 is "week 5 of September" in `en-GB`, where ICU4C 78.3 writes "week 0 of October", and for 30 September 2021 it is "week 1 of October" in `en`, where ICU4C writes "week 5 of September". Wherever the week is in its date's own month the two agree.
 
 ### Date parsing
 
@@ -75,6 +77,8 @@ TR35 makes `y` the year of the era `G` names, and leaves the reading of a two-di
 | "Jun 1, 44 AD" | AD 44, `~D[0044-06-01]` | 2044 |
 
 The two agree on everything else here: "Jun 1, 1 BC" is year 0, and "Jun 1, 44", with no era, is 2044.
+
+ICU4C's parser is lenient about a week the year does not have. In `en`, where 2026 has 52 weeks, it reads "week 53 of 2026" as the week beginning 27 December 2026, week 1 of 2027, which is how TR35's note on week 53 says such a date "should be treated", and "week 60 of 2026" as a week of February 2027. Localize reads only a week the year has, in the weeks it writes, and returns an error for any other, as it does for every field no date has; asserted in `test/localize/impossible_fields_parse_test.exs`.
 
 ### Time parsing
 

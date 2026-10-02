@@ -6,13 +6,14 @@ defmodule Localize.ImpossibleFieldsParseTest do
   # the other endpoint of a range, and never the digits read as another
   # field. The expected values are calendar facts. June has 30 days;
   # February 29 falls only in leap years (2024, not 2025); an ISO year has
-  # 12 months and an hour 60 minutes. Under en's week rules (weeks start on
-  # Sunday and week 1 holds January 1) 2022 has 53 weeks, its week 53
-  # starting on Sunday, December 25, and 2026 has 52; June 2024 starts on
-  # a Saturday, so June 30, 2024 is in its sixth week. Under de's (ISO 8601:
-  # Monday, four days) a month that starts on a Friday, Saturday or Sunday
-  # opens with week 0, as August 2026 does, and February reaches week 5 at
-  # most.
+  # 12 months and an hour 60 minutes. `Calendar.ISO`'s weeks are the
+  # locale's. Under en's week rules (weeks start on Sunday and week 1 holds
+  # January 1) 2022 has 53 weeks, its week 53 starting on Sunday, December
+  # 25, and 2026 has 52; June 2024 starts on a Saturday, so its week 1 began
+  # on Sunday, May 26, and June 30, a Sunday, begins week 1 of July, which
+  # leaves June five weeks. Under de's (ISO 8601: Monday, four days) a
+  # month's weeks are as many as its Thursdays, four or five, and a week
+  # holding fewer than four of its days is the month before's or after's.
 
   @options [locale: :en, reference_date: ~D[2026-07-05]]
   @map_options Keyword.put(@options, :as, :map)
@@ -53,25 +54,38 @@ defmodule Localize.ImpossibleFieldsParseTest do
                {:ok, %{calendar: Calendar.ISO, month: 5, year: 2032}}
     end
 
-    # `Calendar.ISO`'s weeks are ISO 8601's in every locale: 2025 has 52 of
-    # them and 2026, which begins on a Thursday, 53, whose Monday is
-    # 28 December (`:calendar.iso_week_number/1`).
+    # `Calendar.ISO`'s weeks are the locale's. Under en's (weeks from Sunday,
+    # week 1 holding 1 January) 2022 has 53 weeks, its week 53 beginning on
+    # Sunday 25 December, and 2026 has 52. Under de's, ISO 8601's, 2026,
+    # which begins on a Thursday, has 53, whose Monday is 28 December, and
+    # 2025 has 52 (`:calendar.iso_week_number/1`).
     test "a week the year does not have is an error in both forms" do
-      assert :calendar.iso_week_number({2025, 12, 28}) == {2025, 52}
-      assert :calendar.iso_week_number({2026, 12, 28}) == {2026, 53}
-
-      for input <- ["week 60 of 2026", "week 0 of 2026", "week 53 of 2025"] do
+      for input <- ["week 60 of 2026", "week 0 of 2026", "week 53 of 2026"] do
         assert_error(Localize.Date.parse(input, @options), Localize.DateParseError, input)
         assert_error(Localize.Date.parse(input, @map_options), Localize.DateParseError, input)
       end
 
-      assert Localize.Date.parse("week 53 of 2026", @options) == {:ok, ~D[2026-12-28]}
+      assert Localize.Date.parse("week 53 of 2022", @options) == {:ok, ~D[2022-12-25]}
+
+      assert :calendar.iso_week_number({2025, 12, 28}) == {2025, 52}
+      assert :calendar.iso_week_number({2026, 12, 28}) == {2026, 53}
+
+      de_options = Keyword.put(@options, :locale, :de)
+
+      assert_error(
+        Localize.Date.parse("Woche 53 des Jahres 2025", de_options),
+        Localize.DateParseError,
+        "Woche 53 des Jahres 2025"
+      )
+
+      assert Localize.Date.parse("Woche 53 des Jahres 2026", de_options) == {:ok, ~D[2026-12-28]}
     end
 
-    # `W` follows ISO 8601's rule in every locale: a Monday week is the
-    # month's that holds its Thursday, so a month's weeks are its first four
-    # or five, as many as its Thursdays, and none is week 0 or week 6. June
-    # 2023 and August 2024 each have five Thursdays.
+    # `W` numbers a month's weeks as a year's are numbered, in the month the
+    # week belongs to, so no month has a week 0 or a week 6: under en's weeks
+    # a week holding the first of a month is that month's week 1, and under
+    # de's, ISO 8601's, a month's weeks are as many as its Thursdays. June
+    # 2024 has five en weeks, and August 2024 five Thursdays.
     test "a week of the month no month has is an error in the map form" do
       for input <- ["week 7 of June", "week 6 of June", "week 0 of June"] do
         assert_error(Localize.Date.parse(input, @map_options), Localize.DateParseError, input)

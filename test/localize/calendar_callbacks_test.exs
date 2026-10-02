@@ -747,17 +747,22 @@ defmodule Localize.CalendarCallbacksTest do
   end
 
   describe "weeks" do
-    # Week numbers are the calendar's own, never the locale's (user,
-    # 2026-10-01): Calendar.ISO's are ISO 8601's, 1 January 2027 being in
-    # week 53 of 2026 (`:calendar.iso_week_number/1`), and a calendar whose
-    # week 1 holds 1 January puts it in week 1 of 2027.
-    test "are the calendar's own" do
+    # A calendar's week numbers are its own, whatever the locale: a calendar
+    # whose week 1 holds 1 January puts 1 January 2027 in week 1 of 2027.
+    # `Calendar.ISO` has no weeks of its own, so its are the locale's (user,
+    # 2026-10-02): ISO 8601's in `de`, week 53 of 2026
+    # (`:calendar.iso_week_number/1`), and in `en`, whose weeks begin on
+    # Sunday and whose week 1 holds 1 January, week 1 of 2027 (ICU4C 78.3).
+    test "are the calendar's own, and the locale's for Calendar.ISO" do
       assert :calendar.iso_week_number({2027, 1, 1}) == {2026, 53}
 
-      for locale <- [:en, :de] do
-        assert Localize.Date.to_string(~D[2027-01-01], format: "Y-ww", locale: locale) ==
-                 {:ok, "2026-53"}
+      assert Localize.Date.to_string(~D[2027-01-01], format: "Y-ww", locale: :de) ==
+               {:ok, "2026-53"}
 
+      assert Localize.Date.to_string(~D[2027-01-01], format: "Y-ww", locale: :en) ==
+               {:ok, "2027-01"}
+
+      for locale <- [:en, :de] do
         assert Localize.Date.to_string(date(2027, 1, 1, JanuaryWeeks),
                  format: "Y-ww",
                  locale: locale
@@ -765,11 +770,18 @@ defmodule Localize.CalendarCallbacksTest do
       end
     end
 
-    test "read back in the calendar's own weeks" do
+    # Week text reads back in the weeks it was written in: the calendar's
+    # own, its Monday week holding 1 January, and for `Calendar.ISO` the
+    # locale's, en's Sunday week holding 1 January and de's ISO 8601 week 1,
+    # which begins on Monday 4 January (ICU4C 78.3 reads both so).
+    test "read back in the weeks they were written in" do
       assert Localize.Date.parse("week 1 of 2027", locale: :en, calendar: JanuaryWeeks) ==
                {:ok, %Date{year: 2026, month: 12, day: 28, calendar: JanuaryWeeks}}
 
-      assert Localize.Date.parse("week 1 of 2027", locale: :en) == {:ok, ~D[2027-01-04]}
+      assert Localize.Date.parse("week 1 of 2027", locale: :en) == {:ok, ~D[2026-12-27]}
+
+      assert Localize.Date.parse("Woche 1 des Jahres 2027", locale: :de) ==
+               {:ok, ~D[2027-01-04]}
     end
 
     # A calendar of weeks reads a written month and day as a Gregorian date,
@@ -816,17 +828,24 @@ defmodule Localize.CalendarCallbacksTest do
     end
 
     # `W` is the calendar's own week of the month, its `week_of_month/3`
-    # (user, 2026-10-01). Calendar.ISO's follows ISO 8601's rule: 1 October
-    # 2021, a Friday, is in the week holding Thursday 30 September, the
-    # fifth of September. A calendar whose week 1 holds the first of the
-    # month puts it in week 1 of October, and a calendar of weeks counts its
-    # own month's weeks: ISO week 25 is the fourth of its 4-4-5 June.
-    test "of the month are the calendar's own" do
+    # (user, 2026-10-01), and for `Calendar.ISO` the locale's (user,
+    # 2026-10-02). In `de`, whose weeks are ISO 8601's, 1 October 2021, a
+    # Friday, is in the week holding Thursday 30 September, the fifth of
+    # September. In `en`, whose weeks begin on Sunday and belong to a month
+    # they hold one day of, that week is the first of October, on 30
+    # September as on 1 October. A calendar whose week 1 holds the first of
+    # the month puts it in week 1 of October, and a calendar of weeks counts
+    # its own month's weeks: ISO week 25 is the fourth of its 4-4-5 June.
+    test "of the month are the calendar's own, and the locale's for Calendar.ISO" do
       thursday = Date.add(~D[2021-10-01], 4 - Date.day_of_week(~D[2021-10-01], :monday))
       assert {thursday.month, div(thursday.day - 1, 7) + 1} == {9, 5}
 
-      assert Localize.Date.to_string(~D[2021-10-01], format: "W", locale: :en) == {:ok, "5"}
-      assert Localize.Date.to_string(~D[2021-10-04], format: "W", locale: :en) == {:ok, "1"}
+      assert Localize.Date.to_string(~D[2021-10-01], format: "W", locale: :de) == {:ok, "5"}
+      assert Localize.Date.to_string(~D[2021-10-04], format: "W", locale: :de) == {:ok, "1"}
+
+      assert Localize.Date.to_string(~D[2021-09-30], format: "W", locale: :en) == {:ok, "1"}
+      assert Localize.Date.to_string(~D[2021-10-01], format: "W", locale: :en) == {:ok, "1"}
+      assert Localize.Date.to_string(~D[2021-10-03], format: "W", locale: :en) == {:ok, "2"}
 
       assert Localize.Date.to_string(date(2021, 10, 1, JanuaryWeeks), format: "W", locale: :en) ==
                {:ok, "1"}
@@ -840,17 +859,41 @@ defmodule Localize.CalendarCallbacksTest do
 
     # A pattern with `W` names the month its week belongs to, and the year
     # and era that month is in, as `Y` names the year `w` belongs to (user,
-    # 2026-10-01). CLDR's `MMMMW` is "'week' W 'of' MMMM" in `en`, so 1
-    # October 2021, in September's fifth week by ISO 8601's rule, is "week 5
-    # of September", and 30 December 2019, whose week holds Thursday 2
-    # January 2020, is in January 2020's first. The day stays the date's, so
+    # 2026-10-01). CLDR's `MMMMW` is "'week' W 'of' MMMM" in `en` and
+    # `en-GB`. In `en-GB`, whose weeks are ISO 8601's, 1 October 2021, in
+    # September's fifth week, is "week 5 of September", and 30 December
+    # 2019, whose week holds Thursday 2 January 2020, is in January 2020's
+    # first. In `en` a week belongs to the month it holds one day of, so 30
+    # September 2021 is in "week 1 of October". The day stays the date's, so
     # a pattern that writes it too pairs it with the week's month; no CLDR
     # pattern does.
     test "of the month name the month the week belongs to" do
-      assert Localize.Date.to_string(~D[2021-10-01], format: :MMMMW, locale: :en) ==
+      assert Localize.Date.to_string(~D[2021-10-01], format: :MMMMW, locale: :"en-GB") ==
                {:ok, "week 5 of September"}
 
-      assert Localize.Date.to_string(~D[2021-10-04], format: :MMMMW, locale: :en) ==
+      assert Localize.Date.to_string(~D[2021-10-04], format: :MMMMW, locale: :"en-GB") ==
+               {:ok, "week 1 of October"}
+
+      assert Localize.Date.to_string(~D[2019-12-30],
+               format: "'week' W 'of' MMMM y G",
+               locale: :"en-GB"
+             ) == {:ok, "week 1 of January 2020 AD"}
+
+      assert Localize.Date.to_string(~D[2021-10-01],
+               format: "d MMMM, 'week' W",
+               locale: :"en-GB"
+             ) == {:ok, "1 September, week 5"}
+
+      assert {:ok, parts} =
+               Localize.Date.to_parts(~D[2021-10-01], format: :MMMMW, locale: :"en-GB")
+
+      assert Enum.map_join(parts, & &1.value) == "week 5 of September"
+      assert %{type: :month, value: "September"} in parts
+
+      assert Localize.Date.to_string(~D[2021-09-30], format: :MMMMW, locale: :en) ==
+               {:ok, "week 1 of October"}
+
+      assert Localize.Date.to_string(~D[2021-10-01], format: :MMMMW, locale: :en) ==
                {:ok, "week 1 of October"}
 
       assert Localize.Date.to_string(~D[2019-12-30],
@@ -858,24 +901,30 @@ defmodule Localize.CalendarCallbacksTest do
                locale: :en
              ) == {:ok, "week 1 of January 2020 AD"}
 
-      assert Localize.Date.to_string(~D[2021-10-01], format: "d MMMM, 'week' W", locale: :en) ==
-               {:ok, "1 September, week 5"}
-
-      assert {:ok, parts} = Localize.Date.to_parts(~D[2021-10-01], format: :MMMMW, locale: :en)
-      assert Enum.map_join(parts, & &1.value) == "week 5 of September"
-      assert %{type: :month, value: "September"} in parts
+      assert Localize.Date.to_string(~D[2021-09-30], format: "d MMMM, 'week' W", locale: :en) ==
+               {:ok, "30 October, week 1"}
     end
 
+    # TR35's rule gives a week to the month that holds at least the fewest
+    # days of it, which is the month of one deciding day of the week: of an
+    # ISO 8601 week (Monday, four days) its Thursday, as in `en-GB`, and of
+    # en's (Sunday, one day) its last day, Saturday. The week is that day's
+    # place among its month's Thursdays, or Saturdays.
     test "of the month name the week's month on every day" do
       {:ok, months} = Localize.Locale.get(:en, [:dates, :calendars, :gregorian, :months])
       names = months.format.wide
 
-      for date <- Date.range(~D[2015-01-01], ~D[2026-12-31]) do
-        thursday = Date.add(date, 4 - Date.day_of_week(date, :monday))
-        week = div(thursday.day - 1, 7) + 1
-        expected = "#{week} #{Map.fetch!(names, thursday.month)} #{thursday.year}"
+      for date <- Date.range(~D[2015-01-01], ~D[2026-12-31]),
+          {locale, deciding_day} <- [
+            {:"en-GB", Date.add(date, 4 - Date.day_of_week(date, :monday))},
+            {:en, Date.add(date, 7 - Date.day_of_week(date, :sunday))}
+          ] do
+        week = div(deciding_day.day - 1, 7) + 1
+        expected = "#{week} #{Map.fetch!(names, deciding_day.month)} #{deciding_day.year}"
 
-        assert Localize.Date.to_string(date, format: "W MMMM y", locale: :en) == {:ok, expected}
+        assert Localize.Date.to_string(date, format: "W MMMM y", locale: locale) ==
+                 {:ok, expected},
+               "#{locale} #{date}"
       end
     end
 

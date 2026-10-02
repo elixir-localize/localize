@@ -419,11 +419,67 @@ defmodule Localize.CalendarTest do
       assert {:error, %Localize.InvalidLocaleError{}} =
                Localize.Calendar.first_day_for_locale(:zzz)
     end
+
+    # TR35's own examples of its first day algorithm (tr35-dates, "First Day
+    # Overrides"): the day a `-u-fw-` key names; else the first day of a
+    # `-u-rg-` region; else Monday for the `iso8601` calendar; else the first
+    # day of the region the identifier carries, of its `-u-sd-` subdivision's
+    # region, of the region its likely subtags add, or of the world. CLDR's
+    # weekData gives Afghanistan Saturday, Australia, the United Kingdom and
+    # the world Monday, and Canada and the United States Sunday.
+    test "follows TR35's first day algorithm" do
+      for {locale, first_day} <- [
+            {"en-AU-u-ca-iso8601-fw-tue-rg-afzzzz-sd-cabc", 2},
+            {"en-AU-u-ca-iso8601-rg-afzzzz-sd-cabc", 6},
+            {"en-AU-u-ca-iso8601-sd-cabc", 1},
+            {"en-AU-u-sd-cabc", 1},
+            {"en-u-sd-cabc", 7},
+            {"en", 7},
+            {"zxx", 1}
+          ] do
+        assert Localize.Calendar.first_day_for_locale(locale) == first_day, locale
+      end
+    end
+
+    # The subdivision's region counts only where the identifier carries no
+    # region of its own, and a region override may name a subdivision
+    # ("gbsct") as well as a whole region ("gbzzzz"). ICU4C 78.3 gives the
+    # same first days.
+    test "reads a subdivision's region and a region override" do
+      assert Localize.Calendar.first_day_for_locale("en-u-sd-gbsct") == 1
+      assert Localize.Calendar.first_day_for_locale("en-CA-u-sd-gbsct") == 7
+      assert Localize.Calendar.first_day_for_locale("en-u-rg-gbzzzz") == 1
+      assert Localize.Calendar.first_day_for_locale("en-u-rg-gbsct") == 1
+      assert Localize.Calendar.first_day_for_locale("en-u-ca-iso8601") == 1
+      assert Localize.Calendar.first_day_for_locale("en-u-ca-gregory") == 7
+    end
   end
 
   describe "min_days_for_locale/1" do
     test "returns min days for :de locale" do
       assert Localize.Calendar.min_days_for_locale(:de) == 4
+    end
+
+    # The minimum days are the region's that TR35's first day algorithm
+    # finds, a `-u-fw-` day aside: the United Kingdom's four for a region
+    # override or a subdivision, the world's one for a locale with no
+    # region. The `iso8601` calendar's weeks hold four days, as ISO 8601's
+    # do, whatever the region; ICU4C 78.3 gives the same.
+    test "follows the region TR35's first day algorithm finds" do
+      for {locale, min_days} <- [
+            {"en", 1},
+            {"en-GB", 4},
+            {"en-u-rg-gbzzzz", 4},
+            {"en-u-sd-gbsct", 4},
+            {"en-AU-u-sd-gbsct", 1},
+            {"en-u-fw-mon", 1},
+            {"zxx", 1},
+            {"pt-PT", 4},
+            {"en-u-ca-iso8601", 4},
+            {"en-AU-u-ca-iso8601-rg-afzzzz-sd-cabc", 4}
+          ] do
+        assert Localize.Calendar.min_days_for_locale(locale) == min_days, locale
+      end
     end
 
     test "returns an error for an invalid locale" do

@@ -3,10 +3,12 @@ defmodule Localize.DateParseWeekTest do
   Parsing dates written with CLDR's week-of-year and stand-alone month
   formats.
 
-  A week date parses to the first day of that week in the calendar's own
-  weeks, never the locale's week data: `Calendar.ISO`'s are ISO 8601's, so
-  week 27 of 2024 starts on Monday 1 July in `en` as in `de`, as Erlang's
-  `:calendar.iso_week_number/1` confirms.
+  A week date parses to the first day of that week. `Calendar.ISO` has no
+  weeks of its own, so they are the locale's, as the formatter writes them:
+  week 27 of 2024 starts on Sunday 30 June in `en`, whose weeks begin on
+  Sunday and whose week 1 holds 1 January, and on Monday 1 July in `de`,
+  whose weeks are ISO 8601's, as Erlang's `:calendar.iso_week_number/1`
+  confirms. ICU4C 78.3 reads both the same way.
 
   `ru`'s `yMMMM` format is "LLLL y 'г'.", with the stand-alone month name:
   CLDR 49's stand-alone July is "июль" and its format July "июля". TR35
@@ -19,11 +21,13 @@ defmodule Localize.DateParseWeekTest do
   use ExUnit.Case, async: true
 
   test "a week of the year parses to the week's first day" do
-    assert Localize.Date.parse("week 27 of 2024", locale: :en) == {:ok, ~D[2024-07-01]}
+    assert Localize.Date.parse("week 27 of 2024", locale: :en) == {:ok, ~D[2024-06-30]}
+    assert Date.day_of_week(~D[2024-06-30]) == 7
 
     assert :calendar.iso_week_number({2024, 7, 1}) == {2024, 27}
     assert :calendar.iso_week_number({2024, 6, 30}) == {2024, 26}
     assert Localize.Date.parse("Woche 27 des Jahres 2024", locale: :de) == {:ok, ~D[2024-07-01]}
+    assert Localize.Date.parse("week 27 of 2024", locale: :"en-GB") == {:ok, ~D[2024-07-01]}
   end
 
   test "a stand-alone or format month name parses as a month and year" do
