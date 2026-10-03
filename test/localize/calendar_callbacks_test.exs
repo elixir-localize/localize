@@ -530,6 +530,23 @@ defmodule Localize.CalendarCallbacksTest do
              ) == {:ok, "Jun 2026"}
     end
 
+    # Two months with no year are an interval of them, in CLDR's `MMM`
+    # interval format, "MMM – MMM", and two days of one month in its `MMMd`,
+    # "MMM d – d", each month named as the calendar names it.
+    test "names the months of an interval without a year" do
+      assert Localize.Interval.to_string(
+               %{month: 1, calendar: FiscalJuly},
+               %{month: 3, calendar: FiscalJuly},
+               locale: :en
+             ) == {:ok, "Jul#{@thin}–#{@thin}Sep"}
+
+      assert Localize.Interval.to_string(
+               %{month: 12, day: 15, calendar: FiscalJuly},
+               %{month: 12, day: 20, calendar: FiscalJuly},
+               locale: :en
+             ) == {:ok, "Jun 15#{@thin}–#{@thin}20"}
+    end
+
     # A month is written as the CLDR month its name uses, in figures as in
     # words, so it reads back to the calendar's own month: the first month
     # is written 7 and July.

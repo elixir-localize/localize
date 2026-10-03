@@ -4,8 +4,6 @@ Outstanding work on Localize. The design detail behind these items lives under [
 
 ## Open
 
-* [ ] **An interval of two dates with no year has no text** — `Localize.Interval.to_string(%{month: 6, calendar: Calendrical.Gregorian}, %{month: 8, calendar: Calendrical.Gregorian})`, and the same with a day on each end or with `format: :MMMd`, is a `Localize.DateTimeIntervalFormatError` (`:mixed_endpoints`), where `Localize.Date.to_string/2` writes each end alone ("Jun", "Jun 15") and the locale has the interval formats (`MMM` is "MMM – MMM", `MMMd` "MMM d – d"). `date_value?/1` in `Localize.Interval` takes a map only with a `:year`; a date with none could take the interval format of the fields it has, and the locale's `interval_format_fallback` where it has none (a weekday alone). Tempo's `to_string/2` of a span with no year (`~o"6M/9M"`) waits on it (found in the Tempo session, 2026-10-04).
-
 * [ ] **`Localize.Nif` fails to load while Localize is compiled** — its `@on_load` function calls `Localize.Priv.path/1` (`lib/localize/nif.ex:44`), and when the compiler loads `Localize.Nif` before `Localize.Priv` is compiled the build logs `The on_load function for module Elixir.Localize.Nif returned: {:undef, [{Localize.Priv, :path, ["localize_nif"], []}, …]}` and an `UndefinedFunctionError`, then carries on to "Generated localize app". Seen compiling Localize `6c5d4ef2` as a dependency in two of the seven rows of Tempo's CI run 37158113725, those on Elixir 1.17.3 and 1.18.5, and in neither the 1.19 and 1.20 rows nor a local build on 1.20; a `require Localize.Priv` in `Localize.Nif` would make it a compile-time dependency, compiled first (found in the Tempo session, 2026-10-04).
 
 * [ ] **An interval written with a week format shows one end** — `Localize.Interval.to_string(~D[2026-06-15], ~D[2026-07-20], format: :yw, locale: :en)` is "week 25 of 2026", and two weeks of a calendar of weeks with `format: :yw` or a pattern (`"Y-'W'ww"`) are the first alone, where the default format writes both ("week 25 of 2026 – week 26 of 2026"). `@unit_symbols` in `Localize.Interval` has no unit for `w` or `W`, so only a year's difference shows; TR35's step 4 compares the fields in the pattern, so the weeks themselves decide (ICU4C 78.3 makes no pattern for `yw` or `MMMMW` and is no oracle). By the same reckoning `format: :yM` writes those two weeks "6/2026 – 6/2026 AD", their month fields differing where the period `M` writes does not (found 2026-10-04).
@@ -61,6 +59,8 @@ Outstanding work on Localize. The design detail behind these items lives under [
 * [ ] **`localize_emoji` sibling library** — plan item 11, a separate package on its own schedule. A Phoenix LiveView picker (`localize_emoji_live`) is out of scope for its 0.1.0.
 
 ## Done
+
+* [x] **An interval of two dates that hold some of their fields** — two months, a month and a day each, or a year and a month take CLDR's interval format for those fields in `Localize.Interval.to_string/3` and `to_parts/3` ("Jun – Aug", "Jun 15 – 20", "Jun – Aug 2026"), open intervals too, and a date and time with no year keeps its date. 2026-10-04, v1.4.0.
 
 * [x] **A year and a week of a calendar of weeks is written as the locale's week of the year** — `Localize.Date.to_string(%{year: 2026, month: 25, calendar: Calendrical.ISOWeek})` is "week 25 of 2026", CLDR's `yw`, the month field read as the week it holds; formatting is Localize's, so the calendar gained no callback (user, 2026-10-04). 2026-10-04, v1.4.0.
 

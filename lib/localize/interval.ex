@@ -32,6 +32,10 @@ defmodule Localize.Interval do
   @default_fields :date
   @default_format :medium
 
+  # The fields of a date, largest first. A date holds any of them, and a
+  # whole date all three.
+  @date_fields [:year, :month, :day]
+
   # TR35 joins an interval's date and time with the standard date-time
   # pattern ("March 15, 3:00 – 5:00 PM"), where a single date and time takes
   # the "at" pattern by default.
@@ -42,7 +46,7 @@ defmodule Localize.Interval do
 
   ### Arguments
 
-  * `from` is the start of the interval: a `t:Date.t/0`, `t:Time.t/0`, `t:NaiveDateTime.t/0` or `t:DateTime.t/0`, or a map with their fields, or `nil` for an interval open at its start.
+  * `from` is the start of the interval: a `t:Date.t/0`, `t:Time.t/0`, `t:NaiveDateTime.t/0` or `t:DateTime.t/0`, or a map with their fields, or `nil` for an interval open at its start. A date's map may hold only some of its `:year`, `:month` and `:day`.
 
   * `to` is the end of the interval, of the same kind as `from`, or `nil` for an interval open at its end.
 
@@ -72,11 +76,13 @@ defmodule Localize.Interval do
 
   Endpoints that differ in no field the interval shows are formatted once: whole dates in the requested standard format, exactly as `Localize.Date.to_string/2` renders them.
 
+  Dates that hold only some of their fields, two months or a month and a day each, take at a standard format CLDR's interval format for the fields they hold, as `Localize.Date.to_string/2` writes each alone: `%{month: 6}` to `%{month: 8}` is "Jun – Aug". One format writes both endpoints, so they must hold the same fields. A skeleton, a `:fields` selection or a pattern is used as it is given.
+
   ### Returns
 
   * `{:ok, formatted_string}` on success.
 
-  * `{:error, exception}` on failure, including endpoints in different calendars.
+  * `{:error, exception}` on failure, including endpoints in different calendars and dates that hold different fields.
 
   ### Examples
 
@@ -85,6 +91,9 @@ defmodule Localize.Interval do
 
       iex> Localize.Interval.to_string(~D[2026-06-15], ~D[2026-06-18], format: :yMMMEd, locale: :en)
       {:ok, "Mon, Jun 15 – Thu, Jun 18, 2026"}
+
+      iex> Localize.Interval.to_string(%{month: 6, day: 15}, %{month: 6, day: 20}, locale: :en)
+      {:ok, "Jun 15 – 20"}
 
       iex> Localize.Interval.to_string(~N[2026-06-15 10:00:00], ~N[2026-06-15 14:30:00],
       ...>   format: :yMMMdHm,
@@ -237,37 +246,46 @@ defmodule Localize.Interval do
         format_date_interval(from, to, options, output)
 
       true ->
-        {:error,
-         Localize.DateTimeIntervalFormatError.exception(
-           reason: :mixed_endpoints,
-           detail: "#{inspect(from)} and #{inspect(to)}"
-         )}
+        {:error, mixed_endpoints(from, to)}
     end
+  end
+
+  defp mixed_endpoints(from, to) do
+    Localize.DateTimeIntervalFormatError.exception(
+      reason: :mixed_endpoints,
+      detail: "#{inspect(from)} and #{inspect(to)}"
+    )
   end
 
   # ── Type detection ───────────────────────────────────────────
   #
-  # A "datetime" value has both a date part (year/month/day) and a
-  # time part (hour). Struct types Date/Time/NaiveDateTime/DateTime
-  # are handled explicitly; generic maps fall back to key-presence.
+  # A value is known by the fields it holds: a date by a year, a month or a
+  # day, a time by an hour, and a date and time by both. A date need not
+  # hold a year: a month, or a month and a day, is a date ("Jun", "Jun 15"),
+  # as `Localize.Date.to_string/2` writes it. Struct types
+  # Date/Time/NaiveDateTime/DateTime are handled explicitly; generic maps
+  # fall back to key-presence.
 
   defp datetime_value?(%DateTime{}), do: true
   defp datetime_value?(%NaiveDateTime{}), do: true
   defp datetime_value?(%Date{}), do: false
   defp datetime_value?(%Time{}), do: false
-  defp datetime_value?(%{year: _, hour: _}), do: true
+  defp datetime_value?(%{hour: _} = map), do: date_fields(map) != []
   defp datetime_value?(_), do: false
 
   defp date_value?(%Date{}), do: true
-  defp date_value?(%{year: _} = map), do: not Map.has_key?(map, :hour)
+  defp date_value?(%{} = map), do: date_fields(map) != [] and not Map.has_key?(map, :hour)
   defp date_value?(_), do: false
 
   defp time_value?(%Time{}), do: true
   defp time_value?(%DateTime{}), do: false
   defp time_value?(%NaiveDateTime{}), do: false
   defp time_value?(%Date{}), do: false
-  defp time_value?(%{hour: _} = map), do: not Map.has_key?(map, :year)
+  defp time_value?(%{hour: _} = map), do: date_fields(map) == []
   defp time_value?(_), do: false
+
+  # The date fields a value holds, largest first.
+  defp date_fields(value), do: Enum.filter(@date_fields, &Map.has_key?(value, &1))
 
   # A value's calendar module; a map without one is taken as `Calendar.ISO`,
   # as the formatters take it.
@@ -301,7 +319,7 @@ defmodule Localize.Interval do
     fields = Keyword.get(options, :fields, @default_fields)
 
     with {:ok, locale_id} <- resolve_locale_id(locale) do
-      case resolve_date_fields(fields, format, locale_id, from) do
+      case resolve_date_fields(fields, format, locale_id, {from, to}) do
         {:ok, {:fallback_style, fallback_format}} ->
           # CLDR ships no skeleton-keyed interval-format data for the
           # per-locale skeleton (e.g. ja's `:yMMdd` for `:short`,
@@ -340,17 +358,37 @@ defmodule Localize.Interval do
   # (`Localize.Date.to_string/2`), and no interval format shares a notation's
   # fields, so whole dates are written in full around the fallback pattern,
   # or once when they are the same day.
-  defp resolve_date_fields(:date, format, locale_id, from)
+  defp resolve_date_fields(:date, format, locale_id, {from, to})
        when format in [:short, :medium, :long, :full] do
     case Localize.Calendar.own_notation?(calendar_of(from)) do
       {:ok, true} -> {:ok, {:fallback_style, format}}
-      {:ok, false} -> resolve_fields(:date, format, locale_id, cldr_calendar_for(from))
+      {:ok, false} -> resolve_standard_format(format, locale_id, from, to)
       {:error, _exception} = error -> error
     end
   end
 
-  defp resolve_date_fields(fields, format, locale_id, from),
+  defp resolve_date_fields(fields, format, locale_id, {from, _to}),
     do: resolve_fields(fields, format, locale_id, cldr_calendar_for(from))
+
+  # A whole date takes the locale's standard date format. A date without one
+  # of its fields takes the format of the fields it holds, as
+  # `Localize.Date.to_string/2` writes it alone: two months are "Jun – Aug",
+  # CLDR's `MMM` interval, and two days of one month "Jun 15 – 20", its
+  # `MMMd`. One format writes both ends, so they must hold the same fields.
+  defp resolve_standard_format(format, locale_id, from, to) do
+    calendar = cldr_calendar_for(from)
+
+    cond do
+      date_fields(from) == @date_fields ->
+        resolve_fields(:date, format, locale_id, calendar)
+
+      date_fields(from) == date_fields(to) ->
+        resolve_fields(:date, Localize.Date.derive_format_id(from, format), locale_id, calendar)
+
+      true ->
+        {:error, mixed_endpoints(from, to)}
+    end
+  end
 
   # The format of a date formatted whole — alone, when the values differ in
   # no unit the interval shows, or in full around the fallback pattern. For
@@ -1219,9 +1257,10 @@ defmodule Localize.Interval do
   end
 
   # Dispatch a single value to the appropriate formatter based on its shape.
-  # Pure time values (hour but no year) go to Time; pure date values (year but
-  # no hour) go to Date; everything else (including NaiveDateTime, DateTime,
-  # and generic maps with both date and time fields) goes to DateTime.
+  # Pure time values (an hour and no date field) go to Time; pure date values
+  # (a year, a month or a day, and no hour) go to Date; everything else
+  # (including NaiveDateTime, DateTime, and generic maps with both date and
+  # time fields) goes to DateTime.
   defp format_single_value(%Time{} = value, options), do: Localize.Time.to_string(value, options)
   defp format_single_value(%Date{} = value, options), do: Localize.Date.to_string(value, options)
 
@@ -1233,13 +1272,13 @@ defmodule Localize.Interval do
 
   defp format_single_value(value, options) when is_map(value) do
     cond do
-      Map.has_key?(value, :year) and Map.has_key?(value, :hour) ->
+      datetime_value?(value) ->
         Localize.DateTime.to_string(value, Keyword.put_new(options, :style, @interval_style))
 
-      Map.has_key?(value, :year) ->
+      date_value?(value) ->
         Localize.Date.to_string(value, options)
 
-      Map.has_key?(value, :hour) ->
+      time_value?(value) ->
         Localize.Time.to_string(value, options)
 
       true ->

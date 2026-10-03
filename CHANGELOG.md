@@ -120,6 +120,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+* `Localize.Interval.to_string/3` and `to_parts/3` take dates that hold only some of their fields, in CLDR's interval format for those fields: two months are "Jun – Aug", a month and a day each "Jun 15 – 20", a year and a month "Jun – Aug 2026", where a date with no year was a `:mixed_endpoints` error and one with no day an error for the day. A date and time with no year keeps its date, where it was written as a time alone.
+
 * A year and a week of a calendar of weeks, `%{year: 2026, month: 25, calendar: Calendrical.ISOWeek}`, is written as the locale writes a week of the year, CLDR's `yw` format, "week 25 of 2026", where it was the period of the calendar's pattern under a generic month name, "M06 2026 AD". `w` and `Y` take a date without its day when every day it could be is in one week.
 
 * A date of a calendar of weeks with a field that is not an integer, such as a `nil` day, is a `Localize.DateTimeInvalidInputError` naming the field, where `Localize.Date.to_string/2` raised from the calendar's `date_to_string/3`.

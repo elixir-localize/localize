@@ -893,6 +893,208 @@ defmodule Localize.IntervalTest do
     end
   end
 
+  # A date need not hold every field: a month, or a month and a day, is a
+  # date, written alone as `Localize.Date.to_string/2` writes it ("Jun",
+  # "Jun 15"). An interval of two takes CLDR's interval format for the fields
+  # they hold. The patterns are CLDR's, from the Gregorian calendar's
+  # `intervalFormats` in `common/main/en.xml`, `de.xml`, `fr.xml` and
+  # `ja.xml`; `en` writes U+2009 either side of its dash:
+  #
+  #     en  M      M     "M – M"
+  #         MMM    M     "MMM – MMM"
+  #         Md     d     "M/d – M/d"
+  #         MMMd   d     "MMM d – d"          M  "MMM d – MMM d"
+  #         MMMMd  d     "MMMM d – d"
+  #         d      d     "d – d"
+  #         y      y     "y – y"
+  #         yM     M     "M/y – M/y"
+  #         yMMM   M     "MMM – MMM y"        y  "MMM y – MMM y"
+  #         yMMMM  M     "MMMM – MMMM y"
+  #     de  MMM    M     "MMM–MMM"
+  #         MMMd   d     "d.–d. MMM"          M  "d. MMM – d. MMM"
+  #     fr  MMMd   d     "d–d MMM"
+  #     ja  MMM    M     "M月～M月"
+  #         MMMd   d     "M月d日～d日"
+  #
+  # `en` has no `MMMM` item, so two months at `:long` take the `MMM` item
+  # with the month as wide as was asked, TR35's adjustment of a matched
+  # pattern.
+  describe "to_string/3 with dates that hold some of their fields" do
+    @dash " – "
+
+    test "two months take the month interval at each standard format" do
+      from = %{month: 6}
+      to = %{month: 8}
+
+      assert Interval.to_string(from, to, locale: :en) == {:ok, "Jun#{@dash}Aug"}
+      assert Interval.to_string(from, to, locale: :en, format: :short) == {:ok, "6#{@dash}8"}
+
+      for format <- [:long, :full] do
+        assert Interval.to_string(from, to, locale: :en, format: format) ==
+                 {:ok, "June#{@dash}August"}
+      end
+
+      assert Interval.to_string(from, to, locale: :de) == {:ok, "Juni–Aug."}
+      assert Interval.to_string(from, to, locale: :ja) == {:ok, "6月～8月"}
+    end
+
+    test "a month and a day take the pattern of the greatest difference" do
+      from = %{month: 6, day: 15}
+      days = %{month: 6, day: 20}
+      months = %{month: 9, day: 1}
+
+      assert Interval.to_string(from, days, locale: :en) == {:ok, "Jun 15#{@dash}20"}
+      assert Interval.to_string(from, months, locale: :en) == {:ok, "Jun 15#{@dash}Sep 1"}
+
+      assert Interval.to_string(from, days, locale: :en, format: :short) ==
+               {:ok, "6/15#{@dash}6/20"}
+
+      assert Interval.to_string(from, days, locale: :en, format: :long) ==
+               {:ok, "June 15#{@dash}20"}
+
+      assert Interval.to_string(from, days, locale: :de) == {:ok, "15.–20. Juni"}
+      assert Interval.to_string(from, months, locale: :de) == {:ok, "15. Juni#{@dash}1. Sept."}
+      assert Interval.to_string(from, days, locale: :fr) == {:ok, "15–20 juin"}
+      assert Interval.to_string(from, days, locale: :ja) == {:ok, "6月15日～20日"}
+    end
+
+    test "a day, a year, and a year and a month take theirs" do
+      assert Interval.to_string(%{day: 5}, %{day: 10}, locale: :en) == {:ok, "5#{@dash}10"}
+
+      assert Interval.to_string(%{year: 2026}, %{year: 2028}, locale: :en) ==
+               {:ok, "2026#{@dash}2028"}
+
+      from = %{year: 2026, month: 6}
+      to = %{year: 2026, month: 8}
+
+      assert Interval.to_string(from, to, locale: :en) == {:ok, "Jun#{@dash}Aug 2026"}
+
+      assert Interval.to_string(from, %{year: 2027, month: 2}, locale: :en) ==
+               {:ok, "Jun 2026#{@dash}Feb 2027"}
+
+      assert Interval.to_string(from, to, locale: :en, format: :short) ==
+               {:ok, "6/2026#{@dash}8/2026"}
+
+      assert Interval.to_string(from, to, locale: :en, format: :long) ==
+               {:ok, "June#{@dash}August 2026"}
+    end
+
+    # A skeleton and a field selection name their fields themselves, and a
+    # pattern is written for each end about the fallback pattern, "{0} – {1}".
+    # A format that needs a field the dates do not hold names it.
+    test "a skeleton, a field selection and a pattern are used as they are given" do
+      from = %{month: 6, day: 15}
+      to = %{month: 6, day: 20}
+
+      assert Interval.to_string(from, to, locale: :en, format: :MMMd) ==
+               {:ok, "Jun 15#{@dash}20"}
+
+      assert Interval.to_string(from, to, locale: :en, fields: :month_and_day) ==
+               {:ok, "Jun 15#{@dash}20"}
+
+      assert Interval.to_string(from, to, locale: :en, format: "d MMM") ==
+               {:ok, "15 Jun#{@dash}20 Jun"}
+
+      assert {:error, %Localize.DateTimeInvalidInputError{missing: [:year]}} =
+               Interval.to_string(from, to, locale: :en, fields: :year_and_month)
+
+      assert {:error, %Localize.DateTimeInvalidInputError{missing: [:day]}} =
+               Interval.to_string(%{month: 6}, %{month: 8}, locale: :en, format: :MMMd)
+    end
+
+    test "ends that differ in no field the format shows are written once" do
+      assert Interval.to_string(%{month: 6}, %{month: 6}, locale: :en) == {:ok, "Jun"}
+
+      assert Interval.to_string(%{month: 6, day: 15}, %{month: 6, day: 20},
+               locale: :en,
+               format: :MMM
+             ) == {:ok, "Jun"}
+    end
+
+    # With no year there is no saying which end is the earlier, so November
+    # to February is an interval as June to August is.
+    test "an interval may run past the end of a year" do
+      assert Interval.to_string(%{month: 11}, %{month: 2}, locale: :en) ==
+               {:ok, "Nov#{@dash}Feb"}
+    end
+
+    test "to_parts/3 gives the same text, each part with its end" do
+      assert {:ok, parts} =
+               Interval.to_parts(%{month: 6, day: 15}, %{month: 6, day: 20}, locale: :en)
+
+      assert parts == [
+               %{type: :month, value: "Jun", source: :start_range},
+               %{type: :literal, value: " ", source: :start_range},
+               %{type: :day, value: "15", source: :start_range},
+               %{type: :literal, value: @dash, source: :shared},
+               %{type: :day, value: "20", source: :end_range}
+             ]
+    end
+
+    test "an open interval writes the end it has" do
+      assert Interval.to_string(%{month: 6}, nil, locale: :en) == {:ok, "Jun –"}
+      assert Interval.to_string(nil, %{month: 6, day: 15}, locale: :en) == {:ok, "– Jun 15"}
+    end
+
+    # A date and a time with no year is a date and a time: it was taken for a
+    # time, and its month and day dropped. On one day the date is written once
+    # with the times as a range, `en`'s `hm` interval "h:mm a – h:mm a" joined
+    # by its date-time pattern "{1}, {0}"; on two days both are written in
+    # full about the fallback pattern.
+    test "a date and a time with no year keeps its date" do
+      from = %{month: 6, day: 15, hour: 10, minute: 0}
+      to = %{month: 6, day: 15, hour: 14, minute: 30}
+
+      assert Interval.to_string(from, to, locale: :en) ==
+               {:ok, "Jun 15, 10:00 AM#{@dash}2:30 PM"}
+
+      assert Interval.to_string(from, %{to | day: 16}, locale: :en) ==
+               {:ok, "Jun 15, 10:00 AM#{@dash}Jun 16, 2:30 PM"}
+
+      assert Interval.to_string(from, nil, locale: :en) ==
+               {:ok, "Jun 15, 10:00 AM –"}
+    end
+
+    # One format writes both ends, so they hold the same fields.
+    test "ends that hold different fields are mixed endpoints" do
+      for {from, to} <- [
+            {%{month: 6}, %{month: 8, day: 1}},
+            {%{year: 2026, month: 6}, %{month: 8}},
+            {%{year: 2026, month: 6}, ~D[2026-08-15]},
+            {%{month: 6}, %{hour: 10}},
+            {%{month: 6, hour: 10}, %{hour: 12}}
+          ] do
+        assert {:error, %Localize.DateTimeIntervalFormatError{reason: :mixed_endpoints}} =
+                 Interval.to_string(from, to, locale: :en),
+               inspect({from, to})
+      end
+    end
+
+    test "a field that is no number is an error naming it, and never raises" do
+      for value <- [nil, "6", :june, 6.0, :""] do
+        from = %{month: value}
+
+        assert {:error, %Localize.DateTimeInvalidInputError{invalid: [:month]}} =
+                 Interval.to_string(from, %{month: 8}, locale: :en),
+               inspect(value)
+
+        assert {:error, %Localize.DateTimeInvalidInputError{invalid: [:month]}} =
+                 Interval.to_parts(from, %{month: 8}, locale: :en),
+               inspect(value)
+
+        assert {:error, %Localize.DateTimeInvalidInputError{invalid: [:month]}} =
+                 Interval.to_string(from, nil, locale: :en),
+               inspect(value)
+      end
+
+      assert {:error, %Localize.InvalidValueError{}} =
+               Interval.to_string(%{month: 0}, %{month: 8}, locale: :en)
+
+      assert {:error, %Localize.DateTimeIntervalFormatError{reason: :mixed_endpoints}} =
+               Interval.to_string(%{}, %{}, locale: :en)
+    end
+  end
+
   describe "to_string/3 error propagation" do
     test "an invalid locale on the :short time path returns an error" do
       assert {:error, %Localize.InvalidLocaleError{}} =

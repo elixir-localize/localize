@@ -91,6 +91,26 @@ iex> Localize.Interval.to_string(~D[2026-06-15], ~D[2026-06-18], format: "d MMM 
 {:ok, "15 Jun 2026 – 18 Jun 2026"}
 ```
 
+### Partial dates
+
+A date need not hold every field. A map with a month, a month and a day, or a year and a month is a date, as it is for `Localize.Date.to_string/2`, and an interval of two takes at a standard format CLDR's interval format for the fields they hold:
+
+```elixir
+iex> Localize.Interval.to_string(%{month: 6}, %{month: 8}, locale: :en)
+{:ok, "Jun – Aug"}
+
+iex> Localize.Interval.to_string(%{month: 6, day: 15}, %{month: 6, day: 20}, locale: :en)
+{:ok, "Jun 15 – 20"}
+
+iex> Localize.Interval.to_string(%{year: 2026, month: 6}, %{year: 2026, month: 8}, locale: :en, format: :long)
+{:ok, "June – August 2026"}
+
+iex> Localize.Interval.to_string(%{month: 6, day: 15}, %{month: 6, day: 20}, locale: :de)
+{:ok, "15.–20. Juni"}
+```
+
+One format writes both endpoints, so they hold the same fields: a month and a month with its day are a `Localize.DateTimeIntervalFormatError`. A skeleton, a `:fields` selection or a pattern is used as it is given, and needs only that both endpoints hold the fields it shows. Two dates with no year have no order, so November to February is an interval as June to August is. A date and time may lack its year too: 10:00 to 14:30 on `%{month: 6, day: 15}` is "Jun 15, 10:00 AM – 2:30 PM".
+
 ### Intervals for times and datetimes
 
 `Localize.Interval.to_string/3` accepts `Date`, `Time`, `NaiveDateTime`, and `DateTime` values, as well as any map with the appropriate fields. The formatting strategy depends on what fields differ:
@@ -165,7 +185,7 @@ The Japanese calendar changes era within a year, so its interval from 30 April t
 
 1. The greatest difference between the two endpoints is identified (era, year, month, day, hour, or minute). Endpoints that differ in no field the format shows are formatted once; whole dates then take the requested standard format, exactly as `Localize.Date.to_string/2` renders it.
 
-2. A skeleton given as `:format` is the skeleton; `:fields` and a standard `:format` resolve to one, from the endpoints' calendar. A datetime interval's skeleton is split into its date and time fields, the time fields taking the interval entry. A pattern names no entry, so both endpoints are formatted with it, as in step 5.
+2. A skeleton given as `:format` is the skeleton; `:fields` and a standard `:format` resolve to one, from the endpoints' calendar, and from the fields the endpoints hold when they are not whole dates. A datetime interval's skeleton is split into its date and time fields, the time fields taking the interval entry. A pattern names no entry, so both endpoints are formatted with it, as in step 5.
 
 3. That skeleton is looked up in the interval table of the locale and calendar. If CLDR ships no entry under it, the closest entry carrying the same fields is taken and its pattern adjusted to the requested widths — TR35 matches on fields, not widths, so a `yMMMd` pattern answering a requested `yMMMMd` still has to spell "June" rather than "Jun". A candidate with different fields can never win.
 
