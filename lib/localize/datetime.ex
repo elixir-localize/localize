@@ -1118,7 +1118,8 @@ defmodule Localize.DateTime do
     end
   end
 
-  # The CLDR calendar whose data formats a value: its calendar's answer.
+  # The CLDR calendar whose data formats a value: its calendar's answer for
+  # the value's date.
   defp cldr_calendar_for(value) when is_map(value),
-    do: Localize.Calendar.cldr_calendar_type(Map.get(value, :calendar, Calendar.ISO))
+    do: Localize.Calendar.date_calendar_type(value)
 end

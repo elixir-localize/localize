@@ -31,6 +31,10 @@ defmodule Localize.Calendar.ISO do
   def cldr_calendar_type, do: :gregorian
 
   @doc false
+  @spec cldr_calendar_type(Calendar.year(), Calendar.month(), Calendar.day()) :: :gregorian
+  def cldr_calendar_type(_year, _month, _day), do: :gregorian
+
+  @doc false
   @spec era_calendar_type() :: :gregorian
   def era_calendar_type, do: :gregorian
 

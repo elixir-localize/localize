@@ -794,30 +794,34 @@ defmodule Localize.Currency do
 
       ambiguous =
         currencies
-        |> Enum.flat_map(fn {code, currency} ->
-          # A narrow symbol is matched downcased, as `currency_strings/2`
-          # adds it.
-          narrow =
-            if currency.narrow_symbol, do: [String.downcase(currency.narrow_symbol)], else: []
-
-          currency
-          |> claimed_strings(code)
-          |> Kernel.++(narrow)
-          |> Enum.uniq()
-          |> Enum.map(&{&1, code})
-        end)
+        |> Enum.flat_map(&currency_claims/1)
         |> Enum.group_by(&elem(&1, 0), &elem(&1, 1))
-        |> Enum.flat_map(fn {string, codes} ->
-          codes = codes |> Enum.uniq() |> Enum.sort()
-
-          if match?([_, _ | _], codes) and not Map.has_key?(resolved, string),
-            do: [{string, codes}],
-            else: []
-        end)
+        |> Enum.flat_map(&unresolved_claim(&1, resolved))
         |> Map.new()
 
       {:ok, ambiguous}
     end
+  end
+
+  # Every string a currency is named by, its narrow symbol among them,
+  # matched downcased as `currency_strings/2` adds it.
+  defp currency_claims({code, currency}) do
+    narrow = if currency.narrow_symbol, do: [String.downcase(currency.narrow_symbol)], else: []
+
+    currency
+    |> claimed_strings(code)
+    |> Kernel.++(narrow)
+    |> Enum.uniq()
+    |> Enum.map(&{&1, code})
+  end
+
+  # A string more than one currency claims, which no claimant took.
+  defp unresolved_claim({string, codes}, resolved) do
+    codes = codes |> Enum.uniq() |> Enum.sort()
+
+    if match?([_, _ | _], codes) and not Map.has_key?(resolved, string),
+      do: [{string, codes}],
+      else: []
   end
 
   @doc """

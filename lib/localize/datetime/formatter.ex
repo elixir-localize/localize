@@ -1686,7 +1686,7 @@ defmodule Localize.DateTime.Formatter do
 
   # The CLDR calendar a datetime's calendar names its fields from.
   defp cldr_calendar_for_datetime(datetime) when is_map(datetime),
-    do: Localize.Calendar.cldr_calendar_type(Map.get(datetime, :calendar, Calendar.ISO))
+    do: Localize.Calendar.date_calendar_type(datetime)
 
   defp cldr_calendar_for_datetime(_datetime), do: :gregorian
 

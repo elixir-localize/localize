@@ -1309,8 +1309,7 @@ defmodule Localize.Calendar do
 
   defp resolve_locale_id(locale), do: Localize.Locale.cldr_locale_id_from(locale)
 
-  defp calendar_type_from(datetime),
-    do: cldr_calendar_type(Map.get(datetime, :calendar, Calendar.ISO))
+  defp calendar_type_from(datetime), do: date_calendar_type(datetime)
 
   # A calendar may name its eras from another CLDR calendar than its
   # months: Calendrical's lunisolar Japanese calendar takes its month
@@ -1517,6 +1516,36 @@ defmodule Localize.Calendar do
   # The CLDR calendar whose data names a calendar's months and days.
   @spec cldr_calendar_type(module()) :: atom()
   def cldr_calendar_type(calendar), do: answering(calendar).cldr_calendar_type()
+
+  @doc false
+  # The CLDR calendar whose data names a date's months and days: the
+  # calendar's answer for the date where it gives one, through the optional
+  # `cldr_calendar_type/3` (a composite calendar answers with the calendar in
+  # effect on the date, so the Japanese composite names its lunisolar months
+  # from the Chinese calendar and its later months from the Japanese), and
+  # otherwise its `cldr_calendar_type/0`. A date without its month or day is
+  # asked on the first. A value without a year has only the calendar's type.
+  @spec date_calendar_type(term()) :: atom()
+  def date_calendar_type(%{year: year} = date) when is_integer(year) do
+    answers = date |> Map.get(:calendar, Calendar.ISO) |> answering()
+
+    if Code.ensure_loaded?(answers) and function_exported?(answers, :cldr_calendar_type, 3) do
+      month = Map.get(date, :month)
+      day = Map.get(date, :day)
+      month = if is_integer(month), do: month, else: 1
+      day = if is_integer(day), do: day, else: 1
+
+      case answers.cldr_calendar_type(year, month, day) do
+        type when is_atom(type) and type not in [nil, true, false] -> type
+        _not_a_calendar_type -> answers.cldr_calendar_type()
+      end
+    else
+      answers.cldr_calendar_type()
+    end
+  end
+
+  def date_calendar_type(%{calendar: calendar}), do: cldr_calendar_type(calendar)
+  def date_calendar_type(_value), do: cldr_calendar_type(Calendar.ISO)
 
   @doc false
   # The CLDR calendar whose data names a calendar's eras.
