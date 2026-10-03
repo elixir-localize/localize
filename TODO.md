@@ -6,15 +6,9 @@ Outstanding work on Localize. The design detail behind these items lives under [
 
 * [ ] **A week alone in a calendar of weeks is written in its notation** — `Localize.Date.to_string(%{year: 2026, month: 25, calendar: Calendrical.ISOWeek})` is "M06 2026 AD" ("6/2026 AD" short), the week's period under the generic calendar's month name, where the whole date is written as its calendar writes it, "2026-W25-2" ("output the same as the input"). By the same rule a year and a week are "2026-W25" (user, in the Tempo session, 2026-10-02). `date_to_string/3` writes a whole date only, so the calendar needs a callback that writes a year and a week, which Calendrical's week calendars lack. Tempo's `to_string/2` of `~o"2026-W25"W` waits on it, and writes the week's first and last days until then ("2026-W25-1 – 2026-W25-7").
 
-* [ ] **Settle the location format of a non-location zone with CLDR** — TR35 49 says a zone with no region (`PST8PDT`, `Etc/GMT+5`) falls back to the offset format, then gives "PST8PDT, generic → Unknown Location Time" as its worked example. Localize follows the first; the conformance data has no case. Worth a CLDR ticket.
-
 * [ ] **Audit `cldr-49`-only code for map-order dependence** — the 2026-09-26 audit covered `main`. [plans/map-order.md](plans/map-order.md).
 
 * [ ] **Choose a fixed-offset representation that `DateTime` functions honour** — Localize and Calendrical carry an offset such as `-05:00` under `Etc/UTC`, so `DateTime.shift_zone(parsed, "Etc/UTC")` returns it unchanged. The MF2 interpreter converts from the instant instead; `Etc/GMT+5` or an offset string would need both libraries to change together.
-
-* [ ] **Report `pt`'s `GyMMMM` to CLDR** — CLDR gives it as "MMMM 'de' Y G", with the week-based year `Y` where every sibling format has `y`, so 2025-12-29 renders "dezembro de 2026 d.C.".
-
-* [ ] **Report 12-hour patterns without a day period to CLDR** — `fr-CM`'s `h`, `hm` and `hms`, `bal-Latn`'s `hm` and `es-AR`'s `hms` are 12-hour patterns with no day period, which TR35 forbids, so the "12:30" and "1:45" they write each name two times.
 
 * [ ] **Decide whether specific zone names are qualified** — CLDR's own `TimezoneFormatter` qualifies the specific format (`z`, `zzzz`) as it does the generic one, "Central European Summer Time (Germany)" for Berlin in `en`, where ICU4C never does; a specific name already reads back to its instant, and Localize qualifies only the generic format.
 
@@ -36,8 +30,6 @@ Outstanding work on Localize. The design detail behind these items lives under [
 
 * [ ] **`Localize.Calendar.localize/3` names the first value of a part the date lacks** — a map without a month is January, the first quarter and a Monday, and one without a year the current era; characterization tests pin this. Decide whether they should be errors.
 
-* [ ] **Settle TR35's `Auto` zone style with CLDR** — TR35 makes it the default but its mapping table gives it no row, so Localize defaults to `:specific`; ICU4X offers no automatic style at all.
-
 * [ ] **Name standard and daylight time by a metazone's `stdOffset` and `dstOffset`** — TR35 lets `usesMetazone` say which offset is standard time and which daylight where the time zone database's flag is unreliable (`Europe/Dublin`, and in CLDR 49 `America/Winnipeg` for Manitoba's DST change); Localize ignores both attributes and decides from the datetime's `std_offset`.
 
 ## In progress
@@ -49,6 +41,16 @@ Outstanding work on Localize. The design detail behind these items lives under [
 * [ ] **Move the CLDR pin to beta3** — the data is built from CLDR `main` at `6198cae999`, `release-49-beta2` with the converter fix it lacks (CLDR-19774) and the Manitoba DST metazone change (user, 2026-09-30). Blocked on CLDR 49 beta3, expected 2026-10.
 
 * [ ] **Interval patterns inherited from a different locale level than the single date** — plan item 35: whether to glue or keep the inherited pattern. Blocked on CLDR-14207.
+
+* [ ] **Report `pt`'s `GyMMMM` and `gd`'s `yMMM` to CLDR** — both write the week-based year `Y` where every sibling format has `y`, so 2025-12-29 renders "dezembro de 2026 d.C.". Blocked on the user filing `tmp/cldr-reports/01-week-based-year-in-month-year-formats.md`.
+
+* [ ] **Report 12-hour patterns without a day period to CLDR** — `fr-CM`'s `h`, `hm` and `hms`, `bal-Latn`'s `hm` and `es-AR`'s `hms` are 12-hour patterns with no day period, which TR35 forbids, so the "12:30" and "1:45" they write each name two times. Blocked on the user filing `tmp/cldr-reports/02-twelve-hour-patterns-without-a-day-period.md`.
+
+* [ ] **Report numeric skeletons that contradict the standard date format to CLDR** — `mt`, `sbp`, `vai_Latn`, `my` and `sa` (the round-trip and era items above). Blocked on the user filing `tmp/cldr-reports/03-skeletons-against-the-standard-formats.md`.
+
+* [ ] **Settle the location format of a non-location zone with CLDR** — TR35 49 says a zone with no region (`PST8PDT`, `Etc/GMT+5`) falls back to the offset format, then gives "PST8PDT, generic → Unknown Location Time" as its worked example. Localize follows the first; the conformance data has no case. Blocked on the user filing `tmp/cldr-reports/04-location-format-of-a-non-location-zone.md`.
+
+* [ ] **Settle TR35's `Auto` zone style with CLDR** — TR35 makes it the default but its mapping table gives it no row, so Localize defaults to `:specific`; ICU4X offers no automatic style at all. Blocked on the user filing `tmp/cldr-reports/05-auto-time-zone-style.md`.
 
 ## Deferred
 
