@@ -1069,9 +1069,17 @@ defmodule Localize.Date.Parser do
   # is its sixth month.
   defp extract_month(caps, prefix) do
     case {capture(caps, prefix <> "month"), capture(caps, prefix <> "traditional_month")} do
-      {nil, nil} -> named_month_capture(caps, prefix)
+      {nil, nil} -> numeral_month(caps, prefix) || named_month_capture(caps, prefix)
       {nil, raw} -> traditional_month(raw, leap_marked?(caps, prefix))
       {raw, _traditional} -> month_number(raw)
+    end
+  end
+
+  # The month an algorithmic numeral (`romanlow` "xii") gives.
+  defp numeral_month(caps, prefix) do
+    case named_capture_index(caps, prefix <> "__n") do
+      month when is_integer(month) -> {:named, month}
+      nil -> nil
     end
   end
 
@@ -2163,15 +2171,19 @@ defmodule Localize.Date.Parser do
 
   # A lunisolar calendar's month written as a number is its traditional
   # number, a leap month in the locale's numeric leap pattern ("2bis",
-  # "闰2").
+  # "闰2"). A month written in an algorithmic numbering (`haw`'s
+  # `romanlow`, "31/xii/24") is read as the formatter writes it.
   defp field_regex({:M, count}, _months, _eras, lenient, ctx) when count <= 2 do
     digit = digit_class(ctx, "M")
 
-    case numeric_leap_affixes(ctx) do
-      nil ->
+    case {numeral_names(ctx, "M", 1..13), numeric_leap_affixes(ctx)} do
+      {[_ | _] = numerals, _leap} ->
+        {:capture, :month, numeral_regex(numerals, "__n")}
+
+      {[], nil} ->
         {:capture, :month, "(?P<month>#{digit}{1,2})"}
 
-      {prefix, suffix} ->
+      {[], {prefix, suffix}} ->
         {:capture, :traditional_month,
          optional_capture("month_leap_before", prefix, lenient) <>
            "(?P<traditional_month>#{digit}{1,2})" <>

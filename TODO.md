@@ -18,7 +18,7 @@ Outstanding work on Localize. The design detail behind these items lives under [
 
 * [ ] **Decide whether specific zone names are qualified** — CLDR's own `TimezoneFormatter` qualifies the specific format (`z`, `zzzz`) as it does the generic one, "Central European Summer Time (Germany)" for Berlin in `en`, where ICU4C never does; a specific name already reads back to its instant, and Localize qualifies only the generic format.
 
-* [ ] **Date round trips that fail in seven locales** — `haw` writes months in Roman numerals ("31/xii/24"), `nnh`'s long and full dates do not parse, and `gd`'s `yMMM` writes the week-based year ("Dùbh 2025" for 2024-12-31, a CLDR report like `pt`'s). `mt`, `sbp` and `vai_Latn` give `yMd` as "M/d/y" beside a short date of "dd/MM/y" in CLDR, so "3/4/2024" reads as the short date (a CLDR report), and `ug`'s `yMd` "y-d-M" reads as ISO 8601 (the ISO-shaped date decision below).
+* [ ] **Date round trips that fail in six locales** — `nnh`'s long and full dates do not parse, and `gd`'s `yMMM` writes the week-based year ("Dùbh 2025" for 2024-12-31, a CLDR report like `pt`'s). `mt`, `sbp` and `vai_Latn` give `yMd` as "M/d/y" beside a short date of "dd/MM/y" in CLDR, so "3/4/2024" reads as the short date (a CLDR report), and `ug`'s `yMd` "y-d-M" reads as ISO 8601 (the ISO-shaped date decision below).
 
 * [ ] **RBNF formatting takes tens of milliseconds a number** — `Localize.Number.to_string(5784, locale: :he, format: :hebrew)`, which writes each Hebrew-numeral field of `he`'s Hebrew dates, took about 50 ms a call, and the 9,999 numerals of the years 1 to 9999 more than four minutes, so a `he` Hebrew date formats in a tenth of a second. Find where the time goes.
 
@@ -59,6 +59,8 @@ Outstanding work on Localize. The design detail behind these items lives under [
 * [ ] **`localize_emoji` sibling library** — plan item 11, a separate package on its own schedule. A Phoenix LiveView picker (`localize_emoji_live`) is out of scope for its 0.1.0.
 
 ## Done
+
+* [x] **`haw`'s Roman-numeral months parse** — a numeric month written in an algorithmic numbering is read as the formatter writes it, as a day already was, so "31/xii/24" is 31 December 2024. 2026-10-03, v1.4.0.
 
 * [x] **`en-ZW` reads "May 2019" as May 2019** — a comma that is a pattern's only separator between two fields stays required, and the comma-stripped month-day swap keeps a space for it, where "dd MMM,y" ran the day and year together. 2026-10-03, v1.4.0.
 
