@@ -346,6 +346,11 @@ defmodule Localize.Number.Parser do
   @doc """
   Resolves a currency from the beginning and/or end of a string.
 
+  A string several of the locale's currencies share names the currency
+  of the territory whose CLDR locale is nearest the locale, when that
+  locale is a good fit and no other claimant's is as near: "$" is the
+  Canadian dollar in `fr`, as in `fr-CA`. Otherwise it stays unknown.
+
   ### Arguments
 
   * `string` is a string potentially containing a currency name or symbol.
@@ -391,14 +396,13 @@ defmodule Localize.Number.Parser do
     except_filter = Keyword.get(options, :except, [])
     fuzzy = Keyword.get(options, :fuzzy, nil)
 
+    filters = [only: only_filter, except: except_filter]
+
     with {:ok, language_tag} <- Localize.validate_locale(locale),
          locale_id <- locale_id(language_tag),
-         {:ok, currency_strings} <-
-           Localize.Currency.currency_strings(locale_id,
-             only: only_filter,
-             except: except_filter
-           ),
-         {:ok, currency} <- find_and_replace(currency_strings, string, fuzzy) do
+         {:ok, currency_strings} <- Localize.Currency.currency_strings(locale_id, filters),
+         {:ok, currency} <-
+           find_or_resolve_currency(currency_strings, string, fuzzy, language_tag, filters) do
       currency
     else
       # Only finding no currency means the currency is unknown. An invalid
@@ -408,6 +412,107 @@ defmodule Localize.Number.Parser do
 
       {:error, _exception} = error ->
         error
+    end
+  end
+
+  # A string several of the locale's currencies share ("$" in `fr`) names
+  # the currency used where the locale closest to this one is spoken: of
+  # the CLDR locales of each claimant's territories, the one
+  # `Localize.LanguageTag.match_distance/2` puts nearest, if it is a good
+  # fit and no locale of another claimant is as near. So "$" is the
+  # Canadian dollar in `fr`, as it is in `fr-CA`, and stays unknown in
+  # `es`, which Mexico, the United States and Argentina are as near.
+  defp find_or_resolve_currency(currency_strings, string, fuzzy, language_tag, filters) do
+    case find_and_replace(currency_strings, string, fuzzy) do
+      {:ok, _found} = found ->
+        found
+
+      {:error, _not_found} = error ->
+        resolve_ambiguous(string, fuzzy, language_tag, filters) || error
+    end
+  end
+
+  defp resolve_ambiguous(string, fuzzy, language_tag, filters) do
+    with {:ok, ambiguous} <-
+           Localize.Currency.ambiguous_currency_strings(locale_id(language_tag), filters),
+         {:ok, found} when is_list(found) <- find_and_replace(ambiguous, string, fuzzy),
+         {:ok, resolved} <- resolve_claimants(found, language_tag) do
+      {:ok, resolved}
+    else
+      _unresolved -> nil
+    end
+  end
+
+  defp resolve_claimants(found, language_tag) do
+    Enum.reduce_while(found, {:ok, []}, fn
+      codes, {:ok, acc} when is_list(codes) ->
+        case closest_currency(codes, language_tag) do
+          {:ok, code} -> {:cont, {:ok, acc ++ [code]}}
+          :error -> {:halt, :error}
+        end
+
+      other, {:ok, acc} ->
+        {:cont, {:ok, acc ++ [other]}}
+    end)
+  end
+
+  # A match distance below this is a good fit (`match_distance/2`): the
+  # same language in another territory is 3 to 5, a related language 12
+  # and an unrelated one 84.
+  @good_fit_distance 10
+
+  defp closest_currency(codes, language_tag) do
+    scored =
+      for code <- codes,
+          locale_id <- home_locale_ids(code),
+          distance <- [
+            Localize.LanguageTag.match_distance(language_tag, Atom.to_string(locale_id))
+          ],
+          is_number(distance) and distance < @good_fit_distance,
+          do: {distance, code}
+
+    with [_ | _] <- scored,
+         nearest = scored |> Enum.map(&elem(&1, 0)) |> Enum.min(),
+         [code] <- for({^nearest, code} <- scored, uniq: true, do: code) do
+      {:ok, code}
+    else
+      _none_or_tied -> :error
+    end
+  end
+
+  # The CLDR locales of the territories whose current currency `code` is.
+  defp home_locale_ids(code) do
+    locales_by_territory = locales_by_territory()
+
+    for {territory, locale_ids} <- locales_by_territory,
+        Localize.Currency.current_currency_for_territory(territory) == code,
+        locale_id <- locale_ids,
+        do: locale_id
+  end
+
+  # Every CLDR locale by its territory, given or likely (`fr-CA` is
+  # Canada's, `fr` France's), built once.
+  defp locales_by_territory do
+    key = {__MODULE__, :locales_by_territory}
+
+    case :persistent_term.get(key, nil) do
+      nil ->
+        map =
+          Enum.group_by(
+            for(
+              locale_id <- Localize.all_locale_ids(),
+              {:ok, territory} <- [Localize.Territory.territory_from_locale(locale_id)],
+              do: {territory, locale_id}
+            ),
+            &elem(&1, 0),
+            &elem(&1, 1)
+          )
+
+        :persistent_term.put(key, map)
+        map
+
+      map ->
+        map
     end
   end
 

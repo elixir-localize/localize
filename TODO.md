@@ -8,8 +8,6 @@ Outstanding work on Localize. The design detail behind these items lives under [
 
 * [ ] **Settle the location format of a non-location zone with CLDR** — TR35 49 says a zone with no region (`PST8PDT`, `Etc/GMT+5`) falls back to the offset format, then gives "PST8PDT, generic → Unknown Location Time" as its worked example. Localize follows the first; the conformance data has no case. Worth a CLDR ticket.
 
-* [ ] Currency parsing - when presented with an ambiguous currency text, resolve it by ordering the locales by the match distance to the current locale (either parameter, or Localize.get_locale/1)
-
 * [ ] **Audit `cldr-49`-only code for map-order dependence** — the 2026-09-26 audit covered `main`. [plans/map-order.md](plans/map-order.md).
 
 * [ ] **Choose a fixed-offset representation that `DateTime` functions honour** — Localize and Calendrical carry an offset such as `-05:00` under `Etc/UTC`, so `DateTime.shift_zone(parsed, "Etc/UTC")` returns it unchanged. The MF2 interpreter converts from the instant instead; `Etc/GMT+5` or an offset string would need both libraries to change together.
@@ -61,6 +59,8 @@ Outstanding work on Localize. The design detail behind these items lives under [
 * [ ] **`localize_emoji` sibling library** — plan item 11, a separate package on its own schedule. A Phoenix LiveView picker (`localize_emoji_live`) is out of scope for its 0.1.0.
 
 ## Done
+
+* [x] **Ambiguous currency text resolves by the nearest locale** — a string several of the locale's currencies share names the currency whose territory's CLDR locale is nearest, within a good fit and untied: "$" is the Canadian dollar in `fr`, and stays unknown in `es`. 2026-10-03, v1.4.0.
 
 * [x] **Hebrew dates in `he` parse** — a year in Hebrew numerals ("ה׳תשפ״ד") is read by its letters' values (`Localize.Number.HebrewNumerals`), and the day was already read as the formatter writes it, so `he`'s Hebrew dates read back. 2026-10-03, v1.4.0.
 

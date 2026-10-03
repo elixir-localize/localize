@@ -72,4 +72,35 @@ defmodule Localize.NumberCurrencyResolutionTest do
     assert Localize.Number.resolve_currency(plural <> " 100", locale: :te) == [:XAF, " 100"]
     assert Localize.Number.resolve_currency("100 " <> plural, locale: :te) == ["100 ", :XAF]
   end
+
+  # In `fr` "$" is the narrow symbol of the Canadian, US and Australian
+  # dollars among others, and names none of them alone. CLDR's `fr-CA`
+  # writes the Canadian dollar "$", and is the same language as `fr` in
+  # another territory (a match distance of 4), where every other dollar's
+  # locales are other languages. Spanish is spoken in Mexico, the United
+  # States and Argentina alike, each writing its own dollar or peso "$".
+  describe "a string several of the locale's currencies share" do
+    test "names the currency of the nearest locale that writes it" do
+      assert Localize.Number.resolve_currency("$100", locale: :fr) == [:CAD, "100"]
+      assert resolve("100 $", locale: :fr) == [100, :CAD]
+    end
+
+    test "stays unknown where two currencies' locales are as near" do
+      assert {:error, %Localize.UnknownCurrencyError{}} =
+               Localize.Number.resolve_currency("$100", locale: :es)
+    end
+
+    test "is listed with its claimants" do
+      assert {:ok, %{"$" => claimants}} = Localize.Currency.ambiguous_currency_strings(:fr)
+      assert [:AUD, :CAD, :USD] -- claimants == []
+
+      assert {:ok, strings} = Localize.Currency.currency_strings(:fr)
+      refute Map.has_key?(strings, "$")
+    end
+
+    test "is resolved only among the currencies the filters keep" do
+      assert Localize.Number.resolve_currency("$100", locale: :fr, only: [:USD, :AUD]) ==
+               {:error, Localize.UnknownCurrencyError.exception(currency: "$100")}
+    end
+  end
 end

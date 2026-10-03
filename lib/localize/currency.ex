@@ -778,6 +778,48 @@ defmodule Localize.Currency do
     end
   end
 
+  @doc false
+  # The strings of a locale's currencies that `currency_strings/2` leaves
+  # out because several currencies claim them, each with the codes of its
+  # claimants: "$" in `:fr`, where it is the narrow symbol of the Canadian,
+  # US and Australian dollars among others.
+  @spec ambiguous_currency_strings(
+          Localize.LanguageTag.t() | atom() | String.t(),
+          Keyword.t() | filter()
+        ) :: {:ok, %{String.t() => [currency_code()]}} | {:error, Exception.t()}
+  def ambiguous_currency_strings(locale, options \\ []) do
+    with {:ok, only, except} <- filter_options(options),
+         {:ok, currencies} <- do_currencies_for_locale(locale, only, except) do
+      resolved = build_currency_strings(currencies)
+
+      ambiguous =
+        currencies
+        |> Enum.flat_map(fn {code, currency} ->
+          # A narrow symbol is matched downcased, as `currency_strings/2`
+          # adds it.
+          narrow =
+            if currency.narrow_symbol, do: [String.downcase(currency.narrow_symbol)], else: []
+
+          currency
+          |> claimed_strings(code)
+          |> Kernel.++(narrow)
+          |> Enum.uniq()
+          |> Enum.map(&{&1, code})
+        end)
+        |> Enum.group_by(&elem(&1, 0), &elem(&1, 1))
+        |> Enum.flat_map(fn {string, codes} ->
+          codes = codes |> Enum.uniq() |> Enum.sort()
+
+          if match?([_, _ | _], codes) and not Map.has_key?(resolved, string),
+            do: [{string, codes}],
+            else: []
+        end)
+        |> Map.new()
+
+      {:ok, ambiguous}
+    end
+  end
+
   @doc """
   Returns the list of strings that map to a given currency
   code in a locale.
@@ -1527,16 +1569,9 @@ defmodule Localize.Currency do
   defp build_currency_strings(currencies) do
     currency_string_pairs =
       Enum.flat_map(currencies, fn {code, currency} ->
-        strings =
-          [currency.name, currency.symbol, to_string(code)]
-          |> Kernel.++(if currency.count, do: Map.values(currency.count), else: [])
-          |> Enum.reject(&is_nil/1)
-          |> Enum.map(&String.downcase/1)
-          |> Enum.map(&String.trim_trailing(&1, @rtl_mark))
-          |> Enum.map(&String.trim_trailing(&1, "."))
-          |> Enum.uniq()
-
-        Enum.map(strings, fn string -> {string, code} end)
+        currency
+        |> claimed_strings(code)
+        |> Enum.map(fn string -> {string, code} end)
       end)
 
     string_map =
@@ -1545,6 +1580,22 @@ defmodule Localize.Currency do
       |> Map.new()
 
     add_unique_narrow_symbols(string_map, currencies)
+  end
+
+  # A currency's name, symbol, code and plural names, as the strings that
+  # name it are matched.
+  defp claimed_strings(currency, code) do
+    counts = if currency.count, do: Map.values(currency.count), else: []
+    normalise_strings([currency.name, currency.symbol, to_string(code) | counts])
+  end
+
+  defp normalise_strings(strings) do
+    strings
+    |> Enum.reject(&is_nil/1)
+    |> Enum.map(&String.downcase/1)
+    |> Enum.map(&String.trim_trailing(&1, @rtl_mark))
+    |> Enum.map(&String.trim_trailing(&1, "."))
+    |> Enum.uniq()
   end
 
   defp resolve_duplicate_strings(pairs, currencies) do
