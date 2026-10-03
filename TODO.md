@@ -26,8 +26,6 @@ Outstanding work on Localize. The design detail behind these items lives under [
 
 * [ ] **`Localize.Calendar.localize/3` names the first value of a part the date lacks** — a map without a month is January, the first quarter and a Monday, and one without a year the current era; characterization tests pin this. Decide whether they should be errors.
 
-* [ ] **Name standard and daylight time by a metazone's `stdOffset` and `dstOffset`** — TR35 lets `usesMetazone` say which offset is standard time and which daylight where the time zone database's flag is unreliable (`Europe/Dublin`, and in CLDR 49 `America/Winnipeg` for Manitoba's DST change); Localize ignores both attributes and decides from the datetime's `std_offset`.
-
 ## In progress
 
 * [ ] **CLDR 49 upgrade** — the plan's items are closed bar item 11; the data is built from CLDR `main` pending beta3 (below), then the final release. [plans/cldr-49.md](plans/cldr-49.md).
@@ -57,6 +55,8 @@ Outstanding work on Localize. The design detail behind these items lives under [
 * [ ] **`localize_emoji` sibling library** — plan item 11, a separate package on its own schedule. A Phoenix LiveView picker (`localize_emoji_live`) is out of scope for its 0.1.0.
 
 ## Done
+
+* [x] **Standard and daylight time by a metazone's `stdOffset` and `dstOffset`** — the supplemental data keeps TR35's two offsets for each metazone period, and where a period names them the offset picks the specific name: Dublin's summer is "Irish Standard Time" whatever `std_offset` says, Winnipeg's -05:00 "Central Daylight Time". 2026-10-03, v1.4.0.
 
 * [x] **Map-order dependence in the code since the 2026-09-26 audit** — audited; the standard formats come in `standard_formats/0`'s order, and a country or city name of zone parsing that two places share resolves by a fixed rule. [plans/map-order.md](plans/map-order.md). 2026-10-03, v1.4.0.
 

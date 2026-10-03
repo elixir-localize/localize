@@ -120,6 +120,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+* A specific time zone name takes standard or daylight time from TR35's `stdOffset` and `dstOffset` where a metazone period names them, as CLDR 49 does for `Europe/Dublin` and `America/Winnipeg`, rather than from the time zone database's flag: Dublin's summer is "Irish Standard Time" however `std_offset` is set.
+
 * Parsing no longer depends on the order a map iterates in, which changes between VMs: the standard formats are tried in the order of `Localize.DateTime.Format.standard_formats/0`, and a country or city name in a zone name that two places share resolves to the one `Localize.Territory` picks, or the alphabetically first zone.
 
 * `Localize.Locale.parent/1` returns a parent that names its CLDR locale, where it cleared the CLDR locale id with the child's subtags, so a caller walking up the locales no longer validates each parent against every locale, about 20 ms a step.

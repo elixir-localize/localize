@@ -477,6 +477,16 @@ defmodule Localize.DateTime.Timezone do
   """
   @spec metazone_for(String.t(), map() | nil) :: atom() | nil
   def metazone_for(time_zone, datetime \\ nil) do
+    case metazone_period(time_zone, datetime) do
+      %{metazone: metazone} -> metazone
+      nil -> nil
+    end
+  end
+
+  # The zone's metazone usage period at the datetime's instant: its
+  # metazone, and the offsets it names as standard and daylight time, if
+  # any.
+  defp metazone_period(time_zone, datetime) do
     canonical = Map.get(@zone_canonical_names, time_zone, time_zone)
 
     # CLDR assigns no metazone to Etc/UTC, but its conformance data
@@ -486,9 +496,7 @@ defmodule Localize.DateTime.Timezone do
     periods = Map.get(@metazone_info, canonical, [])
     instant = metazone_instant(datetime)
 
-    Enum.find_value(periods, fn %{metazone: metazone, from: from, to: to} ->
-      if within_period?(instant, from, to), do: metazone
-    end)
+    Enum.find(periods, fn %{from: from, to: to} -> within_period?(instant, from, to) end)
   end
 
   @doc """
@@ -629,6 +637,8 @@ defmodule Localize.DateTime.Timezone do
         if type == :generic do
           generic_name(time_zone, tz_data, format, datetime, locale_id)
         else
+          type = specific_type(type, time_zone, datetime)
+
           zone_name(time_zone, tz_data, format, type, datetime) ||
             metazone_name(metazone_for(time_zone, datetime), tz_data, format, type, datetime)
         end
@@ -1959,6 +1969,28 @@ defmodule Localize.DateTime.Timezone do
   # about a zone we know nothing about — so the absence is preserved and
   # `gmt_format/3` renders `gmtUnknownFormat`.
   defp total_offset(_no_offset), do: nil
+
+  # Where the zone's metazone period names which offset is standard time
+  # and which daylight (TR35's `stdOffset` and `dstOffset`), the offset
+  # decides, the time zone database's flag being unreliable there:
+  # `Europe/Dublin`'s summer time is daylight time to CLDR, whatever
+  # `std_offset` says, and `America/Winnipeg`'s -05:00 is Central Daylight
+  # Time. Elsewhere the flag decides.
+  defp specific_type(:specific, time_zone, datetime) do
+    with %{std_offset: std, dst_offset: dst} when is_integer(std) and is_integer(dst) <-
+           metazone_period(time_zone, datetime),
+         offset when is_integer(offset) <- total_offset(datetime) do
+      cond do
+        offset == dst -> :daylight
+        offset == std -> :standard
+        true -> resolve_type(:specific, datetime)
+      end
+    else
+      _no_offsets -> resolve_type(:specific, datetime)
+    end
+  end
+
+  defp specific_type(type, _time_zone, _datetime), do: type
 
   defp resolve_type(:generic, _datetime), do: :generic
   defp resolve_type(:standard, _datetime), do: :standard

@@ -304,11 +304,29 @@ defmodule Localize.Data.Supplemental do
         %{
           metazone: metazone_atom(uses["_mzone"]),
           from: metazone_instant(uses["_from"]),
-          to: metazone_instant(uses["_to"])
+          to: metazone_instant(uses["_to"]),
+          std_offset: metazone_offset(uses["_stdOffset"]),
+          dst_offset: metazone_offset(uses["_dstOffset"])
         }
       end)
 
     [{zone_name, usage}]
+  end
+
+  # TR35's `stdOffset` and `dstOffset` name which offset is standard time
+  # and which daylight in a period where the time zone database's flag is
+  # unreliable (`Europe/Dublin`): "+01", "-08" or "+05:30", as seconds east
+  # of UTC, or `nil` where the period names none.
+  defp metazone_offset(nil), do: nil
+
+  defp metazone_offset(<<sign, hours::binary-size(2)>>), do: metazone_offset(sign, hours, "00")
+
+  defp metazone_offset(<<sign, hours::binary-size(2), ":", minutes::binary-size(2)>>),
+    do: metazone_offset(sign, hours, minutes)
+
+  defp metazone_offset(sign, hours, minutes) do
+    seconds = String.to_integer(hours) * 3600 + String.to_integer(minutes) * 60
+    if sign == ?-, do: -seconds, else: seconds
   end
 
   defp metazone_atom(name) do

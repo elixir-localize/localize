@@ -340,4 +340,47 @@ defmodule Localize.DateTime.TimezoneFormatTest do
       assert {:ok, "+0100"} = Timezone.iso_format(%{utc_offset: 3600})
     end
   end
+
+  # TR35 lets a metazone period name which offset is standard time and which
+  # daylight, where the time zone database's flag is unreliable. CLDR 49's
+  # `metaZones.xml` gives `Europe/Dublin` stdOffset "+00" and dstOffset
+  # "+01" from 1971-10-31, and `America/Winnipeg` "-06" and "-05". In `en`,
+  # Dublin's daylight name is "Irish Standard Time", and Central time's
+  # "Central Daylight Time".
+  describe "a metazone period's standard and daylight offsets" do
+    @summer %{year: 2024, month: 7, day: 1, hour: 12, minute: 0, second: 0}
+    @winter %{year: 2024, month: 1, day: 15, hour: 12, minute: 0, second: 0}
+
+    test "decide the specific name whatever std_offset says" do
+      # Irish Standard Time flagged as standard time, as the time zone
+      # database's main data has it, and as daylight saving time.
+      for offsets <- [%{utc_offset: 3600, std_offset: 0}, %{utc_offset: 0, std_offset: 3600}] do
+        dublin = @summer |> Map.merge(offsets) |> Map.put(:time_zone, "Europe/Dublin")
+        assert {:ok, "Irish Standard Time"} = Timezone.non_location_format(dublin, :en)
+      end
+
+      # Winter's GMT with a negative saving, and without one.
+      for offsets <- [%{utc_offset: 3600, std_offset: -3600}, %{utc_offset: 0, std_offset: 0}] do
+        dublin = @winter |> Map.merge(offsets) |> Map.put(:time_zone, "Europe/Dublin")
+        assert {:ok, "Greenwich Mean Time"} = Timezone.non_location_format(dublin, :en)
+      end
+
+      winnipeg =
+        Map.merge(@summer, %{time_zone: "America/Winnipeg", utc_offset: -18_000, std_offset: 0})
+
+      assert {:ok, "Central Daylight Time"} = Timezone.non_location_format(winnipeg, :en)
+    end
+
+    test "leave the flag to decide where the period names none" do
+      chicago =
+        Map.merge(@summer, %{time_zone: "America/Chicago", utc_offset: -21_600, std_offset: 3600})
+
+      assert {:ok, "Central Daylight Time"} = Timezone.non_location_format(chicago, :en)
+
+      chicago =
+        Map.merge(@winter, %{time_zone: "America/Chicago", utc_offset: -21_600, std_offset: 0})
+
+      assert {:ok, "Central Standard Time"} = Timezone.non_location_format(chicago, :en)
+    end
+  end
 end
