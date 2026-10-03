@@ -120,6 +120,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+* `Localize.Number.to_string/2` with an RBNF rule only an ancestor locale has, such as Hebrew and Roman numerals, takes a fraction of a millisecond where it took 40 to 50: the chain of locales a rule is looked up in is found once a locale, where each call revalidated every parent tag.
+
 * A date or time pattern is read by code points, so a combining mark after a quote is literal text: `nnh`'s long and full dates ("lyɛ̌ʼ 4 na …"), whose caron follows a quoted "lyɛ", parse, where the quote never closed.
 
 * A numeric month written in an algorithmic numbering parses, as `haw` writes its short date's month in Roman numerals ("31/xii/24").

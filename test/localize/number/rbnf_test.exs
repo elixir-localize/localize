@@ -1033,4 +1033,22 @@ defmodule Localize.Number.RbnfTest do
       assert {:ok, "five"} = Rbnf.to_string(5, :spellout_cardinal, locale: :en)
     end
   end
+
+  # Hebrew and Roman numerals are root's rules, which a regional locale
+  # reaches through each of its parents: `en-AU` through `en-001` and `en`,
+  # `he-IL` through `he`. 12 is "xii" in Roman numerals and 5784 "ה׳תשפ״ד"
+  # in Hebrew ones.
+  describe "a rule only root has" do
+    test "is found through every parent of a regional locale" do
+      assert Rbnf.to_string(12, :roman_lower, locale: "en-AU") == {:ok, "xii"}
+      assert Rbnf.to_string(12, :roman_upper, locale: "fr-CA") == {:ok, "XII"}
+      assert Rbnf.to_string(5784, :hebrew, locale: "he-IL") == {:ok, "ה׳תשפ״ד"}
+    end
+
+    test "is found the same way on every call" do
+      for _call <- 1..3 do
+        assert Rbnf.to_string(5784, :hebrew, locale: :he) == {:ok, "ה׳תשפ״ד"}
+      end
+    end
+  end
 end

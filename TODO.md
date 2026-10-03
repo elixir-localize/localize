@@ -20,7 +20,7 @@ Outstanding work on Localize. The design detail behind these items lives under [
 
 * [ ] **Date round trips that fail in five locales** — `gd`'s `yMMM` writes the week-based year ("Dùbh 2025" for 2024-12-31, a CLDR report like `pt`'s). `mt`, `sbp` and `vai_Latn` give `yMd` as "M/d/y" beside a short date of "dd/MM/y" in CLDR, so "3/4/2024" reads as the short date (a CLDR report), and `ug`'s `yMd` "y-d-M" reads as ISO 8601 (the ISO-shaped date decision below).
 
-* [ ] **RBNF formatting takes tens of milliseconds a number** — `Localize.Number.to_string(5784, locale: :he, format: :hebrew)`, which writes each Hebrew-numeral field of `he`'s Hebrew dates, took about 50 ms a call, and the 9,999 numerals of the years 1 to 9999 more than four minutes, so a `he` Hebrew date formats in a tenth of a second. Find where the time goes.
+* [ ] **`Localize.validate_locale/1` takes about 30 ms for a tag without a CLDR locale id** — validating `he-Hebr` built by hand (`cldr_locale_id: nil`) took 29 ms a call, the language-distance lookups against every CLDR locale dominating, so any caller that walks `Localize.Locale.parent/1` and validates each parent pays it per step (RBNF did, until it cached its locale chain). Find why a known locale goes through distance matching.
 
 * [ ] **Decide how a calendar's ISO-shaped numeric date is read** — the parser reads any `y-MM-dd` text as an ISO 8601 date and converts it, so `he`'s Chinese short date "2023-11-22" (related year 2023, month 11, day 22) comes back as Gregorian 22 November 2023; a calendar's own pattern written that way never round-trips.
 
@@ -59,6 +59,8 @@ Outstanding work on Localize. The design detail behind these items lives under [
 * [ ] **`localize_emoji` sibling library** — plan item 11, a separate package on its own schedule. A Phoenix LiveView picker (`localize_emoji_live`) is out of scope for its 0.1.0.
 
 ## Done
+
+* [x] **RBNF formatting takes a fraction of a millisecond** — a rule is looked up along the locale's chain of CLDR locales, found once a locale, where each call revalidated every parent tag: `he`'s Hebrew numerals went from 42 ms a call to 0.4 ms, `en`'s Roman numerals from 54 ms to 0.1 ms. 2026-10-03, v1.4.0.
 
 * [x] **`nnh`'s long and full dates parse** — the date and time parsers read a pattern by code points, so the combining caron after `nnh`'s quoted "lyɛ" no longer swallows the closing quote. 2026-10-03, v1.4.0.
 

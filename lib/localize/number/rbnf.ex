@@ -68,7 +68,7 @@ defmodule Localize.Number.Rbnf do
 
     case Localize.validate_locale(requested_locale) do
       {:ok, language_tag} ->
-        lookup_and_format(coerce_number(number), rule_name, language_tag, language_tag)
+        lookup_and_format(coerce_number(number), rule_name, language_tag)
 
       {:error, _} = error ->
         error
@@ -104,49 +104,62 @@ defmodule Localize.Number.Rbnf do
 
   defp coerce_number(number), do: number
 
-  # Walk the locale inheritance chain looking for a matching RBNF
-  # rule. If the current locale has no matching rule, fall back to
-  # its parent locale via `Localize.Locale.parent/1` and retry. When
-  # the chain terminates at `und`, return an `UnknownRbnfRuleError`
-  # that reports the originally requested locale.
-  defp lookup_and_format(number, rule_name, language_tag, requested_tag) do
-    with {:ok, locale_id} <- cldr_locale_id_from(language_tag),
-         {:ok, requested_id} <- cldr_locale_id_from(requested_tag),
-         {:ok, rbnf_data} <- load_rbnf_data(locale_id),
+  # Look the rule up in each CLDR locale of the locale's inheritance
+  # chain, its own first and `und` last, and format with the first that
+  # has it. When none does, return an `UnknownRbnfRuleError` that reports
+  # the requested locale.
+  defp lookup_and_format(number, rule_name, language_tag) do
+    with {:ok, requested_id} <- cldr_locale_id_from(language_tag) do
+      language_tag
+      |> locale_chain(requested_id)
+      |> Enum.find_value(&format_in(number, rule_name, &1, requested_id))
+      |> Kernel.||(
+        {:error,
+         Localize.UnknownRbnfRuleError.exception(
+           rule_name: rule_name,
+           locale: requested_id,
+           available: available_rule_names(requested_id)
+         )}
+      )
+    end
+  end
+
+  defp format_in(number, rule_name, locale_id, requested_id) do
+    with {:ok, rbnf_data} <- load_rbnf_data(locale_id),
          {:ok, all_rule_sets} <- extract_rule_sets(rbnf_data),
          {:ok, resolved_name} <- resolve_rule_name(rule_name, all_rule_sets, locale_id),
          :ok <- reject_und_spellout_stub(locale_id, requested_id, resolved_name),
          {:ok, rule_set} <- find_rule_set(all_rule_sets, resolved_name, locale_id) do
-      Processor.process(
-        number,
-        resolved_name,
-        rule_set.rules,
-        all_rule_sets,
-        requested_id
-      )
+      Processor.process(number, resolved_name, rule_set.rules, all_rule_sets, requested_id)
     else
-      {:error, %Localize.UnknownRbnfRuleError{}} ->
-        fallback_to_parent(number, rule_name, language_tag, requested_tag)
-
-      {:error, _other} ->
-        fallback_to_parent(number, rule_name, language_tag, requested_tag)
+      {:error, _not_in_this_locale} -> nil
     end
   end
 
-  defp fallback_to_parent(number, rule_name, language_tag, requested_tag) do
-    case Localize.Locale.parent(language_tag) do
-      {:ok, parent_tag} ->
-        lookup_and_format(number, rule_name, parent_tag, requested_tag)
+  # The CLDR locales a locale's rules are looked up in: its own, then each
+  # parent's (`he`, then `und`, whose rules write Hebrew and Roman
+  # numerals). Found once a locale, since finding a parent revalidates its
+  # tag, which took tens of milliseconds a call.
+  defp locale_chain(language_tag, locale_id) do
+    key = {__MODULE__, :locale_chain, locale_id}
 
-      {:error, %Localize.NoParentError{}} ->
-        with {:ok, requested_id} <- cldr_locale_id_from(requested_tag) do
-          {:error,
-           Localize.UnknownRbnfRuleError.exception(
-             rule_name: rule_name,
-             locale: requested_id,
-             available: available_rule_names(requested_id)
-           )}
-        end
+    case :persistent_term.get(key, nil) do
+      nil ->
+        chain = parent_chain(language_tag, [locale_id])
+        :persistent_term.put(key, chain)
+        chain
+
+      chain ->
+        chain
+    end
+  end
+
+  defp parent_chain(language_tag, chain) do
+    with {:ok, parent} <- Localize.Locale.parent(language_tag),
+         {:ok, parent_id} <- cldr_locale_id_from(parent) do
+      parent_chain(parent, if(parent_id in chain, do: chain, else: chain ++ [parent_id]))
+    else
+      _no_parent -> chain
     end
   end
 
