@@ -24,7 +24,7 @@ Outstanding work on Localize. The design detail behind these items lives under [
 
 * [ ] **Decide how a calendar's ISO-shaped numeric date is read** — the parser reads any `y-MM-dd` text as an ISO 8601 date and converts it, so `he`'s Chinese short date "2023-11-22" (related year 2023, month 11, day 22) comes back as Gregorian 22 November 2023; a calendar's own pattern written that way never round-trips.
 
-* [ ] **Numeric era dates read in another pattern's field order** — an era year small enough to be a day or a month fits the locale's other numeric patterns, so the Japanese `my` "Kanpō (1741–1744) 2/6/1" (y/M/d) is read as 1741-06-02 and `fa`'s "6/1/2 Kanpō (1741–1744)" as 1746-01-02, in either digits; `sa` likewise.
+* [ ] **Decide how a date a skeleton writes against the standard format's field order is read** — `my`'s Japanese short date is "GGGGG d/M/y" where its `GyMd` is "GGGGG y/M/d", and `sa`'s medium "G d MMM y" where its `GyMMMd` is "G y MMM d", so "Kanpō (1741–1744) 2/6/1" from `GyMd` reads as the short date, 2 June 1741, an era year and a day both being small. The standard formats round-trip, as `fa`'s dates now do in either digits; report the conflicts to CLDR, or let `parse/2` take the format the text was written with.
 
 * [ ] **Numeric widths in interval patterns** — TR35's `availableFormats` adjustment pads an interval item's `d/M` to a style's `dd/MM` (`vi` short "01/04/2023 – 10/04/2023"); ICU4C and V8 normalise the skeleton's numeric widths away and write "1/4/2023 – 10/4/2023". Decide which to follow; it predates the calendar work and shows in Gregorian `vi`, `id`, `ms`, `te`, `am` and `sw`.
 
