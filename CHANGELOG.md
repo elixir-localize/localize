@@ -8,6 +8,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
+* A calendar may answer `cldr_calendar_type/3` for a date, and Localize names that date's months, days and patterns from its answer: Calendrical's composite calendars answer with the calendar in effect, so Japan's lunisolar dates before 1873 take the Chinese calendar's names.
+
 * `Localize.Number.resolve_currency/2` and `resolve_currencies/2` resolve a string several of the locale's currencies share by the nearest locale that uses one of them, so "$" is the Canadian dollar in `fr`, as in `fr-CA`. It stays unknown where no such locale is a good fit, or two currencies' locales are as near, as in `es`.
 
 * `Localize.Interval.to_string/3` and `to_parts/3` take a skeleton or a pattern as a date interval's `:format` or `:date_format`, as CLDR keys interval formats by skeleton, so a format no standard format reaches can be named: `format: :yMMMEd` is "Mon, Jun 15 – Thu, Jun 18, 2026" in `en`.
