@@ -1,14 +1,18 @@
 # Map order
 
-**Status:** in progress, 2026-09-26
+**Status:** in progress, 2026-10-03
 
 On OTP 26 and later a map with at most 32 atom keys iterates in the order its atoms were created, which differs between VMs and with what the host application loads first; a larger map iterates in hash order. Tests pass, so order is changed only where something depends on it: a selection that takes the first or last candidate, a test or doctest whose expected value depends on the order, or generated output that must be reproducible. A list returned in no documented order stays as it is.
 
-The audit of 2026-09-26 covered every map enumeration under `lib/` on `main`; every defect it found that changes a result is fixed, and the latent ones are deferred below. Code that exists only on `cldr-49` has not been audited yet.
+The audit of 2026-09-26 covered every map enumeration under `lib/` on `main`; every defect it found that changes a result is fixed, and the latent ones are deferred below. The audit of 2026-10-03 covered what `lib/` gained since (`22981e0e..8d3ae992`, the merged `cldr-49` work and what followed it): of the map enumerations, `Map.keys`, `Map.values`, `Map.to_list`, first and last selections and folds in its 156 files, three can change a result, listed under Tasks. The rest sort what they select (the date and time parsers' patterns, with the pattern itself the last tie-break; `zone_names/2` by `@zone_name_types`), select from fixed lists, merge two maps, or only name values in an error.
 
 ## Tasks
 
-* [ ] **Audit the code that exists only on `cldr-49`** — the same audit, for the modules and functions `cldr-49` adds, once they are merged towards `main`.
+* [ ] **The standard formats in a fixed order** — `Localize.DateTime.Format.standard_format_entries/2` lists a locale's full, long, medium and short formats in the order of the map they come from, and the date and time parsers try them first, unsorted. List them in CLDR's order.
+
+* [ ] **Country names in zone names by the territory rule** — `Localize.DateTime.Timezone`'s `country_names/1` inverts the locale's territory names into a map, keeping whichever territory it visits last where two share a name, as `Localize.Territory.to_territory_code/2` did until 2026-09-26. Take the same territory it takes (a country over a region that contains others, then the alphabetically first code).
+
+* [ ] **Exemplar cities by a fixed rule** — `city_names/1` keeps, of two zones with the same city name, whichever it visits last, among the locale's exemplar cities and among the cities derived from zone IDs. Take the alphabetically first zone, after the locale's own names as now.
 
 ### Deferred
 

@@ -6,8 +6,6 @@ Outstanding work on Localize. The design detail behind these items lives under [
 
 * [ ] **A week alone in a calendar of weeks is written in its notation** — `Localize.Date.to_string(%{year: 2026, month: 25, calendar: Calendrical.ISOWeek})` is "M06 2026 AD" ("6/2026 AD" short), the week's period under the generic calendar's month name, where the whole date is written as its calendar writes it, "2026-W25-2" ("output the same as the input"). By the same rule a year and a week are "2026-W25" (user, in the Tempo session, 2026-10-02). `date_to_string/3` writes a whole date only, so the calendar needs a callback that writes a year and a week, which Calendrical's week calendars lack. Tempo's `to_string/2` of `~o"2026-W25"W` waits on it, and writes the week's first and last days until then ("2026-W25-1 – 2026-W25-7").
 
-* [ ] **Audit `cldr-49`-only code for map-order dependence** — the 2026-09-26 audit covered `main`. [plans/map-order.md](plans/map-order.md).
-
 * [ ] **Choose a fixed-offset representation that `DateTime` functions honour** — Localize and Calendrical carry an offset such as `-05:00` under `Etc/UTC`, so `DateTime.shift_zone(parsed, "Etc/UTC")` returns it unchanged. The MF2 interpreter converts from the instant instead; `Etc/GMT+5` or an offset string would need both libraries to change together.
 
 * [ ] **Decide whether specific zone names are qualified** — CLDR's own `TimezoneFormatter` qualifies the specific format (`z`, `zzzz`) as it does the generic one, "Central European Summer Time (Germany)" for Berlin in `en`, where ICU4C never does; a specific name already reads back to its instant, and Localize qualifies only the generic format.
@@ -31,6 +29,8 @@ Outstanding work on Localize. The design detail behind these items lives under [
 * [ ] **Name standard and daylight time by a metazone's `stdOffset` and `dstOffset`** — TR35 lets `usesMetazone` say which offset is standard time and which daylight where the time zone database's flag is unreliable (`Europe/Dublin`, and in CLDR 49 `America/Winnipeg` for Manitoba's DST change); Localize ignores both attributes and decides from the datetime's `std_offset`.
 
 ## In progress
+
+* [ ] **Map-order dependence in the code since the 2026-09-26 audit** — audited 2026-10-03: the standard formats' order, and the country and city names of zone parsing, can change a result; the fixes are the plan's tasks. [plans/map-order.md](plans/map-order.md).
 
 * [ ] **CLDR 49 upgrade** — the plan's items are closed bar item 11; the data is built from CLDR `main` pending beta3 (below), then the final release. [plans/cldr-49.md](plans/cldr-49.md).
 
