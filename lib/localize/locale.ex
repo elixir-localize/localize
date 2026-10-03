@@ -209,8 +209,22 @@ defmodule Localize.Locale do
           canonical
       end
 
-    parent_tag = transfer_extensions(parent_tag, tag)
-    {:ok, parent_tag}
+    {:ok, parent_tag |> with_cldr_locale_id() |> transfer_extensions(tag)}
+  end
+
+  # A parent names the CLDR locale its subtags resolve to, found through
+  # the cached validation of its canonical string, so that no caller has to
+  # validate the tag itself, which matches it against every CLDR locale and
+  # took about 20 ms a step. Its subtags stay as they are, for the next step
+  # of the walk to drop one more.
+  defp with_cldr_locale_id(%LanguageTag{} = parent) do
+    case parent |> LanguageTag.to_string() |> Localize.validate_locale() do
+      {:ok, %LanguageTag{cldr_locale_id: cldr_locale_id}} ->
+        %{parent | cldr_locale_id: cldr_locale_id}
+
+      {:error, _unknown} ->
+        parent
+    end
   end
 
   @doc """
@@ -291,7 +305,7 @@ defmodule Localize.Locale do
   defp root_tag do
     {:ok, parsed} = LanguageTag.parse("und")
     {:ok, canonical} = LanguageTag.canonicalize(parsed)
-    canonical
+    %{canonical | cldr_locale_id: :und}
   end
 
   # Transfer extensions from child to parent so that preferences like

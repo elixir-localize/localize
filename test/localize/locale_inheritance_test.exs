@@ -26,6 +26,26 @@ defmodule Localize.LocaleInheritanceTest do
       assert {:error, %Localize.NoParentError{}} = Locale.parent("und")
     end
 
+    # CLDR's parent locales: `en-AU` inherits from `en-001`, which inherits
+    # from `en`, which inherits from root. Each parent names its CLDR
+    # locale, so no caller has to validate it again, and keeps the child's
+    # extensions.
+    test "each parent carries its CLDR locale id" do
+      {:ok, tag} = Localize.validate_locale("en-AU-u-nu-arab")
+
+      chain =
+        Stream.unfold(tag, fn tag ->
+          case Locale.parent(tag) do
+            {:ok, parent} -> {parent, parent}
+            {:error, %Localize.NoParentError{}} -> nil
+          end
+        end)
+        |> Enum.to_list()
+
+      assert Enum.map(chain, & &1.cldr_locale_id) == [:"en-001", :en, :und]
+      assert Enum.all?(chain, &(&1.locale.nu == :arab))
+    end
+
     # CLDR 49 removed `<parentLocale parent="fr_HT" locales="ht"/>` (it also
     # dropped `ht` from the coverage levels), so Haitian Creole no longer
     # inherits French. It is asserted here rather than simply deleted because
