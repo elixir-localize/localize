@@ -470,9 +470,11 @@ defmodule Localize.Time.Parser do
   # Walk a CLDR pattern string and emit alternating literal /
   # field tokens. Fields are runs of identical CLDR letters
   # (h H K k m s S a b B z Z v V x X O).
+  # A pattern is read by code points, as `Localize.Date.Parser` reads one:
+  # a combining mark beside a quote or a pattern letter is literal text.
   defp tokenize_pattern(pattern) do
     pattern
-    |> String.graphemes()
+    |> String.codepoints()
     |> tokenize([], nil)
     |> Enum.reverse()
   end

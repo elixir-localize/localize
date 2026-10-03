@@ -2033,9 +2033,13 @@ defmodule Localize.Date.Parser do
 
   # ── Pattern → regex ──────────────────────────────────────────
 
+  # A pattern is read by code points: a quote or a pattern letter is one,
+  # and a combining mark beside it is literal text. Read by graphemes,
+  # `nnh`'s "'lyɛ'̌ʼ d 'na' MMMM, y" closes no quote, its caron joining
+  # the closing quote, and none of its long dates parse.
   defp tokenize_pattern(pattern) do
     pattern
-    |> String.graphemes()
+    |> String.codepoints()
     |> tokenize([], nil)
     |> Enum.reverse()
   end

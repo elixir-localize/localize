@@ -120,6 +120,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+* A date or time pattern is read by code points, so a combining mark after a quote is literal text: `nnh`'s long and full dates ("lyɛ̌ʼ 4 na …"), whose caron follows a quoted "lyɛ", parse, where the quote never closed.
+
+* A numeric month written in an algorithmic numbering parses, as `haw` writes its short date's month in Roman numerals ("31/xii/24").
+
 * A comma that is the only separator between two date fields is no longer read as optional, so `en-ZW`'s "May 2019" is May 2019, where its "dd MMM,y" read it as 20 May 2019. A comma beside a space may still be left out ("May 5 2026").
 
 * A Hebrew date written in Hebrew numerals parses, as `he` writes it ("כ״ב בטבת ה׳תשפ״ד" is 22 Tevet 5784): a `hebr` year is read by its letters' values, its thousands marked by a geresh, where none of `he`'s Hebrew dates read back.
