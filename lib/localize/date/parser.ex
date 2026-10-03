@@ -1952,14 +1952,25 @@ defmodule Localize.Date.Parser do
     end
   end
 
+  # A comma is dropped from a literal that keeps another separator ("d MMM,
+  # y" is "d MMM y"), and a literal that is only a comma becomes a space,
+  # so its fields stay apart: `en-ZW`'s "dd MMM,y" swaps to "MMM dd y",
+  # where "MMM ddy" would read "May 2019" as 20 May 2019.
   defp strip_commas_in_literals(pattern) do
     pattern
     |> tokenize_pattern()
     |> Enum.map(fn
-      {:lit, text} -> {:lit, String.replace(text, ",", "")}
+      {:lit, text} -> {:lit, strip_commas(text)}
       other -> other
     end)
     |> detokenize_pattern()
+  end
+
+  defp strip_commas(text) do
+    case String.replace(text, ",", "") do
+      "" when text != "" -> " "
+      stripped -> stripped
+    end
   end
 
   defp detokenize_pattern(tokens) do
@@ -2360,13 +2371,19 @@ defmodule Localize.Date.Parser do
 
   defp indexed_names(_names), do: []
 
+  # A comma is optional only in a literal that also has a space, which the
+  # input must still give ("May 5 2026" for "MMM d, y"). A comma that is
+  # its literal's only separator is kept: `en-ZW`'s "dd MMM,y" would
+  # otherwise read "May 2019" as 20 May 2019, its day and year run
+  # together.
   defp expand_literal(text, lenient) do
-    text
-    |> String.graphemes()
-    |> Enum.map_join(&expand_char(&1, lenient))
+    graphemes = String.graphemes(text)
+    optional_comma? = Enum.any?(graphemes, &space_char?/1)
+
+    Enum.map_join(graphemes, &expand_char(&1, lenient, optional_comma?))
   end
 
-  defp expand_char(char, lenient) do
+  defp expand_char(char, lenient, optional_comma?) do
     cond do
       space_char?(char) ->
         # A literal space in the CLDR pattern requires at least
@@ -2375,14 +2392,13 @@ defmodule Localize.Date.Parser do
         # `*` form via `@space_class` elsewhere.
         @literal_space_class
 
-      char == "," ->
+      char == "," and optional_comma? ->
         # CLDR patterns embed `,` as a structural punctuation
         # marker (e.g., `MMM d, y` between day and year), but
         # informal input routinely drops it (`"May 5 2026"`).
-        # Make every literal comma optional in the compiled
-        # regex; the surrounding space-class still requires at
-        # least one whitespace char, so `"May d,y"` (comma but
-        # no space) still won't false-match.
+        # The comma is optional where the literal's space-class
+        # still requires at least one whitespace char, so `"May
+        # d,y"` (comma but no space) still won't false-match.
         ",?"
 
       char in @dash_chars ->
