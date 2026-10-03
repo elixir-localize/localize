@@ -75,7 +75,7 @@ defmodule Localize.DateTime.Formatter do
   @required_fields %{
     era: [:year],
     year: [:year],
-    week_aligned_year: [:year, :month, :day],
+    week_aligned_year: [:year, :month],
     extended_year: [:year],
     cyclic_year: [:year],
     related_year: [:year],
@@ -83,7 +83,7 @@ defmodule Localize.DateTime.Formatter do
     standalone_quarter: [:year, :month],
     month: [:month],
     standalone_month: [:month],
-    week_of_year: [:year, :month, :day],
+    week_of_year: [:year, :month],
     week_of_month: [:year, :month, :day],
     day_of_month: [:day],
     day_of_year: [:year, :month, :day],
@@ -147,6 +147,10 @@ defmodule Localize.DateTime.Formatter do
 
   defguardp is_date(date)
             when is_map_key(date, :year) and is_map_key(date, :month) and is_map_key(date, :day)
+
+  # A year and a month, with a day or without one: what a week of the year
+  # is asked of, a date without its day having one when its days share it.
+  defguardp is_year_month(date) when is_map_key(date, :year) and is_map_key(date, :month)
 
   defguardp is_time(time)
             when is_map_key(time, :hour) and is_map_key(time, :minute)
@@ -720,7 +724,14 @@ defmodule Localize.DateTime.Formatter do
 
     missing = Enum.reject(fields, &Map.has_key?(value, &1))
     invalid = Enum.reject(fields -- missing, &valid_field?(&1, Map.get(value, &1)))
-    missing = Enum.uniq(missing ++ unsettled_era_fields(value, tokens, missing ++ invalid))
+    unusable = missing ++ invalid
+
+    missing =
+      Enum.uniq(
+        missing ++
+          unsettled_era_fields(value, tokens, unusable) ++
+          unsettled_week_fields(value, tokens, unusable)
+      )
 
     if missing == [] and invalid == [] do
       :ok
@@ -749,6 +760,22 @@ defmodule Localize.DateTime.Formatter do
     else
       Enum.flat_map(handlers, &era_answer_fields(&1, value))
     end
+  end
+
+  # A week of the year and its week-based year need the day too, unless the
+  # days a date without one could be are all in one week, as the days of a
+  # calendar of weeks' year and week are. Which week that is does not turn
+  # on the locale's weeks: a `Calendar.ISO` month runs through several by
+  # any of them.
+  @week_handlers [:week_of_year, :week_aligned_year]
+  @iso_week_data {1, 4}
+
+  defp unsettled_week_fields(value, tokens, unusable) do
+    week_field? = Enum.any?(tokens, fn {handler, _line, _count} -> handler in @week_handlers end)
+
+    if week_field? and :year not in unusable and :month not in unusable,
+      do: settled_fields(Localize.Calendar.week_of_year(value, @iso_week_data)),
+      else: []
   end
 
   defp era_answer_fields(:era, value), do: settled_fields(Localize.Calendar.year_of_era(value))
@@ -968,20 +995,21 @@ defmodule Localize.DateTime.Formatter do
   # ── Week-aligned year (Y) ──────────────────────────────────
 
   @doc false
-  def week_aligned_year(date, 1, locale_id, options) when is_date(date) do
+  def week_aligned_year(date, 1, locale_id, options) when is_year_month(date) do
     with {:ok, {year, _week}} <- week_of_year_answer(date, locale_id, options) do
       year |> Kernel.to_string() |> apply_ns(locale_id, options, "Y")
     end
   end
 
-  def week_aligned_year(date, 2, locale_id, options) when is_date(date) do
+  def week_aligned_year(date, 2, locale_id, options) when is_year_month(date) do
     with {:ok, {year, _week}} <- week_of_year_answer(date, locale_id, options) do
       year |> rem(100) |> pad(2) |> apply_ns(locale_id, options, "Y")
     end
   end
 
   # TR35 defines `YYYYY+`: any width of three or more is a minimum digit count.
-  def week_aligned_year(date, count, locale_id, options) when is_date(date) and count >= 3 do
+  def week_aligned_year(date, count, locale_id, options)
+      when is_year_month(date) and count >= 3 do
     with {:ok, {year, _week}} <- week_of_year_answer(date, locale_id, options) do
       year |> pad(count) |> apply_ns(locale_id, options, "Y")
     end
@@ -1218,13 +1246,13 @@ defmodule Localize.DateTime.Formatter do
   # ── Week of Year (w) ───────────────────────────────────────
 
   @doc false
-  def week_of_year(date, 1, locale_id, options) when is_date(date) do
+  def week_of_year(date, 1, locale_id, options) when is_year_month(date) do
     with {:ok, {_year, week}} <- week_of_year_answer(date, locale_id, options) do
       apply_ns(week, locale_id, options, "w")
     end
   end
 
-  def week_of_year(date, 2, locale_id, options) when is_date(date) do
+  def week_of_year(date, 2, locale_id, options) when is_year_month(date) do
     with {:ok, {_year, week}} <- week_of_year_answer(date, locale_id, options) do
       week |> pad(2) |> apply_ns(locale_id, options, "w")
     end

@@ -610,7 +610,18 @@ Localize.Date.parse("2026-W25-2", locale: :en, calendar: Calendrical.ISOWeek)
 
 A date and time joins the notation to the locale's time, "2026-W25-2, 10:30:00 AM", and an interval writes both dates around the locale's fallback pattern, "2026-W25-2 – 2026-W27-1". A pattern takes the calendar's own answers: its weeks, quarters and days of the week, and its months, the ordinal periods of its pattern of weeks, named by CLDR's generic calendar, "M06"; see the [format pattern reference](#format-pattern-reference).
 
-A time carries no date fields, so `Localize.Time.parse/2` resolves no calendar and the option has no effect there.
+A date of such a calendar without its day is a week, since the month field of its dates holds a week. It is written as the locale writes a week of the year, CLDR's `yw` format, at every standard format:
+
+```elixir
+# With calendrical installed
+Localize.Date.to_string(%{year: 2026, month: 25, calendar: Calendrical.ISOWeek}, locale: :en)
+#=> {:ok, "week 25 of 2026"}
+
+Localize.Date.to_string(%{year: 2026, month: 25, calendar: Calendrical.ISOWeek}, locale: :de)
+#=> {:ok, "Woche 25 des Jahres 2026"}
+```
+
+`Localize.Time.parse/2` takes the option too: a time is read in the time formats of the calendar given, and then in the Gregorian calendar's.
 
 ## Format pattern reference
 

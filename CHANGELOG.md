@@ -120,6 +120,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+* A year and a week of a calendar of weeks, `%{year: 2026, month: 25, calendar: Calendrical.ISOWeek}`, is written as the locale writes a week of the year, CLDR's `yw` format, "week 25 of 2026", where it was the period of the calendar's pattern under a generic month name, "M06 2026 AD". `w` and `Y` take a date without its day when every day it could be is in one week.
+
+* A date of a calendar of weeks with a field that is not an integer, such as a `nil` day, is a `Localize.DateTimeInvalidInputError` naming the field, where `Localize.Date.to_string/2` raised from the calendar's `date_to_string/3`.
+
 * A specific time zone name takes standard or daylight time from TR35's `stdOffset` and `dstOffset` where a metazone period names them, as CLDR 49 does for `Europe/Dublin` and `America/Winnipeg`, rather than from the time zone database's flag: Dublin's summer is "Irish Standard Time" however `std_offset` is set.
 
 * Parsing no longer depends on the order a map iterates in, which changes between VMs: the standard formats are tried in the order of `Localize.DateTime.Format.standard_formats/0`, and a country or city name in a zone name that two places share resolves to the one `Localize.Territory` picks, or the alphabetically first zone.

@@ -49,7 +49,7 @@ defmodule Localize.CalendarCallbacksTest do
   defmodule WeekNotation do
     @moduledoc false
 
-    def write(year, week, day), do: "#{pad(year, 4)}-W#{pad(week, 2)}-#{day}"
+    def write(year, week, day), do: "#{pad(year, 4)}-W#{pad(week, 2)}-#{pad(day, 1)}"
 
     def read(text, calendar) do
       with [_text, year, week, day] <- Regex.run(~r/\A(\d{4})-W?(\d{2})-(\d{1,2})\z/, text),
@@ -96,6 +96,10 @@ defmodule Localize.CalendarCallbacksTest do
     end
 
     def cardinal_month(month), do: month
+
+    # Its month field holds a week, of seven days, as Calendrical's
+    # calendars of weeks count it.
+    def days_in_month(_year, _week), do: 7
     def year_of_era(year, _week, _day), do: {year, 1}
     def calendar_year(year, _week, _day), do: year
 
@@ -690,6 +694,75 @@ defmodule Localize.CalendarCallbacksTest do
         assert Localize.Date.to_string(value, format: "y", locale: :en) == {:ok, "2026"}
         assert Localize.Date.to_string(value, format: "G y", locale: :en) == {:ok, "AD 2026"}
         assert Localize.Calendar.localize(value, :era, locale: :en) == {:ok, "Anno Domini"}
+      end
+    end
+
+    # A calendar of weeks holds a week in its dates' month field, so a year
+    # and a week is written as the locale writes a week of the year, CLDR's
+    # `yw`: "'week' w 'of' Y" in `en`, "'Woche' w 'des' 'Jahres' Y" in `de`
+    # and "'semaine' w 'de' Y" in `fr`. Formatting is Localize's, so the
+    # calendar is asked only for the week its days are in (user,
+    # 2026-10-04). A whole date keeps the calendar's notation, and a
+    # skeleton that is asked for is used as it is given.
+    test "writes a year and a week as the locale writes a week of the year" do
+      week = %{year: 2026, month: 25, calendar: IsoWeek}
+
+      for options <- [[], [format: :short], [format: :medium], [format: :long], [format: :full]] do
+        assert Localize.Date.to_string(week, [locale: :en] ++ options) ==
+                 {:ok, "week 25 of 2026"},
+               inspect(options)
+      end
+
+      assert Localize.Date.to_string(week, locale: :de) == {:ok, "Woche 25 des Jahres 2026"}
+      assert Localize.Date.to_string(week, locale: :fr) == {:ok, "semaine 25 de 2026"}
+      assert Localize.Date.to_string(week, locale: :en, format: :yM) == {:ok, "6/2026 AD"}
+
+      assert Localize.Date.to_string(Map.put(week, :day, 2), locale: :en) ==
+               {:ok, "2026-W25-2"}
+
+      assert {:ok, parts} = Localize.Date.to_parts(week, locale: :en)
+
+      assert Enum.reject(parts, &(&1.type == :literal)) == [
+               %{type: :week_of_year, value: "25"},
+               %{type: :year, value: "2026"}
+             ]
+    end
+
+    test "writes two weeks as an interval of them" do
+      week = %{year: 2026, month: 25, calendar: IsoWeek}
+
+      assert Localize.Interval.to_string(week, %{week | month: 26}, locale: :en) ==
+               {:ok, "week 25 of 2026 – week 26 of 2026"}
+    end
+
+    # A week without its year has no week of the year, and says so.
+    test "asks for the year of a week alone" do
+      assert {:error, %Localize.DateTimeInvalidInputError{missing: [:year]}} =
+               Localize.Date.to_string(%{month: 25, calendar: IsoWeek}, locale: :en)
+    end
+
+    # The calendar writes its notation from three integers, and raises on
+    # anything else, as Calendrical's calendars of weeks do. A date with a
+    # field that is no integer is not put to it: the error names the field.
+    test "names the field of a date that is not an integer, whole or not" do
+      whole = %{year: 2026, month: 25, day: 2, calendar: IsoWeek}
+
+      for {field, value} <- [day: nil, month: nil, year: nil, day: "2", month: 25.0] do
+        assert {:error, %Localize.DateTimeInvalidInputError{invalid: invalid}} =
+                 Localize.Date.to_string(Map.put(whole, field, value), locale: :en),
+               inspect({field, value})
+
+        assert field in invalid, inspect({field, value, invalid})
+      end
+
+      for {field, value} <- [month: nil, year: nil, month: "25"] do
+        assert {:error, %Localize.DateTimeInvalidInputError{invalid: invalid}} =
+                 Localize.Date.to_string(Map.put(Map.delete(whole, :day), field, value),
+                   locale: :en
+                 ),
+               inspect({field, value})
+
+        assert field in invalid, inspect({field, value, invalid})
       end
     end
 

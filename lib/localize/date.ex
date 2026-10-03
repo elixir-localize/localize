@@ -62,7 +62,9 @@ defmodule Localize.Date do
     and wide at `:long` and `:full`. A date in a calendar of weeks,
     such as `Calendrical.ISOWeek`, is written at every standard
     format in the calendar's own notation, as its `date_to_string/3`
-    writes it, `"2026-W25-2"`, which parses back as itself.
+    writes it, `"2026-W25-2"`, which parses back as itself. Its
+    month field holds a week, so a year and a week of it is written
+    as the locale writes a week of the year, `"week 25 of 2026"`.
 
   * `:locale` is a locale identifier. The default is `:en`.
 
@@ -580,14 +582,28 @@ defmodule Localize.Date do
   # The skeleton is built from fixed symbols, so only a handful of atoms
   # can result, whatever the value holds.
   def derive_format_id(date, format \\ @default_format) do
+    week? = week_in_month_field?(date)
+
     @date_fields_ordered
     |> Enum.filter(fn {field, _symbol} -> Map.has_key?(date, field) end)
     |> Enum.map_join(fn
-      {:month, _symbol} -> month_symbol(format)
+      {:month, _symbol} -> if week?, do: "w", else: month_symbol(format)
       {_field, symbol} -> symbol
     end)
     |> String.to_atom()
   end
+
+  # A calendar of weeks holds a week in its dates' month field, and a date
+  # of it without a day is that week: written as the locale writes a week
+  # of the year (`yw`, "week 25 of 2026"), where a month is written by its
+  # name. A calendar of weeks is one that writes its whole dates in a
+  # notation of its own (`Localize.Calendar.own_notation?/1`).
+  defp week_in_month_field?(%{calendar: calendar} = date) when not is_map_key(date, :day) do
+    Localize.Calendar.validate_calendar(date) == :ok and
+      match?({:ok, true}, Localize.Calendar.own_notation?(calendar))
+  end
+
+  defp week_in_month_field?(_date), do: false
 
   defp month_symbol(:short), do: "M"
   defp month_symbol(:medium), do: "MMM"

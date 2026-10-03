@@ -1570,9 +1570,12 @@ defmodule Localize.Calendar do
   # in the locale's formats: "2026-W25-2" for a calendar of weeks. A calendar
   # whose dates are parsed in another calendar (`parsing_calendar/0`) names
   # its days in its own notation, which no locale format writes, so a date
-  # written in it reads back as itself. Any other date is `:none`.
+  # written in it reads back as itself. Any other date is `:none`, as is a
+  # date with a field that is not an integer, which the calendar is not asked
+  # to write: the format that needs the field says which it is.
   @spec notation(map()) :: {:ok, String.t()} | :none | {:error, Exception.t()}
-  def notation(%{year: year, month: month, day: day} = date) do
+  def notation(%{year: year, month: month, day: day} = date)
+      when is_integer(year) and is_integer(month) and is_integer(day) do
     calendar = Map.get(date, :calendar, Calendar.ISO)
 
     case own_notation?(calendar) do
@@ -1944,8 +1947,9 @@ defmodule Localize.Calendar do
   # error when the calendar answers with something that is not a year and a
   # week.
   @spec week_of_year(map(), week_data()) ::
-          {:ok, {integer(), pos_integer()}} | {:error, Exception.t()}
-  def week_of_year(%{year: year, month: month, day: day} = date, week_data) do
+          {:ok, {integer(), pos_integer()}} | {:error, [atom()] | Exception.t()}
+  def week_of_year(%{year: year, month: month, day: day} = date, week_data)
+      when is_integer(year) and is_integer(month) and is_integer(day) do
     calendar = Map.get(date, :calendar, Calendar.ISO)
 
     ask(
@@ -1959,6 +1963,27 @@ defmodule Localize.Calendar do
       end
     )
   end
+
+  # A date without its day is in the week that the first and the last of the
+  # days it could be are both in: the week a calendar of weeks' year and week
+  # name, its month field holding a week. A month of days runs through
+  # several weeks, and `{:error, [:day]}` names the field that would say
+  # which.
+  def week_of_year(%{year: year, month: month} = date, week_data)
+      when is_integer(year) and is_integer(month) do
+    calendar = Map.get(date, :calendar, Calendar.ISO)
+
+    with {:ok, {first, last, unsettled}} <- date_span(date, calendar, year),
+         {:ok, first_week} <- week_of_year(on_day(date, first), week_data),
+         {:ok, last_week} <- week_of_year(on_day(date, last), week_data) do
+      if first_week == last_week, do: {:ok, first_week}, else: {:error, unsettled}
+    end
+  end
+
+  def week_of_year(_date, _week_data), do: {:error, [:year, :month]}
+
+  defp on_day(date, {year, month, day}),
+    do: Map.merge(date, %{year: year, month: month, day: day})
 
   @doc false
   # The week of the month a date is in and the month that week belongs to,
