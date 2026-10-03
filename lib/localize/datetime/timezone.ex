@@ -1704,31 +1704,42 @@ defmodule Localize.DateTime.Timezone do
 
   # The exemplar cities the locale names, and the city every other zone's
   # name gives ("Los Angeles"), which the locale writes where it names none.
+  # Of zones whose cities share a name, the alphabetically first is taken,
+  # where inverting them kept whichever the map yielded last.
   defp city_names(zones) do
     derived =
       for {_short_id, %{aliases: [time_zone | _aliases]}} <- @timezones,
           not String.starts_with?(time_zone, "Etc/"),
           city = derive_city_from_id(time_zone),
           is_binary(city),
-          into: %{},
           do: {name_key(city), time_zone}
 
     named =
       for {time_zone, %{exemplar_city: city}} <- zones,
           is_binary(city),
-          into: %{},
           do: {name_key(city), time_zone}
 
-    Map.merge(derived, named)
+    Map.merge(first_by_name(derived, &Enum.min/1), first_by_name(named, &Enum.min/1))
   end
 
+  # Of territories that share a name, the one `Localize.Territory`'s
+  # names pick: a country before a region that contains others, then the
+  # alphabetically first code.
   defp country_names(territories) do
-    for {territory, names} <- territories,
-        is_map(names),
-        {_form, name} <- names,
-        is_binary(name),
-        into: %{},
-        do: {name_key(name), territory}
+    for(
+      {territory, names} <- territories,
+      is_map(names),
+      {_form, name} <- names,
+      is_binary(name),
+      do: {name_key(name), territory}
+    )
+    |> first_by_name(&Localize.Territory.preferred_territory/1)
+  end
+
+  defp first_by_name(entries, choose) do
+    entries
+    |> Enum.group_by(&elem(&1, 0), &elem(&1, 1))
+    |> Map.new(fn {key, values} -> {key, values |> Enum.uniq() |> choose.()} end)
   end
 
   # The code of every country with a zone, which TR35's composition writes

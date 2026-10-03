@@ -156,4 +156,21 @@ defmodule Localize.DateTime.FormatModuleTest do
       assert {:ok, [{:modified_julian_day, 1, 3}], 1} = Compiler.tokenize("ggg")
     end
   end
+
+  # A parser tries the standard formats first, so they come in one order,
+  # `standard_formats/0`'s, whatever the order of the map they are read from:
+  # the date formats short to full, then the time formats.
+  describe "standard_format_entries/2" do
+    test "lists the standard formats in the order of standard_formats/0" do
+      {:ok, date_formats} = Format.date_formats(:en)
+      {:ok, time_formats} = Format.time_formats(:en)
+
+      expected =
+        Enum.map(Format.standard_formats(), &Map.fetch!(date_formats, &1)) ++
+          Enum.map(Format.standard_formats(), &Map.fetch!(time_formats, &1))
+
+      assert Format.standard_formats() == [:short, :medium, :long, :full]
+      assert Enum.map(Format.standard_format_entries(:en), &elem(&1, 0)) == expected
+    end
+  end
 end

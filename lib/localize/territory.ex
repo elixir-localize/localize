@@ -454,9 +454,12 @@ defmodule Localize.Territory do
     end
   end
 
-  # A country is preferred to a region that contains others, then the
-  # alphabetically first code.
-  defp preferred_territory(codes) do
+  @doc false
+  # Of territories that share a name, the one the name picks: a country is
+  # preferred to a region that contains others, then the alphabetically
+  # first code.
+  @spec preferred_territory([atom(), ...]) :: atom()
+  def preferred_territory(codes) do
     containers = SupplementalData.territory_containers()
     Enum.min_by(codes, fn code -> {Map.has_key?(containers, code), Atom.to_string(code)} end)
   end

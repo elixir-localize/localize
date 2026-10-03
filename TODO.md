@@ -30,8 +30,6 @@ Outstanding work on Localize. The design detail behind these items lives under [
 
 ## In progress
 
-* [ ] **Map-order dependence in the code since the 2026-09-26 audit** — audited 2026-10-03: the standard formats' order, and the country and city names of zone parsing, can change a result; the fixes are the plan's tasks. [plans/map-order.md](plans/map-order.md).
-
 * [ ] **CLDR 49 upgrade** — the plan's items are closed bar item 11; the data is built from CLDR `main` pending beta3 (below), then the final release. [plans/cldr-49.md](plans/cldr-49.md).
 
 ## Blocked
@@ -59,6 +57,8 @@ Outstanding work on Localize. The design detail behind these items lives under [
 * [ ] **`localize_emoji` sibling library** — plan item 11, a separate package on its own schedule. A Phoenix LiveView picker (`localize_emoji_live`) is out of scope for its 0.1.0.
 
 ## Done
+
+* [x] **Map-order dependence in the code since the 2026-09-26 audit** — audited; the standard formats come in `standard_formats/0`'s order, and a country or city name of zone parsing that two places share resolves by a fixed rule. [plans/map-order.md](plans/map-order.md). 2026-10-03, v1.4.0.
 
 * [x] **No tag without a CLDR locale id is made by the library** — `Localize.Locale.parent/1` built each parent by clearing the child's subtags and its CLDR locale id, so its nine callers validated every parent again, matching it against all 657 locales (about 20 ms a step); a parent now names its CLDR locale. 2026-10-03, v1.4.0.
 

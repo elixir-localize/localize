@@ -1,18 +1,12 @@
 # Map order
 
-**Status:** in progress, 2026-10-03
+**Status:** implemented (v1.4.0), 2026-10-03
 
 On OTP 26 and later a map with at most 32 atom keys iterates in the order its atoms were created, which differs between VMs and with what the host application loads first; a larger map iterates in hash order. Tests pass, so order is changed only where something depends on it: a selection that takes the first or last candidate, a test or doctest whose expected value depends on the order, or generated output that must be reproducible. A list returned in no documented order stays as it is.
 
-The audit of 2026-09-26 covered every map enumeration under `lib/` on `main`; every defect it found that changes a result is fixed, and the latent ones are deferred below. The audit of 2026-10-03 covered what `lib/` gained since (`22981e0e..8d3ae992`, the merged `cldr-49` work and what followed it): of the map enumerations, `Map.keys`, `Map.values`, `Map.to_list`, first and last selections and folds in its 156 files, three can change a result, listed under Tasks. The rest sort what they select (the date and time parsers' patterns, with the pattern itself the last tie-break; `zone_names/2` by `@zone_name_types`), select from fixed lists, merge two maps, or only name values in an error.
+The audit of 2026-09-26 covered every map enumeration under `lib/` on `main`; every defect it found that changes a result is fixed, and the latent ones are deferred below. The audit of 2026-10-03 covered what `lib/` gained since (`22981e0e..8d3ae992`, the merged `cldr-49` work and what followed it): of the map enumerations, `Map.keys`, `Map.values`, `Map.to_list`, first and last selections and folds in its 156 files, three could change a result and are fixed (Done, below). The rest sort what they select (the date and time parsers' patterns, with the pattern itself the last tie-break; `zone_names/2` by `@zone_name_types`), select from fixed lists, merge two maps, or only name values in an error.
 
 ## Tasks
-
-* [ ] **The standard formats in a fixed order** — `Localize.DateTime.Format.standard_format_entries/2` lists a locale's full, long, medium and short formats in the order of the map they come from, and the date and time parsers try them first, unsorted. List them in CLDR's order.
-
-* [ ] **Country names in zone names by the territory rule** — `Localize.DateTime.Timezone`'s `country_names/1` inverts the locale's territory names into a map, keeping whichever territory it visits last where two share a name, as `Localize.Territory.to_territory_code/2` did until 2026-09-26. Take the same territory it takes (a country over a region that contains others, then the alphabetically first code).
-
-* [ ] **Exemplar cities by a fixed rule** — `city_names/1` keeps, of two zones with the same city name, whichever it visits last, among the locale's exemplar cities and among the cities derived from zone IDs. Take the alphabetically first zone, after the locale's own names as now.
 
 ### Deferred
 
@@ -33,6 +27,12 @@ These selections walk a map but are deterministic only because today's CLDR data
 * [ ] **RBNF rule groups** — `Localize.Number.Rbnf` merges rule groups last-wins. No rule-set name is in two groups.
 
 ### Done
+
+* [x] **The standard formats in a fixed order** — `Localize.DateTime.Format.standard_format_entries/2` lists a locale's formats in the order of `standard_formats/0`, short to full, where it took the order of the map they came from, which the date and time parsers try first. 2026-10-03, v1.4.0.
+
+* [x] **Country names in zone names by the territory rule** — `Localize.DateTime.Timezone`'s `country_names/1` takes, of territories that share a name, the one `Localize.Territory.preferred_territory/1` takes, where it kept whichever it visited last. No name collides in today's data. 2026-10-03, v1.4.0.
+
+* [x] **Exemplar cities by a fixed rule** — `city_names/1` takes, of zones whose cities share a name, the alphabetically first, after the locale's own names, where it kept whichever it visited last. 2026-10-03, v1.4.0.
 
 * [x] **Territory name to code where names collide** — `Localize.Territory.to_territory_code/2` kept whichever territory it visited last when names were equal after normalisation (10 locales). It now matches the name as written first, then prefers a country to a region that contains others, then the alphabetically first code: FM in `cv` and `shn`, ZA in `scn` and `syr`, CH for "ma Suwasi" in `tok`. 2026-09-26, v1.4.0.
 

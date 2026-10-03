@@ -120,6 +120,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+* Parsing no longer depends on the order a map iterates in, which changes between VMs: the standard formats are tried in the order of `Localize.DateTime.Format.standard_formats/0`, and a country or city name in a zone name that two places share resolves to the one `Localize.Territory` picks, or the alphabetically first zone.
+
 * `Localize.Locale.parent/1` returns a parent that names its CLDR locale, where it cleared the CLDR locale id with the child's subtags, so a caller walking up the locales no longer validates each parent against every locale, about 20 ms a step.
 
 * `Localize.Number.to_string/2` with an RBNF rule only an ancestor locale has, such as Hebrew and Roman numerals, takes a fraction of a millisecond where it took 40 to 50: the chain of locales a rule is looked up in is found once a locale, where each call revalidated every parent tag.

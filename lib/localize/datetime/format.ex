@@ -92,10 +92,15 @@ defmodule Localize.DateTime.Format do
     Enum.flat_map([:date, :time], &standard_entries(&1, locale_id, calendar_type))
   end
 
+  # The standard formats in the order of `standard_formats/0`, where the
+  # order of the map they come from changes between VMs and a parser tries
+  # them first.
   defp standard_entries(format_type, locale_id, calendar_type) do
     with {:ok, skeletons} <- formats_for_type(format_type, locale_id, calendar_type),
          {:ok, patterns} <- patterns_for_type(format_type, locale_id, calendar_type) do
-      for {format, skeleton} <- skeletons, {:ok, pattern} <- [Map.fetch(patterns, format)] do
+      for format <- @standard_formats,
+          {:ok, skeleton} <- [Map.fetch(skeletons, format)],
+          {:ok, pattern} <- [Map.fetch(patterns, format)] do
         {skeleton, pattern}
       end
     else
