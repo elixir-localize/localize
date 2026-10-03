@@ -4,8 +4,6 @@ Outstanding work on Localize. The design detail behind these items lives under [
 
 ## Open
 
-* [ ] **`Localize.Nif` fails to load while Localize is compiled** — its `@on_load` function calls `Localize.Priv.path/1` (`lib/localize/nif.ex:44`), and when the compiler loads `Localize.Nif` before `Localize.Priv` is compiled the build logs `The on_load function for module Elixir.Localize.Nif returned: {:undef, [{Localize.Priv, :path, ["localize_nif"], []}, …]}` and an `UndefinedFunctionError`, then carries on to "Generated localize app". Seen compiling Localize `6c5d4ef2` as a dependency in two of the seven rows of Tempo's CI run 37158113725, those on Elixir 1.17.3 and 1.18.5, and in neither the 1.19 and 1.20 rows nor a local build on 1.20; a `require Localize.Priv` in `Localize.Nif` would make it a compile-time dependency, compiled first (found in the Tempo session, 2026-10-04).
-
 * [ ] **An interval written with a week format shows one end** — `Localize.Interval.to_string(~D[2026-06-15], ~D[2026-07-20], format: :yw, locale: :en)` is "week 25 of 2026", and two weeks of a calendar of weeks with `format: :yw` or a pattern (`"Y-'W'ww"`) are the first alone, where the default format writes both ("week 25 of 2026 – week 26 of 2026"). `@unit_symbols` in `Localize.Interval` has no unit for `w` or `W`, so only a year's difference shows; TR35's step 4 compares the fields in the pattern, so the weeks themselves decide (ICU4C 78.3 makes no pattern for `yw` or `MMMMW` and is no oracle). By the same reckoning `format: :yM` writes those two weeks "6/2026 – 6/2026 AD", their month fields differing where the period `M` writes does not (found 2026-10-04).
 
 * [ ] **A week read `as: :map` for a calendar of weeks carries a day** — `Localize.Date.parse("week 25 of 2026", locale: :en, calendar: Calendrical.ISOWeek, as: :map)` is `%{year: 2026, month: 25, day: 1}`, where the text names no day and `Calendar.ISO`'s map keeps the week without one (`week_of_year: 25, week_based_year: 2026`), so a year and a week do not read back as the value they were written from (found 2026-10-04).
@@ -16,17 +14,17 @@ Outstanding work on Localize. The design detail behind these items lives under [
 
 * [ ] **Date round trips that fail in five locales** — `gd`'s `yMMM` writes the week-based year ("Dùbh 2025" for 2024-12-31, a CLDR report like `pt`'s). `mt`, `sbp` and `vai_Latn` give `yMd` as "M/d/y" beside a short date of "dd/MM/y" in CLDR, so "3/4/2024" reads as the short date (a CLDR report), and `ug`'s `yMd` "y-d-M" reads as ISO 8601 (the ISO-shaped date decision below).
 
-* [ ] **Decide how a calendar's ISO-shaped numeric date is read** — the parser reads any `y-MM-dd` text as an ISO 8601 date and converts it, so `he`'s Chinese short date "2023-11-22" (related year 2023, month 11, day 22) comes back as Gregorian 22 November 2023; a calendar's own pattern written that way never round-trips.
+* [ ] **Decide how a calendar's ISO-shaped numeric date is read** — the parser reads any `y-MM-dd` text as an ISO 8601 date and converts it, so `he`'s Chinese short date "2023-11-22" (related year 2023, month 11, day 22) comes back as Gregorian 22 November 2023; a calendar's own pattern written that way never round-trips.  Decision: Use a calendars own formats first.
 
-* [ ] **Decide how a date a skeleton writes against the standard format's field order is read** — `my`'s Japanese short date is "GGGGG d/M/y" where its `GyMd` is "GGGGG y/M/d", and `sa`'s medium "G d MMM y" where its `GyMMMd` is "G y MMM d", so "Kanpō (1741–1744) 2/6/1" from `GyMd` reads as the short date, 2 June 1741, an era year and a day both being small. The standard formats round-trip, as `fa`'s dates now do in either digits; report the conflicts to CLDR, or let `parse/2` take the format the text was written with.
+* [ ] **Decide how a date a skeleton writes against the standard format's field order is read** — `my`'s Japanese short date is "GGGGG d/M/y" where its `GyMd` is "GGGGG y/M/d", and `sa`'s medium "G d MMM y" where its `GyMMMd` is "G y MMM d", so "Kanpō (1741–1744) 2/6/1" from `GyMd` reads as the short date, 2 June 1741, an era year and a day both being small. The standard formats round-trip, as `fa`'s dates now do in either digits; report the conflicts to CLDR, or let `parse/2` take the format the text was written with.  Decision: Let parse/2 take the format the text was written with.
 
-* [ ] **Numeric widths in interval patterns** — TR35's `availableFormats` adjustment pads an interval item's `d/M` to a style's `dd/MM` (`vi` short "01/04/2023 – 10/04/2023"); ICU4C and V8 normalise the skeleton's numeric widths away and write "1/4/2023 – 10/4/2023". Decide which to follow; it predates the calendar work and shows in Gregorian `vi`, `id`, `ms`, `te`, `am` and `sw`.
+* [ ] **Numeric widths in interval patterns** — TR35's `availableFormats` adjustment pads an interval item's `d/M` to a style's `dd/MM` (`vi` short "01/04/2023 – 10/04/2023"); ICU4C and V8 normalise the skeleton's numeric widths away and write "1/4/2023 – 10/4/2023". Decide which to follow; it predates the calendar work and shows in Gregorian `vi`, `id`, `ms`, `te`, `am` and `sw`. Decision: Use TR35 (in general, TR35 over ICU when the difference is unambiguous)
 
 * [ ] **The hour cycle of a short time interval** — `format: :short` takes `hm` or `Hm` from the locale's preferred hour cycle, so in 18 locales, such as `ady-JO`, whose short time format is "HH:mm", a time interval is 12-hour and its single value "10:05 AM" where `Localize.Time.to_string/2` writes "10:05".
 
 * [ ] **`y` in the Chinese and Dangi calendars** — ICU4C writes the year of the sixty-year cycle ("40. 2. 30." in `ko`), Localize the sequential year ("4660. 2. 30."), which CLDR's era data calls the year; TR35's `U` falling back to `y` suggests the cycle year. Decide which to follow and record it.
 
-* [ ] **An ISO 8601 date that is also a locale's pattern** — root's Chinese and Dangi short pattern `r-MM-dd` writes "2020-05-01", which the parser reads as ISO 8601 first, so those dates do not parse back; decide whether a non-Gregorian calendar's own patterns come first.
+* [ ] **An ISO 8601 date that is also a locale's pattern** — root's Chinese and Dangi short pattern `r-MM-dd` writes "2020-05-01", which the parser reads as ISO 8601 first, so those dates do not parse back; decide whether a non-Gregorian calendar's own patterns come first. Decision: Yes, a calendars own patterns come first.
 
 * [ ] **`Localize.Calendar.localize/3` names the first value of a part the date lacks** — a map without a month is January, the first quarter and a Monday, and one without a year the current era; characterization tests pin this. Decide whether they should be errors.
 
@@ -59,6 +57,8 @@ Outstanding work on Localize. The design detail behind these items lives under [
 * [ ] **`localize_emoji` sibling library** — plan item 11, a separate package on its own schedule. A Phoenix LiveView picker (`localize_emoji_live`) is out of scope for its 0.1.0.
 
 ## Done
+
+* [x] **`Localize.Nif` loads while Localize is compiled** — its body calls `Code.ensure_compiled!(Localize.Priv)`, so the module its `@on_load` callback calls is compiled and loaded first, and builds on Elixir 1.17 and 1.18 no longer log the callback's `:undef`; a lint test holds every `@on_load` callback to it. 2026-10-04, v1.4.0.
 
 * [x] **An interval of two dates that hold some of their fields** — two months, a month and a day each, or a year and a month take CLDR's interval format for those fields in `Localize.Interval.to_string/3` and `to_parts/3` ("Jun – Aug", "Jun 15 – 20", "Jun – Aug 2026"), open intervals too, and a date and time with no year keeps its date. 2026-10-04, v1.4.0.
 

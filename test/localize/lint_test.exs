@@ -156,4 +156,243 @@ defmodule Localize.LintTest do
       |> Enum.map(fn {line, line_number} -> {path, line_number, String.trim(line)} end)
     end
   end
+
+  describe "an @on_load callback's Localize modules are compiled first" do
+    # A module's `@on_load` callback runs when the module is loaded, in a
+    # process of the code server's, where the compiler cannot see what it
+    # calls. A compiler before Elixir 1.19 loads a module as soon as it is
+    # compiled, so a callback that calls another module of this project
+    # fails with `:undef` whenever that module is compiled later:
+    # `Localize.Nif`'s called `Localize.Priv.path/1`, and every build on
+    # Elixir 1.17 and 1.18 logged "The on_load function for module
+    # Elixir.Localize.Nif returned: {:undef, …}". From Elixir 1.19 a module
+    # is loaded when it is first used, and the same callback fails the
+    # build once the module is used while Localize compiles.
+    #
+    # `Code.ensure_compiled!/1` in the module's body has the compiler
+    # compile and load the other module first. A `require` orders the two
+    # as well, but Elixir 1.19 warns that a `require` no macro uses is
+    # unused, and CI compiles with `--warnings-as-errors`.
+    #
+    # This lint reads every module with an `@on_load` callback and fails
+    # when the callback, or a function of its module that it calls, calls
+    # a `Localize` module the body does not ensure.
+
+    test "every Localize module an @on_load callback calls is ensured in the module's body" do
+      sources =
+        for path <- Path.wildcard(Path.join(File.cwd!(), "lib/**/*.ex")),
+            source = File.read!(path),
+            String.contains?(source, "@on_load"),
+            do: {path, source}
+
+      # `Localize.Nif` is the module the lint was written for: were it not
+      # read, the lint would pass by finding nothing.
+      assert Enum.any?(sources, fn {path, _source} -> Path.basename(path) == "nif.ex" end)
+
+      offenders =
+        for {path, source} <- sources,
+            module <- unensured_on_load_calls(source),
+            do: {path, module}
+
+      assert offenders == [],
+             "\n\n`@on_load` callbacks that call a Localize module the compiler " <>
+               "is not told to compile first:\n\n" <>
+               Enum.map_join(offenders, "\n", fn {file, module} ->
+                 "  #{Path.relative_to(file, File.cwd!())} calls #{module}"
+               end) <>
+               "\n\nCall `Code.ensure_compiled!/1` with each in the module's body, " <>
+               "above `@on_load`. See `test/localize/lint_test.exs` for context."
+    end
+
+    # The lint itself, on the shapes it must tell apart: a call written in
+    # full, through an alias and through a function of the module, each
+    # ensured or not.
+    test "the lint finds a call that is not ensured, and no call that is" do
+      callback = """
+        @on_load :init
+        def init, do: load(path())
+        defp path, do: Localize.Priv.path("nif")
+        defp load(path), do: :erlang.load_nif(path, 0)
+        def later, do: Localize.Other.thing()
+      """
+
+      assert unensured_on_load_calls("defmodule Localize.A do\n#{callback}end") ==
+               ["Localize.Priv"]
+
+      assert unensured_on_load_calls("""
+             defmodule Localize.A do
+               Code.ensure_compiled!(Localize.Priv)
+             #{callback}end
+             """) == []
+
+      assert unensured_on_load_calls("""
+             defmodule Localize.A do
+               require Localize.Priv
+             #{callback}end
+             """) == []
+
+      aliased = """
+        alias Localize.{Priv, Other}
+        @on_load {:init, 0}
+        def init, do: Priv.path("nif") |> Other.load()
+      """
+
+      assert unensured_on_load_calls("defmodule Localize.A do\n#{aliased}end") ==
+               ["Localize.Other", "Localize.Priv"]
+
+      assert unensured_on_load_calls("""
+             defmodule Localize.A do
+               Code.ensure_compiled!(Localize.Priv)
+               Code.ensure_compiled!(Localize.Other)
+             #{aliased}end
+             """) == []
+
+      own = """
+        @on_load :init
+        def init, do: Localize.A.setup() && __MODULE__.setup() && String.length("a")
+        def setup, do: :ok
+      """
+
+      assert unensured_on_load_calls("defmodule Localize.A do\n#{own}end") == []
+
+      assert unensured_on_load_calls("defmodule Localize.A do\n  def a, do: Localize.B.b()\nend") ==
+               []
+    end
+
+    # The `Localize` modules that a source's `@on_load` callbacks call and
+    # its body does not ensure, as their names, sorted.
+    defp unensured_on_load_calls(source) do
+      ast = Code.string_to_quoted!(source)
+      aliases = aliases(ast)
+      functions = functions(ast)
+      ensured = ensured(ast, aliases) ++ defined(ast)
+
+      ast
+      |> on_load_callbacks()
+      |> reachable(functions)
+      |> Enum.flat_map(&Map.get(functions, &1, []))
+      |> remote_modules(aliases)
+      |> Enum.filter(&match?([:Localize | _], &1))
+      |> Enum.reject(&(&1 in ensured))
+      |> Enum.map(&Enum.join(&1, "."))
+      |> Enum.uniq()
+      |> Enum.sort()
+    end
+
+    defp collect(ast, collector) do
+      {_ast, collected} =
+        Macro.prewalk(ast, [], fn node, collected -> {node, collector.(node) ++ collected} end)
+
+      collected
+    end
+
+    defp on_load_callbacks(ast) do
+      collect(ast, fn
+        {:@, _, [{:on_load, _, [name]}]} when is_atom(name) -> [name]
+        {:@, _, [{:on_load, _, [{name, 0}]}]} when is_atom(name) -> [name]
+        _node -> []
+      end)
+    end
+
+    # Each function of the source, by name, with its clauses' bodies.
+    defp functions(ast) do
+      ast
+      |> collect(fn
+        {kind, _, [{:when, _, [{name, _, _arguments}, _guard]}, body]}
+        when kind in [:def, :defp] and is_atom(name) ->
+          [{name, body}]
+
+        {kind, _, [{name, _, _arguments}, body]} when kind in [:def, :defp] and is_atom(name) ->
+          [{name, body}]
+
+        _node ->
+          []
+      end)
+      |> Enum.group_by(&elem(&1, 0), &elem(&1, 1))
+    end
+
+    # The callbacks and every function of the module they call, in turn.
+    defp reachable(names, functions, seen \\ [])
+    defp reachable([], _functions, seen), do: seen
+
+    defp reachable([name | names], functions, seen) do
+      if name in seen,
+        do: reachable(names, functions, seen),
+        else: reachable(local_calls(name, functions) ++ names, functions, [name | seen])
+    end
+
+    # The functions of the module that its function `name` calls.
+    defp local_calls(name, functions) do
+      functions
+      |> Map.get(name, [])
+      |> collect(fn
+        {local, _, arguments}
+        when is_atom(local) and is_list(arguments) and is_map_key(functions, local) ->
+          [local]
+
+        _node ->
+          []
+      end)
+    end
+
+    # The modules whose functions the bodies call, as lists of alias
+    # segments, each alias of the source written out in full.
+    defp remote_modules(bodies, aliases) do
+      collect(bodies, fn
+        {{:., _, [{:__aliases__, _, segments}, function]}, _, arguments}
+        when is_atom(function) and is_list(arguments) ->
+          [expand(segments, aliases)]
+
+        _node ->
+          []
+      end)
+    end
+
+    defp ensured(ast, aliases) do
+      collect(ast, fn
+        {{:., _, [{:__aliases__, _, [:Code]}, :ensure_compiled!]}, _,
+         [{:__aliases__, _, segments}]} ->
+          [expand(segments, aliases)]
+
+        {:require, _, [{:__aliases__, _, segments} | _options]} ->
+          [expand(segments, aliases)]
+
+        _node ->
+          []
+      end)
+    end
+
+    defp defined(ast) do
+      collect(ast, fn
+        {:defmodule, _, [{:__aliases__, _, segments}, _body]} -> [segments]
+        _node -> []
+      end)
+    end
+
+    # The source's aliases, each short name with the segments it stands for.
+    defp aliases(ast) do
+      ast
+      |> collect(fn
+        {:alias, _, [{:__aliases__, _, segments}]} ->
+          [{List.last(segments), segments}]
+
+        {:alias, _, [{:__aliases__, _, segments}, [as: {:__aliases__, _, [short]}]]} ->
+          [{short, segments}]
+
+        {:alias, _, [{{:., _, [{:__aliases__, _, base}, :{}]}, _, members}]} ->
+          for {:__aliases__, _, member} <- members, do: {List.last(member), base ++ member}
+
+        _node ->
+          []
+      end)
+      |> Map.new()
+    end
+
+    defp expand([first | rest] = segments, aliases) do
+      case Map.fetch(aliases, first) do
+        {:ok, full} -> full ++ rest
+        :error -> segments
+      end
+    end
+  end
 end

@@ -30,6 +30,16 @@ defmodule Localize.Nif do
 
   """
 
+  # `init/0` runs when this module is loaded, in a process of the code
+  # server's, and calls `Localize.Priv`. The compiler cannot see that call,
+  # so it is told: `Localize.Priv` is compiled and loaded before this module
+  # is. Without that, a compiler before Elixir 1.19, which loads a module as
+  # soon as it is compiled, loaded this one first and logged the callback's
+  # `:undef`, and from Elixir 1.19 the build fails the same way once this
+  # module is used while Localize compiles. A `require` orders the two as
+  # well, but Elixir 1.19 warns that it is unused.
+  Code.ensure_compiled!(Localize.Priv)
+
   @on_load :init
 
   # Whether `init/0` loaded the shared library. The stubs below raise when
