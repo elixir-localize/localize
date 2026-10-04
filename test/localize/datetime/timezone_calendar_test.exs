@@ -1,6 +1,10 @@
 defmodule Localize.DateTime.TimezoneCalendarTest do
   use ExUnit.Case, async: true
 
+  # The tests of every locale decode each locale's data, half a minute where
+  # all 657 are on the machine and longer beside the rest of the suite.
+  @moduletag timeout: 300_000
+
   alias Localize.DateTime.Timezone
   alias Localize.Test.LadyDayCalendar
   alias Localize.Test.ThirteenMonthCalendar
@@ -178,7 +182,9 @@ defmodule Localize.DateTime.TimezoneCalendarTest do
     end
   end
 
-  describe "in every locale" do
+  # Every locale on this machine: all of them where they have all been
+  # generated, and in CI the locales `test/test_helper.exs` downloads.
+  describe "in every locale on this machine" do
     @moments [
       {~N[2026-01-15 12:00:00], "Asia/Almaty"},
       {~N[2000-06-01 12:00:00], "America/Indiana/Knox"},
@@ -199,7 +205,7 @@ defmodule Localize.DateTime.TimezoneCalendarTest do
 
     test "a date and time in another calendar is named as the same instant in Calendar.ISO" do
       failures =
-        for locale <- Localize.all_locale_ids(),
+        for locale <- Localize.Test.InstalledLocales.all(),
             {naive, zone} <- @moments,
             expected = written(iso(naive, zone), locale),
             calendar <- @calendars,
@@ -213,7 +219,7 @@ defmodule Localize.DateTime.TimezoneCalendarTest do
 
     test "its long specific name is read back in its calendar as in Calendar.ISO" do
       failures =
-        for locale <- Localize.all_locale_ids(),
+        for locale <- Localize.Test.InstalledLocales.all(),
             {naive, zone} <- @moments,
             zoned = iso(naive, zone),
             text = name(zoned, "zzzz", locale),

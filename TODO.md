@@ -4,6 +4,8 @@ Outstanding work on Localize. The design detail behind these items lives under [
 
 ## Open
 
+* [ ] **Decide whether CI carries every locale** — each job has the 71 locales `test/test_helper.exs` downloads, so a test of every locale covers a tenth of them there and all 657 only on the maintainer's machine. A locale cache restored in one job, keyed on the data's version, would hold the whole matrix in CI.
+
 * [ ] **A datetime interval whose date half is coarser than a day repeats the date** — `format: :yMMMHm` from 10:00 on 15 June to 14:30 on 16 June is "Jun 2026, 10:00 – Jun 2026, 14:30", and `:ywHm` on two days of one week repeats the week, since the datetime path judges the difference by the day field and not by the fields the date half writes, as a date interval now does. ICU4C 78.3 adds the day ("Jun 15, 2026, 10:00 – Jun 16, 2026, 14:30"); the reading that writes `Hm` across days as the times alone gives "Jun 2026, 10:00 – 14:30". Decide which (found 2026-10-04).
 
 * [ ] **A calendar of weeks reads a week date as its own only as it writes it** — for `Calendrical.NRF`, "2026-W25-2" is the calendar's own week 25 (20 July 2026) alone, after a space and before a `T`, but "2026W252" without its hyphens and "2026-W25" without its day are ISO 8601's week (16 and 15 June), since the calendar's notation is what its `parse_date/1` reads and its `date_to_string/3` writes. Decide whether week-date text in any ISO 8601 form is the calendar's own (found 2026-10-04).
@@ -11,6 +13,8 @@ Outstanding work on Localize. The design detail behind these items lives under [
 * [ ] **Choose a fixed-offset representation that `DateTime` functions honour** — Localize and Calendrical carry an offset such as `-05:00` under `Etc/UTC`, so `DateTime.shift_zone(parsed, "Etc/UTC")` returns it unchanged. The MF2 interpreter converts from the instant instead; `Etc/GMT+5` or an offset string would need both libraries to change together.
 
 * [ ] **Decide whether specific zone names are qualified** — CLDR's own `TimezoneFormatter` qualifies the specific format (`z`, `zzzz`) as it does the generic one, "Central European Summer Time (Germany)" for Berlin in `en`, where ICU4C never does; a specific name already reads back to its instant, and Localize qualifies only the generic format. Decision: Follow CLDRs implementation.
+
+* [ ] **Decide what `zzzz` falls back to for a zone with no name** — TR35 49's symbol table makes it the short localized GMT format (CLDR-18074, CLDR-18857), while its semantic-skeleton text has the offset follow the length, and ICU4C, ICU4X and Localize write the long one, "GMT+03:00" for Amman. The table may be a slip, and then it is a report to CLDR.
 
 * [ ] **`Localize.DateTime.parse/2` does not read a date and time with a semantic skeleton** — a `Localize.DateTime.SemanticSkeleton` of a date and time given as `:format` is not used, so each half is read in any of the locale's formats, where `Localize.Date.parse/2` and `Localize.Time.parse/2` read one with a semantic skeleton of their own. The formatter resolves one against the value it writes (its year style and time precision), which a parser does not have (found 2026-10-04).
 
