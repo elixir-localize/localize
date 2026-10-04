@@ -685,8 +685,8 @@ defmodule Localize.Date do
   * `{:ok, value}` where `value` is a `t:Date.t/0`, or
 
   * `{:error, exception}` if the string does not parse, a
-    `t:Localize.DateTimeFormatError.t/0` or a
-    `t:Localize.DateTimeUnresolvedFormatError.t/0` if `:format` is no
+    `Localize.DateTimeFormatError` or a
+    `Localize.DateTimeUnresolvedFormatError` if `:format` is no
     format of a date, or a `t:Localize.InvalidValueError.t/0` if `string`
     is not a string or an option is malformed.
 

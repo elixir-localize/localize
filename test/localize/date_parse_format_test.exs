@@ -22,10 +22,11 @@ defmodule Localize.DateParseFormatTest do
   # Localize cannot load Calendrical's calendars, which depend on it. This
   # stand-in names the Japanese calendar and answers `year_of_era/3` for
   # Kanpō, from 1741-04-12, and Enkyō, from 1744-04-03, taking the rest of
-  # its arithmetic from `Calendar.ISO`. CLDR 49 defines no era before Meiji:
-  # the dates are `priv/localize/curated/japanese_eras.json`'s and the name
-  # "Kanpō (1741–1744)" `priv/localize/curated/japanese_era_names.json`'s,
-  # which is CLDR 48.2's.
+  # its arithmetic from `Calendar.ISO`. Localize defines every Japanese era,
+  # the eras before Meiji included, where CLDR 49 ships only Meiji onwards:
+  # their start dates are `priv/localize/curated/japanese_eras.json`'s and
+  # their names, "Kanpō (1741–1744)" among them, CLDR 48.2's, kept in
+  # `priv/localize/curated/japanese_era_names.json`.
   defmodule Japanese do
     @moduledoc false
     use Localize.Test.StandInCalendar

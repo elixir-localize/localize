@@ -55,6 +55,42 @@ defmodule Localize.IntervalClosestMatchTest do
       assert Localize.Interval.to_string(@from, @to_day, locale: :en, format: :short) ==
                {:ok, "5/3/26 – 5/5/26"}
     end
+
+    # A numeric month and day take the requested skeleton's widths too, as
+    # TR35 adjusts an `availableFormats` pattern (user, 2026-10-04: "Use
+    # TR35"), so an interval's dates are written as the single date is.
+    # `am`'s short date is "dd/MM/y", its skeleton `yMMdd` and its `yMd`
+    # item "d/M/y – d/M/y"; `ms`'s is "d/MM/yy", `yyMMd`, beside the same
+    # item between thin spaces. ICU4C 78.3 adjusts the year alone, and
+    # writes "1/4/2023 – 10/4/2023" and "1/4/23 – 10/4/23".
+    test "a numeric month and day take the widths of the skeleton" do
+      from = ~D[2023-04-01]
+      to = ~D[2023-04-10]
+
+      assert Localize.Date.to_string(from, locale: :am, format: :short) == {:ok, "01/04/2023"}
+
+      assert Localize.Interval.to_string(from, to, locale: :am, format: :short) ==
+               {:ok, "01/04/2023 – 10/04/2023"}
+
+      assert Localize.Date.to_string(from, locale: :ms, format: :short) == {:ok, "1/04/23"}
+
+      assert Localize.Interval.to_string(from, to, locale: :ms, format: :short) ==
+               {:ok, "1/04/23 – 10/04/23"}
+    end
+
+    # A skeleton given as the format is the one requested. `en`'s `yMd` item
+    # is "M/d/y – M/d/y" between thin spaces, which `yMMdd` pads and ICU4C
+    # 78.3 writes as it stands, "4/1/2023 – 4/10/2023".
+    test "a skeleton's own numeric widths are kept" do
+      from = ~D[2023-04-01]
+      to = ~D[2023-04-10]
+
+      assert Localize.Interval.to_string(from, to, locale: :en, format: :yMMdd) ==
+               {:ok, "04/01/2023 – 04/10/2023"}
+
+      assert Localize.Interval.to_string(from, to, locale: :en, format: :yMd) ==
+               {:ok, "4/1/2023 – 4/10/2023"}
+    end
   end
 
   describe "behaviour that must not change" do

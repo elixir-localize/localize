@@ -16,7 +16,7 @@ Outstanding work on Localize. The design detail behind these items lives under [
 
 * [ ] **A naive date and time at `:long` or `:full` does not read back in `ja`, `fa` and `th`** — `Localize.DateTime.to_string(~N[2024-04-03 10:30:00], locale: :ja, format: :full)` writes its time as the full time pattern without its zone, "10時30分00秒", which no parser reads and where `Localize.Time.to_string/2` writes "10:30:00" at the same format; `th` does the same at both lengths, and `fa` leaves the zone's parentheses behind, "۱۰:۳۰:۰۰ ()" (found 2026-10-04).
 
-* [ ] **Numeric widths in interval patterns** — TR35's `availableFormats` adjustment pads an interval item's `d/M` to a style's `dd/MM` (`vi` short "01/04/2023 – 10/04/2023"); ICU4C and V8 normalise the skeleton's numeric widths away and write "1/4/2023 – 10/4/2023". Decide which to follow; it predates the calendar work and shows in Gregorian `vi`, `id`, `ms`, `te`, `am` and `sw`. Decision: Use TR35 (in general, TR35 over ICU when the difference is unambiguous)
+* [ ] **Decide which skeleton an interval at a standard format asks for** — it asks for CLDR's `datetimeSkeleton`, which in 75 locales (123 of 2,628 Gregorian formats) gives the year, a numeric month or the day another width than the pattern beside it, so the interval is written unlike the single date: `vi` short "1/4/23" and "01/04/2023 – 10/04/2023", `en-CA` "2023-04-01" and "4/1/23–4/10/23", `zu` "2023-04-01" and "23-04-01 – 23-04-10". TR35 calls the skeleton "derived from the pattern" and is silent on an interval's; deriving it from the pattern the single date is written with, as ICU and ECMA-402 do, makes the two agree in every locale (found 2026-10-04).
 
 * [ ] **The hour cycle of a short time interval** — `format: :short` takes `hm` or `Hm` from the locale's preferred hour cycle, so in 18 locales, such as `ady-JO`, whose short time format is "HH:mm", a time interval is 12-hour and its single value "10:05 AM" where `Localize.Time.to_string/2` writes "10:05".
 
@@ -38,6 +38,8 @@ Outstanding work on Localize. The design detail behind these items lives under [
 
 * [ ] **Report 12-hour patterns without a day period to CLDR** — `fr-CM`'s `h`, `hm` and `hms`, `bal-Latn`'s `hm` and `es-AR`'s `hms` are 12-hour patterns with no day period, which TR35 forbids, so the "12:30" and "1:45" they write each name two times. Blocked on the user filing `tmp/cldr-reports/02-twelve-hour-patterns-without-a-day-period.md`.
 
+* [ ] **Report standard date formats whose `datetimeSkeleton` is not the pattern's to CLDR** — 123 Gregorian formats in 75 locales, where the pattern changed and the skeleton did not (`id`, `te`), or one of the two is inherited and the other the locale's own (`zu`, `en_NZ`, `vi`, `en_CA`). Blocked on the user filing `tmp/cldr-reports/06-date-skeletons-not-derived-from-their-patterns.md`.
+
 * [ ] **Report numeric skeletons that contradict the standard date format to CLDR** — `mt`, `sbp`, `vai_Latn`, `ug`, `my` and `sa` write a skeleton's day and month, or day and year, in the other order than the standard format, and `kk_Arab`'s `yMd` "y-d-M" has ISO 8601's shape, so text the skeleton writes reads as another date unless `parse/2` is given its format. Blocked on the user filing `tmp/cldr-reports/03-skeletons-against-the-standard-formats.md`.
 
 * [ ] **Settle the location format of a non-location zone with CLDR** — TR35 49 says a zone with no region (`PST8PDT`, `Etc/GMT+5`) falls back to the offset format, then gives "PST8PDT, generic → Unknown Location Time" as its worked example. Localize follows the first; the conformance data has no case. Blocked on the user filing `tmp/cldr-reports/04-location-format-of-a-non-location-zone.md`.
@@ -53,6 +55,8 @@ Outstanding work on Localize. The design detail behind these items lives under [
 * [ ] **`localize_emoji` sibling library** — plan item 11, a separate package on its own schedule. A Phoenix LiveView picker (`localize_emoji_live`) is out of scope for its 0.1.0.
 
 ## Done
+
+* [x] **Numeric widths in interval patterns follow TR35** — an interval item's numeric month and day take the widths of the skeleton requested, as an `availableFormats` pattern does, so `am`'s short interval is "01/04/2023 – 10/04/2023" beside its date "01/04/2023", where ICU4C writes "1/4/2023 – 10/4/2023"; recorded in `guides/icu_divergences.md` (user, 2026-10-04: "Use TR35"). 2026-10-04, v1.4.0.
 
 * [x] **`parse/2` takes the format the text was written with** — `Localize.Date.parse/2` reads text with the `:format` it names and no other, `Localize.DateTime.parse/2` reads its date with `:date_format`, a standard `:format` or a skeleton's date fields, and `Localize.Interval.parse/2` each end, so `mt`'s `:yMd` "4/3/2024", `ug`'s "y-d-M" and `my`'s Japanese `:GyMd` read back (user, 2026-10-04). 2026-10-04, v1.4.0.
 
