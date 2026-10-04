@@ -363,14 +363,14 @@ defmodule Localize.DateTime.Parser do
       first_half = trim_trailing_literals(before)
       glue = Enum.drop(before, length(first_half))
 
-      halves = %{
-        first => Enum.map_join(first_half, &elem(&1, 1)),
-        second => Enum.map_join(second_half, &elem(&1, 1))
-      }
-
-      order = if first == :date, do: :date_first, else: :time_first
+      first_pattern = Enum.map_join(first_half, &elem(&1, 1))
+      second_pattern = Enum.map_join(second_half, &elem(&1, 1))
       separator = glue |> Enum.map_join(&elem(&1, 1)) |> unquote_cldr_literal()
-      {:ok, {halves.date, halves.time, {separator, order}}}
+
+      case first do
+        :date -> {:ok, {first_pattern, second_pattern, {separator, :date_first}}}
+        :time -> {:ok, {second_pattern, first_pattern, {separator, :time_first}}}
+      end
     else
       _not_two_runs ->
         {:error, Localize.DateTimeFormatError.exception(format: pattern, reason: :invalid_format)}
