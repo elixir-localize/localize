@@ -50,8 +50,101 @@ defmodule Localize.ParsingCoverageTest do
       assert Localize.Date.parse("2026-143", locale: :ja) == {:ok, ~D[2026-05-23]}
     end
 
+    # 23 May is the 143rd day of 2026, which has 365.
+    test "basic ordinal date (YYYYDDD) in :ja" do
+      assert Date.day_of_year(~D[2026-05-23]) == 143
+      assert Localize.Date.parse("2026143", locale: :ja) == {:ok, ~D[2026-05-23]}
+
+      for text <- ["2026366", "2026000"] do
+        assert {:error, %Localize.DateParseError{}} = Localize.Date.parse(text, locale: :ja)
+      end
+    end
+
+    # A year and a month, or a year, at reduced precision is no date: it is
+    # the fields it holds, alike in every locale, where a locale's patterns
+    # read one or the other. `YYYYMM` is no ISO 8601 form.
+    test "a year and a month, and a year (YYYY-MM and YYYY)" do
+      for locale <- [:en, :de, :ja] do
+        assert Localize.Date.parse("2026-03", locale: locale, as: :map) ==
+                 {:ok, %{calendar: Calendar.ISO, year: 2026, month: 3}},
+               inspect(locale)
+
+        assert Localize.Date.parse("2026", locale: locale, as: :map) ==
+                 {:ok, %{calendar: Calendar.ISO, year: 2026}},
+               inspect(locale)
+
+        assert {:error, %Localize.DateParseError{}} =
+                 Localize.Date.parse("2026-03", locale: locale)
+
+        for text <- ["2026-13", "2026-00", "202603"] do
+          assert {:error, %Localize.DateParseError{}} =
+                   Localize.Date.parse(text, locale: locale, as: :map),
+                 inspect({locale, text})
+        end
+      end
+    end
+
+    # A year is the whole of the text as it was given. `es` abbreviates both
+    # March and Tuesday "mar", and "mar 2024" with the weekday stripped is
+    # "2024": it is `yMMM`'s March 2024, "MMM y", not the year alone.
+    test "a year is not read from text with a leading weekday stripped" do
+      assert Localize.Date.parse("mar 2024", locale: :es, as: :map) ==
+               {:ok, %{calendar: Calendar.ISO, year: 2024, month: 3}}
+    end
+
     test "ISO week date (YYYY-Www-D) in :ja" do
       assert Localize.Date.parse("2026-W21-6", locale: :ja) == {:ok, ~D[2026-05-23]}
+    end
+
+    test "basic ISO week date (YYYYWwwD) in :ja" do
+      assert Localize.Date.parse("2026W216", locale: :ja) == {:ok, ~D[2026-05-23]}
+    end
+
+    # ISO 8601's week at reduced precision names no day. As a date it is the
+    # week's Monday, in ISO 8601's weeks whatever the locale's: `en`'s begin
+    # on Sunday, so its "week 25 of 2026" begins on 14 June. As a map it is
+    # the week-based year and the week. `:calendar.iso_week_number/1` puts
+    # 15 June 2026 in week 25 and 28 December 2026 in week 53, which 2025
+    # does not have.
+    test "week without a day (YYYY-Www and YYYYWww)" do
+      assert :calendar.iso_week_number({2026, 6, 15}) == {2026, 25}
+      assert :calendar.iso_week_number({2026, 12, 28}) == {2026, 53}
+
+      for locale <- [:en, :ja, :de], text <- ["2026-W25", "2026W25"] do
+        assert Localize.Date.parse(text, locale: locale) == {:ok, ~D[2026-06-15]},
+               inspect({locale, text})
+      end
+
+      assert Localize.Date.parse("week 25 of 2026", locale: :en) == {:ok, ~D[2026-06-14]}
+      assert Localize.Date.parse("2026-W53", locale: :en) == {:ok, ~D[2026-12-28]}
+
+      assert Localize.Date.parse("2026-W25", locale: :en, as: :map) ==
+               {:ok,
+                %{calendar: Calendar.ISO, year: 2026, week_based_year: 2026, week_of_year: 25}}
+
+      for text <- ["2025-W53", "2026-W54", "2026-W00", "2026-W2", "2026W25-2", "2026-W252"] do
+        assert {:error, %Localize.DateParseError{}} = Localize.Date.parse(text, locale: :en),
+               text
+      end
+    end
+
+    # In a calendar whose weeks are not its fields the week is its first
+    # day, whole, as every other ISO 8601 date is converted.
+    test "week without a day in another calendar" do
+      monday = Date.new!(2026, 6, 15, GregorianLike)
+
+      assert Localize.Date.parse("2026-W25", locale: :en, calendar: GregorianLike) ==
+               {:ok, monday}
+
+      assert Localize.Date.parse("2026-W25", locale: :en, calendar: GregorianLike, as: :map) ==
+               {:ok, %{calendar: GregorianLike, year: 2026, month: 6, day: 15}}
+    end
+
+    test "weeks without days as an interval and as text of unknown shape" do
+      assert Localize.Interval.parse("2026-W25 – 2026-W27", locale: :en) ==
+               {:ok, Date.range(~D[2026-06-15], ~D[2026-06-29])}
+
+      assert Localize.DateTime.Parser.parse("2026-W25", locale: :en) == {:ok, ~D[2026-06-15]}
     end
   end
 

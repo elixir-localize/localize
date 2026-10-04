@@ -437,6 +437,19 @@ iex> Localize.Date.parse("2026-03-22", locale: :de)
 {:ok, ~D[2026-03-22]}
 ```
 
+Its other date forms are read too: without separators ("20260322"), by the day of the year ("2026-081", "2026081") and by the week, with its day ("2026-W12-7", "2026W127") or without one. A week without a day is the week's first day, and its weeks are ISO 8601's, from Monday, whatever the locale's are. A year and a month, or a year alone, is no date and is read `as: :map`:
+
+```elixir
+iex> Localize.Date.parse("2026-W25", locale: :en)
+{:ok, ~D[2026-06-15]}
+
+iex> Localize.Date.parse("2026-W25", locale: :en, as: :map)
+{:ok, %{calendar: Calendar.ISO, year: 2026, week_based_year: 2026, week_of_year: 25}}
+
+iex> Localize.Date.parse("2026-03", locale: :en, as: :map)
+{:ok, %{calendar: Calendar.ISO, year: 2026, month: 3}}
+```
+
 Parsing is lenient about the decoration a locale allows. A weekday is read wherever the locale's formats place it, and a leading one is stripped from a format that has none. An era is read and its year counts from it, so 1 BC is year 0 and a two-digit year a format writes in full beside an era is taken as written, where ICU would move it into this century (see [ICU divergences](icu_divergences.md#date-parsing)). A format that writes the year as `yy`, its two low-order digits, is read in the century around the reference year even beside an era, as ICU reads it: `de`'s Buddhist "01.04.66 BE" is 2566 BE, and in a calendar that shows years of an era the digits are the year of that era, so `de`'s Japanese "01.04.05 R" is Reiwa 5. Stand-alone and format month names are both accepted, and week and quarter forms resolve to the date they begin. Dates, times and date-times written in the digits of the locale's number system are read as their Latin-digit forms are — `bn`'s "১০:০৫ AM" is 10:05, and names written in those digits, such as `dz`'s months, which are Tibetan numbers, are read too — and Latin digits are always accepted. Week text is read in the weeks it is written in: a calendar's own, and for `Calendar.ISO`, which has none of its own, the locale's, so week 20 of 2026 begins on Sunday 10 May in `en` and on Monday 11 May in `en-GB`:
 
 ```elixir

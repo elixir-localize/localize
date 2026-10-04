@@ -178,7 +178,62 @@ defmodule Localize.Date.Parser do
         error
 
       nil ->
-        try_locale_patterns(inputs, locale, calendar_module, own_calendar, reference, as)
+        # ISO 8601 at reduced precision is the whole of the input as it was
+        # given: with a leading weekday stripped, `es`'s "mar 2024", March or
+        # a Tuesday, would be the year 2024.
+        given = hd(inputs)
+
+        iso_week(given, calendar_module, as) || iso_year_or_month(given, calendar_module, as) ||
+          try_locale_patterns(inputs, locale, calendar_module, own_calendar, reference, as)
+    end
+  end
+
+  # `YYYY-MM` and `YYYY`, ISO 8601's month and year at reduced precision.
+  # Neither is a date, so they are read only as the fields they hold, and
+  # only in `Calendar.ISO`, whose notation ISO 8601 is: a year and a month
+  # of it are no fields of another calendar. They are read so in every
+  # locale, where a locale's own patterns read one or the other.
+  defp iso_year_or_month(input, Calendar.ISO, :map) do
+    case Regex.run(~r/\A(\d{4})(?:-(0[1-9]|1[0-2]))?\z/, input) do
+      [_, year] ->
+        {:ok, %{calendar: Calendar.ISO, year: String.to_integer(year)}}
+
+      [_, year, month] ->
+        {:ok,
+         %{calendar: Calendar.ISO, year: String.to_integer(year), month: String.to_integer(month)}}
+
+      nil ->
+        nil
+    end
+  end
+
+  defp iso_year_or_month(_input, _calendar_module, _as), do: nil
+
+  # `YYYY-Www` and `YYYYWww`, ISO 8601's week at reduced precision: the week
+  # of that number in ISO 8601's weeks, from Monday and with at least four
+  # days of the year, whatever the weeks of the locale or of the calendar
+  # asked for, as an ISO 8601 week date is. It names no day, so as a date it
+  # is the week's first day, in the calendar asked for, and as a map in
+  # `Calendar.ISO`, whose notation ISO 8601 is, its week-based year and week.
+  # A week the year does not have is no week.
+  defp iso_week(input, calendar_module, as) do
+    with [_, y, w] <- Regex.run(~r/\A(\d{4})-?W(\d{2})\z/, input),
+         {year, ""} <- Integer.parse(y),
+         {week, ""} <- Integer.parse(w),
+         %Date.Range{first: monday} <- Localize.Calendar.ISO.week(year, week) do
+      iso_week_value(monday, {year, week}, calendar_module, as)
+    else
+      _not_a_week -> nil
+    end
+  end
+
+  defp iso_week_value(_monday, {year, week}, Calendar.ISO, :map) do
+    {:ok, %{calendar: Calendar.ISO, year: year, week_based_year: year, week_of_year: week}}
+  end
+
+  defp iso_week_value(monday, _year_and_week, calendar_module, as) do
+    with {:ok, date} <- in_calendar(monday, calendar_module) do
+      {:ok, finalise_date(date, as)}
     end
   end
 
@@ -1569,10 +1624,10 @@ defmodule Localize.Date.Parser do
     end
   end
 
-  # `YYYY-DDD` (ordinal date — year + day-of-year, 1..366): that day of the
-  # year's days, as `Localize.Calendar.ISO` gives them.
+  # `YYYY-DDD` and `YYYYDDD` (ordinal date — year + day-of-year, 1..366):
+  # that day of the year's days, as `Localize.Calendar.ISO` gives them.
   defp try_iso_ordinal(input) do
-    with [_, y, d] <- Regex.run(~r/\A(\d{4})-(\d{3})\z/u, input),
+    with [_, y, d] <- Regex.run(~r/\A(\d{4})-?(\d{3})\z/u, input),
          {year, ""} <- Integer.parse(y),
          {day_of_year, ""} <- Integer.parse(d),
          %Date.Range{} = days <- Localize.Calendar.ISO.year(year),
@@ -1583,12 +1638,13 @@ defmodule Localize.Date.Parser do
     end
   end
 
-  # `YYYY-Www-D` (ISO week date — week-based year + week number + day of the
-  # week, 1 for Monday to 7): that day of ISO 8601's week, which
-  # `Localize.Calendar.ISO` answers where a question carries no locale. A
-  # week the year does not have, `2026-W54-1` or `2025-W53-1`, is no date.
+  # `YYYY-Www-D` and `YYYYWwwD` (ISO week date — week-based year + week
+  # number + day of the week, 1 for Monday to 7): that day of ISO 8601's
+  # week, which `Localize.Calendar.ISO` answers where a question carries no
+  # locale. A week the year does not have, `2026-W54-1` or `2025-W53-1`, is
+  # no date.
   defp try_iso_week_date(input) do
-    with [_, y, w, d] <- Regex.run(~r/\A(\d{4})-W(\d{2})-(\d)\z/u, input),
+    with [_, y, _separator, w, d] <- Regex.run(~r/\A(\d{4})(-?)W(\d{2})\2(\d)\z/u, input),
          {year, ""} <- Integer.parse(y),
          {week, ""} <- Integer.parse(w),
          {day, ""} <- Integer.parse(d),
@@ -1827,7 +1883,7 @@ defmodule Localize.Date.Parser do
 
     with {:ok, value} <- parse.(Keyword.put(options, :as, :struct), parsing),
          {:ok, converted} <- convert_value(value, calendar_module) do
-      weeks = weeks_without_days(as, options, parsing, calendar_module, parse)
+      weeks = weeks_without_days(as, converted, options, parsing, parse)
       {:ok, converted |> finalise.(as) |> without_days(weeks)}
     end
   end
@@ -1838,43 +1894,45 @@ defmodule Localize.Date.Parser do
   # calendar of weeks holds in its month field, `%{year: 2026, month: 25}`
   # for "week 25 of 2026". The input is read again for the fields it
   # carries, and a year and a week alone are that week of the calendar's
-  # own, whose days it names itself (`Localize.Calendar.week/4`). Each end
-  # of an interval is taken on its own.
-  defp weeks_without_days(:map, options, parsing, calendar_module, parse) do
+  # own, whose days it names itself (`Localize.Calendar.week/4`), where the
+  # whole reading is that week's first day: an ISO 8601 week ("2026-W25")
+  # that is not one of the calendar's own weeks stays the day it was read
+  # as. Each end of an interval is taken on its own.
+  defp weeks_without_days(:map, converted, options, parsing, parse) do
     locale = Keyword.get(options, :locale) || Localize.get_locale()
     week_data = Localize.DateTime.Week.config(locale)
 
-    case parse.(Keyword.put(options, :as, :map), parsing) do
-      {:ok, {%{} = from, %{} = to}} ->
-        {week_without_day(from, calendar_module, week_data),
-         week_without_day(to, calendar_module, week_data)}
+    case {parse.(Keyword.put(options, :as, :map), parsing), converted} do
+      {{:ok, {%{} = from, %{} = to}}, %Date.Range{first: first, last: last}} ->
+        {week_without_day(from, first, week_data), week_without_day(to, last, week_data)}
 
-      {:ok, %{} = fields} ->
-        week_without_day(fields, calendar_module, week_data)
+      {{:ok, %{} = fields}, %Date{} = first_day} ->
+        week_without_day(fields, first_day, week_data)
 
       _unread ->
         nil
     end
   end
 
-  defp weeks_without_days(_as, _options, _parsing, _calendar_module, _parse), do: nil
+  defp weeks_without_days(_as, _converted, _options, _parsing, _parse), do: nil
 
-  defp week_without_day(%{week_of_year: week} = fields, calendar_module, week_data) do
+  defp week_without_day(%{week_of_year: week} = fields, %Date{} = first_day, week_data) do
     week_year = Map.get(fields, :week_based_year) || Map.get(fields, :year)
     others = Map.keys(fields) -- [:calendar, :year, :week_based_year, :week_of_year]
 
     with [] <- others,
          true <- is_integer(week_year),
-         {:ok, days} <- Localize.Calendar.week(calendar_module, week_year, week, week_data),
+         {:ok, days} <- Localize.Calendar.week(first_day.calendar, week_year, week, week_data),
          %Date{calendar: calendar, year: year, month: month} <- days.first,
-         %Date{year: ^year, month: ^month} <- days.last do
+         %Date{year: ^year, month: ^month} <- days.last,
+         :eq <- Localize.Calendar.compare_days(days.first, first_day) do
       %{calendar: calendar, year: year, month: month}
     else
       _not_one_week -> nil
     end
   end
 
-  defp week_without_day(_fields, _calendar_module, _week_data), do: nil
+  defp week_without_day(_fields, _first_day, _week_data), do: nil
 
   defp without_days(value, nil), do: value
   defp without_days(%{} = _whole, %{} = week), do: week

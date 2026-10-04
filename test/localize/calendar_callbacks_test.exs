@@ -1207,6 +1207,40 @@ defmodule Localize.CalendarCallbacksTest do
                 %{calendar: Calendar.ISO, year: 2026, week_of_year: 25, week_based_year: 2026}}
     end
 
+    # ISO 8601's week without a day, "2026-W25", is ISO 8601's week whatever
+    # the calendar's own weeks are. Where it is one of the calendar's own
+    # weeks, as in a calendar of ISO 8601's weeks, a map is that year and
+    # week; where it is not, as in a calendar whose weeks begin on Sunday,
+    # it is the day the week begins on, whole: Monday 4 January 2027 is the
+    # second day of that calendar's second week.
+    test "of ISO 8601 without a day are the calendar's week where they are one of its weeks" do
+      assert Localize.Date.parse("2026-W25", locale: :en, calendar: IsoWeek) ==
+               {:ok, %Date{year: 2026, month: 25, day: 1, calendar: IsoWeek}}
+
+      assert Localize.Date.parse("2026-W25", locale: :en, calendar: IsoWeek, as: :map) ==
+               {:ok, %{year: 2026, month: 25, calendar: IsoWeek}}
+
+      assert Localize.Date.parse("2026W252", locale: :en, calendar: IsoWeek) ==
+               {:ok, %Date{year: 2026, month: 25, day: 2, calendar: IsoWeek}}
+
+      monday = %Date{year: 2027, month: 2, day: 2, calendar: SundayWeeks}
+      assert Date.convert!(monday, Calendar.ISO) == ~D[2027-01-04]
+
+      assert Localize.Date.parse("2027-W01", locale: :en, calendar: SundayWeeks) == {:ok, monday}
+
+      assert Localize.Date.parse("2027-W01", locale: :en, calendar: SundayWeeks, as: :map) ==
+               {:ok, %{year: 2027, month: 2, day: 2, calendar: SundayWeeks}}
+
+      assert Localize.Interval.parse("2026-W25 – 2026-W27",
+               locale: :en,
+               calendar: IsoWeek,
+               as: :map
+             ) ==
+               {:ok,
+                {%{year: 2026, month: 25, calendar: IsoWeek},
+                 %{year: 2026, month: 27, calendar: IsoWeek}}}
+    end
+
     # Each end of an interval of weeks is the week it was written from, a
     # week beside a whole date keeps its own shape, and a week beside a time
     # carries the time's fields with the year and the week.
