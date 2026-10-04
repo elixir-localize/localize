@@ -124,6 +124,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+* A date interval whose dates differ in a month or a year its skeleton does not write takes the interval of the skeleton widened with it, as ICU widens one: `format: :d` from 15 June to 20 July is "6/15 – 7/20", where "15 – 20" was written, and across years "6/15/2026 – 7/20/2027". A widened pattern keeps the widths asked for, so `:MMMMd` across years is "June 15, 2026 – June 15, 2027".
+
 * `Localize.Time.to_string/2` writes a `Time` and a `NaiveDateTime` at a standard format with the locale's standard time pattern, where it took the pattern CLDR's skeleton for the format resolves to: another in 44 locales at `:short` and 47 at `:medium`. `bg`'s short time is "10:30", not "10:30 ч.", and `cop`, `syr` and `kxv` keep their 12-hour clock.
 
 * A date and time with no zone is written at `:long` and `:full` with the time `Localize.Time.to_string/2` writes for it, a map without a zone as a `NaiveDateTime` is, so it reads back in every locale: `ja`'s full is "2024年4月3日水曜日 10:30:00", where the time was "10時30分00秒". `fa`, `es` and `zh-Hant` no longer leave "()" or "[]" where the zone would be.

@@ -133,6 +133,58 @@ defmodule Localize.IntervalSkeletonTest do
       assert interval(~D[2026-01-05], ~D[2027-01-05], format: :MMMd, locale: :en) ==
                {:ok, "Jan 5, 2026#{@thin}–#{@thin}Jan 5, 2027"}
     end
+
+    # Two dates that differ in a month or a year the skeleton does not write
+    # take the interval of the skeleton widened with it: a day alone takes
+    # `Md`'s across months, where "15 – 20" would read as days of one month,
+    # and `yMd`'s across years, and the widened pattern keeps the widths
+    # asked for.
+    test "widens a skeleton with the month or the year its dates differ in" do
+      for {locale, format, {from, to}, expected} <- [
+            {:en, :d, {~D[2026-06-15], ~D[2026-06-20]}, "15#{@thin}–#{@thin}20"},
+            {:en, :d, {~D[2026-06-15], ~D[2026-07-15]}, "6/15#{@thin}–#{@thin}7/15"},
+            {:en, :d, {~D[2026-06-15], ~D[2026-07-20]}, "6/15#{@thin}–#{@thin}7/20"},
+            {:en, :d, {~D[2026-06-15], ~D[2027-06-15]}, "6/15/2026#{@thin}–#{@thin}6/15/2027"},
+            {:en, :d, {~D[2026-12-30], ~D[2027-01-02]}, "12/30/2026#{@thin}–#{@thin}1/2/2027"},
+            {:en, :d, {~D[2026-06-15], ~D[2027-07-20]}, "6/15/2026#{@thin}–#{@thin}7/20/2027"},
+            {:en, :MMMMd, {~D[2026-06-15], ~D[2027-06-15]},
+             "June 15, 2026#{@thin}–#{@thin}June 15, 2027"},
+            {:en, :MEd, {~D[2026-06-15], ~D[2027-06-15]},
+             "Mon, 6/15/2026#{@thin}–#{@thin}Tue, 6/15/2027"},
+            {:en, :MMMM, {~D[2026-06-15], ~D[2027-06-15]}, "June 2026#{@thin}–#{@thin}June 2027"},
+            {:de, :d, {~D[2026-06-15], ~D[2026-07-15]}, "15.06.#{@thin}–#{@thin}15.07."},
+            {:de, :d, {~D[2026-06-15], ~D[2027-06-15]}, "15.06.2026#{@thin}–#{@thin}15.06.2027"},
+            {:fr, :d, {~D[2026-06-15], ~D[2026-07-15]}, "15/06#{@thin}–#{@thin}15/07"},
+            {:fr, :d, {~D[2026-06-15], ~D[2027-06-15]}, "15/06/2026#{@thin}–#{@thin}15/06/2027"},
+            {:ja, :d, {~D[2026-06-15], ~D[2026-07-15]}, "06/15～07/15"},
+            {:ja, :d, {~D[2026-06-15], ~D[2027-06-15]}, "2026/06/15～2027/06/15"}
+          ] do
+        assert interval(from, to, format: format, locale: locale) == {:ok, expected},
+               inspect({locale, format, from, to})
+      end
+    end
+
+    # A skeleton CLDR has no interval for is widened the same way, where
+    # ICU4C 78.3 writes both dates with it as it stands: "15 Mon – 15 Wed",
+    # "Q2 – Q2" and "25 – 25". A weekday and a day take `MEd`'s interval, "E,
+    # M/d – E, M/d" in `en`; a quarter and a week take their year, written
+    # in full as `yQQQ` and `yw`. Two days of one week either side of the
+    # new year are one week, whose year is the week's.
+    test "widens a skeleton that has no interval of its own" do
+      assert interval(~D[2026-06-15], ~D[2026-07-15], format: :Ed, locale: :en) ==
+               {:ok, "Mon, 6/15#{@thin}–#{@thin}Wed, 7/15"}
+
+      assert interval(~D[2026-06-15], ~D[2027-06-15], format: :QQQ, locale: :en) ==
+               {:ok, "Q2 2026#{@thin}–#{@thin}Q2 2027"}
+
+      assert interval(~D[2026-06-15], ~D[2027-06-15], format: :w, locale: :en) ==
+               {:ok, "week 25 of 2026#{@thin}–#{@thin}week 25 of 2027"}
+
+      assert interval(~D[2026-12-30], ~D[2027-01-02], format: :w, locale: :en) == {:ok, "1"}
+
+      assert interval(~D[2026-06-15], ~D[2026-07-15], format: :E, locale: :en) ==
+               {:ok, "Mon#{@thin}–#{@thin}Wed"}
+    end
   end
 
   describe "a datetime interval" do

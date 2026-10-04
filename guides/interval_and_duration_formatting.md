@@ -104,6 +104,19 @@ iex> Localize.Interval.to_string(~D[2026-04-15], ~D[2026-05-20], format: :yQQQ, 
 {:ok, "Q2 2026"}
 ```
 
+Two dates that differ in a month or a year the skeleton does not write take the interval of the skeleton widened with it, so a day alone keeps its month across months and its year across years:
+
+```elixir
+iex> Localize.Interval.to_string(~D[2026-06-15], ~D[2026-06-20], format: :d, locale: :en)
+{:ok, "15 – 20"}
+
+iex> Localize.Interval.to_string(~D[2026-06-15], ~D[2026-07-20], format: :d, locale: :en)
+{:ok, "6/15 – 7/20"}
+
+iex> Localize.Interval.to_string(~D[2026-12-30], ~D[2027-01-02], format: :d, locale: :en)
+{:ok, "12/30/2026 – 1/2/2027"}
+```
+
 ### Partial dates
 
 A date need not hold every field. A map with a month, a month and a day, or a year and a month is a date, as it is for `Localize.Date.to_string/2`, and an interval of two takes at a standard format CLDR's interval format for the fields they hold:

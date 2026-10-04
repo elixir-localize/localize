@@ -6,8 +6,6 @@ Outstanding work on Localize. The design detail behind these items lives under [
 
 * [ ] **A datetime interval whose date half is coarser than a day repeats the date** — `format: :yMMMHm` from 10:00 on 15 June to 14:30 on 16 June is "Jun 2026, 10:00 – Jun 2026, 14:30", and `:ywHm` on two days of one week repeats the week, since the datetime path judges the difference by the day field and not by the fields the date half writes, as a date interval now does. ICU4C 78.3 adds the day ("Jun 15, 2026, 10:00 – Jun 16, 2026, 14:30"); the reading that writes `Hm` across days as the times alone gives "Jun 2026, 10:00 – 14:30". Decide which (found 2026-10-04).
 
-* [ ] **A day-only format across months repeats the day** — `format: :d` from 15 June to 15 July is "15 – 15": a difference in a year widens the pattern with the year (`MMMd` a year apart is "Jan 5, 2026 – Jan 5, 2027"), and one in a month does not. ICU4C 78.3 widens with the month too, "6/15 – 7/15" (found 2026-10-04).
-
 * [ ] **ISO 8601's week without a day is not read** — `Localize.Date.parse("2026-W25")` is a `Localize.DateParseError` in every calendar and in both forms, where the week date "2026-W25-2" reads and `format: "Y-'W'ww"` reads the same text; ISO 8601 writes a week at reduced precision so, and a calendar of weeks would read it as its year and week (found 2026-10-04).
 
 * [ ] **Choose a fixed-offset representation that `DateTime` functions honour** — Localize and Calendrical carry an offset such as `-05:00` under `Etc/UTC`, so `DateTime.shift_zone(parsed, "Etc/UTC")` returns it unchanged. The MF2 interpreter converts from the instant instead; `Etc/GMT+5` or an offset string would need both libraries to change together.
@@ -55,6 +53,8 @@ Outstanding work on Localize. The design detail behind these items lives under [
 * [ ] **`localize_emoji` sibling library** — plan item 11, a separate package on its own schedule. A Phoenix LiveView picker (`localize_emoji_live`) is out of scope for its 0.1.0.
 
 ## Done
+
+* [x] **An interval's skeleton is widened with the month or the year its dates differ in** — `format: :d` is "6/15 – 7/15" across months and "6/15/2026 – 6/15/2027" across years, as ICU4C writes it, where two bare days were written; any skeleton is widened so, with the closest interval item at the widths asked for (`MEd`'s for `Ed`) or with both dates in full (`yQQQ` for `QQQ`). 2026-10-04, v1.4.0.
 
 * [x] **A date and time with no zone reads back at `:long` and `:full`** — its time is the one `Localize.Time.to_string/2` writes for a value with no zone, the format's fields without the zone field, in a `NaiveDateTime` and in a map alike ("2024年4月3日水曜日 10:30:00" in `ja`, no "()" in `fa` or "[]" in `zh-Hant`); every locale reads all four standard formats back, where 24 failed at `:long` and 41 at `:full`. 2026-10-04, v1.4.0.
 
