@@ -8,6 +8,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
+* `Localize.Date.parse/2` takes `:format`, the standard format, skeleton or pattern the text was written with, and reads the text with that format alone, so a date written by a skeleton whose fields stand in another order than the standard formats' reads back: `mt`'s `:yMd` "4/3/2024" is 3 April. `Localize.DateTime.parse/2` reads its date with `:date_format`, a standard `:format` or a skeleton's date fields, and `Localize.Interval.parse/2` reads each end with `:format`.
+
 * A calendar may answer `cldr_calendar_type/3` for a date, and Localize names that date's months, days and patterns from its answer: Calendrical's composite calendars answer with the calendar in effect, so Japan's lunisolar dates before 1873 take the Chinese calendar's names.
 
 * `Localize.Number.resolve_currency/2` and `resolve_currencies/2` resolve a string several of the locale's currencies share by the nearest locale that uses one of them, so "$" is the Canadian dollar in `fr`, as in `fr-CA`. It stays unknown where no such locale is a good fit, or two currencies' locales are as near, as in `es`.

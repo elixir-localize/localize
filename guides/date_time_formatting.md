@@ -499,6 +499,34 @@ iex> Localize.Date.parse("March 2026", locale: :en, as: :map)
 
 `as: :map` is the option to reach for when a form field genuinely means "March 2026" and completing it to a day would be a lie. It works the same way on `Localize.Time.parse/2`, `Localize.DateTime.parse/2` and `Localize.Interval.parse/2`.
 
+### Text written with a known format
+
+Without a format, a date is read in whichever of the locale's formats reads it first, the standard formats before the skeletons. A skeleton whose fields stand in another order than the standard formats' therefore reads as another date: Maltese writes its short date day first and `:yMd` month first. `:format` names the format the text was written with, as `Localize.Date.to_string/2` takes it — a standard format, a skeleton, a semantic skeleton or a pattern — and the text is read with that format and no other:
+
+```elixir
+iex> Localize.Date.to_string(~D[2024-04-03], locale: :mt, format: :yMd)
+{:ok, "4/3/2024"}
+
+iex> Localize.Date.parse("4/3/2024", locale: :mt)
+{:ok, ~D[2024-03-04]}
+
+iex> Localize.Date.parse("4/3/2024", locale: :mt, format: :yMd)
+{:ok, ~D[2024-04-03]}
+
+iex> Localize.Date.parse("4/3/2024", locale: :en, format: "d/M/y")
+{:ok, ~D[2024-03-04]}
+```
+
+`Localize.DateTime.parse/2` reads its date with `:date_format`, or with a standard format or the date fields of a skeleton given as `:format`, and its time in any of the locale's time formats; a pattern of a date and time is not used, so give the date's as `:date_format`. `Localize.Interval.parse/2` reads each end with `:format`:
+
+```elixir
+iex> Localize.DateTime.parse("4/3/2024 10:30", locale: :mt, format: :yMdHm)
+{:ok, ~N[2024-04-03 10:30:00]}
+
+iex> Localize.Interval.parse("4/3/2024 – 10/3/2024", locale: :en, format: "d/M/y")
+{:ok, Date.range(~D[2024-03-04], ~D[2024-03-10])}
+```
+
 ### Intervals
 
 `Localize.Interval.parse/2` takes either one string, which it splits on the locale's own interval separator, or a `{from, to}` pair for a two-input form that already has the endpoints apart:

@@ -419,7 +419,7 @@ defmodule Localize.DateTime.Parser do
     # short-circuits the expensive date parse on every non-time split.
     with {:ok, time, zone} <-
            Localize.Time.Parser.parse_with_zone(time_text, options),
-         {:ok, date} <- Localize.Date.parse(date_text, options),
+         {:ok, date} <- Localize.Date.parse(date_text, date_options(options)),
          {:ok, ndt} <- naive_datetime(date, time) do
       case zone do
         nil -> {:ok, ndt}
@@ -495,8 +495,39 @@ defmodule Localize.DateTime.Parser do
 
   defp named_zone_fields(_zone, time_zone, nil, _options), do: %{time_zone: time_zone}
 
+  # The options a date and time's date is read with. The format its date
+  # was written with is `:date_format`, as `Localize.DateTime.to_string/2`
+  # takes it, or a standard `:format`, which is the date's and the time's
+  # alike, or the date fields of a skeleton given as `:format`, which the
+  # formatter writes the date with. A pattern or a semantic skeleton given
+  # as `:format` is a date and time's, not a date's, so the date is read
+  # without it.
+  defp date_options(options) do
+    format =
+      case {Keyword.get(options, :date_format), Keyword.get(options, :format)} do
+        {nil, nil} -> nil
+        {nil, format} when format in @standard_formats -> format
+        {nil, format} when is_atom(format) -> date_skeleton(format)
+        {date_format, _format} -> date_format
+      end
+
+    options = Keyword.drop(options, [:format, :date_format, :time_format])
+    if is_nil(format), do: options, else: Keyword.put(options, :format, format)
+  end
+
+  # The date fields of a skeleton that names a date and a time, which the
+  # formatter resolves on their own and joins to the time's. A skeleton is
+  # the caller's, so its date fields are one only where a format of that
+  # name is known already: no atom is made for them.
+  defp date_skeleton(skeleton) do
+    case Format.Match.separate_date_and_time(skeleton) do
+      {date_skeleton, _time_skeleton} -> Localize.Utils.Helpers.existing_atom(date_skeleton)
+      nil -> nil
+    end
+  end
+
   defp try_split_as_map({date_text, time_text}, options) do
-    date_opts = Keyword.put(options, :as, :map)
+    date_opts = options |> date_options() |> Keyword.put(:as, :map)
     time_opts = Keyword.put(options, :as, :map)
 
     # Time half first — cheaper and more selective — so a failing time

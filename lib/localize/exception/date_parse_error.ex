@@ -15,14 +15,18 @@ defmodule Localize.DateParseError do
 
   * `:calendar` — the calendar module the input was parsed for.
 
+  * `:format` — the format the input was to be read with, when the
+    `:format` option named one, and otherwise `nil`.
+
   """
 
-  defexception [:input, :locale, :calendar]
+  defexception [:input, :locale, :calendar, :format]
 
   @type t :: %__MODULE__{
           input: String.t() | nil,
           locale: atom() | String.t() | nil,
-          calendar: module() | nil
+          calendar: module() | nil,
+          format: atom() | String.t() | struct() | nil
         }
 
   @impl true
@@ -31,8 +35,13 @@ defmodule Localize.DateParseError do
   end
 
   @impl true
-  def message(%__MODULE__{input: input, locale: locale, calendar: calendar}) do
+  def message(%__MODULE__{input: input, locale: locale, calendar: calendar, format: nil}) do
     "could not parse #{inspect(input)} as a date in locale #{inspect(locale)} " <>
       "(calendar #{inspect(calendar)}); ISO-8601 (YYYY-MM-DD) is always accepted as a fallback"
+  end
+
+  def message(%__MODULE__{input: input, locale: locale, calendar: calendar, format: format}) do
+    "could not parse #{inspect(input)} as a date written with the format #{inspect(format)} " <>
+      "in locale #{inspect(locale)} (calendar #{inspect(calendar)})"
   end
 end

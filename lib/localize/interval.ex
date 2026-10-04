@@ -1699,10 +1699,13 @@ defmodule Localize.Interval do
 
   ### Options
 
-  Same as `Localize.Date.parse/2` — `:locale`, `:calendar`,
+  Same as `Localize.Date.parse/2` — `:locale`, `:calendar`, `:format`,
   `:reference_date`, `:as`. As there, `:calendar` is a calendar module and
   the endpoints are returned in it, a calendar of weeks reading them as
-  Gregorian dates. Plus:
+  Gregorian dates. `:format` is the format each endpoint was written with:
+  each is read with it either side of the locale's separator, and the
+  locale's interval patterns, which share fields between the endpoints,
+  are not tried. Plus:
 
   * `:allow_inverted` is a boolean. When `true`, an end-before-start
     interval is returned as-is, since `Date.range/3` builds a descending

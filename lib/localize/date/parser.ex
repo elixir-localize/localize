@@ -27,6 +27,13 @@ defmodule Localize.Date.Parser do
   # Japanese imperial), so the same input may parse to
   # different dates under different locales — by design.
   #
+  # Where `:format` names the format the text was written with, the
+  # text is read with that format alone, after the calendar's own
+  # notation: neither ISO 8601 nor another of the locale's formats is
+  # tried, since a skeleton may write its fields in another order than
+  # the standard formats do (`mt`'s `yMd` is "M/d/y" beside a short
+  # date of "dd/MM/y").
+  #
   # ### Calendars
   #
   # The `:calendar` option is a calendar module, `Calendar.ISO` by
@@ -140,20 +147,13 @@ defmodule Localize.Date.Parser do
 
     normalised = normalise_input(input)
     candidates = Enum.uniq([normalised, preprocess_safe(normalised, locale, calendar_module)])
-    own_format = &own_format_reading(&1, locale, calendar_module, own_calendar, reference)
+    reading = {locale, calendar_module, own_calendar, reference}
 
-    attempt = fn inputs ->
-      case Enum.find_value(inputs, &written_date(&1, calendar_module, own_calendar, own_format)) do
-        {:ok, date} ->
-          {:ok, finalise_date(date, as)}
-
-        {:error, _exception} = error ->
-          error
-
-        nil ->
-          try_locale_patterns(inputs, locale, calendar_module, own_calendar, reference, as)
+    attempt =
+      case Keyword.get(options, :format) do
+        nil -> &read_in_any_format(&1, reading, as)
+        format -> &read_in_format(&1, format, options, reading, as)
       end
-    end
 
     case attempt.(candidates) do
       {:ok, _} = ok ->
@@ -162,6 +162,115 @@ defmodule Localize.Date.Parser do
       {:error, _} = err ->
         retry_without_ordinal_affixes(attempt, candidates, locale, err)
     end
+  end
+
+  # The input as its calendar's notation, in one of the calendar's own
+  # formats or as ISO 8601 writes a date, and else in whichever of the
+  # locale's patterns reads it first.
+  defp read_in_any_format(inputs, {locale, calendar_module, own_calendar, reference}, as) do
+    own_format = &own_format_reading(&1, locale, calendar_module, own_calendar, reference)
+
+    case Enum.find_value(inputs, &written_date(&1, calendar_module, own_calendar, own_format)) do
+      {:ok, date} ->
+        {:ok, finalise_date(date, as)}
+
+      {:error, _exception} = error ->
+        error
+
+      nil ->
+        try_locale_patterns(inputs, locale, calendar_module, own_calendar, reference, as)
+    end
+  end
+
+  # The input in the format it was written with, which `:format` names as
+  # it names the format `Localize.Date.to_string/2` writes with: a standard
+  # format, a skeleton or a pattern. The text is read with that format and
+  # no other, so a date a skeleton writes against the field order of the
+  # standard formats reads back: `my`'s Japanese `GyMd` is "GGGGG y/M/d"
+  # beside a short date of "GGGGG d/M/y", and "Kanpō 2/6/1" is either (user,
+  # 2026-10-04: "Let parse/2 take the format the text was written with"). A
+  # calendar's own notation, which every standard format writes for a
+  # calendar of weeks, is read before it.
+  defp read_in_format(inputs, format, options, reading, as) do
+    {_locale, calendar_module, own_calendar, _reference} = reading
+
+    case Enum.find_value(inputs, &notation_date(&1, calendar_module, own_calendar)) do
+      {:ok, date} -> {:ok, finalise_date(date, as)}
+      {:error, _exception} = error -> error
+      nil -> try_format(inputs, format, options, reading, as)
+    end
+  end
+
+  defp notation_date(input, calendar_module, own_calendar) do
+    case Localize.Calendar.from_notation(input, own_calendar) do
+      {:ok, date} -> in_calendar(date, calendar_module)
+      :none -> nil
+      {:error, _exception} = error -> error
+    end
+  end
+
+  defp try_format(inputs, format, options, reading, as) do
+    {locale, calendar_module, own_calendar, reference} = reading
+
+    with {:ok, pattern} <- format_pattern(format, options, reading),
+         {:ok, _patterns, ctx} <-
+           locale_patterns(locale, calendar_module, own_calendar, reference) do
+      ctx = %{ctx | regexes: %{pattern => build_pattern_regex(pattern, ctx)}, mixed_years: false}
+      transliterated = inputs |> Enum.map(&transliterate_digits(&1, locale)) |> Enum.uniq()
+
+      read_patterns([{:format, pattern}], transliterated, ctx, as) ||
+        {:error,
+         DateParseError.exception(
+           input: hd(inputs),
+           locale: locale,
+           calendar: calendar_module,
+           format: format
+         )}
+    end
+  end
+
+  # The pattern a format resolves to in the calendar the text is read in, as
+  # `Localize.Date.to_string/2` resolves it for a whole date, with the
+  # numbering the locale writes its fields in. A string is a pattern as it
+  # stands, and must be one the formatter writes a date with: a quote left
+  # open, a letter that is no field of a date and a field longer than any
+  # format writes, which the formatter writes as U+FFFD, are each an error
+  # rather than a format nothing matches.
+  defp format_pattern(format, _options, {locale, calendar_module, _own_calendar, reference})
+       when is_binary(format) do
+    whole_date = whole_date(calendar_module, reference)
+
+    with {:ok, locale_id} <- Localize.Locale.cldr_locale_id_from(locale),
+         {:ok, written} <-
+           Localize.DateTime.Formatter.format(whole_date, format, locale_id, %{locale: locale}) do
+      if String.contains?(written, "�"),
+        do:
+          {:error,
+           Localize.DateTimeFormatError.exception(format: format, reason: :invalid_format)},
+        else: {:ok, format}
+    end
+  end
+
+  defp format_pattern(format, options, {locale, calendar_module, _own_calendar, reference}) do
+    whole_date = whole_date(calendar_module, reference)
+
+    with {:ok, locale_id} <- Localize.Locale.cldr_locale_id_from(locale),
+         {:ok, pattern, numbers} <-
+           Localize.Date.resolve_pattern_and_numbers(whole_date, format, locale_id, options) do
+      if map_size(numbers) == 0, do: {:ok, pattern}, else: {:ok, {pattern, numbers}}
+    end
+  end
+
+  # A whole date of the calendar the text is read in, which a format is
+  # resolved for: the reference date, or the first day of its year where it
+  # holds no more than a year.
+  defp whole_date(calendar_module, reference) do
+    %{
+      calendar: calendar_module,
+      year: reference.year,
+      month: Map.get(reference, :month, 1),
+      day: Map.get(reference, :day, 1)
+    }
   end
 
   # A date written in the notation of the calendar asked for, as the
@@ -492,14 +601,25 @@ defmodule Localize.Date.Parser do
     # 2. Fall back to a naive split-then-parse-each-side. Catches
     #    inputs the interval patterns don't cover (e.g. mixed
     #    formats, ISO endpoints).
-    case match_interval_candidates(
-           candidates,
-           locale,
-           calendar_module,
-           own_calendar,
-           reference,
-           as
-         ) do
+    #
+    # A `:format` is the format each end was written with, so each is
+    # read with it on its own, about the separator, and the locale's
+    # interval patterns, which write the two in the locale's order, are
+    # not tried.
+    matched =
+      if Keyword.get(options, :format),
+        do: :error,
+        else:
+          match_interval_candidates(
+            candidates,
+            locale,
+            calendar_module,
+            own_calendar,
+            reference,
+            as
+          )
+
+    case matched do
       {:ok, from, to} ->
         finalise_range(from, to, allow_inverted, as)
 
@@ -1490,29 +1610,27 @@ defmodule Localize.Date.Parser do
     with {:ok, patterns, ctx} <- locale_patterns(locale, calendar_module, own_calendar, reference) do
       transliterated = inputs |> Enum.map(&transliterate_digits(&1, locale)) |> Enum.uniq()
 
-      result =
-        case as do
-          :struct ->
-            run_candidate_pass(patterns, transliterated, ctx, :struct)
-
-          :map ->
-            # Pass 1 — strict: only accept a pattern whose fields
-            # construct a valid date. This filters out misleading
-            # regex matches like `MMM y` against "May 5" (which
-            # would yield month=5, year=5). The winning pattern's
-            # fields are then surfaced as a map, with the
-            # synthesised year stripped if the user didn't supply
-            # one.
-            #
-            # Pass 2 — lax: needed for legitimately partial inputs
-            # that can't construct a date even with the reference
-            # year (e.g. `"2026"` alone, or `"May"` alone).
-            run_candidate_pass(patterns, transliterated, ctx, {:map, :strict}) ||
-              run_candidate_pass(lax_order(patterns), transliterated, ctx, {:map, :lax})
-        end
-
-      result || {:error, no_match_error(hd(inputs), locale, calendar_module)}
+      read_patterns(patterns, transliterated, ctx, as) ||
+        {:error, no_match_error(hd(inputs), locale, calendar_module)}
     end
+  end
+
+  # The first reading of the inputs any of the patterns gives, or `nil`.
+  defp read_patterns(patterns, inputs, ctx, :struct),
+    do: run_candidate_pass(patterns, inputs, ctx, :struct)
+
+  # Pass 1 — strict: only accept a pattern whose fields construct a valid
+  # date. This filters out misleading regex matches like `MMM y` against
+  # "May 5" (which would yield month=5, year=5). The winning pattern's
+  # fields are then surfaced as a map, with the synthesised year stripped
+  # if the user didn't supply one.
+  #
+  # Pass 2 — lax: needed for legitimately partial inputs that can't
+  # construct a date even with the reference year (e.g. `"2026"` alone, or
+  # `"May"` alone).
+  defp read_patterns(patterns, inputs, ctx, :map) do
+    run_candidate_pass(patterns, inputs, ctx, {:map, :strict}) ||
+      run_candidate_pass(lax_order(patterns), inputs, ctx, {:map, :lax})
   end
 
   # The patterns a calendar's dates are read with in a locale, in the order
@@ -2408,6 +2526,11 @@ defmodule Localize.Date.Parser do
       :none -> {:plain, "[\\p{L}\\.]+"}
     end
   end
+
+  # A field at a length no format writes, such as `QQQQQQ`, which only a
+  # pattern a caller gives can hold: it reads nothing, so its pattern
+  # matches no text.
+  defp field_regex(_field, _months, _eras, _lenient, _ctx), do: {:plain, "(?!)"}
 
   # The digits a numeric field is written with: Latin (or the locale's
   # own, read as Latin before matching) and those of the numbering the

@@ -1079,6 +1079,10 @@ defmodule Localize.DateTime do
     a module that implements only the `Calendar` behaviour, returns a
     `t:Localize.UnknownCalendarError.t/0`.
 
+  * `:date_format` is the format the date was written with, as `to_string/2` takes it and `Localize.Date.parse/2` reads it: a standard format, a skeleton atom, a `Localize.DateTime.SemanticSkeleton` or a pattern string. The date is read with that format and no other. The default is `:format` where that is a standard format, or the date fields of a skeleton given as `:format`; otherwise the date is read in whichever of the locale's formats reads it first.
+
+  * `:format` is the standard format (`:short`, `:medium`, `:long` or `:full`) or the skeleton atom, such as `:yMdHm`, the date and time were written with, and sets the default of `:date_format`. A pattern string and a semantic skeleton of a date and time are no format of the date alone and are not used: give the date's as `:date_format`. The time is read in any of the locale's time formats, whatever format is given.
+
   * `:reference_date` is the `t:Date.t/0` that partial input is completed
     against, taken in the calendar the input is read in. The default is
     today.

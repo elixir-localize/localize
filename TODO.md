@@ -12,9 +12,9 @@ Outstanding work on Localize. The design detail behind these items lives under [
 
 * [ ] **Decide whether specific zone names are qualified** — CLDR's own `TimezoneFormatter` qualifies the specific format (`z`, `zzzz`) as it does the generic one, "Central European Summer Time (Germany)" for Berlin in `en`, where ICU4C never does; a specific name already reads back to its instant, and Localize qualifies only the generic format.
 
-* [ ] **Date round trips that fail in five locales** — `gd`'s `yMMM` writes the week-based year ("Dùbh 2025" for 2024-12-31, a CLDR report like `pt`'s). `mt`, `sbp` and `vai_Latn` give `yMd` as "M/d/y" beside a short date of "dd/MM/y" in CLDR, so "3/4/2024" reads as the short date (a CLDR report), and `ug`'s and `kk-Arab`'s `yMd` "y-d-M" reads as ISO 8601 where its day is no more than 12: ISO 8601 is `Calendar.ISO`'s own notation and stays first there, beside a short date of "y-MM-dd" in `ug` (a CLDR report).
+* [ ] **`Localize.DateTime.parse/2` does not read a date and time with a pattern or a semantic skeleton** — a pattern string or a semantic skeleton of both given as `:format` is not used, so the date is read in any of the locale's formats and "4/3/2024 10:30" with `format: "M/d/y HH:mm"` in `mt` is 4 March; `:date_format` names the date's meanwhile. It needs a reader for a pattern's time fields, the time parser trying only the locale's time formats (found 2026-10-04).
 
-* [ ] **Decide how a date a skeleton writes against the standard format's field order is read** — `my`'s Japanese short date is "GGGGG d/M/y" where its `GyMd` is "GGGGG y/M/d", and `sa`'s medium "G d MMM y" where its `GyMMMd` is "G y MMM d", so "Kanpō (1741–1744) 2/6/1" from `GyMd` reads as the short date, 2 June 1741, an era year and a day both being small. The standard formats round-trip, as `fa`'s dates now do in either digits; report the conflicts to CLDR, or let `parse/2` take the format the text was written with.  Decision: Let parse/2 take the format the text was written with.
+* [ ] **A naive date and time at `:long` or `:full` does not read back in `ja`, `fa` and `th`** — `Localize.DateTime.to_string(~N[2024-04-03 10:30:00], locale: :ja, format: :full)` writes its time as the full time pattern without its zone, "10時30分00秒", which no parser reads and where `Localize.Time.to_string/2` writes "10:30:00" at the same format; `th` does the same at both lengths, and `fa` leaves the zone's parentheses behind, "۱۰:۳۰:۰۰ ()" (found 2026-10-04).
 
 * [ ] **Numeric widths in interval patterns** — TR35's `availableFormats` adjustment pads an interval item's `d/M` to a style's `dd/MM` (`vi` short "01/04/2023 – 10/04/2023"); ICU4C and V8 normalise the skeleton's numeric widths away and write "1/4/2023 – 10/4/2023". Decide which to follow; it predates the calendar work and shows in Gregorian `vi`, `id`, `ms`, `te`, `am` and `sw`. Decision: Use TR35 (in general, TR35 over ICU when the difference is unambiguous)
 
@@ -34,11 +34,11 @@ Outstanding work on Localize. The design detail behind these items lives under [
 
 * [ ] **Interval patterns inherited from a different locale level than the single date** — plan item 35: whether to glue or keep the inherited pattern. Blocked on CLDR-14207.
 
-* [ ] **Report `pt`'s `GyMMMM` and `gd`'s `yMMM` to CLDR** — both write the week-based year `Y` where every sibling format has `y`, so 2025-12-29 renders "dezembro de 2026 d.C.". Blocked on the user filing `tmp/cldr-reports/01-week-based-year-in-month-year-formats.md`.
+* [ ] **Report `pt`'s `GyMMMM`, `gd`'s `yMMM` and `my`'s generic `yyyyMd` to CLDR** — each writes the week-based year `Y` where every sibling format has `y`, so 2025-12-29 renders "dezembro de 2026 d.C.", and `my` writes the Japanese calendar's 22 November 2023 "R 22/11/2023", which reads back as no date it was written from. Blocked on the user filing `tmp/cldr-reports/01-week-based-year-in-month-year-formats.md`.
 
 * [ ] **Report 12-hour patterns without a day period to CLDR** — `fr-CM`'s `h`, `hm` and `hms`, `bal-Latn`'s `hm` and `es-AR`'s `hms` are 12-hour patterns with no day period, which TR35 forbids, so the "12:30" and "1:45" they write each name two times. Blocked on the user filing `tmp/cldr-reports/02-twelve-hour-patterns-without-a-day-period.md`.
 
-* [ ] **Report numeric skeletons that contradict the standard date format to CLDR** — `mt`, `sbp`, `vai_Latn`, `my` and `sa` (the round-trip and era items above). Blocked on the user filing `tmp/cldr-reports/03-skeletons-against-the-standard-formats.md`.
+* [ ] **Report numeric skeletons that contradict the standard date format to CLDR** — `mt`, `sbp`, `vai_Latn`, `ug`, `my` and `sa` write a skeleton's day and month, or day and year, in the other order than the standard format, and `kk_Arab`'s `yMd` "y-d-M" has ISO 8601's shape, so text the skeleton writes reads as another date unless `parse/2` is given its format. Blocked on the user filing `tmp/cldr-reports/03-skeletons-against-the-standard-formats.md`.
 
 * [ ] **Settle the location format of a non-location zone with CLDR** — TR35 49 says a zone with no region (`PST8PDT`, `Etc/GMT+5`) falls back to the offset format, then gives "PST8PDT, generic → Unknown Location Time" as its worked example. Localize follows the first; the conformance data has no case. Blocked on the user filing `tmp/cldr-reports/04-location-format-of-a-non-location-zone.md`.
 
@@ -53,6 +53,8 @@ Outstanding work on Localize. The design detail behind these items lives under [
 * [ ] **`localize_emoji` sibling library** — plan item 11, a separate package on its own schedule. A Phoenix LiveView picker (`localize_emoji_live`) is out of scope for its 0.1.0.
 
 ## Done
+
+* [x] **`parse/2` takes the format the text was written with** — `Localize.Date.parse/2` reads text with the `:format` it names and no other, `Localize.DateTime.parse/2` reads its date with `:date_format`, a standard `:format` or a skeleton's date fields, and `Localize.Interval.parse/2` each end, so `mt`'s `:yMd` "4/3/2024", `ug`'s "y-d-M" and `my`'s Japanese `:GyMd` read back (user, 2026-10-04). 2026-10-04, v1.4.0.
 
 * [x] **An ISO 8601 offset written hard against a time is kept** — `Localize.DateTime.parse("11/22/2023 14:30:45+02:00", locale: :en)` is a `DateTime` at +02:00, where `Time.from_iso8601/1` discarded the offset and the value came back naive. 2026-10-04, v1.4.0.
 

@@ -316,6 +316,19 @@ defmodule Localize.Date do
     end
   end
 
+  @doc false
+  # The pattern `format` resolves to for `date` and the number systems its
+  # numeric fields are written in, as `to_string/2` resolves the two. The
+  # date parser reads a date written with `format` by them.
+  def resolve_pattern_and_numbers(date, format, locale_id, options) do
+    effective = effective_format(date, format, locale_id)
+
+    with {:ok, pattern} <- find_format(date, effective, locale_id, options) do
+      numbers = number_system_overrides_for(date, effective, locale_id)
+      {:ok, pattern_variations(pattern, format), numbers}
+    end
+  end
+
   # A semantic skeleton's pattern variations, its column alignment among
   # them, apply to whichever pattern it resolved to: a standard format's as
   # much as a matched skeleton's.
@@ -653,6 +666,8 @@ defmodule Localize.Date do
     a module that implements only the `Calendar` behaviour, returns a
     `t:Localize.UnknownCalendarError.t/0`.
 
+  * `:format` is the format the text was written with, as `to_string/2` takes it: a standard format (`:short`, `:medium`, `:long` or `:full`), a skeleton atom such as `:yMd`, a `Localize.DateTime.SemanticSkeleton` or a pattern string such as `"d/M/y"`. The text is read with that format and no other, after the calendar's own notation, so a date written by a skeleton whose fields stand in another order than the locale's standard formats' reads back as itself: `mt`'s `:yMd` writes 3 April 2024 as "4/3/2024", which is 4 March where no format is given. A format of fewer fields than a date has, such as `:yMMM`, needs `as: :map`. The default is `nil`: the text is read in whichever of the locale's formats reads it first.
+
   * `:reference_date` is the `t:Date.t/0` that partial input is completed
     against, taken in the calendar the input is read in. The default is
     today.
@@ -669,9 +684,11 @@ defmodule Localize.Date do
 
   * `{:ok, value}` where `value` is a `t:Date.t/0`, or
 
-  * `{:error, exception}` if the string does not parse, or a
-    `t:Localize.InvalidValueError.t/0` if `string` is not a string or an
-    option is malformed.
+  * `{:error, exception}` if the string does not parse, a
+    `t:Localize.DateTimeFormatError.t/0` or a
+    `t:Localize.DateTimeUnresolvedFormatError.t/0` if `:format` is no
+    format of a date, or a `t:Localize.InvalidValueError.t/0` if `string`
+    is not a string or an option is malformed.
 
   ### Examples
 
@@ -680,6 +697,12 @@ defmodule Localize.Date do
 
       iex> Localize.Date.parse("March 22, 2026", locale: :en)
       {:ok, ~D[2026-03-22]}
+
+      iex> Localize.Date.parse("4/3/2024", locale: :en)
+      {:ok, ~D[2024-04-03]}
+
+      iex> Localize.Date.parse("4/3/2024", locale: :en, format: "d/M/y")
+      {:ok, ~D[2024-03-04]}
 
   """
   @spec parse(String.t(), Keyword.t()) :: {:ok, Date.t()} | {:error, Exception.t()}

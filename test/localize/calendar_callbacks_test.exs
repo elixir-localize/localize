@@ -608,6 +608,13 @@ defmodule Localize.CalendarCallbacksTest do
         {:ok, text} = Localize.Date.to_string(value, locale: :en)
 
         assert Localize.Date.parse(text, locale: :en, calendar: IsoWeek) == {:ok, value}
+
+        # A standard format writes the notation, so the notation is what a
+        # date written with one reads as.
+        for format <- [:short, :medium, :long, :full] do
+          assert Localize.Date.parse(text, locale: :en, calendar: IsoWeek, format: format) ==
+                   {:ok, value}
+        end
       end
 
       assert {:error, %Localize.DateParseError{}} =
