@@ -1173,6 +1173,70 @@ defmodule Localize.CalendarCallbacksTest do
       assert Localize.Date.parse("2026-W25-2") == {:ok, ~D[2026-06-16]}
     end
 
+    # A year and a week of a calendar of weeks is written "week 25 of 2026",
+    # which names no day. Read as a map it is the value it was written from,
+    # the year and the week its month field holds, the fields the days of
+    # that week share, and not the first of them, which the struct form
+    # gives. A notation and a Gregorian date name a day and come back whole,
+    # and `Calendar.ISO`, which holds a week in no field of a date, keeps
+    # it as a week.
+    test "of a calendar of weeks read as a map are the year and the week" do
+      week = %{year: 2026, month: 25, calendar: IsoWeek}
+
+      for locale <- [:en, :de] do
+        {:ok, text} = Localize.Date.to_string(week, locale: locale)
+
+        assert Localize.Date.parse(text, locale: locale, calendar: IsoWeek, as: :map) ==
+                 {:ok, week}
+      end
+
+      assert Localize.Date.parse("week 25 of 2026", locale: :en, calendar: IsoWeek, as: :map) ==
+               {:ok, week}
+
+      assert Localize.Date.parse("week 25 of 2026", locale: :en, calendar: IsoWeek) ==
+               {:ok, %Date{year: 2026, month: 25, day: 1, calendar: IsoWeek}}
+
+      assert Localize.Date.parse("2026-W25-2", calendar: IsoWeek, as: :map) ==
+               {:ok, %{year: 2026, month: 25, day: 2, calendar: IsoWeek}}
+
+      assert Localize.Date.parse("Jun 16, 2026", locale: :en, calendar: IsoWeek, as: :map) ==
+               {:ok, %{year: 2026, month: 25, day: 2, calendar: IsoWeek}}
+
+      assert Localize.Date.parse("week 25 of 2026", locale: :en, as: :map) ==
+               {:ok,
+                %{calendar: Calendar.ISO, year: 2026, week_of_year: 25, week_based_year: 2026}}
+    end
+
+    # Each end of an interval of weeks is the week it was written from, a
+    # week beside a whole date keeps its own shape, and a week beside a time
+    # carries the time's fields with the year and the week.
+    test "of a calendar of weeks read as a map in an interval and beside a time" do
+      week = %{year: 2026, month: 25, calendar: IsoWeek}
+      next = %{week | month: 26}
+      {:ok, text} = Localize.Interval.to_string(week, next, locale: :en)
+
+      assert Localize.Interval.parse(text, locale: :en, calendar: IsoWeek, as: :map) ==
+               {:ok, {week, next}}
+
+      assert Localize.Interval.parse({"week 25 of 2026", "week 26 of 2026"},
+               locale: :en,
+               calendar: IsoWeek,
+               as: :map
+             ) == {:ok, {week, next}}
+
+      assert Localize.Interval.parse({"week 25 of 2026", "2026-W26-3"},
+               locale: :en,
+               calendar: IsoWeek,
+               as: :map
+             ) == {:ok, {week, %{year: 2026, month: 26, day: 3, calendar: IsoWeek}}}
+
+      assert Localize.DateTime.parse("week 25 of 2026, 10:30 AM",
+               locale: :en,
+               calendar: IsoWeek,
+               as: :map
+             ) == {:ok, %{calendar: IsoWeek, year: 2026, month: 25, hour: 10, minute: 30}}
+    end
+
     # The weeks are the calendar asked for's even where it reads its dates
     # as Gregorian ones: a Sunday week calendar's week 1 of 2027 begins on
     # Sunday 27 December 2026, where ISO 8601's begins on Monday 4 January.

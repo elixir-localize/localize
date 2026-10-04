@@ -665,6 +665,17 @@ Localize.Date.to_string(%{year: 2026, month: 25, calendar: Calendrical.ISOWeek},
 #=> {:ok, "Woche 25 des Jahres 2026"}
 ```
 
+The text names no day, so read `as: :map` it is the year and the week it was written from, the fields the days of that week share, where the struct form gives the week's first day:
+
+```elixir
+# With calendrical installed
+Localize.Date.parse("week 25 of 2026", locale: :en, calendar: Calendrical.ISOWeek, as: :map)
+#=> {:ok, %{calendar: Calendrical.ISOWeek, year: 2026, month: 25}}
+
+Localize.Date.parse("week 25 of 2026", locale: :en, calendar: Calendrical.ISOWeek)
+#=> {:ok, ~D[2026-W25-1 Calendrical.ISOWeek]}
+```
+
 `Localize.Time.parse/2` takes the option too: a time is read in the time formats of the calendar given, and then in the Gregorian calendar's.
 
 ## Format pattern reference

@@ -1095,7 +1095,8 @@ defmodule Localize.DateTime do
     always, and a named zone when the input gives the full date its offset
     depends on; otherwise `:time_zone` holds the zone as written. A date
     and time read in another calendar and converted, as a calendar of
-    weeks reads one, comes back whole. The default is `:struct`.
+    weeks reads one, comes back whole, but for a week written without its
+    day, which is the calendar's year and week. The default is `:struct`.
 
   ### Returns
 

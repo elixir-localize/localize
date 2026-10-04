@@ -1823,15 +1823,64 @@ defmodule Localize.Date.Parser do
 
   defp read_in(parsing, calendar_module, options, parse, finalise) do
     as = Keyword.get(options, :as, :struct)
+    options = Keyword.merge(options, calendar: parsing, own_calendar: calendar_module)
 
-    options =
-      Keyword.merge(options, calendar: parsing, as: :struct, own_calendar: calendar_module)
-
-    with {:ok, value} <- parse.(options, parsing),
+    with {:ok, value} <- parse.(Keyword.put(options, :as, :struct), parsing),
          {:ok, converted} <- convert_value(value, calendar_module) do
-      {:ok, finalise.(converted, as)}
+      weeks = weeks_without_days(as, options, parsing, calendar_module, parse)
+      {:ok, converted |> finalise.(as) |> without_days(weeks)}
     end
   end
+
+  # A week written for the calendar names no day, so read as a map it is
+  # not the whole date of its first day but the fields its days share, as
+  # the formatter writes a date without its day: the year and the week a
+  # calendar of weeks holds in its month field, `%{year: 2026, month: 25}`
+  # for "week 25 of 2026". The input is read again for the fields it
+  # carries, and a year and a week alone are that week of the calendar's
+  # own, whose days it names itself (`Localize.Calendar.week/4`). Each end
+  # of an interval is taken on its own.
+  defp weeks_without_days(:map, options, parsing, calendar_module, parse) do
+    locale = Keyword.get(options, :locale) || Localize.get_locale()
+    week_data = Localize.DateTime.Week.config(locale)
+
+    case parse.(Keyword.put(options, :as, :map), parsing) do
+      {:ok, {%{} = from, %{} = to}} ->
+        {week_without_day(from, calendar_module, week_data),
+         week_without_day(to, calendar_module, week_data)}
+
+      {:ok, %{} = fields} ->
+        week_without_day(fields, calendar_module, week_data)
+
+      _unread ->
+        nil
+    end
+  end
+
+  defp weeks_without_days(_as, _options, _parsing, _calendar_module, _parse), do: nil
+
+  defp week_without_day(%{week_of_year: week} = fields, calendar_module, week_data) do
+    week_year = Map.get(fields, :week_based_year) || Map.get(fields, :year)
+    others = Map.keys(fields) -- [:calendar, :year, :week_based_year, :week_of_year]
+
+    with [] <- others,
+         true <- is_integer(week_year),
+         {:ok, days} <- Localize.Calendar.week(calendar_module, week_year, week, week_data),
+         %Date{calendar: calendar, year: year, month: month} <- days.first,
+         %Date{year: ^year, month: ^month} <- days.last do
+      %{calendar: calendar, year: year, month: month}
+    else
+      _not_one_week -> nil
+    end
+  end
+
+  defp week_without_day(_fields, _calendar_module, _week_data), do: nil
+
+  defp without_days(value, nil), do: value
+  defp without_days(%{} = _whole, %{} = week), do: week
+
+  defp without_days({from, to}, {from_week, to_week}),
+    do: {from_week || from, to_week || to}
 
   @doc false
   # A value read in one calendar, in another: a date, a range of dates or

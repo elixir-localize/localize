@@ -8,7 +8,7 @@ Outstanding work on Localize. The design detail behind these items lives under [
 
 * [ ] **A day-only format across months repeats the day** — `format: :d` from 15 June to 15 July is "15 – 15": a difference in a year widens the pattern with the year (`MMMd` a year apart is "Jan 5, 2026 – Jan 5, 2027"), and one in a month does not. ICU4C 78.3 widens with the month too, "6/15 – 7/15" (found 2026-10-04).
 
-* [ ] **A week read `as: :map` for a calendar of weeks carries a day** — `Localize.Date.parse("week 25 of 2026", locale: :en, calendar: Calendrical.ISOWeek, as: :map)` is `%{year: 2026, month: 25, day: 1}`, where the text names no day and `Calendar.ISO`'s map keeps the week without one (`week_of_year: 25, week_based_year: 2026`), so a year and a week do not read back as the value they were written from (found 2026-10-04).
+* [ ] **ISO 8601's week without a day is not read** — `Localize.Date.parse("2026-W25")` is a `Localize.DateParseError` in every calendar and in both forms, where the week date "2026-W25-2" reads and `format: "Y-'W'ww"` reads the same text; ISO 8601 writes a week at reduced precision so, and a calendar of weeks would read it as its year and week (found 2026-10-04).
 
 * [ ] **Choose a fixed-offset representation that `DateTime` functions honour** — Localize and Calendrical carry an offset such as `-05:00` under `Etc/UTC`, so `DateTime.shift_zone(parsed, "Etc/UTC")` returns it unchanged. The MF2 interpreter converts from the instant instead; `Etc/GMT+5` or an offset string would need both libraries to change together.
 
@@ -57,6 +57,8 @@ Outstanding work on Localize. The design detail behind these items lives under [
 * [ ] **`localize_emoji` sibling library** — plan item 11, a separate package on its own schedule. A Phoenix LiveView picker (`localize_emoji_live`) is out of scope for its 0.1.0.
 
 ## Done
+
+* [x] **A week read `as: :map` for a calendar of weeks is its year and week** — `Localize.Date.parse("week 25 of 2026", calendar: Calendrical.ISOWeek, as: :map)` is `%{year: 2026, month: 25}`, the fields the days of the calendar's own week share and the value it was written from, where it carried `day: 1`; each end of an interval and a week beside a time read alike. 2026-10-04, v1.4.0.
 
 * [x] **A date interval compares the fields its format writes** — a week format writes both weeks (`format: :yw` is "week 25 of 2026 – week 30 of 2026", and a pattern of weeks likewise), and a quarter or a calendar of weeks' period is written once for two dates within it, the dates compared in each field written and not in the month and day fields that hold it (TR35's step 4). 2026-10-04, v1.4.0.
 
