@@ -128,6 +128,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+* `Localize.Time.parse/2` reads ISO 8601's times in every locale: a time between colons without its seconds ("14:30", which `fi`, `da` and 13 more locales that write a time another way did not read), and after the time designator `T` a time without its minutes or its separators ("T14", "T1430", "T143045"). `z` for `Z` and U+2212 in an offset are read as well.
+
 * `Localize.DateTime.parse/2` reads every form ISO 8601 joins a date to a time in, where it read one: a week date or a day of the year before the `T`, a time without its seconds or its minutes after it ("2026-W25-2T10:30", "2026-06-16T10:30"), and either without its separators ("20260616T103000"). MessageFormat 2's date/time literals take the same forms.
 
 * `Localize.Date.parse/2` reads the rest of ISO 8601's date forms: a week without a day ("2026-W25", "2026W25"), which is the Monday of ISO 8601's week whatever the locale's weeks are, and the week date and the day of the year without separators ("2026W252", "2026166"). A year and a month, or a year, is read `as: :map` in every locale.

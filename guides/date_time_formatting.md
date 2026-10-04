@@ -512,6 +512,19 @@ iex> Localize.Time.parse("9:05 matin", locale: :fr)
 {:ok, ~T[09:05:00]}
 ```
 
+An ISO 8601 time is read in every locale, whatever the locale's own separator: a time between colons, with its seconds or without them, and after ISO 8601's time designator `T` a time without its minutes or without its separators. Without the `T`, digits alone are not ISO 8601's: an hour by itself is the locale's to read, and "1430" is no time, since it is as much a year.
+
+```elixir
+iex> Localize.Time.parse("14:30", locale: :fi)
+{:ok, ~T[14:30:00]}
+
+iex> Localize.Time.parse("T1430", locale: :fi)
+{:ok, ~T[14:30:00]}
+
+iex> Localize.Time.parse("T14", locale: :fi, as: :map)
+{:ok, %{hour: 14}}
+```
+
 ### Partial input
 
 Input that omits the year is completed from a reference date, today by default, with `:reference_date` setting a different one. The reference date is taken in the calendar the input is read in, so a Hebrew date without a year is in the current Hebrew year, and a two-digit year is read in the century around the reference year in every calendar:

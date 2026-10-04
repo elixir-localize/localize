@@ -97,8 +97,9 @@ defmodule Localize.Time.Parser do
 
   defp read_in_any_format(input, locale, calendar, as, options) do
     case try_iso(input) do
-      {:ok, time} ->
-        put_map_zone_fields({:ok, finalise_time(time, as), iso_offset(input)}, options)
+      {:ok, time, unwritten, zone} ->
+        fields = time |> finalise_time(as) |> without_unwritten(unwritten, as)
+        put_map_zone_fields({:ok, fields, zone}, options)
 
       :error ->
         input
@@ -176,11 +177,10 @@ defmodule Localize.Time.Parser do
 
   defp put_map_zone_fields(result, _options), do: result
 
-  # ISO 8601 always carries hour+minute+second (the stdlib
-  # parser rejects shorter forms), so the map always has those
-  # three. Microsecond is included only when the input
-  # actually supplied fractional precision — `{n, 0}` means
-  # "no fraction specified" and is omitted.
+  # An ISO 8601 time as a map has its hour, minute and second, less the
+  # ones the text left out (`without_unwritten/3`). Microsecond is
+  # included only when the input actually supplied fractional
+  # precision — `{n, 0}` means "no fraction specified" and is omitted.
   defp finalise_time(%Time{} = time, :struct), do: time
 
   defp finalise_time(%Time{hour: h, minute: m, second: s, microsecond: us}, :map) do
@@ -192,14 +192,47 @@ defmodule Localize.Time.Parser do
     end
   end
 
+  # A map holds the fields the text gave, so not the seconds or the minutes
+  # an ISO 8601 time left out ("T10:30"), as the locale's "10:30" has none.
+  defp without_unwritten(map, unwritten, :map), do: Map.drop(map, unwritten)
+  defp without_unwritten(time, _unwritten, :struct), do: time
+
   # ── ISO 8601 ─────────────────────────────────────────────────
 
+  # An ISO 8601 time, the fields of it the text left out and its offset:
+  # the form Elixir reads, a time between colons with its seconds, and
+  # then the others ISO 8601 writes.
   defp try_iso(input) do
     case Time.from_iso8601(input) do
-      {:ok, time} -> {:ok, time}
-      _ -> :error
+      {:ok, time} -> {:ok, time, [], iso_offset(input)}
+      _ -> other_iso(input)
     end
   end
+
+  # ISO 8601 writes a time after its time designator, `T`, with its seconds,
+  # or its minutes and seconds, left out, and with its separators or
+  # without them: "T10:30", "T1030", "T10", "T103045". The designator may
+  # be left off a time between colons, so "10:30" is ISO 8601's in every
+  # locale, where a locale that writes "10.30" has no format that reads it.
+  # Digits alone are no time without it: "1030" is as much a year, and
+  # "10" is the locale's to read. The time is filled out to the form Elixir
+  # reads, which judges it as it judges a time written in full.
+  defp other_iso(input) do
+    {designated?, text} = without_designator(input)
+
+    with {:ok, extended, unwritten} <- extended_iso8601(text),
+         true <- designated? or Regex.match?(~r/\A[0-9]{2}:/, text),
+         {:ok, time} <- Time.from_iso8601(extended) do
+      {:ok, time, unwritten, iso_offset(extended)}
+    else
+      _no_time -> :error
+    end
+  end
+
+  defp without_designator(<<designator, text::binary>>) when designator in ~c"Tt",
+    do: {true, text}
+
+  defp without_designator(text), do: {false, text}
 
   # The offset, or `Z`, that ISO 8601 writes hard against a time.
   # `Time.from_iso8601/1` reads a time that carries one and discards it, so

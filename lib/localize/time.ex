@@ -803,6 +803,13 @@ defmodule Localize.Time do
   Accepts any shape the locale accepts, including the locale's CLDR short,
   medium, long and full patterns and ISO 8601.
 
+  ISO 8601 is read in every locale: a time between colons, with its
+  seconds or without them (`"14:30:45"`, `"14:30"`), and, after its time
+  designator `T`, a time without its minutes or without its separators
+  (`"T14"`, `"T1430"`, `"T143045"`). Digits alone are not read as ISO 8601
+  without the `T`: an hour by itself is the locale's to read, and
+  `"1430"` is no time. A fraction is the second's alone.
+
   ### Arguments
 
   * `string` is a string in any shape the locale accepts, including the
@@ -846,6 +853,9 @@ defmodule Localize.Time do
       {:ok, ~T[14:30:00]}
 
       iex> Localize.Time.parse("2:30 PM", locale: :en)
+      {:ok, ~T[14:30:00]}
+
+      iex> Localize.Time.parse("T1430", locale: :fi)
       {:ok, ~T[14:30:00]}
 
       iex> Localize.Time.parse("14h30", locale: :en, format: "HH'h'mm")
