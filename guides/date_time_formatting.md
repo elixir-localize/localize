@@ -174,6 +174,16 @@ iex> Localize.Time.to_string(~T[14:30:00], format: :medium, locale: :en, prefer:
 {:ok, "2:30:00 PM"}
 ```
 
+The `:long` and `:full` patterns end in a time zone. A value with no zone, a `Time`, a `NaiveDateTime` or a map without one, has nothing to write that field with, so those formats write their other fields as the locale writes them alone, and a date and time joins its date to the same time:
+
+```elixir
+iex> Localize.Time.to_string(~T[10:30:00], format: :full, locale: :ja)
+{:ok, "10:30:00"}
+
+iex> Localize.DateTime.to_string(~N[2024-04-03 10:30:00], format: :full, locale: :ja)
+{:ok, "2024年4月3日水曜日 10:30:00"}
+```
+
 ### The `:prefer` option
 
 CLDR provides two variants for time patterns in many locales: one using Unicode characters (curly quotes, non-breaking spaces) and one using ASCII equivalents. The `:prefer` option selects which variant to use. The default is `:unicode`.

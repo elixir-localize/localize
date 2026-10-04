@@ -393,4 +393,109 @@ defmodule Localize.TimeTest do
       refute String.ends_with?(out, " ")
     end
   end
+
+  describe "to_string/2 at a standard format whose pattern has no zone" do
+    # A standard format writes the locale's standard pattern, in a `%Time{}`
+    # as in a map: `kl`'s medium time is "HH.mm.ss", `yo`'s "H:m:s", `bg`'s
+    # short time "H:mm" and `am`'s "h:mm a", whose morning is "ጥዋት". Each
+    # locale's `Hm`, `Hms` or `hm` in `availableFormats` is another pattern
+    # ("H:mm 'ч'." in `bg`), which the skeleton of the format resolved to.
+    test "is the locale's standard pattern" do
+      for {locale, format, expected} <- [
+            {:kl, :medium, "10.30.00"},
+            {:yo, :medium, "10:30:0"},
+            {:bg, :short, "10:30"},
+            {:am, :short, "10:30 ጥዋት"}
+          ] do
+        assert Localize.Time.to_string(~T[10:30:00], locale: locale, format: format) ==
+                 {:ok, expected},
+               inspect({locale, format})
+
+        assert Localize.Time.to_string(~N[2024-04-03 10:30:00], locale: locale, format: format) ==
+                 {:ok, expected},
+               inspect({locale, format})
+      end
+    end
+
+    # CLDR's skeleton for a time format is not always its pattern's: `cop`
+    # and `syr` write a 12-hour pattern beside a 24-hour skeleton, and `bo`
+    # and `ug` the reverse. The pattern decides, so a struct and a map of
+    # the same fields are written alike, at every hour.
+    test "writes a struct as a map of the same fields" do
+      for locale <- [:nds, :oc, :cop, :kxv, :syr, :bo, :ii, :ug, :am, :kok, :yo, :bg, :kl, :as],
+          format <- [:short, :medium],
+          time <- [~T[10:30:00], ~T[22:05:09]] do
+        fields = Map.take(time, [:hour, :minute, :second])
+
+        assert Localize.Time.to_string(time, locale: locale, format: format) ==
+                 Localize.Time.to_string(fields, locale: locale, format: format),
+               inspect({locale, format, time})
+      end
+    end
+  end
+
+  describe "a value with no zone at :long and :full" do
+    # A long or a full time pattern has a zone field, which a value with no
+    # zone cannot fill, so its other fields are written as the locale
+    # writes them alone. The expected times are ECMA-402's for a
+    # `Temporal.PlainTime` at those styles (Node 24.9): `ja`'s full time is
+    # "H時mm分ss秒 zzzz" and its `Hms` "H:mm:ss".
+    @plain_times [
+      ja: "10:30:00",
+      th: "10:30:00",
+      lo: "10:30:00",
+      fa: "۱۰:۳۰:۰۰",
+      ko: "오전 10:30:00",
+      "zh-Hant": "上午10:30:00"
+    ]
+
+    test "writes the time without the zone field, in a struct and in a map" do
+      naive = ~N[2024-04-03 10:30:00]
+      fields = Map.take(naive, [:hour, :minute, :second])
+
+      for {locale, expected} <- @plain_times,
+          format <- [:long, :full],
+          value <- [naive, fields] do
+        assert Localize.Time.to_string(value, locale: locale, format: format) == {:ok, expected},
+               inspect({locale, format})
+      end
+    end
+
+    # A date and time writes the same time, so it leaves nothing of the
+    # zone behind, as `fa`'s "H:mm:ss (z)" and `zh-Hant`'s "Bh:mm:ss [z]"
+    # left their brackets, and it reads back as the value it was written
+    # from. `ja` joins its full date "y年M月d日EEEE" to the time with a space.
+    test "writes a date and time with that time, which reads back" do
+      naive = ~N[2024-04-03 10:30:00]
+
+      fields =
+        Map.take(naive, [:calendar, :year, :month, :day, :hour, :minute, :second, :microsecond])
+
+      assert Localize.DateTime.to_string(naive, locale: :ja, format: :full) ==
+               {:ok, "2024年4月3日水曜日 10:30:00"}
+
+      for {locale, time} <- @plain_times, format <- [:long, :full], value <- [naive, fields] do
+        assert {:ok, text} = Localize.DateTime.to_string(value, locale: locale, format: format)
+        assert String.ends_with?(text, time), inspect({locale, format, text})
+        refute String.contains?(text, ["()", "[]"]), inspect({locale, format, text})
+        assert Localize.DateTime.parse(text, locale: locale) == {:ok, naive}
+      end
+    end
+
+    # A value that holds a zone keeps the format's zone field, in a struct
+    # and in a map.
+    test "keeps the zone of a value that has one" do
+      utc = ~U[2024-04-03 10:30:00Z]
+      fields = Map.take(utc, [:hour, :minute, :second, :time_zone, :utc_offset, :std_offset])
+
+      assert Localize.Time.to_string(utc, locale: :en, format: :long, prefer: :ascii) ==
+               {:ok, "10:30:00 AM UTC"}
+
+      assert Localize.Time.to_string(Map.put(fields, :zone_abbr, "UTC"),
+               locale: :en,
+               format: :long,
+               prefer: :ascii
+             ) == {:ok, "10:30:00 AM UTC"}
+    end
+  end
 end

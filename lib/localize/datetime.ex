@@ -75,6 +75,10 @@ defmodule Localize.DateTime do
     calendar of weeks, such as `Calendrical.ISOWeek`, is written at
     a standard format in the calendar's own notation, as
     `Localize.Date.to_string/2` writes it: "2026-W25-2, 10:30:00 AM".
+    A value with no time zone, a `t:NaiveDateTime.t/0` or a map
+    holding neither `:time_zone` nor `:utc_offset`, is written at
+    `:long` and `:full` with the time `Localize.Time.to_string/2`
+    writes for it, the format's fields without its zone.
 
   * `:date_format` and `:time_format` are standard format names,
     skeleton atoms or semantic skeletons that set the date half

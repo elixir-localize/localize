@@ -124,6 +124,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+* `Localize.Time.to_string/2` writes a `Time` and a `NaiveDateTime` at a standard format with the locale's standard time pattern, where it took the pattern CLDR's skeleton for the format resolves to: another in 44 locales at `:short` and 47 at `:medium`. `bg`'s short time is "10:30", not "10:30 ч.", and `cop`, `syr` and `kxv` keep their 12-hour clock.
+
+* A date and time with no zone is written at `:long` and `:full` with the time `Localize.Time.to_string/2` writes for it, a map without a zone as a `NaiveDateTime` is, so it reads back in every locale: `ja`'s full is "2024年4月3日水曜日 10:30:00", where the time was "10時30分00秒". `fa`, `es` and `zh-Hant` no longer leave "()" or "[]" where the zone would be.
+
 * A week read `as: :map` for a calendar of weeks is the year and the week, as it was written from: `Localize.Date.parse("week 25 of 2026", calendar: Calendrical.ISOWeek, as: :map)` is `%{year: 2026, month: 25}`, where it carried the first day of the week. Each end of an interval, and a week beside a time, read the same way.
 
 * A date interval compares its two dates in the fields its format writes, as TR35 does, so a week format writes both weeks (`format: :yw` is "week 25 of 2026 – week 30 of 2026", where only the first was written) and a quarter or a calendar of weeks' period is written once for two dates within it ("Q2 2026", where "Q2 2026 – Q2 2026" was written).

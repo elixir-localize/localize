@@ -66,7 +66,13 @@ defmodule Localize.Time do
     string. The default is `:medium` for full times. For a
     partial time a standard format, or no format, derives its
     skeleton from the fields present, with the hour in the
-    locale's hour cycle or its `-u-hc-` override.
+    locale's hour cycle or its `-u-hc-` override. A value with no
+    time zone, a `t:Time.t/0`, a `t:NaiveDateTime.t/0` or a map
+    holding neither `:time_zone` nor `:utc_offset`, has nothing to
+    write the zone field of `:long` and `:full` with, so those
+    formats write their other fields as the locale writes them
+    alone: `ja`'s full time is "10:30:00", where a time in Tokyo is
+    "10時30分00秒 日本標準時".
 
   * `:locale` is a locale identifier. The default is `:en`.
 
@@ -519,44 +525,52 @@ defmodule Localize.Time do
   defp hour_cycle_pattern(pattern, format, language_tag),
     do: apply_hour_cycle(pattern, language_tag, format)
 
-  # A `%Time{}` and a `%NaiveDateTime{}` both carry no zone
-  # information by construction, so a standard format whose CLDR
-  # pattern ends in a zone field can only render that field as an
-  # empty string. Sidestep the problem at the source: strip zone
-  # characters (`z`, `Z`, `O`, `v`, `V`, `x`, `X`) from the resolved
-  # skeleton ID before resolving it to a pattern. The downstream
-  # `resolve_skeleton/3` falls back to `best_match/3` if the stripped
-  # skeleton is not present directly in the locale's
-  # `available_formats` (e.g. ko's `:ahms`), so this works for every
-  # locale without per-locale special-casing.
+  # A value with no time zone, as a `%Time{}` and a `%NaiveDateTime{}`
+  # are by construction and a map is that holds neither `:time_zone` nor
+  # `:utc_offset`, can render the zone field of a standard format's CLDR
+  # pattern only as an empty string, which leaves the text around it
+  # behind: `fa`'s "H:mm:ss (z)" would end "()". Sidestep the problem at
+  # the source: take the fields the pattern writes, without its zone field
+  # (`z`, `Z`, `O`, `v`, `V`, `x`, `X`), as a skeleton and resolve that to
+  # a pattern. The downstream `resolve_skeleton/3` falls back to
+  # `best_match/3` if the skeleton is not present directly in the
+  # locale's `available_formats` (e.g. ko's `:ahms`), so this works for
+  # every locale without per-locale special-casing.
   #
-  # Only fires for genuine `%Time{}` and `%NaiveDateTime{}` structs
-  # and only when the user supplied a standard format atom (`:short`/
-  # `:medium`/`:long`/`:full`); arbitrary maps with `:hour`/`:minute`/
-  # `:second` may carry zone data the caller wants honoured, and
-  # explicit skeletons are the user's deliberate choice.
-  defp strip_zone_for_time_struct(format, %Time{} = time, original, locale_id)
-       when original in @standard_formats do
-    do_strip_zone_chars(format, {locale_id, cldr_calendar_for(time)})
-  end
-
-  defp strip_zone_for_time_struct(format, %NaiveDateTime{} = time, original, locale_id)
-       when original in @standard_formats do
+  # A standard format whose pattern has no zone field, as `:short` and
+  # `:medium` are, is the locale's standard pattern as it stands. The
+  # fields are the pattern's own and not CLDR's `datetimeSkeleton` for
+  # it, which in some locales names another hour cycle than the pattern
+  # (`cop`'s "h:mm a" beside `HHmm`) or resolves to another pattern
+  # (`nds`'s "HH:mm" beside an `Hm` of "'Kl'. H.mm").
+  #
+  # Only fires when the user supplied a standard format atom (`:short`/
+  # `:medium`/`:long`/`:full`): a value that holds a zone keeps the
+  # format's zone field, and an explicit skeleton is the user's
+  # deliberate choice, its zone field left empty.
+  defp strip_zone_for_time_struct(format, time, original, locale_id)
+       when original in @standard_formats and not is_map_key(time, :time_zone) and
+              not is_map_key(time, :utc_offset) do
     do_strip_zone_chars(format, {locale_id, cldr_calendar_for(time)})
   end
 
   defp strip_zone_for_time_struct(format, _time, _original, _locale_id), do: format
 
   defp do_strip_zone_chars(format, {locale_id, calendar}) when format in @standard_formats do
-    case Localize.DateTime.Format.time_formats(locale_id, calendar) do
-      {:ok, %{} = formats} ->
-        case Map.get(formats, format) do
-          skeleton when is_atom(skeleton) -> strip_zone_chars_from_atom(skeleton, format)
-          _ -> format
-        end
-
-      _ ->
-        format
+    with {:ok, %{} = patterns} <-
+           Localize.DateTime.Format.time_format_patterns(locale_id, calendar),
+         pattern when is_binary(pattern) <-
+           Localize.DateTime.Format.resolve_variant(Map.get(patterns, format), []),
+         {[_zone | _], fields} when fields != [] <-
+           pattern |> pattern_fields() |> Enum.split_with(&zone_field?/1) do
+      # A skeleton of a pattern the locale data holds, so it adds at most
+      # one atom per pattern.
+      fields
+      |> Enum.sort_by(&skeleton_rank/1)
+      |> Enum.join()
+      |> String.to_atom()
+    else
+      _no_zone_field -> format
     end
   end
 
@@ -565,6 +579,30 @@ defmodule Localize.Time do
   end
 
   defp do_strip_zone_chars(format, _lookup), do: format
+
+  # The fields a pattern writes, each a run of one letter outside its
+  # quoted text.
+  defp pattern_fields(pattern) do
+    pattern
+    |> then(&Regex.replace(~r/'[^']*'/, &1, ""))
+    |> then(&Regex.scan(~r/([a-zA-Z])\1*/, &1))
+    |> Enum.map(fn [field, _letter] -> field end)
+  end
+
+  defp zone_field?(field), do: String.first(field) in ~w(z Z O v V x X)
+
+  # The order CLDR writes a skeleton's time fields in: the day period, the
+  # hour, the minute, the second and its fractions.
+  defp skeleton_rank(field) do
+    case String.first(field) do
+      letter when letter in ~w(a b B) -> 0
+      letter when letter in ~w(h H K k) -> 1
+      "m" -> 2
+      "s" -> 3
+      "S" -> 4
+      _other -> 5
+    end
+  end
 
   # A rewrite of an atom the caller or the locale data already holds, so it
   # adds at most one atom per skeleton.
@@ -581,16 +619,19 @@ defmodule Localize.Time do
 
   @doc false
   # The pattern `format` resolves to for `time`, as `to_string/2` resolves
-  # it, including a `-u-hc-` override. `Localize.DateTime` resolves the `{0}`
-  # half of a date-time wrapper here.
+  # it, including a `-u-hc-` override and the fields of a standard format
+  # without its zone for a value that has none. `Localize.DateTime` resolves
+  # the `{0}` half of a date-time wrapper here, so a `%NaiveDateTime{}` is
+  # written with the time `to_string/2` writes for it.
   def resolve_pattern(time, format, locale, options) do
     with {:ok, language_tag} <- Localize.validate_locale(locale),
+         locale_id = language_tag.cldr_locale_id,
          hour_cycle_format =
            format
            |> apply_hc_override(language_tag)
            |> apply_hc_to_skeleton(language_tag),
-         {:ok, pattern} <-
-           find_format(time, hour_cycle_format, language_tag.cldr_locale_id, options) do
+         effective_format = strip_zone_for_time_struct(hour_cycle_format, time, format, locale_id),
+         {:ok, pattern} <- find_format(time, effective_format, locale_id, options) do
       {:ok, hour_cycle_pattern(pattern, format, language_tag)}
     end
   end
