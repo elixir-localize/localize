@@ -65,6 +65,74 @@ defmodule Localize.IntervalSkeletonTest do
       assert {:error, %Localize.DateTimeUnresolvedFormatError{}} =
                interval(~D[2026-06-15], ~D[2026-06-18], format: :bogus, locale: :en)
     end
+
+    # TR35's step 4 writes one date where "there is no difference among any
+    # of the fields in the pattern", so the fields a format writes decide, a
+    # week among them, and not the month and the day that hold it. `en`
+    # writes `yw` "'week' w 'of' Y" and `MMMMW` "'week' W 'of' MMMM", and
+    # numbers its weeks from Sunday with a minimum of one day: 15 June 2026,
+    # a Monday, is in week 25 of the year and week 3 of June, 22 June in
+    # weeks 26 and 4, 20 July in week 30 and 21 June 2027 in week 26. ICU4C
+    # 78.3 makes no pattern for either skeleton.
+    test "of weeks writes both weeks, and one where the days are in the same week" do
+      for {format, {from, to}, expected} <- [
+            {:yw, {~D[2026-06-15], ~D[2026-07-20]},
+             "week 25 of 2026#{@thin}–#{@thin}week 30 of 2026"},
+            {:yw, {~D[2026-06-15], ~D[2026-06-22]},
+             "week 25 of 2026#{@thin}–#{@thin}week 26 of 2026"},
+            {:yw, {~D[2026-06-15], ~D[2026-06-17]}, "week 25 of 2026"},
+            {:yw, {~D[2026-06-15], ~D[2027-06-21]},
+             "week 25 of 2026#{@thin}–#{@thin}week 26 of 2027"},
+            {"Y-'W'ww", {~D[2026-06-15], ~D[2026-07-20]}, "2026-W25#{@thin}–#{@thin}2026-W30"},
+            {"Y-'W'ww", {~D[2026-06-15], ~D[2026-06-17]}, "2026-W25"},
+            {:MMMMW, {~D[2026-06-15], ~D[2026-06-22]},
+             "week 3 of June#{@thin}–#{@thin}week 4 of June"},
+            {:MMMMW, {~D[2026-06-15], ~D[2026-06-17]}, "week 3 of June"}
+          ] do
+        assert interval(from, to, format: format, locale: :en) == {:ok, expected},
+               inspect({format, from, to})
+      end
+
+      assert {:ok, parts} =
+               Localize.Interval.to_parts(~D[2026-06-15], ~D[2026-07-20],
+                 format: :yw,
+                 locale: :en
+               )
+
+      assert Enum.map_join(parts, & &1.value) ==
+               "week 25 of 2026#{@thin}–#{@thin}week 30 of 2026"
+    end
+
+    # A quarter is compared as a quarter: April and May are both in the
+    # second, though the months differ. `en` writes `yQQQ` "QQQ y" and has
+    # no interval of quarters, so two are written around its fallback
+    # pattern. ICU4C 78.3 writes both dates of the one quarter, "Q2 2026 –
+    # Q2 2026", which `guides/icu_divergences.md` records.
+    test "of quarters writes one quarter where the months are in the same one" do
+      assert interval(~D[2026-04-15], ~D[2026-05-20], format: :yQQQ, locale: :en) ==
+               {:ok, "Q2 2026"}
+
+      assert interval(~D[2026-04-15], ~D[2026-05-20], format: :yQQQQ, locale: :en) ==
+               {:ok, "2nd quarter 2026"}
+
+      assert interval(~D[2026-04-15], ~D[2026-07-20], format: :yQQQ, locale: :en) ==
+               {:ok, "Q2 2026#{@thin}–#{@thin}Q3 2026"}
+    end
+
+    # Two Mondays are one weekday, and January and June are two months
+    # though each is written "J": a field's value is compared, not its text.
+    # A month and a day a year apart are alike in every field written and
+    # differ in a larger one, which the pattern is widened with. ICU4C 78.3
+    # writes the two Mondays "Mon – Mon", and the others as here.
+    test "compares the value of each field written" do
+      assert interval(~D[2026-06-15], ~D[2026-06-22], format: :E, locale: :en) == {:ok, "Mon"}
+
+      assert interval(~D[2026-01-15], ~D[2026-06-15], format: "MMMMM", locale: :en) ==
+               {:ok, "J#{@thin}–#{@thin}J"}
+
+      assert interval(~D[2026-01-05], ~D[2027-01-05], format: :MMMd, locale: :en) ==
+               {:ok, "Jan 5, 2026#{@thin}–#{@thin}Jan 5, 2027"}
+    end
   end
 
   describe "a datetime interval" do

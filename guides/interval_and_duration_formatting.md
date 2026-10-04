@@ -91,6 +91,19 @@ iex> Localize.Interval.to_string(~D[2026-06-15], ~D[2026-06-18], format: "d MMM 
 {:ok, "15 Jun 2026 – 18 Jun 2026"}
 ```
 
+Two dates that differ in no field the format writes are written once, and the fields are compared as the format writes them: a week or a quarter is one field, whatever months and days it spans.
+
+```elixir
+iex> Localize.Interval.to_string(~D[2026-06-15], ~D[2026-07-20], format: :yw, locale: :en)
+{:ok, "week 25 of 2026 – week 30 of 2026"}
+
+iex> Localize.Interval.to_string(~D[2026-06-15], ~D[2026-06-17], format: :yw, locale: :en)
+{:ok, "week 25 of 2026"}
+
+iex> Localize.Interval.to_string(~D[2026-04-15], ~D[2026-05-20], format: :yQQQ, locale: :en)
+{:ok, "Q2 2026"}
+```
+
 ### Partial dates
 
 A date need not hold every field. A map with a month, a month and a day, or a year and a month is a date, as it is for `Localize.Date.to_string/2`, and an interval of two takes at a standard format CLDR's interval format for the fields they hold:
@@ -183,7 +196,7 @@ The Japanese calendar changes era within a year, so its interval from 30 April t
 
 ### How interval formatting works
 
-1. The greatest difference between the two endpoints is identified (era, year, month, day, hour, or minute). Endpoints that differ in no field the format shows are formatted once; whole dates then take the requested standard format, exactly as `Localize.Date.to_string/2` renders it.
+1. The greatest difference between the two endpoints is identified (era, year, month, day, hour, or minute). Endpoints that differ in no field the format shows are formatted once, each field compared as the format writes it, so two days in one week are one week to `:yw`; whole dates then take the requested standard format, exactly as `Localize.Date.to_string/2` renders it.
 
 2. A skeleton given as `:format` is the skeleton; `:fields` and a standard `:format` resolve to one, from the endpoints' calendar, and from the fields the endpoints hold when they are not whole dates. A datetime interval's skeleton is split into its date and time fields, the time fields taking the interval entry. A pattern names no entry, so both endpoints are formatted with it, as in step 5.
 

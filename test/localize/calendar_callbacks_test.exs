@@ -759,6 +759,35 @@ defmodule Localize.CalendarCallbacksTest do
                {:ok, "week 25 of 2026 – week 26 of 2026"}
     end
 
+    # A calendar of weeks holds a week in its month field. A format of weeks
+    # compares the weeks it writes, so two are both written, and one that
+    # writes the period (`M`) compares the periods: weeks 25 and 26 are both
+    # in the sixth, which is written once, and week 31 is in the eighth
+    # (TR35's step 4: one date where no field of the pattern differs).
+    test "writes two weeks with a week format, and one period for two of its weeks" do
+      from = date(2026, 25, 2, IsoWeek)
+      to = date(2026, 26, 1, IsoWeek)
+
+      assert Localize.Interval.to_string(from, to, locale: :en, format: :yw) ==
+               {:ok, "week 25 of 2026#{@thin}–#{@thin}week 26 of 2026"}
+
+      assert Localize.Interval.to_string(from, date(2026, 25, 5, IsoWeek),
+               locale: :en,
+               format: :yw
+             ) == {:ok, "week 25 of 2026"}
+
+      assert Localize.Interval.to_string(from, to, locale: :en, format: "Y-'W'ww") ==
+               {:ok, "2026-W25#{@thin}–#{@thin}2026-W26"}
+
+      assert Localize.Interval.to_string(from, to, locale: :en, format: :yM) ==
+               {:ok, "6/2026 AD"}
+
+      assert Localize.Interval.to_string(from, date(2026, 31, 1, IsoWeek),
+               locale: :en,
+               format: :yM
+             ) == {:ok, "6/2026#{@thin}–#{@thin}8/2026 AD"}
+    end
+
     # A week without its year has no week of the year, and says so.
     test "asks for the year of a week alone" do
       assert {:error, %Localize.DateTimeInvalidInputError{missing: [:year]}} =

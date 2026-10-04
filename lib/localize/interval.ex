@@ -74,7 +74,7 @@ defmodule Localize.Interval do
 
   With a standard format the two are independent axes: `:fields` chooses which fields appear, `:format` chooses how wide they are rendered. So `fields: :year_and_month` renders the two months against a single year either way — numerically for `format: :short` ("1/2022" … "3/2022") and spelled out for `format: :long` ("January" … "March 2022").
 
-  Endpoints that differ in no field the interval shows are formatted once: whole dates in the requested standard format, exactly as `Localize.Date.to_string/2` renders them.
+  Endpoints that differ in no field the interval shows are formatted once: whole dates in the requested standard format, exactly as `Localize.Date.to_string/2` renders them. A date interval's fields are compared as its format writes them, so a week (`:yw`) or a quarter (`:yQQQ`) is one field whatever months and days it spans: 15 June to 20 July 2026 is "week 25 of 2026 – week 30 of 2026", and 15 to 17 June "week 25 of 2026".
 
   Dates that hold only some of their fields, two months or a month and a day each, take at a standard format CLDR's interval format for the fields they hold, as `Localize.Date.to_string/2` writes each alone: `%{month: 6}` to `%{month: 8}` is "Jun – Aug". One format writes both endpoints, so they must hold the same fields. A skeleton, a `:fields` selection or a pattern is used as it is given.
 
@@ -409,7 +409,9 @@ defmodule Localize.Interval do
       options_map = options |> Map.new() |> Map.put_new(:locale, locale)
       lookup = {locale_id, cldr_calendar_for(from)}
 
-      case date_interval_plan(formats, skeletons, {from, to}, lookup, options) do
+      plan_options = Keyword.put_new(options, :locale, locale)
+
+      case date_interval_plan(formats, skeletons, {from, to}, lookup, plan_options) do
         :single ->
           format_single(output, Localize.Date, from, Keyword.put(options, :format, whole_format))
 
@@ -429,7 +431,7 @@ defmodule Localize.Interval do
   end
 
   # TR35 §Interval Formats steps 4 to 7, as ICU implements them. Values that
-  # differ in no unit the skeleton displays format as one. A year difference
+  # differ in no field the skeleton writes format as one. A year difference
   # for a skeleton without a year takes the pattern of the skeleton widened
   # with one, so an interval across a year boundary keeps both years, and an
   # era difference for a skeleton without an era takes the closest item's
@@ -440,9 +442,10 @@ defmodule Localize.Interval do
   defp date_interval_plan(formats, {format_key, requested_skeleton}, {from, to}, lookup, options) do
     skeleton = requested_skeleton || format_key
     difference = calendar_difference(from, to)
+    {locale_id, _calendar} = lookup
 
     cond do
-      not difference_visible?(skeleton, difference) ->
+      not date_difference_visible?(skeleton, difference, {from, to}, locale_id, options) ->
         :single
 
       difference == :year and Map.has_key?(@year_widened_skeletons, format_key) ->
@@ -482,7 +485,10 @@ defmodule Localize.Interval do
   defp format_date_interval_fallback(from, to, format, locale, options, output) do
     with {:ok, locale_id} <- resolve_locale_id(locale),
          {:ok, formats} <- interval_formats(locale_id, from) do
-      if difference_visible?(format, calendar_difference(from, to)) do
+      difference = calendar_difference(from, to)
+      field_options = Keyword.put_new(options, :locale, locale)
+
+      if date_difference_visible?(format, difference, {from, to}, locale_id, field_options) do
         format_in_full(output, Localize.Date, {from, to}, format, formats, options)
       else
         format_single(output, Localize.Date, from, Keyword.put(options, :format, format))
@@ -947,17 +953,44 @@ defmodule Localize.Interval do
   @unit_order [:era, :year, :month, :day, :am_pm, :hour, :minute, :second]
 
   # The pattern symbols that display each unit. A 12-hour hour displays the
-  # day period too.
+  # day period too. A week is smaller than a year and is held by no field of
+  # its own, so it ranks with the day, the smallest unit of a date.
   @unit_symbols [
     era: ~w(G),
     year: ~w(y Y u U r),
     month: ~w(M L Q q),
-    day: ~w(d D F g E e c),
+    day: ~w(d D F g E e c w W),
     am_pm: ~w(a b B h K),
     hour: ~w(h H K k j J C),
     minute: ~w(m),
     second: ~w(s S A)
   ]
+
+  # Each date field a pattern writes, at the width that tells its every
+  # value apart: a number for a month, a quarter or a weekday, whose narrow
+  # names are shared ("J" is January, June and July), and an era's full
+  # name.
+  @comparison_fields %{
+    "G" => "GGGG",
+    "y" => "y",
+    "Y" => "Y",
+    "u" => "u",
+    "U" => "U",
+    "r" => "r",
+    "Q" => "Q",
+    "q" => "Q",
+    "M" => "M",
+    "L" => "M",
+    "w" => "w",
+    "W" => "W",
+    "d" => "d",
+    "D" => "D",
+    "F" => "F",
+    "g" => "g",
+    "E" => "e",
+    "e" => "e",
+    "c" => "e"
+  }
 
   defp calendar_difference(from, to) do
     Enum.find(@unit_order, &differs?(from, to, &1))
@@ -983,6 +1016,61 @@ defmodule Localize.Interval do
 
   defp differs?(from, to, unit), do: Map.get(from, unit) != Map.get(to, unit)
 
+  # Whether two dates differ as `format` writes them. TR35's step 4 formats
+  # one date where "there is no difference among any of the fields in the
+  # pattern", so the fields are compared as the formatter writes them: a
+  # week (`w`, `W`), a quarter (`Q`) and a calendar of weeks' period (`M`)
+  # by their own values, not by the month and day fields that hold them.
+  # Two dates alike in every field written still show as two where they
+  # differ in a unit larger than any written, as a month and day a year
+  # apart do, which the pattern widened with a year then tells apart. A
+  # standard format writes every unit of a date, and a format whose fields
+  # cannot be compared is judged by its units.
+  defp date_difference_visible?(_format, nil, _dates, _locale_id, _options), do: false
+
+  defp date_difference_visible?(format, difference, _dates, _locale_id, _options)
+       when is_nil(format) or format in [:short, :medium, :long, :full],
+       do: difference_visible?(format, difference)
+
+  defp date_difference_visible?(format, difference, {from, to}, locale_id, options) do
+    with {:ok, pattern} <- Localize.Date.resolve_pattern(from, format, locale_id, options),
+         {:ok, differ?} <- written_fields_differ?(pattern, {from, to}, locale_id, options) do
+      differ? or larger_than_written?(pattern, difference)
+    else
+      _incomparable -> difference_visible?(format, difference)
+    end
+  end
+
+  defp written_fields_differ?(pattern, {from, to}, locale_id, options) do
+    alias Localize.DateTime.Formatter
+
+    comparison = comparison_pattern(pattern)
+    options_map = Map.new(options)
+
+    with true <- comparison != "",
+         {:ok, from_fields} <- Formatter.format(from, comparison, locale_id, options_map),
+         {:ok, to_fields} <- Formatter.format(to, comparison, locale_id, options_map) do
+      {:ok, from_fields != to_fields}
+    else
+      _incomparable -> :error
+    end
+  end
+
+  defp comparison_pattern(pattern) do
+    pattern
+    |> format_letters()
+    |> Enum.flat_map(&List.wrap(Map.get(@comparison_fields, &1)))
+    |> Enum.uniq()
+    |> Enum.join("'|'")
+  end
+
+  defp larger_than_written?(pattern, difference) do
+    case displayed_units(pattern) do
+      [] -> false
+      units -> unit_rank(difference) < units |> Enum.map(&unit_rank/1) |> Enum.min()
+    end
+  end
+
   # A difference shows only when the format displays its unit or a smaller
   # one; otherwise the two values are indistinguishable (TR35 step 4).
   defp difference_visible?(format, difference),
@@ -1004,13 +1092,16 @@ defmodule Localize.Interval do
     do: @unit_order
 
   defp displayed_units(format) do
-    letters =
-      format
-      |> Kernel.to_string()
-      |> then(&Regex.replace(~r/'[^']*'/, &1, ""))
-      |> String.graphemes()
-
+    letters = format_letters(format)
     for {unit, symbols} <- @unit_symbols, Enum.any?(symbols, &(&1 in letters)), do: unit
+  end
+
+  # The characters of a skeleton or a pattern outside its quoted text.
+  defp format_letters(format) do
+    format
+    |> Kernel.to_string()
+    |> then(&Regex.replace(~r/'[^']*'/, &1, ""))
+    |> String.graphemes()
   end
 
   defp unit_rank(unit), do: Enum.find_index(@unit_order, &(&1 == unit))

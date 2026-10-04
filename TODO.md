@@ -4,7 +4,9 @@ Outstanding work on Localize. The design detail behind these items lives under [
 
 ## Open
 
-* [ ] **An interval written with a week format shows one end** — `Localize.Interval.to_string(~D[2026-06-15], ~D[2026-07-20], format: :yw, locale: :en)` is "week 25 of 2026", and two weeks of a calendar of weeks with `format: :yw` or a pattern (`"Y-'W'ww"`) are the first alone, where the default format writes both ("week 25 of 2026 – week 26 of 2026"). `@unit_symbols` in `Localize.Interval` has no unit for `w` or `W`, so only a year's difference shows; TR35's step 4 compares the fields in the pattern, so the weeks themselves decide (ICU4C 78.3 makes no pattern for `yw` or `MMMMW` and is no oracle). By the same reckoning `format: :yM` writes those two weeks "6/2026 – 6/2026 AD", their month fields differing where the period `M` writes does not (found 2026-10-04).
+* [ ] **A datetime interval whose date half is coarser than a day repeats the date** — `format: :yMMMHm` from 10:00 on 15 June to 14:30 on 16 June is "Jun 2026, 10:00 – Jun 2026, 14:30", and `:ywHm` on two days of one week repeats the week, since the datetime path judges the difference by the day field and not by the fields the date half writes, as a date interval now does. ICU4C 78.3 adds the day ("Jun 15, 2026, 10:00 – Jun 16, 2026, 14:30"); the reading that writes `Hm` across days as the times alone gives "Jun 2026, 10:00 – 14:30". Decide which (found 2026-10-04).
+
+* [ ] **A day-only format across months repeats the day** — `format: :d` from 15 June to 15 July is "15 – 15": a difference in a year widens the pattern with the year (`MMMd` a year apart is "Jan 5, 2026 – Jan 5, 2027"), and one in a month does not. ICU4C 78.3 widens with the month too, "6/15 – 7/15" (found 2026-10-04).
 
 * [ ] **A week read `as: :map` for a calendar of weeks carries a day** — `Localize.Date.parse("week 25 of 2026", locale: :en, calendar: Calendrical.ISOWeek, as: :map)` is `%{year: 2026, month: 25, day: 1}`, where the text names no day and `Calendar.ISO`'s map keeps the week without one (`week_of_year: 25, week_based_year: 2026`), so a year and a week do not read back as the value they were written from (found 2026-10-04).
 
@@ -55,6 +57,8 @@ Outstanding work on Localize. The design detail behind these items lives under [
 * [ ] **`localize_emoji` sibling library** — plan item 11, a separate package on its own schedule. A Phoenix LiveView picker (`localize_emoji_live`) is out of scope for its 0.1.0.
 
 ## Done
+
+* [x] **A date interval compares the fields its format writes** — a week format writes both weeks (`format: :yw` is "week 25 of 2026 – week 30 of 2026", and a pattern of weeks likewise), and a quarter or a calendar of weeks' period is written once for two dates within it, the dates compared in each field written and not in the month and day fields that hold it (TR35's step 4). 2026-10-04, v1.4.0.
 
 * [x] **Numeric widths in interval patterns follow TR35** — an interval item's numeric month and day take the widths of the skeleton requested, as an `availableFormats` pattern does, so `am`'s short interval is "01/04/2023 – 10/04/2023" beside its date "01/04/2023", where ICU4C writes "1/4/2023 – 10/4/2023"; recorded in `guides/icu_divergences.md` (user, 2026-10-04: "Use TR35"). 2026-10-04, v1.4.0.
 
