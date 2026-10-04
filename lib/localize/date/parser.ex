@@ -1590,19 +1590,24 @@ defmodule Localize.Date.Parser do
   # MessageFormat 2 its date literals.
   @spec from_iso8601(String.t()) :: {:ok, Date.t()} | :error
   def from_iso8601(input) when is_binary(input) do
-    if String.valid?(input), do: try_iso(input, Calendar.ISO), else: :error
+    if String.valid?(input), do: iso_forms(input), else: :error
   end
 
   # An ISO 8601 date is read in `Calendar.ISO` and returned in the
   # `:calendar` module.
   defp try_iso(input, calendar_module) do
+    case iso_forms(input) do
+      {:ok, date} -> in_calendar(date, calendar_module) || :error
+      :error -> :error
+    end
+  end
+
+  # The first of ISO 8601's forms that reads the input, in `Calendar.ISO`.
+  defp iso_forms(input) do
     with :error <- try_iso_extended(input),
          :error <- try_iso_basic(input),
-         :error <- try_iso_ordinal(input),
-         :error <- try_iso_week_date(input) do
-      :error
-    else
-      {:ok, date} -> in_calendar(date, calendar_module) || :error
+         :error <- try_iso_ordinal(input) do
+      try_iso_week_date(input)
     end
   end
 
