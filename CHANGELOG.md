@@ -134,6 +134,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+* The location format (`VVVV`, and `v` and `vvvv` where they fall back to it) writes a country the locale has no name for by its code, as TR35 composes it and ICU4C writes it: Havana's zone is "CU" in `su` and "ora de CU" in `oc`, where it was the city, "Havana". The code is read back as that country's zone in a locale that writes the country so.
+
+* A location whose country's name has the shape of the fallback format is read as that country: `fr-CA`'s "heure : Saint-Martin (France)" was read as France's zone, and `ru`'s "Виргинские о-ва (Великобритания)" as the United Kingdom's.
+
 * `Localize.Interval.parse/2` reads an interval whose years are two digits and whose era is written once, as an interval at a standard format with `yy` beside its era is written: `nl`'s Buddhist "16-06-69 – 20-06-69 BE" read its second year as the year 69. Each way the calendar's formats write a year is tried, and the reading whose years are nearest the reference date is taken.
 
 * The six zones whose locale data key is not their lowercase name (`America/Blanc-Sablon`, `America/Port-au-Prince`, `Africa/Porto-Novo`, `Asia/Ust-Nera`, `Antarctica/DumontDUrville`, `Antarctica/McMurdo`) take the city and names their locale gives them, "بلانك-سابلون" in `ar`, and are read from them. They were written with the city their own name gives, in every locale.

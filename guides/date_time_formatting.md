@@ -809,6 +809,8 @@ A symbol takes only the widths TR35's Date Field Symbol Table lists for it. At a
 
 A zone's name in the non-location formats, generic (`v`, `vvvv`) and specific (`z`, `zzzz`), is the zone's own name where the locale has one, and else its metazone's, qualified with the zone's country or city unless the zone is the metazone's preferred zone for the locale's country, so that it reads back as that zone. In `en`, New York is "Eastern Time" and "Eastern Standard Time", Berlin "Central European Time (Germany)" and "Central European Summer Time (Germany)", and Phoenix "Mountain Time (Phoenix)" and "Mountain Standard Time (Phoenix)". A zone the locale has no name for is written in the localized GMT format, the short one for `z` and the long one for `zzzz`.
 
+The location format (`VVVV`) names the zone's country where the zone is the only one in its country or CLDR's primary zone for it, and the zone's city otherwise: "Italy Time" and "China Time", "Buenos Aires Time". The country is written by its short name where the locale has one ("UK Time"), and by its code where the locale has no name for it, as TR35 composes it: Havana's zone is "CU" in `su` and "ora de CU" in `oc`. A code is read back as a country only in a locale that writes that country so, and a time a day period can follow keeps that reading: in `nnh`, where Saint Pierre and Miquelon's zone is "PM", "10:05 PM" is 22:05.
+
 ### Hour cycles
 
 The hour symbol determines the cycle:

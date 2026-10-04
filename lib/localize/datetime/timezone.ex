@@ -1534,6 +1534,8 @@ defmodule Localize.DateTime.Timezone do
   # no zone, as a name alone. A string that is itself a name is read as that
   # name first, as ICU takes the longest match: `uk` names Eastern time "за
   # східним часом (ET)", and `he` a standard time "… (חורף)", "(winter)".
+  # So is one that is itself a place, alone or in a region format: `fr-CA`
+  # names a country "Saint-Martin (France)", whose zone is not Paris.
   #
   # A name or a place may hold the format's own punctuation, so the string
   # is split both at the last place it can be and at the first: `pt-AO`
@@ -1552,7 +1554,7 @@ defmodule Localize.DateTime.Timezone do
       |> Enum.uniq()
 
     readings =
-      if Map.has_key?(index.names, key) do
+      if whole_reading?(key, index) do
         [{key, nil} | splits]
       else
         Enum.filter(splits, fn {_name, place} ->
@@ -1564,6 +1566,19 @@ defmodule Localize.DateTime.Timezone do
       reading_zone(name, place, index, language_tag)
     end)
   end
+
+  # Whether the whole string is one of the locale's names, or a country or
+  # a city it names, alone or in a region format.
+  defp whole_reading?(key, index) do
+    {located, _region_type} = region_place(key, index)
+
+    Map.has_key?(index.names, key) or named_place?(key, index) or named_place?(located, index)
+  end
+
+  defp named_place?(nil, _index), do: false
+
+  defp named_place?(place, index),
+    do: Map.has_key?(index.countries, place) or Map.has_key?(index.cities, place)
 
   # One reading: N may be a place in a region format ("Italy Time"), M,
   # and a country among P, N and M is C. In TR35's order: C when it has
@@ -1581,7 +1596,8 @@ defmodule Localize.DateTime.Timezone do
 
     country =
       qualifier_country(place, index) ||
-        Enum.find_value([name, located], &Map.get(index.countries, &1))
+        Enum.find_value([name, located], &Map.get(index.countries, &1)) ||
+        unnamed_country(located, index)
 
     [
       fn -> country_zone(country, type) end,
@@ -1595,6 +1611,14 @@ defmodule Localize.DateTime.Timezone do
     ]
     |> Enum.find_value(fn step -> step.() end)
   end
+
+  # The country a region format's place names by its code. The location
+  # format writes a code only for a country the locale does not name ("ZA
+  # Time", and "LR" where the region format is the place alone), so a code
+  # is read only for those: where the locale names Saint Pierre and
+  # Miquelon, "PM" is never its zone.
+  defp unnamed_country(nil, _index), do: nil
+  defp unnamed_country(located, index), do: Map.get(index.unnamed_countries, located)
 
   # The country the fallback format's qualifier names, by the locale's name
   # for it or by its code.
@@ -1749,6 +1773,7 @@ defmodule Localize.DateTime.Timezone do
       cities: city_names(zones),
       countries: country_names(territories),
       country_codes: country_codes(),
+      unnamed_countries: unnamed_countries(territories),
       region_formats: region_format_regexes(Map.get(names, :region_format, %{})),
       fallback_formats: fallback_format_regexes(Map.get(names, :fallback_format))
     }
@@ -1857,6 +1882,15 @@ defmodule Localize.DateTime.Timezone do
     for territory <- Map.values(@territories_by_timezone),
         into: %{},
         do: {name_key(Atom.to_string(territory)), territory}
+  end
+
+  # The codes of the countries the location format writes by their code in
+  # this locale, having no name for them.
+  defp unnamed_countries(territories) do
+    for {code, territory} <- country_codes(),
+        is_nil(location_country_name(Map.get(territories, territory))),
+        into: %{},
+        do: {code, territory}
   end
 
   defp region_format_regexes(region_formats) do
@@ -2378,7 +2412,8 @@ defmodule Localize.DateTime.Timezone do
 
   ### Returns
 
-  * `{:ok, place_name}` where the place is a country or a city.
+  * `{:ok, place_name}` where the place is a country or a city. A country
+    the locale has no name for is its code, as TR35 composes a location.
 
   * `{:error, exception}` if the locale is unknown, or if no city can be
     found or derived for the timezone.
@@ -2394,6 +2429,9 @@ defmodule Localize.DateTime.Timezone do
       iex> Localize.DateTime.Timezone.location_name("Australia/Adelaide", :en)
       {:ok, "Adelaide"}
 
+      iex> Localize.DateTime.Timezone.location_name("America/Havana", :su)
+      {:ok, "CU"}
+
   """
   @spec location_name(String.t(), Localize.locale(), Keyword.t()) ::
           {:ok, String.t()} | {:error, Exception.t()}
@@ -2403,11 +2441,9 @@ defmodule Localize.DateTime.Timezone do
       when is_binary(iana_id) and is_keyword_list(options) do
     canonical = Map.get(@zone_canonical_names, iana_id, iana_id)
 
-    with territory when not is_nil(territory) <- naming_territory(canonical),
-         {:ok, name} <- territory_name(territory, locale) do
-      {:ok, name}
-    else
-      _no_territory_name -> exemplar_city(iana_id, locale, options)
+    case naming_territory(canonical) do
+      nil -> exemplar_city(iana_id, locale, options)
+      territory -> territory_name(territory, locale)
     end
   end
 
@@ -2437,17 +2473,25 @@ defmodule Localize.DateTime.Timezone do
     end
   end
 
-  # TR35 prefers the short country name where the locale has one.
+  # A country the locale does not name is its code, as TR35's composition
+  # has it and its example writes Havana's zone: "Hora de CU".
   defp territory_name(territory, locale) do
-    with {:ok, language_tag} <- Localize.validate_locale(locale),
-         {:ok, territories} <- Localize.Locale.get(language_tag, [:territories]),
-         %{} = names <- Map.get(territories, territory),
-         name when is_binary(name) <- Map.get(names, :short) || Map.get(names, :standard) do
-      {:ok, name}
-    else
-      _no_name -> :error
+    with {:ok, language_tag} <- Localize.validate_locale(locale) do
+      names =
+        case Localize.Locale.get(language_tag, [:territories]) do
+          {:ok, %{} = territories} -> Map.get(territories, territory)
+          _no_territories -> nil
+        end
+
+      {:ok, location_country_name(names) || Atom.to_string(territory)}
     end
   end
+
+  # The name the location format writes a country by: TR35 prefers the
+  # short name where the locale has one.
+  defp location_country_name(%{short: name}) when is_binary(name), do: name
+  defp location_country_name(%{standard: name}) when is_binary(name), do: name
+  defp location_country_name(_no_name), do: nil
 
   @doc """
   Returns the generic location format for a timezone.

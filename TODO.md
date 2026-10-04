@@ -32,7 +32,11 @@ Outstanding work on Localize. The design detail behind these items lives under [
 
 * [ ] **`G` for a Chinese or Dangi date is an error** — CLDR gives those calendars one era and no name for it, so a pattern with `G` returns `Localize.ItemNotFoundError`, where ICU4C writes the number of the sixty-year cycle, "78". TR35 is silent; decide what it writes.
 
-* [ ] **The location format names the city where the locale does not name the country** — TR35's composition writes the country's code ("Hora de CU"), as CLDR's formatter and ICU4C do: `sa` writes Johannesburg's zone "Johannesburg समय:" where they write "ZA समय:", and `lrc-IQ` Monrovia's "Monrovia" for "LR", in 223 locales with few territory names.
+* [ ] **A summer-time name is read an hour on in a zone that keeps one offset** — CLDR 49's `dstOffset` names Punta Arenas's and Coyhaique's year-round UTC−3 "Chile Summer Time (Punta Arenas)", and the reader takes a daylight name in a zone with one offset as that offset and an hour, so `z` and `zzzz` there read back as UTC−2 in 488 locales.
+
+* [ ] **A metazone's name in the shape of a region format is read as the country in it** — `af`'s "Samoa-standaardtyd", American Samoa's standard time, is also the standard region format of the country Samoa and is read as Apia, with or without its "(Midway)"; in nine locales (`af`, `ast`, `fil`, `ko`, `pl`, `se-FI` and their regions), though the formatter writes that string only as the metazone's name.
+
+* [ ] **A name qualified by a country that has a primary zone is read as the primary zone** — `fo` writes the Canary Islands' zone "Vesturevropa tíð (Spania)", the Western European metazone's zone for Spain, and it is read as Madrid.
 
 * [ ] **`Localize.DateTime.Timezone.resolve/3` does not read the GMT format in a locale's own digits** — "غرينتش-٨" and "GMT-۸", which the formatter writes in `ar-BH`, `lrc-IQ`, `dz` and other locales with digits of their own, are an unknown zone to it, though `Localize.DateTime.parse/2` reads them.
 
@@ -67,6 +71,8 @@ Outstanding work on Localize. The design detail behind these items lives under [
 * [ ] **`localize_emoji` sibling library** — plan item 11, a separate package on its own schedule. A Phoenix LiveView picker (`localize_emoji_live`) is out of scope for its 0.1.0.
 
 ## Done
+
+* [x] **The location format writes a country's code where the locale does not name the country** — "CU" for Havana's zone in `su` and "ora de CU" in `oc`, as TR35 composes it and ICU4C writes it, read back only in a locale that writes the country so; a country name in the fallback format's shape, `fr-CA`'s "Saint-Martin (France)", is read whole. 2026-10-05, v1.4.0.
 
 * [x] **An interval's two-digit years beside an era written once read back** — a standard format with `yy` and an era (the short date of `nl`, `de` and `lij` in the era calendars) writes such an interval, and its second year was read as the year itself, "69"; found by running the standard-format intervals through every calendar before and after the change that gave them their pattern's widths. 2026-10-04, v1.4.0.
 

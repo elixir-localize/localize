@@ -153,6 +153,15 @@ The specific format (`z`, `zzzz`) takes the same steps, which TR35 gives for "th
 
 Where a locale has no name for a zone, Localize and ICU both write the localized GMT format, the short one for `z` and the long one for `zzzz`. TR35 49's symbol table gives `zzzz` the short one, while its text on semantic skeletons has the offset follow the length; Localize keeps the long, as ICU4C and ICU4X write it (user, 2026-10-04). CLDR's `TimezoneFormatter` is not followed there: it writes a region format ("Jordan Time"), which TR35 49 removed, for a long name and the long GMT format for a short one.
 
+TR35's location format (`VVVV`) names a zone's country by "short country name, if it exists, otherwise the country name". ICU4C 78.3 writes the full name, so the two differ wherever a locale gives such a country a short name. Localize follows TR35 and reads either name back; asserted in `test/localize/datetime/location_zone_format_test.exs`. Both write the code of a country the locale does not name ("CU" for Havana's zone in `su`).
+
+| `VVVV` in `en` | TR35 and Localize | ICU4C formats |
+|---|---|---|
+| `Europe/London` | UK Time | United Kingdom Time |
+| `Asia/Hong_Kong` | Hong Kong Time | Hong Kong SAR China Time |
+| `Asia/Yangon` | Myanmar Time | Myanmar (Burma) Time |
+| `Europe/Sarajevo` | Bosnia Time | Bosnia & Herzegovina Time |
+
 ### Interval formatting
 
 An interval takes the formats of its endpoints' calendar. ICU4C 78.3 differs from Localize in nine places, asserted in `test/localize/interval_calendar_test.exs`, `test/localize/interval_skeleton_test.exs`, `test/localize/interval_closest_match_test.exs` and `test/localize/interval_standard_format_test.exs`; the third follows ECMA-402 and the others TR35.
