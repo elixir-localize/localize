@@ -62,6 +62,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Changed
 
+* **Breaking.** An interval at a standard format writes its dates and times with the fields and widths of the pattern the single value is written with, where it asked for CLDR's `datetimeSkeleton`, which is not the pattern's in many locales: `vi`'s short interval is "1/4/23 – 10/4/23" beside "1/4/23", where it was "01/04/2023 – 10/04/2023". Dates change in 71 locales, a `:short` time interval takes the clock of the short time pattern (`ady-JO` "10:05–11:30"), and a month written as a number beside a word (`ja`'s "M月") stays the named month.
+
 * **Breaking.** A calendar's own formats are read before ISO 8601: text such as "2023-11-22" that any format of the calendar asked for reads, as leniently as it reads any text, is that calendar's own date, and with a time after a space too, where it was a Gregorian date converted (CLDR's root Chinese short date is `r-MM-dd`). `Calendar.ISO`, a calendar none of whose formats reads the text, and text with ISO 8601's `T` read as before.
 
 * **Breaking.** A date's month, era, years, week and weekday, a year's days and the years and months between two dates are its calendar's answers — `month_of_year/3` and `cardinal_month/1` for the month, the Calendrical behaviour's callbacks for the rest — never its own fields, so a calendar other than `Calendar.ISO` must implement the Calendrical behaviour (Calendrical 1.4, which adds `cardinal_month/1` and `parsing_calendar/0` and requires `era_calendar_type/0`) and any other is refused with `Localize.UnknownCalendarError` by formatting, parsing and relative time alike. An answer that is not one is a `Localize.InvalidValueError`.

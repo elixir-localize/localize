@@ -142,7 +142,7 @@ TR35's generic non-location format (`v`, `vvvv`) qualifies a metazone name, unle
 
 ### Interval formatting
 
-An interval takes the formats of its endpoints' calendar. ICU4C 78.3 differs from Localize in eight places, asserted in `test/localize/interval_calendar_test.exs`, `test/localize/interval_skeleton_test.exs` and `test/localize/interval_closest_match_test.exs`; the third follows ECMA-402 and the others TR35.
+An interval takes the formats of its endpoints' calendar. ICU4C 78.3 differs from Localize in nine places, asserted in `test/localize/interval_calendar_test.exs`, `test/localize/interval_skeleton_test.exs`, `test/localize/interval_closest_match_test.exs` and `test/localize/interval_standard_format_test.exs`; the third follows ECMA-402 and the others TR35.
 
 | Interval | Localize | ICU4C renders |
 |---|---|---|
@@ -157,6 +157,7 @@ An interval takes the formats of its endpoints' calendar. ICU4C 78.3 differs fro
 | `en` `E`, 15 to 22 June 2026, both Mondays | "Mon" | "Mon – Mon" |
 | `en` `Ed`, 15 June to 15 July 2026 | "Mon, 6/15 – Wed, 7/15" | "15 Mon – 15 Wed" |
 | `en` `QQQ`, 15 June 2026 to 15 June 2027 | "Q2 2026 – Q2 2027" | "Q2 – Q2" |
+| `ja` long, 1 to 10 April 2023 | "2023年4月1日～10日" | "2023/04/01～2023/04/10" |
 
 * **The date-time pattern.** TR35 joins a date to a time range with the calendar's `dateTimeFormat`. ICU's `DateIntervalFormat` reads `calendar/gregorian/DateTimePatterns` whatever the calendar, though its single date-time formatter uses the calendar's own.
 
@@ -169,6 +170,8 @@ An interval takes the formats of its endpoints' calendar. ICU4C 78.3 differs fro
 * **A time skeleton across days.** TR35's interval algorithm, read as it is written, finds no day difference in a time item and formats both values with the skeleton around the fallback pattern. ICU adds the locale's `yMd` date to a skeleton of time fields alone when the days differ (user, 2026-10-01: not the ICU approach).
 
 * **Numeric widths.** TR35 finds the closest interval item "as in `availableFormats`", whose pattern takes the field lengths of the skeleton requested, so a numeric month and day are padded as the skeleton asks: `am`'s short date is "dd/MM/y" with the skeleton `yMMdd`, and its `yMd` item "d/M/y – d/M/y" is written as the single date is, "01/04/2023". ICU adjusts the width of the year (`yy`) and of a month written as a name (`MMMM`), but writes a numeric month and day at the item's own widths (user, 2026-10-04: TR35).
+
+* **Standard formats.** An interval at a standard format takes the fields of the pattern the single date is written with, at the pattern's widths, where CLDR's `datetimeSkeleton` for the format is not the pattern's (`vi`'s short date "d/M/yy" beside `yMMdd`), as ECMA-402's `formatRange` does with the skeleton ICU makes of a style's pattern (`DateTimePatternGenerator::staticGetSkeleton`). That skeleton is the pattern's letters as they stand, so a month written as a number beside a word is a numeric month to it, and `ja`'s long date "y年M月d日" takes the `yMd` interval. Localize keeps such a month the name CLDR's skeleton gives it (`yMMMd`), whose interval writes "M月" as the date alone does.
 
 * **Fields compared as written.** TR35 formats one date where "there is no difference among any of the fields in the pattern", and Localize compares the value of each field a date interval's format writes, whether or not CLDR has an interval item for it: two dates in one quarter are one quarter, and two Mondays one weekday. ICU ranks calendar fields by size and writes both dates wherever they differ in a field as large as the smallest in the pattern, though the two halves read the same. It makes no pattern for a skeleton of weeks (`yw`, `MMMMW`), for which Localize writes both weeks around the fallback pattern, or one where the days are in the same week.
 

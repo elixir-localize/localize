@@ -519,6 +519,30 @@ defmodule Localize.DateTime.Format.Match do
     |> then(&{:ok, &1})
   end
 
+  # The order CLDR writes a skeleton's fields in, as the ids of its
+  # `availableFormats` and interval formats have them: `GyMMMEd`, `yw`,
+  # `MMMMW`, `EBhm`, `Hmsv`.
+  @skeleton_order ~w(G y Y u U r Q q M L l w W E e c D F g d a b B h H K k j J C m s S A z Z O v V X x)
+
+  @doc false
+  # The fields a pattern writes, as a skeleton: each at the width the
+  # pattern writes it, in the order CLDR writes a skeleton's. Quoted text is
+  # no field, and is taken out by code point: `nnh`'s long date closes a
+  # quote before a combining mark, which makes one grapheme of the two.
+  @spec pattern_skeleton(String.t()) :: String.t()
+  def pattern_skeleton(pattern) when is_binary(pattern) do
+    pattern
+    |> then(&Regex.replace(~r/'(?:[^']|'')*'/u, &1, ""))
+    |> then(&Regex.scan(~r/([a-zA-Z])\1*/, &1))
+    |> Enum.map(fn [field, _letter] -> field end)
+    |> Enum.filter(&(String.first(&1) in @skeleton_order))
+    |> Enum.sort_by(&skeleton_position/1)
+    |> Enum.join()
+  end
+
+  defp skeleton_position(field),
+    do: Enum.find_index(@skeleton_order, &(&1 == String.first(field)))
+
   # A pattern's fields are runs of one letter, but text in single quotes is
   # literal and passes through untouched: dsb's `jjm` pattern is
   # "'zeg'. H:mm", and reading its quoted `z` as a zone field deleted it.

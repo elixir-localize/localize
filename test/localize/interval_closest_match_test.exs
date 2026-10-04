@@ -102,11 +102,16 @@ defmodule Localize.IntervalClosestMatchTest do
 
     # The locale's own pattern wins even when it repeats the whole date.
     # CLDR 49 gives vi's `yMd` as "d/M/y – d/M/y" for every difference.
+    # The dates take the widths of vi's short date, "d/M/yy", as the date is
+    # written alone: the pattern is vi's own in `vi.xml`, and the
+    # `datetimeSkeleton` beside it, `yMMdd`, is inherited from root.
     test "a locale whose interval pattern repeats the date keeps it" do
+      assert Localize.Date.to_string(@from, locale: :vi, format: :short) == {:ok, "3/5/26"}
+
       assert {:ok, formatted} =
                Localize.Interval.to_string(@from, @to_day, locale: :vi, format: :short)
 
-      assert String.contains?(formatted, "2026 – ")
+      assert formatted == "3/5/26 – 5/5/26"
     end
 
     # Where the greatest difference is the year, most locales' patterns spell

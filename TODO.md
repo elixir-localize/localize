@@ -10,15 +10,11 @@ Outstanding work on Localize. The design detail behind these items lives under [
 
 * [ ] **Choose a fixed-offset representation that `DateTime` functions honour** — Localize and Calendrical carry an offset such as `-05:00` under `Etc/UTC`, so `DateTime.shift_zone(parsed, "Etc/UTC")` returns it unchanged. The MF2 interpreter converts from the instant instead; `Etc/GMT+5` or an offset string would need both libraries to change together.
 
-* [ ] **Decide whether specific zone names are qualified** — CLDR's own `TimezoneFormatter` qualifies the specific format (`z`, `zzzz`) as it does the generic one, "Central European Summer Time (Germany)" for Berlin in `en`, where ICU4C never does; a specific name already reads back to its instant, and Localize qualifies only the generic format.
+* [ ] **Decide whether specific zone names are qualified** — CLDR's own `TimezoneFormatter` qualifies the specific format (`z`, `zzzz`) as it does the generic one, "Central European Summer Time (Germany)" for Berlin in `en`, where ICU4C never does; a specific name already reads back to its instant, and Localize qualifies only the generic format. Decision: Follow CLDRs implementation.
 
 * [ ] **`Localize.DateTime.parse/2` does not read a date and time with a semantic skeleton** — a `Localize.DateTime.SemanticSkeleton` of a date and time given as `:format` is not used, so each half is read in any of the locale's formats, where `Localize.Date.parse/2` and `Localize.Time.parse/2` read one with a semantic skeleton of their own. The formatter resolves one against the value it writes (its year style and time precision), which a parser does not have (found 2026-10-04).
 
-* [ ] **Decide which skeleton an interval at a standard format asks for** — it asks for CLDR's `datetimeSkeleton`, which in 75 locales (123 of 2,628 Gregorian formats) gives the year, a numeric month or the day another width than the pattern beside it, so the interval is written unlike the single date: `vi` short "1/4/23" and "01/04/2023 – 10/04/2023", `en-CA` "2023-04-01" and "4/1/23–4/10/23", `zu` "2023-04-01" and "23-04-01 – 23-04-10". TR35 calls the skeleton "derived from the pattern" and is silent on an interval's; deriving it from the pattern the single date is written with, as ICU and ECMA-402 do, makes the two agree in every locale. A datetime interval reads CLDR's skeleton for its time half too, which in 14 locales names another hour cycle than the pattern; `Localize.Time.to_string/2` now takes a pattern's own fields (found 2026-10-04).
-
-* [ ] **The hour cycle of a short time interval** — `format: :short` takes `hm` or `Hm` from the locale's preferred hour cycle, so in 18 locales, such as `ady-JO`, whose short time format is "HH:mm", a time interval is 12-hour and its single value "10:05 AM" where `Localize.Time.to_string/2` writes "10:05".
-
-* [ ] **`y` in the Chinese and Dangi calendars** — ICU4C writes the year of the sixty-year cycle ("40. 2. 30." in `ko`), Localize the sequential year ("4660. 2. 30."), which CLDR's era data calls the year; TR35's `U` falling back to `y` suggests the cycle year. Decide which to follow and record it.
+* [ ] **`y` in the Chinese and Dangi calendars** — ICU4C writes the year of the sixty-year cycle ("40. 2. 30." in `ko`), Localize the sequential year ("4660. 2. 30."), which CLDR's era data calls the year; TR35's `U` falling back to `y` suggests the cycle year. Decide which to follow and record it.  Decision: Follow TR35.
 
 * [ ] **`Localize.Calendar.localize/3` names the first value of a part the date lacks** — a map without a month is January, the first quarter and a Monday, and one without a year the current era; characterization tests pin this. Decide whether they should be errors.
 
@@ -53,6 +49,8 @@ Outstanding work on Localize. The design detail behind these items lives under [
 * [ ] **`localize_emoji` sibling library** — plan item 11, a separate package on its own schedule. A Phoenix LiveView picker (`localize_emoji_live`) is out of scope for its 0.1.0.
 
 ## Done
+
+* [x] **An interval at a standard format takes the fields of its pattern** — its dates, its times and the times of a date and time are written at the widths, and in the clock, the single value is written with, where CLDR's `datetimeSkeleton` or the region's preferred hour cycle decided (dates in 71 locales, a short time in 5, a date and time's times in 14); a month numbered beside a word stays the named month. 2026-10-04, v1.4.0.
 
 * [x] **A time is read only with an hour its field has** — a 12-hour field took its hour modulo 12 ("45:30 PM" was 21:30 and "13:30 AM" 01:30 in 618 locales, "45:30" 09:30 in `fr-CM` and `bal-Latn`); an hour over 12 there is now no time, as TR35's ranges and ICU's strict parse have it, "13:30 PM" included. 2026-10-04, v1.4.0.
 

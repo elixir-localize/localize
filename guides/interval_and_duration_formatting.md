@@ -68,7 +68,7 @@ iex> String.contains?(result, "Fri") and String.contains?(result, "Mon")
 true
 ```
 
-The pair selects a CLDR skeleton. `Localize.Interval.known_fields/0` returns the mapping for the non-default selections; `:date` is resolved per-locale from the same table `Localize.Date.to_string/2` uses, so it has no fixed entry here:
+The pair selects a CLDR skeleton. `Localize.Interval.known_fields/0` returns the mapping for the non-default selections; `:date` takes the fields of the locale's standard date pattern, the one `Localize.Date.to_string/2` writes with, so it has no fixed entry here:
 
 ```elixir
 iex> Localize.Interval.known_fields()
@@ -78,6 +78,18 @@ iex> Localize.Interval.known_fields()
   year_and_month: %{short: :yM, full: :yMMMM, long: :yMMMM, medium: :yMMM}
 }
 ```
+
+At a standard format the dates of an interval have the fields of that pattern at the pattern's widths, so each reads as the date alone does. CLDR gives every standard format a skeleton as well, and in many locales it is not the pattern's: `vi`'s short date is "d/M/yy" beside a skeleton of `yMMdd` inherited from root. The pattern decides, and the order and the text between the fields are those of CLDR's interval format for them:
+
+```elixir
+iex> Localize.Date.to_string(~D[2023-04-01], locale: :vi, format: :short)
+{:ok, "1/4/23"}
+
+iex> Localize.Interval.to_string(~D[2023-04-01], ~D[2023-04-10], locale: :vi, format: :short)
+{:ok, "1/4/23 – 10/4/23"}
+```
+
+A month the pattern writes as a number beside a word is the month's name as the locale writes it, so `ja`'s long date "2023年4月1日" stays "2023年4月1日～10日" in an interval, where ECMA-402's `formatRange` writes "2023/04/01～2023/04/10" (see [ICU divergences](icu_divergences.md#interval-formatting)).
 
 ### Skeletons and patterns
 
@@ -145,7 +157,7 @@ One format writes both endpoints, so they hold the same fields: a month and a mo
 
 * **Different-day datetime intervals** — format both endpoints as full datetimes separated by the locale's interval fallback separator (`"Apr 15, 2026, 12:49 AM – Apr 16, 2026, 1:49 AM"`).
 
-* **Time-only intervals** — use the locale's time-interval pattern (`"10:00 – 12:30 PM"`).
+* **Time-only intervals** — use the locale's time-interval pattern (`"10:00 – 12:30 PM"`). At `:short` the times are in the clock of the locale's short time pattern, as `Localize.Time.to_string/2` writes one alone, whatever clock the locale's region prefers.
 
 A date and a time in an interval are joined with the locale's standard date-time pattern, as TR35 says an interval takes, where a single date and time takes the "at" pattern by default: "June 15, 2026, 10:00 – 14:30", not "June 15, 2026 at 10:00 – 14:30". `style: :at` asks for the "at" pattern.
 
@@ -211,7 +223,7 @@ The Japanese calendar changes era within a year, so its interval from 30 April t
 
 1. The greatest difference between the two endpoints is identified (era, year, month, day, hour, or minute). Endpoints that differ in no field the format shows are formatted once, each field compared as the format writes it, so two days in one week are one week to `:yw`; whole dates then take the requested standard format, exactly as `Localize.Date.to_string/2` renders it.
 
-2. A skeleton given as `:format` is the skeleton; `:fields` and a standard `:format` resolve to one, from the endpoints' calendar, and from the fields the endpoints hold when they are not whole dates. A datetime interval's skeleton is split into its date and time fields, the time fields taking the interval entry. A pattern names no entry, so both endpoints are formatted with it, as in step 5.
+2. A skeleton given as `:format` is the skeleton; `:fields` and a standard `:format` resolve to one, from the endpoints' calendar: a whole date's to the fields of the standard format's pattern, and a date's that is not whole to the fields it holds. A datetime interval's skeleton is split into its date and time fields, the time fields taking the interval entry. A pattern names no entry, so both endpoints are formatted with it, as in step 5.
 
 3. That skeleton is looked up in the interval table of the locale and calendar. If CLDR ships no entry under it, the closest entry carrying the same fields is taken and its pattern adjusted to the requested widths — TR35 matches on fields, not widths, so a `yMMMd` pattern answering a requested `yMMMMd` still has to spell "June" rather than "Jun". A candidate with different fields can never win.
 
