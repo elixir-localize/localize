@@ -820,6 +820,8 @@ defmodule Localize.Time do
     `Calendar.ISO`. Anything that is not a calendar module, a CLDR
     calendar type included, is a `t:Localize.UnknownCalendarError.t/0`.
 
+  * `:format` is the format the text was written with, as `to_string/2` takes it: a standard format (`:short`, `:medium`, `:long` or `:full`), a skeleton atom such as `:Hm`, a `Localize.DateTime.SemanticSkeleton` or a pattern string such as `"HH'h'mm"`. The text is read with that format and no other, ISO 8601 included. A `:long` or a `:full` format reads a time with its zone and, as it is written for a value that has none, without it. The default is `nil`: the text is read as ISO 8601 or in whichever of the locale's formats reads it first.
+
   * `:as` is `:struct` or `:map`. `:map` returns only the fields the input
     actually carried, rather than completing them; a minute or second no
     time has is an error in both forms. A fixed offset
@@ -832,9 +834,11 @@ defmodule Localize.Time do
 
   * `{:ok, value}` where `value` is a `t:Time.t/0`, or
 
-  * `{:error, exception}` if the string does not parse, or a
-    `t:Localize.InvalidValueError.t/0` if `string` is not a string or an
-    option is malformed.
+  * `{:error, exception}` if the string does not parse, a
+    `Localize.DateTimeFormatError` or a
+    `Localize.DateTimeUnresolvedFormatError` if `:format` is no format of
+    a time, or a `t:Localize.InvalidValueError.t/0` if `string` is not a
+    string or an option is malformed.
 
   ### Examples
 
@@ -842,6 +846,9 @@ defmodule Localize.Time do
       {:ok, ~T[14:30:00]}
 
       iex> Localize.Time.parse("2:30 PM", locale: :en)
+      {:ok, ~T[14:30:00]}
+
+      iex> Localize.Time.parse("14h30", locale: :en, format: "HH'h'mm")
       {:ok, ~T[14:30:00]}
 
   """

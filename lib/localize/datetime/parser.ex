@@ -418,7 +418,7 @@ defmodule Localize.DateTime.Parser do
     # selective (a time needs an hour), so a failing time half
     # short-circuits the expensive date parse on every non-time split.
     with {:ok, time, zone} <-
-           Localize.Time.Parser.parse_with_zone(time_text, options),
+           Localize.Time.Parser.parse_with_zone(time_text, time_options(options)),
          {:ok, date} <- Localize.Date.parse(date_text, date_options(options)),
          {:ok, ndt} <- naive_datetime(date, time) do
       case zone do
@@ -526,9 +526,16 @@ defmodule Localize.DateTime.Parser do
     end
   end
 
+  # The options a date and time's time is read with. Its time is read in
+  # any of the locale's time formats, whatever format is given: a format of
+  # a date and time is not a time's, so `Localize.Time.parse/2` is not
+  # given one.
+  defp time_options(options),
+    do: Keyword.drop(options, [:format, :date_format, :time_format])
+
   defp try_split_as_map({date_text, time_text}, options) do
     date_opts = options |> date_options() |> Keyword.put(:as, :map)
-    time_opts = Keyword.put(options, :as, :map)
+    time_opts = options |> time_options() |> Keyword.put(:as, :map)
 
     # Time half first — cheaper and more selective — so a failing time
     # half short-circuits the expensive date parse (see try_split_as_struct).

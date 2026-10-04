@@ -83,15 +83,79 @@ defmodule Localize.Time.Parser do
     input = Localize.Date.Parser.normalise_input(input)
 
     with {:ok, calendar} <- Localize.Date.Parser.calendar_option(options) do
-      case try_iso(input) do
-        {:ok, time} ->
-          put_map_zone_fields({:ok, finalise_time(time, as), iso_offset(input)}, options)
+      case Keyword.get(options, :format) do
+        nil ->
+          read_in_any_format(input, locale, calendar, as, options)
 
-        :error ->
+        format ->
           input
-          |> try_locale_patterns(locale, cldr_calendars(calendar), as)
+          |> read_in_format(format, {locale, calendar}, as, options)
           |> put_map_zone_fields(options)
       end
+    end
+  end
+
+  defp read_in_any_format(input, locale, calendar, as, options) do
+    case try_iso(input) do
+      {:ok, time} ->
+        put_map_zone_fields({:ok, finalise_time(time, as), iso_offset(input)}, options)
+
+      :error ->
+        input
+        |> try_locale_patterns(locale, cldr_calendars(calendar), as)
+        |> put_map_zone_fields(options)
+    end
+  end
+
+  # The input in the format it was written with, which `:format` names as
+  # it names the format `Localize.Time.to_string/2` writes with: a standard
+  # format, a skeleton or a pattern. The text is read with that format and
+  # no other, neither ISO 8601 nor another of the locale's formats, as
+  # `Localize.Date.parse/2` reads a date with its format.
+  defp read_in_format(input, format, {locale, calendar}, as, options) do
+    with {:ok, patterns} <- format_patterns(format, locale, calendar, options),
+         {:ok, day_periods} <- calendar_day_periods(locale, cldr_calendars(calendar)) do
+      day_periods = Map.put(day_periods, :rules, day_period_rules(locale))
+      lenient = load_lenient_date(locale)
+      entries = Enum.map(patterns, &{:format, &1})
+      regexes = Map.new(entries, &compile_pattern_entry(&1, day_periods, lenient))
+
+      input
+      |> Localize.Date.Parser.transliterate_digits(locale)
+      |> match_patterns(entries, regexes, day_periods, as, locale)
+      |> Kernel.||(
+        {:error, TimeParseError.exception(input: input, locale: locale, format: format)}
+      )
+    end
+  end
+
+  # The patterns the formatter writes a time with for a format: the one it
+  # writes a time with no zone with, which for a `:long` or a `:full` format
+  # is the format's fields without its zone, and the one it writes a time in
+  # a zone with. A format the formatter cannot write a time with is an
+  # error, as it is to `Localize.Time.to_string/2`: a quote left open, a
+  # letter that is no field, a field of a date, or a field longer than any
+  # format writes, which is written as U+FFFD.
+  defp format_patterns(format, locale, calendar, options) do
+    time = %{calendar: calendar, hour: 10, minute: 30, second: 45, microsecond: {0, 6}}
+
+    zoned =
+      Map.merge(time, %{time_zone: "Etc/UTC", zone_abbr: "UTC", utc_offset: 0, std_offset: 0})
+
+    time_options =
+      options |> Keyword.take([:prefer]) |> Keyword.merge(format: format, locale: locale)
+
+    with {:ok, written} <- Localize.Time.to_string(time, time_options),
+         false <- String.contains?(written, "�"),
+         {:ok, pattern} <- Localize.Time.resolve_pattern(time, format, locale, options),
+         {:ok, zoned_pattern} <- Localize.Time.resolve_pattern(zoned, format, locale, options) do
+      {:ok, Enum.uniq([pattern, zoned_pattern])}
+    else
+      true ->
+        {:error, Localize.DateTimeFormatError.exception(format: format, reason: :invalid_format)}
+
+      {:error, _exception} = error ->
+        error
     end
   end
 

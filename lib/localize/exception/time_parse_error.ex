@@ -13,13 +13,16 @@ defmodule Localize.TimeParseError do
 
   * `:locale` — the locale the parser tried.
 
+  * `:format` — the format the input was to be read with, when the `:format` option named one, or `nil`.
+
   """
 
-  defexception [:input, :locale]
+  defexception [:input, :locale, :format]
 
   @type t :: %__MODULE__{
           input: String.t() | nil,
-          locale: atom() | String.t() | nil
+          locale: atom() | String.t() | nil,
+          format: term()
         }
 
   @impl true
@@ -28,8 +31,13 @@ defmodule Localize.TimeParseError do
   end
 
   @impl true
-  def message(%__MODULE__{input: input, locale: locale}) do
+  def message(%__MODULE__{input: input, locale: locale, format: nil}) do
     "could not parse #{inspect(input)} as a time in locale #{inspect(locale)}; " <>
       "ISO-8601 (HH:MM[:SS[.frac]]) is always accepted as a fallback"
+  end
+
+  def message(%__MODULE__{input: input, locale: locale, format: format}) do
+    "could not parse #{inspect(input)} as a time written with the format " <>
+      "#{inspect(format)} in locale #{inspect(locale)}"
   end
 end
