@@ -60,6 +60,8 @@ Outstanding work on Localize. The design detail behind these items lives under [
 
 ## Done
 
+* [x] **A date-time in another calendar is named with the metazone its zone kept at the instant it names** — its fields are read through its calendar, where they were read as ISO's ("GMT+05:00" for a Persian date in Almaty that is "Kazakhstan Time"); zone names now agree with `Calendar.ISO`'s in 35 of Calendrical's calendars and all 657 locales. 2026-10-04, v1.4.0.
+
 * [x] **`y` in the Chinese and Dangi calendars is the year's place in the sixty-year cycle** — written from the calendar's `cyclic_year/3` where the locale's data names the calendar's years by a cycle, as TR35 has it and ICU4C writes it ("40. 윤2. 29." in `ko`), with `u` for the year's number, and read back as the year of that place nearest the reference date. 2026-10-04, v1.4.0.
 
 * [x] **An interval at a standard format takes the fields of its pattern** — its dates, its times and the times of a date and time are written at the widths, and in the clock, the single value is written with, where CLDR's `datetimeSkeleton` or the region's preferred hour cycle decided (dates in 71 locales, a short time in 5, a date and time's times in 14); a month numbered beside a word stays the named month. 2026-10-04, v1.4.0.

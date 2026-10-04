@@ -132,6 +132,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+* A date and time in another calendar than `Calendar.ISO` is given the zone names of the instant it names: its fields were read as ISO's, so a Persian date in January 2026 in `Asia/Almaty` was "GMT+05:00" where it is "Kazakhstan Time", and so in 10 of 13 calendars tried. `Localize.DateTime.Timezone.metazone_for/2` reads a date and time in its calendar too.
+
 * A time is read only with an hour its field has, as TR35 gives each field's range and as ICU reads one when it is not lenient: a 12-hour field took its hour modulo 12, so "45:30 PM" was 21:30 and "13:30 AM" 01:30 in 618 locales, and "45:30" was 09:30 in `fr-CM` and `bal-Latn`. "13:30 PM", which read as 13:30, is an error with them.
 
 * `Localize.Time.parse/2` reads ISO 8601's times in every locale: a time between colons without its seconds ("14:30", which `fi`, `da` and 13 more locales that write a time another way did not read), and after the time designator `T` a time without its minutes or its separators ("T14", "T1430", "T143045"). `z` for `Z` and U+2212 in an offset are read as well.

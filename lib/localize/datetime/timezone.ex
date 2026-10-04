@@ -449,9 +449,11 @@ defmodule Localize.DateTime.Timezone do
     or any of its CLDR aliases (e.g., `"Asia/Calcutta"`).
 
   * `datetime` is a map that may carry `:year` .. `:second` fields
-    selecting the metazone in effect at that instant. When the fields
-    are absent (or `datetime` is `nil`), the currently effective
-    metazone is returned. The default is `nil`.
+    selecting the metazone in effect at that instant. The fields are
+    read in the map's `:calendar`, `Calendar.ISO` when it has none.
+    When the fields are absent (or `datetime` is `nil`), or name no
+    day of the calendar, the currently effective metazone is
+    returned. The default is `nil`.
 
   ### Returns
 
@@ -547,21 +549,64 @@ defmodule Localize.DateTime.Timezone do
   # whose fields name no real date and time has none, and then only the zone's
   # current metazone applies, as for a map with no year.
   defp metazone_instant(%{year: year} = datetime) when is_integer(year) do
+    case iso_wall_time(datetime) do
+      {:ok, wall} -> NaiveDateTime.add(wall, -(total_offset(datetime) || 0), :second)
+      _no_instant -> nil
+    end
+  end
+
+  defp metazone_instant(_datetime), do: nil
+
+  # The date and time a map's fields name, as an ISO date and time. The
+  # fields are its calendar's, so its calendar says which day they are: the
+  # Persian 25 Dey 1404 is 15 January 2026, not a day of the year 1404. A
+  # map without a calendar is an ISO date and time, and one whose calendar
+  # does not answer, or does not have the date, names none.
+  defp iso_wall_time(%{year: year} = datetime) do
     month = Map.get(datetime, :month, 1)
     day = Map.get(datetime, :day, 1)
     hour = Map.get(datetime, :hour, 0)
     minute = Map.get(datetime, :minute, 0)
     second = Map.get(datetime, :second, 0)
 
-    with true <- Enum.all?([month, day, hour, minute, second], &is_integer/1),
-         {:ok, instant} <- NaiveDateTime.new(year, month, day, hour, minute, second) do
-      NaiveDateTime.add(instant, -(total_offset(datetime) || 0), :second)
-    else
-      _no_instant -> nil
+    if Enum.all?([month, day, hour, minute, second], &is_integer/1),
+      do: iso_wall_time(datetime, {year, month, day}, {hour, minute, second}),
+      else: :error
+  end
+
+  defp iso_wall_time(datetime, {year, month, day}, {hour, minute, second}) do
+    case Map.get(datetime, :calendar, Calendar.ISO) do
+      Calendar.ISO ->
+        NaiveDateTime.new(year, month, day, hour, minute, second)
+
+      calendar ->
+        with :ok <- Localize.Calendar.validate_calendar(datetime),
+             {:ok, wall} <-
+               NaiveDateTime.new(year, month, day, hour, minute, second, {0, 0}, calendar) do
+          NaiveDateTime.convert(wall, Calendar.ISO)
+        end
     end
   end
 
-  defp metazone_instant(_datetime), do: nil
+  # A map in another calendar with its date and time as `Calendar.ISO`'s for
+  # the same day, so that the instant its fields name is asked of its
+  # calendar once, however often it is needed. A map that names no day is
+  # left as it is.
+  defp with_iso_wall_time(%{calendar: calendar, year: year} = datetime)
+       when calendar != Calendar.ISO and is_integer(year) do
+    case iso_wall_time(datetime) do
+      {:ok, %NaiveDateTime{} = wall} ->
+        Map.merge(
+          datetime,
+          Map.take(wall, [:calendar, :year, :month, :day, :hour, :minute, :second])
+        )
+
+      _no_wall_time ->
+        datetime
+    end
+  end
+
+  defp with_iso_wall_time(datetime), do: datetime
 
   defp within_period?(nil, _from, to), do: is_nil(to)
 
@@ -628,6 +673,7 @@ defmodule Localize.DateTime.Timezone do
 
   def non_location_format(datetime, locale_id, options)
       when is_map(datetime) and is_keyword_list(options) do
+    datetime = with_iso_wall_time(datetime)
     time_zone = datetime |> Map.get(:time_zone) |> named_zone(datetime)
     format = Keyword.get(options, :format, :long)
 
