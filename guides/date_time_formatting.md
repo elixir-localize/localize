@@ -420,7 +420,7 @@ iex> Localize.Date.parse("22/03/2026", locale: :fr)
 {:ok, ~D[2026-03-22]}
 ```
 
-ISO 8601 is always accepted as well, in every locale, so a wire-format value needs no special handling:
+ISO 8601 is always accepted as well, in every locale, so a wire-format value needs no special handling (for a `:calendar` other than `Calendar.ISO`, see [Calendars](#calendars)):
 
 ```elixir
 iex> Localize.Date.parse("2026-03-22", locale: :de)
@@ -449,7 +449,7 @@ iex> Localize.Date.parse("Q2 2026", locale: :en)
 {:ok, ~D[2026-04-01]}
 ```
 
-A lunisolar date parses as it is written, in the calendar the `:calendar` option names: its related Gregorian year (`r`), its cyclic year name (`U`, read as the year of that name nearest the reference date), a leap month in the locale's pattern ("Mo2bis", "闰二月", "2bis") and `zh`'s day numerals ("初一", "廿一"). Where a locale writes the year both as the calendar's own and as the related Gregorian year, the reading nearer the reference date is taken. A string that is also an ISO 8601 date is read as ISO 8601. In a calendar that writes its years as years of an era, as the Japanese calendars do, a year written without its era is a year of the reference date's era, as ICU reads one.
+A lunisolar date parses as it is written, in the calendar the `:calendar` option names: its related Gregorian year (`r`), its cyclic year name (`U`, read as the year of that name nearest the reference date), a leap month in the locale's pattern ("Mo2bis", "闰二月", "2bis") and `zh`'s day numerals ("初一", "廿一"). Where a locale writes the year both as the calendar's own and as the related Gregorian year, the reading nearer the reference date is taken, in an interval as in a single date: CLDR keys the calendar's interval formats by `y`, and the formatter writes them with the year the standard format writes, so "11/8/2023 – 11/18/2023" is two days of the Chinese year that began in 2023. A string that is also an ISO 8601 date is the calendar's own date where one of its formats reads it, as CLDR's root short date `r-MM-dd` does, and an ISO 8601 date otherwise (see [Calendars](#calendars)). In a calendar that writes its years as years of an era, as the Japanese calendars do, a year written without its era is a year of the reference date's era, as ICU reads one.
 
 A date-time is read with the date-time patterns of the calendar it is read in, in the order the locale writes the two halves: `vi` puts the time first, as in "10:05 1/4/23".
 
@@ -588,6 +588,22 @@ Localize.Date.parse("22.03.2026", locale: :de, calendar: :hebrew)
 The calendar is checked before any parsing happens, so the answer does not depend on the shape of the input: ISO 8601 and locale-formatted text both return the same error for the same `:calendar`. A calendar names its own CLDR calendar type and months through the Calendrical behaviour's callbacks, so a custom calendar needs no registration with Localize; a module implementing only the `Calendar` behaviour cannot say how its dates are written, and is refused with `Localize.UnknownCalendarError`, as it is when formatting.
 
 The date comes back in the `:calendar` module. When a consumer needs it in another calendar, such as `Calendar.ISO` for an Ecto `:date` field, convert it with `Date.convert/2`.
+
+ISO 8601 text is a Gregorian date, read in every locale and converted into the calendar asked for. A calendar's own formats come first, though. When the text is a year, a month and a day between hyphens and any of the calendar's formats in the locale reads it, as leniently as it reads any text, it is the calendar's own date, so what the formatter writes reads back as the date it was written from. CLDR's root short date of the Chinese calendar is `r-MM-dd`, which `he` takes. `fa` writes a Persian short date "y/M/d", and a hyphen is read for a slash. `en` has no Hebrew format that reads such text:
+
+```elixir
+# With calendrical installed
+Localize.Date.parse("2023-11-22", locale: :he, calendar: Calendrical.Chinese)
+#=> {:ok, ~D[4660-12-22 Calendrical.Chinese]}
+
+Localize.Date.parse("1402-09-01", locale: :fa, calendar: Calendrical.Persian)
+#=> {:ok, ~D[1402-09-01 Calendrical.Persian]}
+
+Localize.Date.parse("2023-11-22", locale: :en, calendar: Calendrical.Hebrew)
+#=> {:ok, ~D[5784-03-09 Calendrical.Hebrew]}
+```
+
+The first is the twenty-second day of the eleventh month of the Chinese year that began in 2023, its twelfth month after a leap month, the second is the Persian date as it is written, and the third is 22 November 2023 converted. A format reads the text in the order it writes its fields, so `kk-Arab`'s "y-d-M" reads "2023-10-11" as 10 November. A date of that shape with a time after a space is read the same way, an offset after the time with it. Text with ISO 8601's `T` is always ISO 8601's, as are its forms without separators, by the day of the year and by the week, and every ISO 8601 date in `Calendar.ISO`, whose own notation ISO 8601 is.
 
 A calendar of weeks, such as `Calendrical.ISOWeek`, has no month or day of the month of its own, so a written month and day name no single one of its weeks. Its `parsing_calendar/0` callback answers `Calendar.ISO`, so input other than its own notation (below) is read as a Gregorian date and converted into it:
 

@@ -376,6 +376,131 @@ defmodule Localize.DateParseLunisolarTest do
     end
   end
 
+  # A calendar's own formats come before ISO 8601 (user, 2026-10-04), any of
+  # them, read as leniently as they are read anywhere. CLDR's root short
+  # date of the Chinese calendar is `r-MM-dd`, which `he` and `sw` take, and
+  # `lt`'s is `y-MM-dd` (`common/main/root.xml`, `lt.xml`): each writes a
+  # date as ISO 8601 writes one, and ISO 8601 read its text as a Gregorian
+  # date. The Chinese year 4660 began in 2023, its related year, and its
+  # eleventh month is its twelfth, after the leap second month.
+  describe "a date ISO 8601 also reads" do
+    test "is the calendar's own date where a format of the calendar writes it so" do
+      eleventh = date(4660, 12, 22)
+
+      assert Localize.Date.to_string(eleventh, format: :short, locale: :he) ==
+               {:ok, "2023-11-22"}
+
+      assert parse("2023-11-22", :he) == {:ok, eleventh}
+      assert parse("2023-11-22", :sw) == {:ok, eleventh}
+
+      assert Localize.Date.to_string(eleventh, format: :short, locale: :lt) ==
+               {:ok, "4660-11-22"}
+
+      assert parse("4660-11-22", :lt) == {:ok, eleventh}
+
+      assert parse("2023-11-22", :he, as: :map) ==
+               {:ok, %{calendar: Lunisolar, year: 4660, month: 12, day: 22}}
+    end
+
+    test "parses back in every standard format of the locales that write it so" do
+      dates =
+        for {year, month, day} <- [{4660, 2, 30}, {4660, 3, 11}, {4660, 12, 22}, {4661, 1, 1}],
+            do: date(year, month, day)
+
+      failures =
+        for locale <- [:he, :sw, :lt, :id, :af],
+            format <- [:short, :medium, :long],
+            date <- dates,
+            {:ok, text} = Localize.Date.to_string(date, format: format, locale: locale),
+            parse(text, locale) != {:ok, date} do
+          {locale, format, date, text}
+        end
+
+      assert failures == []
+    end
+
+    # Any of the calendar's formats reads the text, as leniently as the
+    # parser reads it anywhere (user, 2026-10-04: "Use the broader rule").
+    # CLDR's lenient date scope takes a hyphen, a period and a slash for one
+    # another (`root.xml`, `parseLenients`), so `ko`'s short date of the
+    # Chinese calendar, "y/M/d" (`ko.xml`), reads a year, a month and a day
+    # between hyphens as the calendar's own year, and `fa`'s of the Persian
+    # calendar, "y/M/d" (`fa.xml`), the Persian year 1402.
+    test "is the calendar's own date where a format of the calendar reads it leniently" do
+      assert parse("4660-11-22", :ko) == {:ok, date(4660, 12, 22)}
+
+      persian = [locale: :fa, calendar: Bounded, reference_date: Date.new!(1405, 3, 1, Bounded)]
+
+      assert Localize.Date.parse("1402-09-01", persian) == {:ok, Date.new!(1402, 9, 1, Bounded)}
+    end
+
+    # A date and a time joined by a space is ISO 8601's too, and the
+    # calendar's own for the same reason, an offset or a `Z` after the time
+    # with it. ISO 8601's `T` is in no locale's pattern, so text with one is
+    # not the calendar's.
+    test "with a time is the calendar's own date and time" do
+      options = [locale: :he, calendar: Lunisolar, reference_date: @reference]
+
+      assert {:ok,
+              %NaiveDateTime{
+                calendar: Lunisolar,
+                year: 4660,
+                month: 12,
+                day: 22,
+                hour: 14,
+                minute: 30,
+                second: 45
+              }} = Localize.DateTime.parse("2023-11-22 14:30:45", options)
+    end
+
+    # `en` writes no Buddhist date that reads a year, a month and a day
+    # between hyphens, so the text there is ISO 8601's: a Gregorian date,
+    # taken into the calendar, 543 years on. `ksh`'s `yMd` is "y-MM-dd"
+    # (`common/main/ksh.xml`), so the same shape there is the calendar's own
+    # year, with its offset where it has one.
+    test "is ISO 8601's where no format of the calendar reads it" do
+      assert Localize.Date.parse("2023-11-22", locale: :en, calendar: Offset) ==
+               {:ok, Date.new!(2566, 11, 22, Offset)}
+
+      assert Localize.Date.parse("2566-11-22", locale: :ksh, calendar: Offset) ==
+               {:ok, Date.new!(2566, 11, 22, Offset)}
+
+      assert {:ok, %NaiveDateTime{calendar: Offset, year: 2566, month: 11, day: 22, hour: 14}} =
+               Localize.DateTime.parse("2566-11-22 14:30:45", locale: :ksh, calendar: Offset)
+
+      assert {:ok, %DateTime{calendar: Offset, year: 2566, month: 11, day: 22, utc_offset: 7200}} =
+               Localize.DateTime.parse("2566-11-22 14:30:45+02:00",
+                 locale: :ksh,
+                 calendar: Offset
+               )
+
+      assert {:ok, %NaiveDateTime{calendar: Offset, year: 3109, month: 11, day: 22, hour: 14}} =
+               Localize.DateTime.parse("2566-11-22T14:30:45", locale: :ksh, calendar: Offset)
+    end
+
+    # ISO 8601 is `Calendar.ISO`'s own notation, so it comes first there, in
+    # every locale. `ug`'s and `kk-Arab`'s `yMd` is "y-d-M"
+    # (`common/main/ug.xml`, `kk_Arab.xml`), which would read the same text
+    # as 10 November.
+    test "is ISO 8601's in Calendar.ISO, in every locale" do
+      for locale <- [:sv, :ug, :"kk-Arab", :ko] do
+        assert Localize.Date.parse("2024-10-11", locale: locale) == {:ok, ~D[2024-10-11]},
+               inspect(locale)
+      end
+    end
+
+    # ISO 8601's other forms are in no calendar's formats: a date without
+    # separators, a day of the year and a week date stay ISO 8601's.
+    test "is ISO 8601's in its basic, ordinal and week forms" do
+      november_22 = Date.new!(2566, 11, 22, Offset)
+
+      for text <- ["20231122", "2023-326", "2023-W47-3"] do
+        assert Localize.Date.parse(text, locale: :ksh, calendar: Offset) == {:ok, november_22},
+               text
+      end
+    end
+  end
+
   # ICU4C 78.3's `yMMMd` and `yMd` intervals from Gregorian 2023-04-01.
   describe "ICU4C's lunisolar intervals" do
     test "parse with the calendar's interval patterns" do
@@ -396,6 +521,60 @@ defmodule Localize.DateParseLunisolarTest do
                ) == {:ok, range},
                "#{locale} #{inspect(text)}"
       end
+    end
+
+    # CLDR keys the Chinese calendar's `yMd` interval by `y`, "M/d/y – M/d/y"
+    # in `en` and "y-MM-dd – y-MM-dd" in root (`common/main/en.xml`,
+    # `root.xml`), and the formatter writes it with the year the standard
+    # short date writes, the related year (`M/d/r`, `r-MM-dd`): 2023 for two
+    # days of 4660. So an interval's year is read as the related year or as
+    # the calendar's own, whichever is nearer the reference year, as a single
+    # date's is; it was read as the Chinese year 2023.
+    test "read a year as the related year or the calendar's own, whichever is nearer" do
+      range = Date.range(date(4660, 12, 8), date(4660, 12, 18))
+      options = [calendar: Lunisolar, reference_date: @reference]
+
+      for {text, locale} <- [
+            {"11/8/2023 – 11/18/2023", :en},
+            {"11/8/4660 – 11/18/4660", :en},
+            {"2023-11-08 – 2023-11-18", :he},
+            {"4660-11-08 – 4660-11-18", :he}
+          ] do
+        assert Localize.Interval.parse(text, [locale: locale] ++ options) == {:ok, range},
+               "#{locale} #{inspect(text)}"
+      end
+
+      assert Localize.Interval.parse("11/8/2023 – 11/18/2023", [locale: :en, as: :map] ++ options) ==
+               {:ok,
+                {%{calendar: Lunisolar, year: 4660, month: 12, day: 8},
+                 %{calendar: Lunisolar, year: 4660, month: 12, day: 18}}}
+    end
+
+    test "parse back as the formatter writes them at the short format and with a skeleton" do
+      range = Date.range(date(4660, 12, 8), date(4660, 12, 18))
+
+      failures =
+        for locale <- [:en, :he, :sw, :lt, :zh, :ko],
+            format <- [:short, :yMd],
+            {:ok, text} =
+              Localize.Interval.to_string(range.first, range.last, locale: locale, format: format),
+            Localize.Interval.parse(text,
+              locale: locale,
+              calendar: Lunisolar,
+              reference_date: @reference
+            ) != {:ok, range} do
+          {locale, format, text}
+        end
+
+      assert failures == []
+    end
+
+    # A calendar whose formats write no related year reads an interval's
+    # year as its own: 2566 of a calendar 543 years on is not the related
+    # year of 3109.
+    test "read a year as the calendar's own where its formats write no related year" do
+      assert Localize.Interval.parse("1/4/2566 – 10/4/2566 BE", locale: :en, calendar: Offset) ==
+               {:ok, Date.range(Date.new!(2566, 1, 4, Offset), Date.new!(2566, 10, 4, Offset))}
     end
   end
 

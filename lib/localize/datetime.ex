@@ -1069,9 +1069,14 @@ defmodule Localize.DateTime do
     `"2024-W05-4"`, and any other input as a Gregorian date, as its
     `parsing_calendar/0` says, since a written month and day name no
     single week; the date is converted into it, so `"Feb 1, 2024"` is
-    2024-W05-4. Anything that is not a calendar module, including a CLDR
-    calendar name such as `:hebrew` or `"gregorian"`, and a module that
-    implements only the `Calendar` behaviour, returns a
+    2024-W05-4. A calendar's own formats come before ISO 8601: a year, a
+    month and a day between hyphens that any of them reads, as CLDR's
+    root short date of the Chinese calendar does (`r-MM-dd`), and a time
+    after a space are the calendar's own, and where none does, or with
+    ISO 8601's `T`, the text is an ISO 8601 date and time, converted into
+    the calendar. Anything that is not a calendar module,
+    including a CLDR calendar name such as `:hebrew` or `"gregorian"`, and
+    a module that implements only the `Calendar` behaviour, returns a
     `t:Localize.UnknownCalendarError.t/0`.
 
   * `:reference_date` is the `t:Date.t/0` that partial input is completed

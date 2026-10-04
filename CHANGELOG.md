@@ -56,6 +56,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Changed
 
+* **Breaking.** A calendar's own formats are read before ISO 8601: text such as "2023-11-22" that any format of the calendar asked for reads, as leniently as it reads any text, is that calendar's own date, and with a time after a space too, where it was a Gregorian date converted (CLDR's root Chinese short date is `r-MM-dd`). `Calendar.ISO`, a calendar none of whose formats reads the text, and text with ISO 8601's `T` read as before.
+
 * **Breaking.** A date's month, era, years, week and weekday, a year's days and the years and months between two dates are its calendar's answers — `month_of_year/3` and `cardinal_month/1` for the month, the Calendrical behaviour's callbacks for the rest — never its own fields, so a calendar other than `Calendar.ISO` must implement the Calendrical behaviour (Calendrical 1.4, which adds `cardinal_month/1` and `parsing_calendar/0` and requires `era_calendar_type/0`) and any other is refused with `Localize.UnknownCalendarError` by formatting, parsing and relative time alike. An answer that is not one is a `Localize.InvalidValueError`.
 
 * **Breaking.** A numeric month is the CLDR month its name uses, in formatting and parsing alike, so a Hebrew common year's Adar is "7", CLDR's number for it, where ICU4C writes its place in the year, "6".
@@ -119,6 +121,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 * **Breaking.** A zero offset is spelled out wherever a localized GMT format is used, `"GMT+00:00"` long and `"GMT+0"` short, as TR35's examples and ICU give it. `Localize.DateTime.Timezone.gmt_format/3` drops its `:zero_format` option, which selected between the two.
 
 ### Fixed
+
+* `Localize.Interval.parse/2` reads the year of a Chinese or Dangi interval as the related Gregorian year or as the calendar's own, whichever is nearer the reference year, so "11/8/2023 – 11/18/2023", which the formatter writes for two days of the Chinese year 4660, reads back, where it was the Chinese year 2023.
+
+* An ISO 8601 offset or `Z` written hard against a time is kept: `Localize.DateTime.parse("11/22/2023 14:30:45+02:00", locale: :en)` is a `DateTime` two hours ahead of UTC, where the offset was dropped and a `NaiveDateTime` came back.
 
 * Compiling Localize on Elixir 1.17 and 1.18 no longer logs "The on_load function for module Elixir.Localize.Nif returned: {:undef, …}" and an `UndefinedFunctionError`: `Localize.Priv`, which the NIF module's `@on_load` callback calls, is compiled and loaded first.
 

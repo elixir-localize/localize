@@ -64,7 +64,8 @@ defmodule Localize.Time.Parser do
 
   @doc """
   Same as `parse/2` but also returns the captured time-zone
-  string (or `nil` when the pattern carried no zone). The
+  string (or `nil` when the input carried no zone), an ISO 8601
+  time's offset or `Z` included. The
   `Localize.DateTime.Parser` resolves that zone with
   `Localize.DateTime.Timezone.resolve/3` when it builds a
   `DateTime`.
@@ -84,7 +85,7 @@ defmodule Localize.Time.Parser do
     with {:ok, calendar} <- Localize.Date.Parser.calendar_option(options) do
       case try_iso(input) do
         {:ok, time} ->
-          {:ok, finalise_time(time, as), nil}
+          put_map_zone_fields({:ok, finalise_time(time, as), iso_offset(input)}, options)
 
         :error ->
           input
@@ -133,6 +134,18 @@ defmodule Localize.Time.Parser do
     case Time.from_iso8601(input) do
       {:ok, time} -> {:ok, time}
       _ -> :error
+    end
+  end
+
+  # The offset, or `Z`, that ISO 8601 writes hard against a time.
+  # `Time.from_iso8601/1` reads a time that carries one and discards it, so
+  # it is taken from the text: a date and time read through the locale's
+  # patterns ("11/22/2023 14:30:45+02:00") keeps the offset its time was
+  # written with, where it was dropped and the value came back naive.
+  defp iso_offset(input) do
+    case Regex.run(~r/(?:Z|[+\-−]\d{2}(?::?\d{2})?)\z/u, input) do
+      [offset] -> offset
+      nil -> nil
     end
   end
 

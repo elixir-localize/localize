@@ -252,7 +252,14 @@ defmodule Localize.DateTime.Parser do
     # ISO 8601 writes a Gregorian date and time, which is converted into
     # the calendar asked for. The locale's patterns read the date half
     # through `Localize.Date.parse/2`, which reads it in the calendar's
-    # `parsing_calendar/0` and converts it, as for a calendar of weeks.
+    # `parsing_calendar/0` and converts it, as for a calendar of weeks. A
+    # date and time in the calendar's own formats comes before either.
+    with nil <- own_format_datetime(candidates, locale, options, as) do
+      iso_or_locale_datetime(candidates, locale, options, calendar_module, as)
+    end
+  end
+
+  defp iso_or_locale_datetime(candidates, locale, options, calendar_module, as) do
     case Enum.find_value(candidates, :error, &iso_candidate/1) do
       {:ok, value} ->
         with {:ok, value} <- Localize.Date.Parser.convert_value(value, calendar_module) do
@@ -262,6 +269,24 @@ defmodule Localize.DateTime.Parser do
       :error ->
         try_locale_glue_candidates(candidates, locale, options, as)
     end
+  end
+
+  # A date and time whose date is one of the calendar's own, as its formats
+  # read a date alone ("2023-11-18 14:30:45" with the Chinese calendar's
+  # `r-MM-dd`; `Localize.Date.Parser.own_format_date/2`), is that
+  # calendar's: the locale's patterns read it before ISO 8601 does, its
+  # offset with it. No locale's pattern joins a date to a time with ISO
+  # 8601's `T`, so text with one is ISO 8601's.
+  defp own_format_datetime(candidates, locale, options, as) do
+    Enum.find_value(candidates, fn input ->
+      with [_input, date_text] <- Regex.run(~r/\A(\d{4}-\d{2}-\d{2}) /, input),
+           {:ok, _date} <- Localize.Date.Parser.own_format_date(date_text, options),
+           {:ok, _value} = ok <- try_locale_glue(input, locale, options, as) do
+        ok
+      else
+        _not_the_calendars_own -> nil
+      end
+    end)
   end
 
   defp iso_candidate(input) do

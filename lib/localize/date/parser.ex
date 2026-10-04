@@ -9,6 +9,13 @@ defmodule Localize.Date.Parser do
   #
   # Strategy, in order:
   #
+  # * A format of the calendar asked for, for text ISO 8601 also reads
+  # (`r-MM-dd`, the Chinese calendar's short date in CLDR's root, writes
+  # "2023-11-22"). A calendar's own formats come first, any of them and
+  # read as leniently as below, so such text is that calendar's date
+  # wherever one of its formats reads it, and reads back as the date it
+  # was written from. `Calendar.ISO`'s own notation is ISO 8601.
+  #
   # * Bare ISO-8601 (`YYYY-MM-DD`) — accepted in every locale.
   # This is the wire format and the unambiguous escape hatch.
   #
@@ -133,9 +140,10 @@ defmodule Localize.Date.Parser do
 
     normalised = normalise_input(input)
     candidates = Enum.uniq([normalised, preprocess_safe(normalised, locale, calendar_module)])
+    own_format = &own_format_reading(&1, locale, calendar_module, own_calendar, reference)
 
     attempt = fn inputs ->
-      case Enum.find_value(inputs, &written_date(&1, calendar_module, own_calendar)) do
+      case Enum.find_value(inputs, &written_date(&1, calendar_module, own_calendar, own_format)) do
         {:ok, date} ->
           {:ok, finalise_date(date, as)}
 
@@ -158,12 +166,13 @@ defmodule Localize.Date.Parser do
 
   # A date written in the notation of the calendar asked for, as the
   # formatter writes a calendar of weeks' date ("2026-W25-2"), read back by
-  # that calendar and taken into the calendar the input is read in; else an
-  # ISO 8601 date.
-  defp written_date(input, calendar_module, own_calendar) do
+  # that calendar and taken into the calendar the input is read in; else a
+  # date in one of the calendar's own formats (`own_format`), which come
+  # before ISO 8601; else an ISO 8601 date.
+  defp written_date(input, calendar_module, own_calendar, own_format) do
     case Localize.Calendar.from_notation(input, own_calendar) do
       {:ok, date} -> in_calendar(date, calendar_module)
-      :none -> iso_date(input, calendar_module)
+      :none -> own_format.(input) || iso_date(input, calendar_module)
       {:error, _exception} = error -> error
     end
   end
@@ -172,6 +181,45 @@ defmodule Localize.Date.Parser do
     case try_iso(input, calendar_module) do
       {:ok, _date} = ok -> ok
       :error -> nil
+    end
+  end
+
+  # Text that ISO 8601 reads as a date can be a date of the calendar asked
+  # for, written in one of that calendar's own formats: "2023-11-22" is the
+  # Chinese calendar's short date in every locale that takes CLDR's root
+  # format, `r-MM-dd`, the twenty-second day of the eleventh month of the
+  # year that began in 2023, and not 22 November. A calendar's own formats
+  # come first (user, 2026-10-04): any of them, read as leniently as the
+  # parser reads them anywhere ("Use the broader rule"), so ISO 8601 reads
+  # such text only when none of the calendar's formats makes a date of it,
+  # and a date the formatter writes reads back as itself. `Calendar.ISO` is
+  # not asked: ISO 8601 is its own notation, as "2026-W25-2" is a calendar
+  # of weeks'.
+  defp own_format_reading(_input, _locale, Calendar.ISO, _own_calendar, _reference), do: nil
+
+  defp own_format_reading(input, locale, calendar_module, own_calendar, reference) do
+    with true <- Regex.match?(~r/\A\d{4}-\d{2}-\d{2}\z/, input),
+         {:ok, patterns, ctx} <- locale_patterns(locale, calendar_module, own_calendar, reference) do
+      run_locale_pass(patterns, input, ctx, :struct)
+    else
+      _not_a_date_iso_8601_reads -> nil
+    end
+  end
+
+  @doc false
+  # The date that `input`, which ISO 8601 also reads, is in one of the
+  # formats of the calendar asked for, or `nil` when none of them reads it.
+  # `Localize.DateTime.Parser` asks before it reads a date and time as ISO
+  # 8601.
+  @spec own_format_date(String.t(), Keyword.t()) :: {:ok, Date.t()} | nil
+  def own_format_date(input, options) do
+    with {:ok, calendar_module} <- calendar_option(options),
+         {:ok, ^calendar_module} <- Localize.Calendar.parsing_calendar(calendar_module) do
+      locale = Keyword.get(options, :locale) || Localize.get_locale()
+      reference = reference_date(options, calendar_module)
+      own_format_reading(input, locale, calendar_module, calendar_module, reference)
+    else
+      _read_in_another_calendar -> nil
     end
   end
 
@@ -552,21 +600,78 @@ defmodule Localize.Date.Parser do
         |> Enum.uniq()
         |> Enum.sort_by(&pattern_specificity/1)
 
-      Enum.find_value(patterns, :error, fn pattern ->
-        transliterated
-        |> match_interval_pattern(pattern, ctx, as)
-        |> nil_when_no_match()
-      end)
+      related? = related_years?(locale, calendar_module, own_calendar, reference)
+      Enum.find_value(patterns, :error, &interval_reading(transliterated, &1, related?, ctx, as))
     else
       _ -> :error
     end
   end
 
-  defp nil_when_no_match(:error), do: nil
-  defp nil_when_no_match(match), do: match
+  # CLDR keys a calendar's interval patterns by `y`, and the formatter
+  # writes them with the year its format asks for: the related Gregorian
+  # year where the calendar's formats write `r`, as the Chinese and Dangi
+  # calendars' standard formats do ("11/8/2023 – 11/18/2023" for two days of
+  # the Chinese year 4660). An interval's year is then read both ways, as
+  # the calendar's year and as its related year, and the reading nearer the
+  # reference year is taken, as a single date's is (`run_locale_pass/4`). A
+  # year written as its two low-order digits (`yy`) is no related year.
+  defp interval_reading(input, pattern, related?, ctx, as) do
+    pattern
+    |> tokenize_pattern()
+    |> year_readings(related?)
+    |> Enum.map(&match_interval_tokens(input, &1, ctx, as))
+    |> Enum.reject(&(&1 == :error))
+    |> Enum.min_by(&interval_distance(&1, ctx.reference_year), fn -> nil end)
+  end
 
-  defp match_interval_pattern(input, pattern, ctx, as) do
-    {tokens_l, tokens_r} = split_interval_tokens(tokenize_pattern(pattern))
+  defp year_readings(tokens, false), do: [tokens]
+
+  defp year_readings(tokens, true) do
+    related =
+      Enum.map(tokens, fn
+        {:y, count} when count != 2 -> {:r, count}
+        token -> token
+      end)
+
+    Enum.uniq([tokens, related])
+  end
+
+  defp interval_distance({:ok, %{year: year}, _to}, reference_year) when is_integer(year),
+    do: abs(year - reference_year)
+
+  defp interval_distance(_reading, _reference_year), do: 0
+
+  # Whether the calendar's dates are written with their related Gregorian
+  # year in the locale: one of its date patterns has an `r`. Cached, as the
+  # patterns' regexes are.
+  defp related_years?(locale, calendar_module, own_calendar, reference) do
+    key = {__MODULE__, :related_years, locale, calendar_module}
+
+    case :persistent_term.get(key, nil) do
+      nil ->
+        related? =
+          case locale_patterns(locale, calendar_module, own_calendar, reference) do
+            {:ok, patterns, _ctx} -> Enum.any?(patterns, &related_year_pattern?/1)
+            _no_patterns -> false
+          end
+
+        :persistent_term.put(key, related?)
+        related?
+
+      related? ->
+        related?
+    end
+  end
+
+  defp related_year_pattern?({_skeleton, pattern}) do
+    pattern
+    |> pattern_text()
+    |> tokenize_pattern()
+    |> Enum.any?(&match?({:r, _count}, &1))
+  end
+
+  defp match_interval_tokens(input, tokens, ctx, as) do
+    {tokens_l, tokens_r} = split_interval_tokens(tokens)
 
     if tokens_r == [] do
       # Pattern with no repeating field — not a usable interval
@@ -1382,12 +1487,41 @@ defmodule Localize.Date.Parser do
   # before the next pass starts, so a strict match on either is
   # preferred to a lax one.
   defp try_locale_patterns(inputs, locale, calendar_module, own_calendar, reference, as) do
+    with {:ok, patterns, ctx} <- locale_patterns(locale, calendar_module, own_calendar, reference) do
+      transliterated = inputs |> Enum.map(&transliterate_digits(&1, locale)) |> Enum.uniq()
+
+      result =
+        case as do
+          :struct ->
+            run_candidate_pass(patterns, transliterated, ctx, :struct)
+
+          :map ->
+            # Pass 1 — strict: only accept a pattern whose fields
+            # construct a valid date. This filters out misleading
+            # regex matches like `MMM y` against "May 5" (which
+            # would yield month=5, year=5). The winning pattern's
+            # fields are then surfaced as a map, with the
+            # synthesised year stripped if the user didn't supply
+            # one.
+            #
+            # Pass 2 — lax: needed for legitimately partial inputs
+            # that can't construct a date even with the reference
+            # year (e.g. `"2026"` alone, or `"May"` alone).
+            run_candidate_pass(patterns, transliterated, ctx, {:map, :strict}) ||
+              run_candidate_pass(lax_order(patterns), transliterated, ctx, {:map, :lax})
+        end
+
+      result || {:error, no_match_error(hd(inputs), locale, calendar_module)}
+    end
+  end
+
+  # The patterns a calendar's dates are read with in a locale, in the order
+  # they are tried, and the names and rules their fields are read with.
+  defp locale_patterns(locale, calendar_module, own_calendar, reference) do
     cldr_calendar = cldr_calendar_type(calendar_module)
 
     with {:ok, available} <- Format.available_formats(locale, cldr_calendar),
          {:ok, months_data} <- LCalendar.months(locale, cldr_calendar) do
-      transliterated = inputs |> Enum.map(&transliterate_digits(&1, locale)) |> Enum.uniq()
-
       # The first pattern to read the input wins, so they are taken in a
       # fixed order: the locale's standard formats, which the formatter
       # writes, then the available formats, which come from a map whose
@@ -1415,28 +1549,7 @@ defmodule Localize.Date.Parser do
       ctx = Map.put(ctx, :regexes, pattern_regexes(patterns, ctx))
       ctx = Map.put(ctx, :mixed_years, mixed_year_fields?(patterns, ctx))
 
-      result =
-        case as do
-          :struct ->
-            run_candidate_pass(patterns, transliterated, ctx, :struct)
-
-          :map ->
-            # Pass 1 — strict: only accept a pattern whose fields
-            # construct a valid date. This filters out misleading
-            # regex matches like `MMM y` against "May 5" (which
-            # would yield month=5, year=5). The winning pattern's
-            # fields are then surfaced as a map, with the
-            # synthesised year stripped if the user didn't supply
-            # one.
-            #
-            # Pass 2 — lax: needed for legitimately partial inputs
-            # that can't construct a date even with the reference
-            # year (e.g. `"2026"` alone, or `"May"` alone).
-            run_candidate_pass(patterns, transliterated, ctx, {:map, :strict}) ||
-              run_candidate_pass(lax_order(patterns), transliterated, ctx, {:map, :lax})
-        end
-
-      result || {:error, no_match_error(hd(inputs), locale, calendar_module)}
+      {:ok, patterns, ctx}
     end
   end
 

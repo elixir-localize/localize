@@ -12,9 +12,7 @@ Outstanding work on Localize. The design detail behind these items lives under [
 
 * [ ] **Decide whether specific zone names are qualified** — CLDR's own `TimezoneFormatter` qualifies the specific format (`z`, `zzzz`) as it does the generic one, "Central European Summer Time (Germany)" for Berlin in `en`, where ICU4C never does; a specific name already reads back to its instant, and Localize qualifies only the generic format.
 
-* [ ] **Date round trips that fail in five locales** — `gd`'s `yMMM` writes the week-based year ("Dùbh 2025" for 2024-12-31, a CLDR report like `pt`'s). `mt`, `sbp` and `vai_Latn` give `yMd` as "M/d/y" beside a short date of "dd/MM/y" in CLDR, so "3/4/2024" reads as the short date (a CLDR report), and `ug`'s `yMd` "y-d-M" reads as ISO 8601 (the ISO-shaped date decision below).
-
-* [ ] **Decide how a calendar's ISO-shaped numeric date is read** — the parser reads any `y-MM-dd` text as an ISO 8601 date and converts it, so `he`'s Chinese short date "2023-11-22" (related year 2023, month 11, day 22) comes back as Gregorian 22 November 2023; a calendar's own pattern written that way never round-trips.  Decision: Use a calendars own formats first.
+* [ ] **Date round trips that fail in five locales** — `gd`'s `yMMM` writes the week-based year ("Dùbh 2025" for 2024-12-31, a CLDR report like `pt`'s). `mt`, `sbp` and `vai_Latn` give `yMd` as "M/d/y" beside a short date of "dd/MM/y" in CLDR, so "3/4/2024" reads as the short date (a CLDR report), and `ug`'s and `kk-Arab`'s `yMd` "y-d-M" reads as ISO 8601 where its day is no more than 12: ISO 8601 is `Calendar.ISO`'s own notation and stays first there, beside a short date of "y-MM-dd" in `ug` (a CLDR report).
 
 * [ ] **Decide how a date a skeleton writes against the standard format's field order is read** — `my`'s Japanese short date is "GGGGG d/M/y" where its `GyMd` is "GGGGG y/M/d", and `sa`'s medium "G d MMM y" where its `GyMMMd` is "G y MMM d", so "Kanpō (1741–1744) 2/6/1" from `GyMd` reads as the short date, 2 June 1741, an era year and a day both being small. The standard formats round-trip, as `fa`'s dates now do in either digits; report the conflicts to CLDR, or let `parse/2` take the format the text was written with.  Decision: Let parse/2 take the format the text was written with.
 
@@ -23,8 +21,6 @@ Outstanding work on Localize. The design detail behind these items lives under [
 * [ ] **The hour cycle of a short time interval** — `format: :short` takes `hm` or `Hm` from the locale's preferred hour cycle, so in 18 locales, such as `ady-JO`, whose short time format is "HH:mm", a time interval is 12-hour and its single value "10:05 AM" where `Localize.Time.to_string/2` writes "10:05".
 
 * [ ] **`y` in the Chinese and Dangi calendars** — ICU4C writes the year of the sixty-year cycle ("40. 2. 30." in `ko`), Localize the sequential year ("4660. 2. 30."), which CLDR's era data calls the year; TR35's `U` falling back to `y` suggests the cycle year. Decide which to follow and record it.
-
-* [ ] **An ISO 8601 date that is also a locale's pattern** — root's Chinese and Dangi short pattern `r-MM-dd` writes "2020-05-01", which the parser reads as ISO 8601 first, so those dates do not parse back; decide whether a non-Gregorian calendar's own patterns come first. Decision: Yes, a calendars own patterns come first.
 
 * [ ] **`Localize.Calendar.localize/3` names the first value of a part the date lacks** — a map without a month is January, the first quarter and a Monday, and one without a year the current era; characterization tests pin this. Decide whether they should be errors.
 
@@ -57,6 +53,12 @@ Outstanding work on Localize. The design detail behind these items lives under [
 * [ ] **`localize_emoji` sibling library** — plan item 11, a separate package on its own schedule. A Phoenix LiveView picker (`localize_emoji_live`) is out of scope for its 0.1.0.
 
 ## Done
+
+* [x] **An ISO 8601 offset written hard against a time is kept** — `Localize.DateTime.parse("11/22/2023 14:30:45+02:00", locale: :en)` is a `DateTime` at +02:00, where `Time.from_iso8601/1` discarded the offset and the value came back naive. 2026-10-04, v1.4.0.
+
+* [x] **An interval of Chinese or Dangi dates reads its related year** — `Localize.Interval.parse/2` takes an interval's year as the related year or the calendar's own, whichever is nearer the reference year, so "11/8/2023 – 11/18/2023" is two days of the Chinese year 4660 and not of the year 2023. 2026-10-04, v1.4.0.
+
+* [x] **A calendar's own formats are read before ISO 8601** — text ISO 8601 reads as a date that any format of the calendar asked for also reads, as leniently as it reads any text (`r-MM-dd`, `y/M/d`), is the calendar's own date, alone or with a time after a space, so the Chinese and Dangi short dates and a Julian date in `sv` read back; `Calendar.ISO`, and text with ISO 8601's `T`, are ISO 8601's (user, 2026-10-04: "Use the broader rule"). 2026-10-04, v1.4.0.
 
 * [x] **`Localize.Nif` loads while Localize is compiled** — its body calls `Code.ensure_compiled!(Localize.Priv)`, so the module its `@on_load` callback calls is compiled and loaded first, and builds on Elixir 1.17 and 1.18 no longer log the callback's `:undef`; a lint test holds every `@on_load` callback to it. 2026-10-04, v1.4.0.
 

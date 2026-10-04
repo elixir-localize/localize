@@ -241,6 +241,57 @@ defmodule Localize.ZoneParseTest do
         assert DateTime.compare(datetime, instant) == :eq, "#{locale} #{text}"
       end
     end
+
+    # ISO 8601 writes an offset, or `Z`, hard against a time, and
+    # `Time.from_iso8601/1` reads a time that carries one and discards it.
+    # A date in a locale's format beside such a time kept no offset and came
+    # back a `NaiveDateTime`; it is the offset's `DateTime`, as it is when a
+    # space parts the two. The offsets are ISO 8601's: "+02:00" is 7,200
+    # seconds ahead of UTC and "-05:00" 18,000 behind.
+    test "an ISO 8601 offset hard against the time" do
+      for {text, offset} <- [
+            {"11/22/2023 14:30:45+02:00", 7200},
+            {"11/22/2023 14:30:45+0200", 7200},
+            {"11/22/2023 14:30:45+02", 7200},
+            {"11/22/2023 14:30:45-05:00", -18_000},
+            {"11/22/2023 14:30:45.250+02:00", 7200},
+            {"11/22/2023 14:30:45Z", 0},
+            {"11/22/2023, 14:30:45 +02:00", 7200}
+          ] do
+        assert {:ok,
+                %DateTime{
+                  utc_offset: ^offset,
+                  year: 2023,
+                  month: 11,
+                  day: 22,
+                  hour: 14,
+                  minute: 30,
+                  second: 45
+                }} = Localize.DateTime.parse(text, locale: :en),
+               text
+      end
+
+      assert {:ok, %{hour: 14, utc_offset: 7200, zone_abbr: "+02:00"}} =
+               Localize.DateTime.parse("11/22/2023 14:30:45+02:00", locale: :en, as: :map)
+
+      assert Localize.DateTime.parse("11/22/2023 14:30:45", locale: :en) ==
+               {:ok, ~N[2023-11-22 14:30:45]}
+    end
+
+    # The time's parser hands the offset on, and a time alone has no zone to
+    # keep.
+    test "an ISO 8601 offset is read with its time" do
+      assert Localize.Time.Parser.parse_with_zone("14:30:45+02:00", locale: :en) ==
+               {:ok, ~T[14:30:45], "+02:00"}
+
+      assert Localize.Time.Parser.parse_with_zone("14:30:45Z", locale: :en) ==
+               {:ok, ~T[14:30:45], "Z"}
+
+      assert Localize.Time.Parser.parse_with_zone("14:30:45", locale: :en) ==
+               {:ok, ~T[14:30:45], nil}
+
+      assert Localize.Time.parse("14:30:45+02:00", locale: :en) == {:ok, ~T[14:30:45]}
+    end
   end
 end
 

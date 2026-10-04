@@ -1050,6 +1050,36 @@ defmodule Localize.CalendarCallbacksTest do
                  calendar: YearAhead
                )
     end
+
+    # A calendar's own formats come before ISO 8601 (user, 2026-10-04). `sv`
+    # takes CLDR's root short date, "y-MM-dd", which writes a date as ISO
+    # 8601 does, so the same text there is the calendar's own 23 May 2026,
+    # and the text the formatter writes reads back as the date it was
+    # written from. ISO 8601's `T` is in no locale's pattern.
+    test "is the calendar's own date where the locale's format writes it that way" do
+      own = %Date{year: 2026, month: 5, day: 23, calendar: YearAhead}
+
+      assert Localize.Date.to_string(own, locale: :sv, format: :short) == {:ok, "2026-05-23"}
+      assert Localize.Date.parse("2026-05-23", locale: :sv, calendar: YearAhead) == {:ok, own}
+
+      assert {:ok, %NaiveDateTime{calendar: YearAhead, year: 2026, month: 5, day: 23, hour: 14}} =
+               Localize.DateTime.parse("2026-05-23 14:30:00", locale: :sv, calendar: YearAhead)
+
+      assert {:ok, %NaiveDateTime{calendar: YearAhead, year: 2027, month: 5, day: 23}} =
+               Localize.DateTime.parse("2026-05-23T14:30:00", locale: :sv, calendar: YearAhead)
+    end
+
+    # Any of the calendar's formats reads the text (user, 2026-10-04: "Use
+    # the broader rule"), in whatever order it writes its fields. `kk-Arab`'s
+    # `yMd` is "y-d-M" (CLDR's `kk_Arab.xml`), so a year, a ten and an eleven
+    # between hyphens are the calendar's 10 November there. `Calendar.ISO`,
+    # whose own notation ISO 8601 is, reads 11 October.
+    test "is the calendar's own date in the order its format writes it" do
+      assert Localize.Date.parse("2026-10-11", locale: :"kk-Arab", calendar: YearAhead) ==
+               {:ok, %Date{year: 2026, month: 11, day: 10, calendar: YearAhead}}
+
+      assert Localize.Date.parse("2026-10-11", locale: :"kk-Arab") == {:ok, ~D[2026-10-11]}
+    end
   end
 
   describe "weeks" do
