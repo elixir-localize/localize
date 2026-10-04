@@ -213,6 +213,47 @@ defmodule Localize.Time.Parser do
     end
   end
 
+  @iso_time ~r/\A(?<hour>[0-9]{2})(?:(?<separator>:?)(?<minute>[0-9]{2})(?:\k<separator>(?<second>[0-9]{2})(?<fraction>[.,][0-9]+)?)?)?(?<offset>[Zz]|[+\-−][0-9]{2}(?::?[0-9]{2})?)?\z/u
+
+  @doc false
+  # A time as ISO 8601 writes one after a date's `T`, in the one form Elixir
+  # reads, its hours, minutes and seconds between colons. ISO 8601 also
+  # writes them with nothing between them ("103045") and leaves out the
+  # seconds, or the minutes and the seconds ("10:30", "1030", "10"); those
+  # are filled in here and named in the result, so a caller knows which
+  # fields the text held. `Z` may be `z` (RFC 3339) and an offset's minus
+  # sign U+2212, as ISO 8601 writes it, or a hyphen.
+  #
+  # A time's separators are all there or all absent ("10:3045" is no time),
+  # and a fraction is the second's alone: a fraction of a minute or of an
+  # hour ("10:30,5") is not read. Whether the result is a time at all is
+  # Elixir's to judge, as it judges a time written in full: an hour of 24, a
+  # second of 60 and an offset of "-00:00" are none.
+  @spec extended_iso8601(String.t()) :: {:ok, String.t(), [:minute | :second]} | :error
+  def extended_iso8601(input) when is_binary(input) do
+    case Regex.named_captures(@iso_time, input) do
+      %{"hour" => hour, "minute" => minute, "second" => second, "fraction" => fraction} = fields ->
+        time = Enum.map_join([hour, minute, second], ":", &written_or_zero/1)
+        offset = fields |> Map.get("offset", "") |> extended_offset()
+
+        {:ok, time <> fraction <> offset, unwritten(minute, second)}
+
+      nil ->
+        :error
+    end
+  end
+
+  defp written_or_zero(""), do: "00"
+  defp written_or_zero(digits), do: digits
+
+  defp unwritten("", _second), do: [:minute, :second]
+  defp unwritten(_minute, ""), do: [:second]
+  defp unwritten(_minute, _second), do: []
+
+  defp extended_offset("z"), do: "Z"
+  defp extended_offset("−" <> digits), do: "-" <> digits
+  defp extended_offset(offset), do: offset
+
   # ── Locale patterns (stubbed; filled out by subsequent edits)─
 
   # The first pattern to read the input wins, so they are taken in a fixed

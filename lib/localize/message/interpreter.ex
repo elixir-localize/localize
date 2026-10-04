@@ -2939,10 +2939,15 @@ defmodule Localize.Message.Interpreter do
        "Expected a Date, Time, NaiveDateTime, DateTime, or ISO 8601 string."}
   end
 
+  # A date/time literal is an ISO 8601 date or an ISO 8601 date and time, in
+  # any of the forms `Localize.Date.parse/2` and `Localize.DateTime.parse/2`
+  # read as ISO 8601: the specification's regular expression takes a
+  # calendar date between hyphens and a time between colons, and says that
+  # other ISO 8601 values "MAY also be supported".
   defp date_time_literal(string) do
-    case Date.from_iso8601(string) do
+    case Localize.Date.Parser.from_iso8601(string) do
       {:ok, date} -> {:ok, date}
-      {:error, _reason} -> Localize.DateTime.Parser.from_iso8601(string)
+      :error -> Localize.DateTime.Parser.from_iso8601(string)
     end
   end
 

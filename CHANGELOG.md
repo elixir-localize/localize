@@ -128,6 +128,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+* `Localize.DateTime.parse/2` reads every form ISO 8601 joins a date to a time in, where it read one: a week date or a day of the year before the `T`, a time without its seconds or its minutes after it ("2026-W25-2T10:30", "2026-06-16T10:30"), and either without its separators ("20260616T103000"). MessageFormat 2's date/time literals take the same forms.
+
 * `Localize.Date.parse/2` reads the rest of ISO 8601's date forms: a week without a day ("2026-W25", "2026W25"), which is the Monday of ISO 8601's week whatever the locale's weeks are, and the week date and the day of the year without separators ("2026W252", "2026166"). A year and a month, or a year, is read `as: :map` in every locale.
 
 * A date interval whose dates differ in a month or a year its skeleton does not write takes the interval of the skeleton widened with it, as ICU widens one: `format: :d` from 15 June to 20 July is "6/15 – 7/20", where "15 – 20" was written, and across years "6/15/2026 – 7/20/2027". A widened pattern keeps the widths asked for, so `:MMMMd` across years is "June 15, 2026 – June 15, 2027".

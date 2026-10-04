@@ -1583,6 +1583,16 @@ defmodule Localize.Date.Parser do
 
   # ── ISO 8601 ─────────────────────────────────────────────────
 
+  @doc false
+  # The date ISO 8601 writes as `input`, in `Calendar.ISO`: a calendar date,
+  # a day of the year or a week date, with its hyphens or without them.
+  # `Localize.DateTime.Parser` reads the date before a `T` with it, and
+  # MessageFormat 2 its date literals.
+  @spec from_iso8601(String.t()) :: {:ok, Date.t()} | :error
+  def from_iso8601(input) when is_binary(input) do
+    if String.valid?(input), do: try_iso(input, Calendar.ISO), else: :error
+  end
+
   # An ISO 8601 date is read in `Calendar.ISO` and returned in the
   # `:calendar` module.
   defp try_iso(input, calendar_module) do

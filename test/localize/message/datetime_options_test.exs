@@ -31,6 +31,28 @@ defmodule Localize.Message.DateTimeOptionsTest do
       assert format("{$d :date}", %{"d" => ~D[2006-01-02]}) == {:ok, "Jan 2, 2006"}
     end
 
+    # The specification's regular expression for a literal takes a calendar
+    # date between hyphens and a time between colons, and says that other
+    # ISO 8601 values "MAY also be supported". A day of the year, a week date
+    # and the forms without separators are, as `Localize.Date.parse/2` and
+    # `Localize.DateTime.parse/2` read them: 2 January 2006 is the second day
+    # of its year and the Monday of week 1, by Erlang's calendar.
+    test "reads a literal in any form ISO 8601 writes a date and a time in" do
+      assert :calendar.iso_week_number({2006, 1, 2}) == {2006, 1}
+      assert :calendar.day_of_the_week({2006, 1, 2}) == 1
+
+      for literal <- ["2006-01-02", "20060102", "2006-002", "2006002", "2006-W01-1", "2006W011"] do
+        assert format("{|#{literal}| :date}") == {:ok, "Jan 2, 2006"}, literal
+        assert format("{|#{literal}T15:04:06| :date}") == {:ok, "Jan 2, 2006"}, literal
+        assert format("{|#{literal}T1504| :time}") == {:ok, "3:04 PM"}, literal
+      end
+
+      # A date without its day is no date/time literal.
+      for literal <- ["2006-W01", "2006-01", "2006", "2006-W01T15:04"] do
+        assert {:error, %Localize.FormatError{}} = format("{|#{literal}| :date}"), literal
+      end
+    end
+
     test "length chooses the locale's date format of that length" do
       # en short "M/d/yy", long "MMMM d, y".
       assert format("{|2006-01-02| :date length=short}") == {:ok, "1/2/06"}

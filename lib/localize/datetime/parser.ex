@@ -19,7 +19,9 @@ defmodule Localize.DateTime.Parser do
   # Strategy:
   #
   # 1. Try bare ISO-8601 (`YYYY-MM-DDTHH:MM:SS[.frac][Z|±HH:MM]`).
-  # This is the wire format and always works.
+  # This is the wire format and always works. Its other forms are read
+  # too: a day of the year or a week date before the `T`, a time without
+  # its seconds or its minutes after it, either without its separators.
   #
   # 2. Otherwise, consult the locale's CLDR date-time glue
   # pattern (`{1}, {0}` in `en`, `{1} {0}` in `ja`, etc.),
@@ -396,16 +398,22 @@ defmodule Localize.DateTime.Parser do
   end
 
   defp iso_or_locale_datetime(candidates, locale, options, calendar_module, as) do
-    case Enum.find_value(candidates, :error, &iso_candidate/1) do
-      {:ok, value} ->
+    case Enum.find_value(candidates, :error, &iso_candidate(&1, calendar_module)) do
+      {:ok, value, unwritten} ->
         with {:ok, value} <- Localize.Date.Parser.convert_value(value, calendar_module) do
-          {:ok, finalise_datetime(value, as)}
+          {:ok, value |> finalise_datetime(as) |> without_unwritten(unwritten, as)}
         end
 
       :error ->
         try_locale_glue_candidates(candidates, locale, options, as)
     end
   end
+
+  # A map holds the fields the text gave, so not the seconds or the minutes
+  # an ISO 8601 time left out ("2026-06-16T10:30"), as the map of the same
+  # time after a space has none.
+  defp without_unwritten(map, unwritten, :map), do: Map.drop(map, unwritten)
+  defp without_unwritten(value, _unwritten, :struct), do: value
 
   # A date and time whose date is one of the calendar's own, as its formats
   # read a date alone ("2023-11-18 14:30:45" with the Chinese calendar's
@@ -425,9 +433,9 @@ defmodule Localize.DateTime.Parser do
     end)
   end
 
-  defp iso_candidate(input) do
-    case try_iso(input) do
-      {:ok, _value} = ok -> ok
+  defp iso_candidate(input, calendar_module) do
+    case try_iso(input, calendar_module) do
+      {:ok, _value, _unwritten} = ok -> ok
       :error -> nil
     end
   end
@@ -447,7 +455,8 @@ defmodule Localize.DateTime.Parser do
     end
   end
 
-  # ISO 8601 always yields full year+month+day+hour+minute+second.
+  # ISO 8601 yields a whole date and a time, whose seconds and minutes
+  # `without_unwritten/3` takes out of a map where the text left them out.
   # The map merges the date and time fields and surfaces the
   # `:time_zone` string when the input carried a `Z` or offset.
   defp finalise_datetime(%NaiveDateTime{} = ndt, :struct), do: ndt
@@ -743,20 +752,73 @@ defmodule Localize.DateTime.Parser do
   # the wall time it was written with, as `parse/2` keeps it.
   @spec from_iso8601(String.t()) :: {:ok, DateTime.t() | NaiveDateTime.t()} | :error
   def from_iso8601(input) when is_binary(input) do
-    if String.valid?(input), do: try_iso(input), else: :error
+    with true <- String.valid?(input),
+         {:ok, value, _unwritten} <- try_iso(input, Calendar.ISO) do
+      {:ok, value}
+    else
+      _not_iso_8601 -> :error
+    end
   end
 
-  defp try_iso(input) do
+  # An ISO 8601 date and time, in `Calendar.ISO`, with the fields of the
+  # time the text left out: the form Elixir reads, a date between hyphens
+  # and a time between colons, and then every other form ISO 8601 writes
+  # before and after a `T`.
+  defp try_iso(input, calendar_module) do
+    case complete_iso(input) do
+      {:ok, value} -> {:ok, value, []}
+      :error -> other_iso(input, calendar_module)
+    end
+  end
+
+  defp complete_iso(input) do
     # Shape `YYYY-MM-DD<sep>HH:MM:SS[…]` where <sep> is `T`
     # (RFC 3339 / ISO 8601) or a space (Elixir stdlib also
     # accepts; widely used by Postgres, SQLite, logs, etc.).
-    if iso_datetime_shape?(input) do
-      case DateTime.from_iso8601(input) do
-        {:ok, datetime, offset} -> {:ok, restore_offset(datetime, offset)}
-        _ -> try_iso_naive(input)
-      end
+    if iso_datetime_shape?(input), do: elixir_iso(input), else: :error
+  end
+
+  defp elixir_iso(input) do
+    case DateTime.from_iso8601(input) do
+      {:ok, datetime, offset} -> {:ok, restore_offset(datetime, offset)}
+      _ -> try_iso_naive(input)
+    end
+  end
+
+  # ISO 8601 writes a date as a calendar date, a day of the year or a week
+  # date, and a time with its seconds, or its minutes and seconds, left
+  # out, either with its separators or without them: "2026-W25-2T10:30",
+  # "2026-167T10:30:00", "20260616T103000". Elixir reads one of those forms,
+  # so the date is read here, the time is filled out to that form, and
+  # Elixir reads the two as it reads any other: what is no time there, an
+  # hour of 24 or an offset of "-00:00", is none here.
+  #
+  # Only a `T` joins them, which RFC 3339 also writes `t`. A date and a time
+  # after a space are the locale's to split, and the locale's patterns read
+  # each half. The date and the time need not both have their separators,
+  # though ISO 8601 says they must: "20260616T10:30:00" has one meaning.
+  defp other_iso(input, calendar_module) do
+    with [date_text, time_text] <-
+           Regex.run(~r/\A([0-9W-]+)[Tt](.+)\z/u, input, capture: :all_but_first),
+         {:ok, date} <- iso_date(date_text, calendar_module),
+         {:ok, time, unwritten} <- Localize.Time.Parser.extended_iso8601(time_text),
+         {:ok, value} <- elixir_iso(Date.to_iso8601(date) <> "T" <> time) do
+      {:ok, value, unwritten}
     else
-      :error
+      _not_iso_8601 -> :error
+    end
+  end
+
+  # The date before the `T`. A calendar with a notation of its own reads it
+  # first, as it reads a date alone and a date before a space: "2026-W25-2"
+  # is a calendar of weeks' own week 25, not ISO 8601's. Any other date is
+  # ISO 8601's, and either is carried as the Gregorian day it is, for
+  # `iso_or_locale_datetime/5` to return in the calendar asked for.
+  defp iso_date(text, calendar_module) do
+    case Localize.Calendar.from_notation(text, calendar_module) do
+      {:ok, date} -> Date.convert(date, Calendar.ISO)
+      :none -> Localize.Date.Parser.from_iso8601(text)
+      {:error, _exception} -> :error
     end
   end
 

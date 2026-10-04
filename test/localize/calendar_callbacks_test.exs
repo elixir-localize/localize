@@ -1087,6 +1087,94 @@ defmodule Localize.CalendarCallbacksTest do
                )
     end
 
+    # ISO 8601's other dates before a `T`, a day of the year, a week date and
+    # each without its separators, are Gregorian days too: 23 May 2026 is
+    # the 143rd day of its year and the Saturday of week 21, by Erlang's
+    # calendar.
+    test "in any of its forms is returned in the calendar asked for" do
+      assert :calendar.iso_week_number({2026, 5, 23}) == {2026, 21}
+      assert :calendar.day_of_the_week({2026, 5, 23}) == 6
+
+      assert :calendar.date_to_gregorian_days({2026, 5, 23}) -
+               :calendar.date_to_gregorian_days({2026, 1, 1}) + 1 == 143
+
+      for text <- [
+            "20260523T1430",
+            "2026-143T14:30",
+            "2026143T1430",
+            "2026-W21-6T14:30",
+            "2026W216T1430"
+          ] do
+        assert {:ok,
+                %NaiveDateTime{
+                  calendar: YearAhead,
+                  year: 2027,
+                  month: 5,
+                  day: 23,
+                  hour: 14,
+                  minute: 30
+                }} = Localize.DateTime.parse(text, locale: :en, calendar: YearAhead),
+               text
+      end
+    end
+
+    # A calendar of weeks' own date before a `T` is that calendar's, as it is
+    # alone and before a space: its notation is read before ISO 8601. In a
+    # calendar whose weeks begin on Sunday, week 1 holding 1 January, week 25
+    # of 2026 begins on Sunday 14 June, so its day 2 is Monday 15 June, where
+    # ISO 8601's 2026-W25-2 is Tuesday 16 June. A date ISO 8601 writes
+    # another way is a Gregorian day, converted: 16 June is the calendar's
+    # day 3 of that week.
+    test "is a calendar of weeks' own date where the text before the T is its notation" do
+      assert :calendar.day_of_the_week({2026, 1, 1}) == 4
+      assert :calendar.day_of_the_week({2026, 6, 14}) == 7
+
+      assert :calendar.date_to_gregorian_days({2026, 6, 14}) -
+               :calendar.date_to_gregorian_days({2025, 12, 28}) == 24 * 7
+
+      own = %Date{year: 2026, month: 25, day: 2, calendar: SundayWeeks}
+      assert Date.convert(own, Calendar.ISO) == {:ok, ~D[2026-06-15]}
+      assert Localize.Date.parse("2026-W25-2", locale: :en, calendar: SundayWeeks) == {:ok, own}
+
+      for text <- [
+            "2026-W25-2 10:30:00",
+            "2026-W25-2T10:30:00",
+            "2026-W25-2T10:30",
+            "2026-W25-2T1030"
+          ] do
+        assert {:ok,
+                %NaiveDateTime{
+                  calendar: SundayWeeks,
+                  year: 2026,
+                  month: 25,
+                  day: 2,
+                  hour: 10,
+                  minute: 30
+                }} = Localize.DateTime.parse(text, locale: :en, calendar: SundayWeeks),
+               text
+      end
+
+      assert {:ok, %DateTime{calendar: SundayWeeks, month: 25, day: 2, utc_offset: 7200}} =
+               Localize.DateTime.parse("2026-W25-2T10:30+02:00",
+                 locale: :en,
+                 calendar: SundayWeeks
+               )
+
+      for text <- ["2026-06-16T10:30", "2026-167T10:30", "20260616T1030"] do
+        assert {:ok, %NaiveDateTime{calendar: SundayWeeks, year: 2026, month: 25, day: 3}} =
+                 Localize.DateTime.parse(text, locale: :en, calendar: SundayWeeks),
+               text
+      end
+
+      assert Localize.DateTime.parse("2026-W25-2T10:30",
+               locale: :en,
+               calendar: SundayWeeks,
+               as: :map
+             ) ==
+               {:ok,
+                %{calendar: SundayWeeks, year: 2026, month: 25, day: 2, hour: 10, minute: 30}}
+    end
+
     # A calendar's own formats come before ISO 8601 (user, 2026-10-04). `sv`
     # takes CLDR's root short date, "y-MM-dd", which writes a date as ISO
     # 8601 does, so the same text there is the calendar's own 23 May 2026,

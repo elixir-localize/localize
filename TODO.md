@@ -6,7 +6,9 @@ Outstanding work on Localize. The design detail behind these items lives under [
 
 * [ ] **A datetime interval whose date half is coarser than a day repeats the date** — `format: :yMMMHm` from 10:00 on 15 June to 14:30 on 16 June is "Jun 2026, 10:00 – Jun 2026, 14:30", and `:ywHm` on two days of one week repeats the week, since the datetime path judges the difference by the day field and not by the fields the date half writes, as a date interval now does. ICU4C 78.3 adds the day ("Jun 15, 2026, 10:00 – Jun 16, 2026, 14:30"); the reading that writes `Hm` across days as the times alone gives "Jun 2026, 10:00 – 14:30". Decide which (found 2026-10-04).
 
-* [ ] **ISO 8601's other dates are not read before a `T`** — `Localize.DateTime.parse/2` reads "2026-06-16T10:30:00" but not the week date, the day of the year or the forms without separators joined to a time by `T` ("2026-W25-2T10:30:00", "2026-167T10:30:00", "20260616T103000"), which `Localize.Date.parse/2` reads alone and which read after a space, the locale's patterns splitting them (found 2026-10-04).
+* [ ] **A calendar of weeks reads a week date as its own only as it writes it** — for `Calendrical.NRF`, "2026-W25-2" is the calendar's own week 25 (20 July 2026) alone, after a space and before a `T`, but "2026W252" without its hyphens and "2026-W25" without its day are ISO 8601's week (16 and 15 June), since the calendar's notation is what its `parse_date/1` reads and its `date_to_string/3` writes. Decide whether week-date text in any ISO 8601 form is the calendar's own (found 2026-10-04).
+
+* [ ] **ISO 8601's time after a `T` is not read alone** — `Localize.Time.parse/2` reads "T10:30:45" but not the forms `Localize.DateTime.parse/2` now reads after a date: a time without its seconds or minutes ("T10:30", "T10") or without its separators ("T103045", "T1030"). Without the `T` a time of bare digits is ambiguous and stays unread (found 2026-10-04).
 
 * [ ] **Choose a fixed-offset representation that `DateTime` functions honour** — Localize and Calendrical carry an offset such as `-05:00` under `Etc/UTC`, so `DateTime.shift_zone(parsed, "Etc/UTC")` returns it unchanged. The MF2 interpreter converts from the instant instead; `Etc/GMT+5` or an offset string would need both libraries to change together.
 
@@ -53,6 +55,8 @@ Outstanding work on Localize. The design detail behind these items lives under [
 * [ ] **`localize_emoji` sibling library** — plan item 11, a separate package on its own schedule. A Phoenix LiveView picker (`localize_emoji_live`) is out of scope for its 0.1.0.
 
 ## Done
+
+* [x] **`Localize.DateTime.parse/2` reads ISO 8601's other dates and times either side of a `T`** — a week date, a day of the year and a date without separators before it, a time without its seconds or minutes or without separators after it ("2026-W25-2T10:30", "20260616T103000Z"), in MessageFormat 2's literals too; a calendar of weeks' own notation before a `T` is its own date. 2026-10-04, v1.4.0.
 
 * [x] **`Localize.DateTime.parse/2` reads a date and time with the format it was written with** — each half is read with its part of `:format` and nothing else: a standard format's and a skeleton's date and time fields, and a pattern split at the text between its date fields and its time fields ("3/4/2024 22:05" with `"d/M/y HH:mm"`, "20240403T220509" with `"yyyyMMdd'T'HHmmss"`), or with `:date_format` and `:time_format`. 2026-10-04, v1.4.0.
 

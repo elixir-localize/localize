@@ -1044,6 +1044,13 @@ defmodule Localize.DateTime do
   Accepts any shape the locale accepts, including the locale's CLDR short,
   medium, long and full patterns and ISO 8601.
 
+  ISO 8601 is read in every form it joins a date to a time with a `T`:
+  the date as a calendar date, a day of the year (`"2026-167"`) or a week
+  date (`"2026-W25-2"`), the time with its seconds, or its minutes and
+  seconds, left out (`"2026-06-16T10:30"`), and either without its
+  separators (`"20260616T103000"`). A fraction is the second's alone: a
+  fraction of a minute or of an hour is not read.
+
   An input carrying a fixed UTC offset resolves to a `t:DateTime.t/0`,
   whether written as an ISO 8601 offset (`+05:30`, `Z`) or in the
   locale's GMT format (`GMT+10:30`, `UTC-5`). A named zone (`PST`,
@@ -1078,7 +1085,8 @@ defmodule Localize.DateTime do
     root short date of the Chinese calendar does (`r-MM-dd`), and a time
     after a space are the calendar's own, and where none does, or with
     ISO 8601's `T`, the text is an ISO 8601 date and time, converted into
-    the calendar. Anything that is not a calendar module,
+    the calendar. A calendar of weeks' own notation is its own date before
+    a `T` too, as it is alone. Anything that is not a calendar module,
     including a CLDR calendar name such as `:hebrew` or `"gregorian"`, and
     a module that implements only the `Calendar` behaviour, returns a
     `t:Localize.UnknownCalendarError.t/0`.
@@ -1117,6 +1125,9 @@ defmodule Localize.DateTime do
       {:ok, ~N[2026-03-22 14:30:00]}
 
       iex> Localize.DateTime.parse("March 22, 2026, 2:30 PM", locale: :en)
+      {:ok, ~N[2026-03-22 14:30:00]}
+
+      iex> Localize.DateTime.parse("2026-W12-7T14:30", locale: :en)
       {:ok, ~N[2026-03-22 14:30:00]}
 
       iex> {:ok, map} = Localize.DateTime.parse("March 22, 2026, 2:30 PM GMT+5", locale: :en, as: :map)

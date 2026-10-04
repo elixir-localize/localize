@@ -215,7 +215,7 @@ When the bound value is a `Localize.Unit` struct, the unit and value are derived
 
 ### `:date`
 
-Formats a date. The operand is a `Date`, `NaiveDateTime` or `DateTime`, or a string holding an ISO 8601 date or datetime.
+Formats a date. The operand is a `Date`, `NaiveDateTime` or `DateTime`, or a string holding an ISO 8601 date or datetime. Beside the form the specification requires, `2006-01-02T15:04:06`, a literal may be any other ISO 8601 writes a whole date in: a day of the year, a week date, a time without its seconds, and either without its separators (`2006-002`, `2006-W01-1T15:04`, `20060102T150406`).
 
 ```text
 {$when :date}
