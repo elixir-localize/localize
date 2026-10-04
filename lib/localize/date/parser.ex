@@ -1186,12 +1186,14 @@ defmodule Localize.Date.Parser do
   end
 
   # The calendar's year the captures give: `y` resolved through its era,
-  # else `r` (the related Gregorian year), else `U` (the cyclic year
-  # name), else `year_fallback`. A related year or cyclic name written
+  # else `r` (the related Gregorian year), else `y` as a place in the
+  # sixty-year cycle, else `U` (the cyclic year name), else
+  # `year_fallback`. A related year, a place or a cyclic name written
   # beside the year it was not taken from must agree with that year.
   defp extract_calendar_year(caps, prefix, year_fallback, era_index, ctx, month_day) do
-    with {:ok, year} <- written_year(caps, prefix, era_index, ctx, month_day),
+    with {:ok, year, place} <- written_year(caps, prefix, era_index, ctx, month_day),
          {:ok, year} <- with_related_year(year, capture(caps, prefix <> "related_year"), ctx),
+         {:ok, year} <- with_cyclic_year(year, place, ctx),
          {:ok, year} <- with_cyclic_year(year, named_capture_index(caps, prefix <> "__u"), ctx) do
       {:ok, year || year_fallback}
     end
@@ -1199,11 +1201,12 @@ defmodule Localize.Date.Parser do
 
   # The year `y` (or, reading a whole date, `Y`) writes, as the calendar's
   # year: of the era written beside it, or in a calendar that writes its
-  # years as years of an era, of the implied era.
+  # years as years of an era, of the implied era. In a calendar of cyclic
+  # years it is no year yet but a place in the cycle, given beside it.
   defp written_year(caps, prefix, era_index, ctx, month_day) do
     case year_capture(caps, prefix) do
       nil ->
-        {:ok, nil}
+        {:ok, nil, nil}
 
       raw ->
         case parse_year(raw) do
@@ -1214,12 +1217,13 @@ defmodule Localize.Date.Parser do
   end
 
   # A calendar of cyclic years writes `y` as the year's place in the
-  # sixty-year cycle (`cyclic_year_written?/2`), so a number of 1 to 60 is
-  # the year of that place nearest the reference year, as `U`'s name is: "40"
-  # is the Chinese year that began in 2023. A greater number is no place in
-  # the cycle, and is the year as the calendar numbers it.
-  defp numbered_year(year, _raw, _era_index, %{cyclic_year_written: true} = ctx, _month_day) do
-    if year in 1..60, do: with_cyclic_year(nil, year, ctx), else: {:ok, year}
+  # sixty-year cycle (`cyclic_year_written?/3`), so a number of 1 to 60 is
+  # that place, of the year a related year beside it names or else of the
+  # year nearest the reference year, as `U`'s name is: "40" is the Chinese
+  # year that began in 2023. A greater number is no place in the cycle, and
+  # is the year as the calendar numbers it.
+  defp numbered_year(year, _raw, _era_index, %{cyclic_year_written: true}, _month_day) do
+    if year in 1..60, do: {:ok, nil, year}, else: {:ok, year, nil}
   end
 
   defp numbered_year(year, raw, era_index, ctx, month_day) do
@@ -1228,6 +1232,10 @@ defmodule Localize.Date.Parser do
     year
     |> maybe_pivot_two_digit_year(raw, era_index, ctx)
     |> resolve_calendar_year(era_index, ctx.calendar_module, month_day)
+    |> case do
+      {:ok, year} -> {:ok, year, nil}
+      {:error, _unknown_era} = error -> error
+    end
   end
 
   defp year_capture(caps, ""), do: capture(caps, "year") || capture(caps, "week_based_year")
@@ -1257,9 +1265,10 @@ defmodule Localize.Date.Parser do
 
   # A two-digit year is read in the century window around the reference
   # year, in any calendar, when no era qualifies it, or when the pattern
-  # writes it as `yy` — a year's two low-order digits, so the Chinese year
-  # 4660 is "60" and the Buddhist 2566 in "01.04.66 BE" is "66" — in a
-  # calendar that shows its years as they are numbered. A year `y` writes
+  # writes it as `yy` — a year's two low-order digits, so the Buddhist 2566
+  # in "01.04.66 BE" is "66" — in a calendar that shows its years as they
+  # are numbered. A calendar of cyclic years writes a place in its cycle
+  # and is read before this (`numbered_year/5`). A year `y` writes
   # beside its era ("44 BC", "44 AD") is taken as written, as is a `yy`
   # year of an era in a calendar that shows years of an era: "01.04.05 R"
   # is Reiwa 5.
@@ -1788,8 +1797,9 @@ defmodule Localize.Date.Parser do
 
   # Where the patterns write a year both as the calendar's year and as
   # its related Gregorian year, the same digits read as years far apart
-  # (`ko`'s Chinese "4657. 5. 1." is "y. M. d." and "r. M. d."), so the
-  # reading nearest the reference year is taken.
+  # (`ko`'s Chinese "2020. 5. 1." is "y. M. d.", a year numbered 2020, and
+  # "r. M. d.", the year that began in 2020), so the reading nearest the
+  # reference year is taken.
   defp run_locale_pass(patterns, input, %{mixed_years: true} = ctx, pass_as) do
     patterns
     |> Enum.flat_map(fn {_kind, pattern} ->
@@ -2144,7 +2154,7 @@ defmodule Localize.Date.Parser do
       lenient: load_lenient_date(locale),
       reference_year: reference.year,
       implied_era: implied_era(reference, calendar_module),
-      cyclic_year_written: cyclic_year_written?(reference, calendar_module),
+      cyclic_year_written: cyclic_year_written?(reference, calendar_module, locale),
       mixed_years: false,
       calendar_module: calendar_module,
       own_calendar: own_calendar,
@@ -2167,22 +2177,27 @@ defmodule Localize.Date.Parser do
 
   defp implied_era(_reference, _calendar_module), do: nil
 
-  # Whether the calendar writes a year as its place in the sixty-year cycle
-  # rather than as its number, as TR35's `y` is in a calendar of cyclic
-  # years: `U` names "the year value", and is that value written as `y`
-  # writes it where there is no name for it, so the two write one number,
-  # and ICU4C writes the Chinese year that began in 2023 as 40. The calendar
-  # says so through the year it displays, its `calendar_year/3`, which is
-  # then the reference year's place in the cycle and not its number.
-  defp cyclic_year_written?(%{calendar: calendar_module, year: year} = reference, calendar_module)
+  # Whether the formatter writes a year of the calendar as its place in the
+  # sixty-year cycle rather than as its number, as TR35's `y` is in a
+  # calendar of cyclic years (`Localize.Calendar.cycle_place/2`): ICU4C
+  # writes the Chinese year that began in 2023 as 40. It does where the
+  # locale's data names the calendar's years by a cycle, and where the
+  # calendar itself displays the place, its `calendar_year/3` answering the
+  # reference year's place in the cycle and not its number.
+  defp cyclic_year_written?(
+         %{calendar: calendar_module, year: year} = reference,
+         calendar_module,
+         locale
+       )
        when is_integer(year) do
-    case LCalendar.displayed_year(reference) do
-      {:ok, shown} when shown != year -> cyclic_position(year, calendar_module) == shown
-      _year_as_numbered -> false
-    end
+    match?({:ok, _place}, LCalendar.cycle_place(reference, locale)) or
+      case LCalendar.displayed_year(reference) do
+        {:ok, shown} when shown != year -> cyclic_position(year, calendar_module) == shown
+        _year_as_numbered -> false
+      end
   end
 
-  defp cyclic_year_written?(_reference, _calendar_module), do: false
+  defp cyclic_year_written?(_reference, _calendar_module, _locale), do: false
 
   # The CLDR calendar a calendar names its eras from: its
   # `era_calendar_type/0` where it has one (Calendrical's lunisolar

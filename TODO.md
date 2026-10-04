@@ -16,13 +16,23 @@ Outstanding work on Localize. The design detail behind these items lives under [
 
 * [ ] **`Localize.Calendar.localize/3` names the first value of a part the date lacks** — a map without a month is January, the first quarter and a Monday, and one without a year the current era; characterization tests pin this. Decide whether they should be errors.
 
+* [ ] **`en-CA`'s lunisolar short date reads back day first** — "5/2/2026", written month first from `en`'s "M/d/r" for the second day of the fifth month, is read as the fifth day of the second, in the Chinese, Dangi and Vietnamese calendars; other calendars `en-CA` inherits from `en` are not checked.
+
+* [ ] **A lunisolar interval at the medium format does not read back** — the formatter writes the related year in CLDR's `U`-keyed item, "2026 M05 2–6" in 487 locales and "Mo5 2 – 6, 2026" in `en`, and the reader offers the related-year reading only for an item's `y`, so the text is an error.
+
+* [ ] **An interval item with a variant form is not read** — `en-CA`'s `yMd` item is a default and a variant pattern, which the interval reader skips, so "43-05-02 – 43-05-06" is read as two single dates, each by its related year (the Chinese year 2680).
+
+* [ ] **A `y` skeleton takes the cyclic name's format in a lunisolar calendar** — `yMd` for a Chinese date in `en` matches `UMd`, "5/2/bing-wu", where TR35's larger distance between a numeric and a text field, and ICU4C 78.3, take `yyyyMd`'s "M/d/r", "5/2/2026"; `yM`, `yMMM` and `yMMMd` likewise, 22 of 56 single dates over eight locales.
+
+* [ ] **An interval across sixty-year cycles writes its two dates alike** — two Chinese or Dangi dates sixty years apart take the interval's pattern for a year, "5/2/43 – 5/2/43" for `en`'s `yMd`, where ICU4C holds the cycle as an era and writes both in the skeleton's own format, "5/2/2026 – 5/2/2086". Decide whether a year of another cycle is written in full, as a year of another era is.
+
+* [ ] **`G` for a Chinese or Dangi date is an error** — CLDR gives those calendars one era and no name for it, so a pattern with `G` returns `Localize.ItemNotFoundError`, where ICU4C writes the number of the sixty-year cycle, "78". TR35 is silent; decide what it writes.
+
 ## In progress
 
 * [ ] **CLDR 49 upgrade** — the plan's items are closed bar item 11; the data is built from CLDR `main` pending beta3 (below), then the final release. [plans/cldr-49.md](plans/cldr-49.md).
 
 ## Blocked
-
-* [ ] **`y` in the Chinese and Dangi calendars** — TR35's `y` in a calendar of cyclic years is the year's place in the sixty-year cycle, the number `U` names, as ICU4C writes it ("40. 2. 30." in `ko`); the decision is to follow TR35 (user, 2026-10-04). Localize writes the year its calendar displays and reads a place in the cycle back, but Calendrical's Chinese and Korean calendars display the year's number ("4660. 2. 30."). Blocked on Calendrical answering the place in the cycle from their `calendar_year/3`.
 
 * [ ] **Move the CLDR pin to beta3** — the data is built from CLDR `main` at `6198cae999`, `release-49-beta2` with the converter fix it lacks (CLDR-19774) and the Manitoba DST metazone change (user, 2026-09-30). Blocked on CLDR 49 beta3, expected 2026-10.
 
@@ -50,7 +60,7 @@ Outstanding work on Localize. The design detail behind these items lives under [
 
 ## Done
 
-* [x] **A year displayed as its place in the sixty-year cycle is read back** — `Localize.Date.parse/2` reads `y` in a calendar that displays its years so as the year of that place nearest the reference date, as it reads a cyclic name, which is Localize's half of following TR35 for the Chinese and Dangi calendars' `y`. 2026-10-04, v1.4.0.
+* [x] **`y` in the Chinese and Dangi calendars is the year's place in the sixty-year cycle** — written from the calendar's `cyclic_year/3` where the locale's data names the calendar's years by a cycle, as TR35 has it and ICU4C writes it ("40. 윤2. 29." in `ko`), with `u` for the year's number, and read back as the year of that place nearest the reference date. 2026-10-04, v1.4.0.
 
 * [x] **An interval at a standard format takes the fields of its pattern** — its dates, its times and the times of a date and time are written at the widths, and in the clock, the single value is written with, where CLDR's `datetimeSkeleton` or the region's preferred hour cycle decided (dates in 71 locales, a short time in 5, a date and time's times in 14); a month numbered beside a word stays the named month. 2026-10-04, v1.4.0.
 

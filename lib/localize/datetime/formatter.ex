@@ -854,12 +854,23 @@ defmodule Localize.DateTime.Formatter do
 
   @doc false
   def year(%{year: _} = date, count, locale_id, options) do
-    with year when is_integer(year) <- era_year(date) do
+    with year when is_integer(year) <- written_year(date, locale_id) do
       year |> year_digits(count) |> apply_ns(locale_id, options, "y")
     end
   end
 
   def year(_date, _count, _locale_id, _options), do: ""
+
+  # The year `y` writes: the year the calendar displays, and in a calendar
+  # of cyclic years the year's place in the sixty-year cycle, the number
+  # `U` names (`Localize.Calendar.cycle_place/2`): 43 for the Chinese year
+  # that began in 2026, as TR35 has it and ICU writes it, with `u` for 4663.
+  defp written_year(date, locale_id) do
+    case Localize.Calendar.cycle_place(date, locale_id) do
+      {:ok, place} -> place
+      :none -> era_year(date)
+    end
+  end
 
   defp year_digits(year, 1), do: year
   defp year_digits(year, 2), do: year |> rem(100) |> abs() |> pad(2)

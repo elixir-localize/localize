@@ -62,6 +62,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Changed
 
+* **Breaking.** `y` in a calendar of cyclic years, the Chinese and Dangi calendars, is the year's place in the sixty-year cycle, the number `U` names, as TR35 has it and ICU4C writes it: the year that began in 2026 is "43" where it was "4663", in `ko`'s Dangi short date "43. 5. 2." and in every locale's `yMd` interval, "5/2/43 – 5/6/43" in `en`. `u` writes the year's number, and a place is read back as the year of that place nearest the reference date.
+
 * **Breaking.** An interval at a standard format writes its dates and times with the fields and widths of the pattern the single value is written with, where it asked for CLDR's `datetimeSkeleton`, which is not the pattern's in many locales: `vi`'s short interval is "1/4/23 – 10/4/23" beside "1/4/23", where it was "01/04/2023 – 10/04/2023". Dates change in 71 locales, a `:short` time interval takes the clock of the short time pattern (`ady-JO` "10:05–11:30"), and a month written as a number beside a word (`ja`'s "M月") stays the named month.
 
 * **Breaking.** A calendar's own formats are read before ISO 8601: text such as "2023-11-22" that any format of the calendar asked for reads, as leniently as it reads any text, is that calendar's own date, and with a time after a space too, where it was a Gregorian date converted (CLDR's root Chinese short date is `r-MM-dd`). `Calendar.ISO`, a calendar none of whose formats reads the text, and text with ISO 8601's `T` read as before.
@@ -129,8 +131,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 * **Breaking.** A zero offset is spelled out wherever a localized GMT format is used, `"GMT+00:00"` long and `"GMT+0"` short, as TR35's examples and ICU give it. `Localize.DateTime.Timezone.gmt_format/3` drops its `:zero_format` option, which selected between the two.
 
 ### Fixed
-
-* `Localize.Date.parse/2` reads a year its calendar displays as its place in the sixty-year cycle, which TR35's `y` is in a calendar of cyclic years and ICU4C writes ("40" for the Chinese year that began in 2023): the year of that place nearest the reference date, as a cyclic name is read. A calendar says how it displays a year through `calendar_year/3`, and one that displays the year's number is read as it was.
 
 * A time is read only with an hour its field has, as TR35 gives each field's range and as ICU reads one when it is not lenient: a 12-hour field took its hour modulo 12, so "45:30 PM" was 21:30 and "13:30 AM" 01:30 in 618 locales, and "45:30" was 09:30 in `fr-CM` and `bal-Latn`. "13:30 PM", which read as 13:30, is an error with them.
 

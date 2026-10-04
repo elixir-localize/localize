@@ -1197,13 +1197,15 @@ defmodule Localize.Interval do
   # Each date field a pattern writes, at the width that tells its every
   # value apart: a number for a month, a quarter or a weekday, whose narrow
   # names are shared ("J" is January, June and July), and an era's full
-  # name.
+  # name. A year's place in the sixty-year cycle, which `y` and `U` write in
+  # a calendar of cyclic years, is shared by years sixty apart, so a year
+  # is compared by its number through every cycle as well, `u`.
   @comparison_fields %{
     "G" => "GGGG",
-    "y" => "y",
+    "y" => ~w(y u),
     "Y" => "Y",
     "u" => "u",
-    "U" => "U",
+    "U" => ~w(U u),
     "r" => "r",
     "Q" => "Q",
     "q" => "Q",

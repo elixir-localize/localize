@@ -85,7 +85,7 @@ The extended year (`u`) is the calendar's own answer, its `extended_year/3`. TR3
 | Chinese | 4663 | 2026, the related Gregorian year `r` writes |
 | Dangi | 4359 | 2026, the related Gregorian year `r` writes |
 
-The year `y` writes is the calendar's own answer as well, the year it displays (`calendar_year/3`). TR35's `U` names "the year value" and, where it has no name for it, is written as `y` writes it, so in a calendar of cyclic years the two write one number, the year's place in the sixty-year cycle, and `u` the number that takes in the cycles. ICU4C 78.3 writes the Chinese and Dangi year that began in 2026 as 43 with `y` and 0043 with `yyyy`, and `ko`'s Dangi short date "y. M. d." as "43. 5. 2.". Localize follows TR35 (user, 2026-10-04): a calendar that displays the place in the cycle is written so and read back as the year of that place nearest the reference date, asserted in `test/localize/date_parse_lunisolar_test.exs`. A calendar that displays the year's number is written with that number.
+The year `y` writes in those last two calendars is no difference: Localize and ICU both write the year's place in the sixty-year cycle. TR35's `U` names "the year value" and, where it has no name for it, is written as `y` writes it, so the two letters write one number. ICU4C 78.3 writes the Chinese and Dangi year that began in 2026 as 43 with `y` and 0043 with `yyyy`, and 16 June 2026 in `ko`'s Dangi short date "y. M. d." as "43. 5. 2.", and so does Localize (user, 2026-10-04: follow TR35), asking the calendar's `cyclic_year/3` where the locale's data names the calendar's years by a cycle; asserted in `test/localize/date_parse_lunisolar_test.exs`. It is `u` alone that differs, the year's number here and a Gregorian year there.
 
 ### Date parsing
 
@@ -164,6 +164,8 @@ An interval takes the formats of its endpoints' calendar. ICU4C 78.3 differs fro
 * **The date-time pattern.** TR35 joins a date to a time range with the calendar's `dateTimeFormat`. ICU's `DateIntervalFormat` reads `calendar/gregorian/DateTimePatterns` whatever the calendar, though its single date-time formatter uses the calendar's own.
 
 * **Year symbols.** TR35 gives skeleton symbols of one field type a small distance, so the related year `r` and the cyclic year `U` of a Chinese or Dangi format match the `y`-keyed interval items. ICU's interval matcher compares letters one for one, finds no item, and writes both dates in full.
+
+* **Years of another cycle.** ICU holds the sixty-year cycle of the Chinese and Dangi calendars as an era, so two dates of different cycles differ in a field no interval item is keyed by, and it writes both in full in the skeleton's own format: "5/2/2026 – 5/2/2086" for `en`'s `yMd`, 16 June 2026 to 12 June 2086. A calendar answers Localize with one era, as CLDR's `supplementalData.xml` gives those calendars, so the two differ in their year and take the item's pattern for a year: "5/2/43 – 5/2/43", two dates written alike where the pattern has no related year.
 
 * **Equal endpoints.** Localize writes the requested standard format, as ECMA-402's `formatRange` and `Localize.Date.to_string/2` do. ICU writes its pattern generator's pattern for the style's skeleton, which prefers an `availableFormats` entry with that skeleton over the standard format.
 

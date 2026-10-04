@@ -1336,6 +1336,46 @@ defmodule Localize.Calendar do
   def displayed_year(date), do: settle(date, &displayed_year_on/2)
 
   @doc false
+  # The place of a date's year in the sixty-year cycle, where `y` writes that
+  # place. TR35's `U` names "the year value" and is written as `y` writes it
+  # where it has no name for it, so in a calendar whose years the locale's
+  # data names by a cycle the two write one number, the year's place in the
+  # cycle, with `u` for the number that takes in the cycles; ICU4C writes
+  # the Chinese and Dangi year that began in 2026 as 43 (user, 2026-10-04:
+  # "Follow TR35"). The calendar answers the place, its `cyclic_year/3`, as
+  # it answers it for `U`.
+  #
+  # `:none` where the locale names no cycle of years for the calendar, as it
+  # names none for the Gregorian, and where the calendar displays another
+  # year than the year's own number: a year of an era, as a lunisolar
+  # calendar with imperial eras does, which `y` then writes.
+  @spec cycle_place(term(), Localize.locale()) :: {:ok, pos_integer()} | :none
+  def cycle_place(%{year: year} = date, locale) when is_integer(year) do
+    calendar = Map.get(date, :calendar, Calendar.ISO)
+    month = integer_or_first(Map.get(date, :month))
+    day = integer_or_first(Map.get(date, :day))
+
+    # The calendar is asked before the locale's data is read: a calendar with
+    # no cycle answers the year itself, and most dates are in one.
+    with {:ok, ^year} <- displayed_year(date),
+         {:ok, number} when number != year <-
+           ask(calendar, :cyclic_year, [year, month, day], "a year of the cycle", &is_integer/1),
+         {:ok, %{years: %{format: %{} = names}}} when map_size(names) > 0 <-
+           cyclic_years(locale, date_calendar_type(date)) do
+      {:ok, Localize.Utils.Math.amod(number, 60)}
+    else
+      _no_cycle -> :none
+    end
+  end
+
+  def cycle_place(_date, _locale), do: :none
+
+  # The cyclic year is constant through a calendar year, so a date without
+  # its month or its day is asked on the first it could be.
+  defp integer_or_first(value) when is_integer(value), do: value
+  defp integer_or_first(_absent), do: 1
+
+  @doc false
   # A date's extended year, TR35's `u`: one number for its year through every
   # era of its calendar, as the calendar's `extended_year/3` answers. It is
   # the year itself where a calendar's years run on through its eras, as
