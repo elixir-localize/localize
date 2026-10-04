@@ -807,7 +807,7 @@ A symbol takes only the widths TR35's Date Field Symbol Table lists for it. At a
 | `X` | 1-5 | +05, +0500, +05:00 (Z for zero) |
 | `x` | 1-5 | +05, +0500, +05:00 (no Z) |
 
-A generic name (`v`, `vvvv`) names the zone's metazone, qualified with the zone's country or city unless the zone is the metazone's preferred zone for the locale's country, so that it reads back as that zone: in `en`, New York is "Eastern Time", Berlin "Central European Time (Germany)" and Phoenix "Mountain Time (Phoenix)".
+A zone's name in the non-location formats, generic (`v`, `vvvv`) and specific (`z`, `zzzz`), is the zone's own name where the locale has one, and else its metazone's, qualified with the zone's country or city unless the zone is the metazone's preferred zone for the locale's country, so that it reads back as that zone. In `en`, New York is "Eastern Time" and "Eastern Standard Time", Berlin "Central European Time (Germany)" and "Central European Summer Time (Germany)", and Phoenix "Mountain Time (Phoenix)" and "Mountain Standard Time (Phoenix)". A zone the locale has no name for is written in the localized GMT format, the short one for `z` and the long one for `zzzz`.
 
 ### Hour cycles
 

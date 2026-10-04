@@ -88,6 +88,17 @@ defmodule Localize.DateTime.Timezone do
                        into: %{},
                        do: {String.downcase(alias_name), canonical}
 
+  # Every IANA name by the path the locale data keys a zone with: the parts
+  # of its name in snake case, as the data build writes every key, so
+  # `America/Blanc-Sablon` is "america/blanc_sablon" and
+  # `Antarctica/DumontDUrville` "antarctica/dumont_d_urville".
+  @zone_ids_by_data_key for {alias_name, canonical} <- @zone_canonical_names,
+                            into: %{},
+                            do:
+                              {alias_name
+                               |> String.split("/")
+                               |> Enum.map_join("/", &Localize.Utils.Map.underscore/1), canonical}
+
   # The zone each BCP 47 short identifier stands for, as `V` writes it.
   @zones_by_short_id for {short_id, %{aliases: [canonical | _aliases]}} <- @timezones,
                          into: %{},
@@ -622,6 +633,14 @@ defmodule Localize.DateTime.Timezone do
   locale's timezone data (e.g., "Eastern Standard Time"). When the
   locale carries neither, falls back to `gmt_format/3`.
 
+  A metazone's name is shared by every zone that keeps it, so it is
+  qualified as TR35 gives for the non-location formats, generic and
+  specific alike: written as it is for the metazone's preferred zone
+  for the locale's country, with the zone's country where it is that
+  country's preferred zone ("Pacific Standard Time (Canada)" for
+  Vancouver in `en`), and with its city otherwise ("Mountain Standard
+  Time (Phoenix)"). A zone's own name is not qualified.
+
   ### Arguments
 
   * `datetime` is a map with `:time_zone`, `:utc_offset`, and
@@ -666,6 +685,10 @@ defmodule Localize.DateTime.Timezone do
       iex> Localize.DateTime.Timezone.non_location_format(datetime, :en, format: :short)
       {:ok, "EST"}
 
+      iex> datetime = %{time_zone: "America/Vancouver", utc_offset: -28800, std_offset: 0}
+      iex> Localize.DateTime.Timezone.non_location_format(datetime, :en)
+      {:ok, "Pacific Standard Time (Canada)"}
+
   """
   @spec non_location_format(map(), atom(), Keyword.t()) ::
           {:ok, String.t()} | {:error, Exception.t()}
@@ -684,9 +707,7 @@ defmodule Localize.DateTime.Timezone do
           generic_name(time_zone, tz_data, format, datetime, locale_id)
         else
           type = specific_type(type, time_zone, datetime)
-
-          zone_name(time_zone, tz_data, format, type, datetime) ||
-            metazone_name(metazone_for(time_zone, datetime), tz_data, format, type, datetime)
+          specific_name(time_zone, tz_data, format, type, datetime, locale_id)
         end
 
       cond do
@@ -758,14 +779,10 @@ defmodule Localize.DateTime.Timezone do
   defp zone_name(_time_zone, _tz_data, _format, _type, _datetime), do: nil
 
   defp zone_data(time_zone, tz_data) do
-    keys =
-      @zone_canonical_names
-      |> Map.get(time_zone, time_zone)
-      |> String.downcase()
-      |> String.split("/")
-      |> Enum.map(&Localize.Utils.Helpers.existing_atom/1)
-
-    get_in(tz_data[:zone], keys)
+    case zone_path(Map.get(@zone_canonical_names, time_zone, time_zone)) do
+      nil -> nil
+      keys -> get_in(tz_data[:zone], keys)
+    end
   end
 
   # Look up the non-location name for a metazone. Returns `nil`
@@ -783,6 +800,29 @@ defmodule Localize.DateTime.Timezone do
     format_key = if format == :short, do: :short, else: :long
     type_key = resolve_type(type, datetime)
     get_in(metazone_data, [format_key, type_key])
+  end
+
+  # TR35's specific non-location format, by the steps it gives for "the
+  # non-location formats (generic or specific)" and as CLDR's own
+  # `TimezoneFormatter` gives it: the zone's own name for the type; else its
+  # metazone's, qualified as a generic name is (`qualified_metazone_name/5`)
+  # — "Pacific Standard Time" for Los Angeles in `en`, "Pacific Standard Time
+  # (Canada)" for Vancouver, "Mountain Standard Time (Phoenix)" for Phoenix.
+  # ICU never qualifies a specific name. Without either name the caller
+  # falls back to the localized GMT format.
+  defp specific_name(time_zone, tz_data, format, type, datetime, locale_id) do
+    case zone_name(time_zone, tz_data, format, type, datetime) do
+      nil ->
+        metazone = metazone_for(time_zone, datetime)
+
+        case metazone_name(metazone, tz_data, format, type, datetime) do
+          nil -> nil
+          name -> qualified_metazone_name(name, metazone, time_zone, tz_data, locale_id)
+        end
+
+      name ->
+        name
+    end
   end
 
   # TR35's generic non-location format, as CLDR's own `TimezoneFormatter`
@@ -1494,23 +1534,30 @@ defmodule Localize.DateTime.Timezone do
   # no zone, as a name alone. A string that is itself a name is read as that
   # name first, as ICU takes the longest match: `uk` names Eastern time "за
   # східним часом (ET)", and `he` a standard time "… (חורף)", "(winter)".
+  #
+  # A name or a place may hold the format's own punctuation, so the string
+  # is split both at the last place it can be and at the first: `pt-AO`
+  # names a country "Côte d’Ivoire (Costa do Marfim)", and "Hora de
+  # Greenwich (Côte d’Ivoire (Costa do Marfim))" is that country's Greenwich
+  # time.
   defp place_zone(key, index, language_tag) do
+    splits =
+      index.fallback_formats
+      |> Enum.flat_map(fn regex ->
+        case Regex.named_captures(regex, key) do
+          %{"name" => name, "place" => place} -> [{name, place}]
+          nil -> []
+        end
+      end)
+      |> Enum.uniq()
+
     readings =
-      case index.fallback_format && Regex.named_captures(index.fallback_format, key) do
-        %{"name" => name, "place" => place} ->
-          cond do
-            Map.has_key?(index.names, key) ->
-              [{key, nil}, {name, place}]
-
-            qualifier_country(place, index) || Map.has_key?(index.cities, place) ->
-              [{name, place}, {key, nil}]
-
-            true ->
-              [{key, nil}]
-          end
-
-        _no_place ->
-          [{key, nil}]
+      if Map.has_key?(index.names, key) do
+        [{key, nil} | splits]
+      else
+        Enum.filter(splits, fn {_name, place} ->
+          qualifier_country(place, index) || Map.has_key?(index.cities, place)
+        end) ++ [{key, nil}]
       end
 
     Enum.find_value(readings, fn {name, place} ->
@@ -1523,9 +1570,14 @@ defmodule Localize.DateTime.Timezone do
   # one zone to name; P as a city; N or M as a zone's own name, or a city;
   # then N or M as a metazone's name, whose zone is C's, else the locale's
   # country's.
+  #
+  # The type of time is the name's own where the locale has the name, and
+  # else the region format's it is written in: `ko` names Central European
+  # Summer Time "중부유럽 하계 표준시", which is also the shape of its
+  # standard region format, "{0} 표준시".
   defp reading_zone(name, place, index, language_tag) do
     {located, region_type} = region_place(name, index)
-    type = region_type || name_type(name, index) || :generic
+    type = name_type(name, index) || region_type || :generic
 
     country =
       qualifier_country(place, index) ||
@@ -1698,17 +1750,17 @@ defmodule Localize.DateTime.Timezone do
       countries: country_names(territories),
       country_codes: country_codes(),
       region_formats: region_format_regexes(Map.get(names, :region_format, %{})),
-      fallback_format: template_regex(Map.get(names, :fallback_format))
+      fallback_formats: fallback_format_regexes(Map.get(names, :fallback_format))
     }
   end
 
   # Each zone in the locale's data, by its canonical name, with its names.
-  # CLDR keys a zone by the lowercase parts of its name, and nests a
-  # three-part name one level deeper.
+  # The data keys a zone by the parts of its name in snake case
+  # (`@zone_ids_by_data_key`), and nests a three-part name one level deeper.
   defp zone_leaves(%{} = data, path) do
     Enum.flat_map(data, fn
       {part, %{type: :zone} = zone} ->
-        case Map.get(@zone_ids_by_key, Enum.join(path ++ [to_string(part)], "/")) do
+        case Map.get(@zone_ids_by_data_key, Enum.join(path ++ [to_string(part)], "/")) do
           nil -> []
           time_zone -> [{time_zone, zone}]
         end
@@ -1814,14 +1866,24 @@ defmodule Localize.DateTime.Timezone do
         do: {type, regex}
   end
 
+  # The fallback format as two regexes, one taking the longest first part a
+  # string allows and one the shortest, so that a string is split at the
+  # last and at the first place the format's punctuation is found.
+  defp fallback_format_regexes(template) do
+    [template_regex(template), template_regex(template, "+?")]
+    |> Enum.reject(&is_nil/1)
+  end
+
   # A region or fallback format ("{0} Time", "{1} ({0})") as a regex over
   # the forms `name_key/1` makes, capturing {0} as the place and {1} as the
   # name.
-  defp template_regex([_ | _] = template) do
+  defp template_regex(template, quantifier \\ "+")
+
+  defp template_regex([_ | _] = template, quantifier) do
     source =
       Enum.map_join(template, fn
-        0 -> "(?<place>.+)"
-        1 -> "(?<name>.+)"
+        0 -> "(?<place>." <> quantifier <> ")"
+        1 -> "(?<name>." <> quantifier <> ")"
         literal when is_binary(literal) -> literal |> literal_key() |> Regex.escape()
         _other -> ""
       end)
@@ -1832,7 +1894,7 @@ defmodule Localize.DateTime.Timezone do
     end
   end
 
-  defp template_regex(_template), do: nil
+  defp template_regex(_template, _quantifier), do: nil
 
   # ── Resolving a parsed zone ──────────────────────────────────
 
@@ -2224,32 +2286,31 @@ defmodule Localize.DateTime.Timezone do
     end
   end
 
-  # The zone data is structured as
-  # %{america: %{los_angeles: %{type: :zone, exemplar_city: "Los Angeles"}}}.
-  # A three-part identifier — "America/Indiana/Knox" — nests one level deeper,
-  # and CLDR keys that leaf by string rather than by atom.
   defp find_exemplar_city(iana_id, zone) do
-    case String.split(iana_id, "/") do
-      [region, city] ->
-        exemplar_city_name(zone, [zone_key(region), zone_key(city)])
-
-      [region, group, city] ->
-        exemplar_city_name(zone, [zone_key(region), zone_key(group), leaf_key(city)])
-
-      _other ->
-        nil
+    with [_ | _] = keys <- zone_path(iana_id),
+         # A zone CLDR gives no exemplar city for carries only its long and
+         # short names.
+         %{exemplar_city: city_name} <- get_in(zone, keys) do
+      city_name
+    else
+      _no_city -> nil
     end
   end
 
-  defp exemplar_city_name(zone, keys) do
-    if Enum.all?(keys, & &1) do
-      case get_in(zone, keys) do
-        # A zone CLDR gives no exemplar city for carries only its long and
-        # short names.
-        %{exemplar_city: city_name} -> city_name
-        _other -> nil
+  # Where a zone's data is in a locale's time zone names, structured as
+  # %{america: %{los_angeles: %{type: :zone, exemplar_city: "Los Angeles"}}}.
+  # A three-part identifier — "America/Indiana/Knox" — nests one level deeper,
+  # and CLDR keys that leaf by string rather than by atom. `nil` for a name
+  # of another shape, or one with a part that is no key of the data.
+  defp zone_path(zone_id) do
+    keys =
+      case String.split(zone_id, "/") do
+        [region, city] -> [zone_key(region), zone_key(city)]
+        [region, group, city] -> [zone_key(region), zone_key(group), leaf_key(city)]
+        _other -> [nil]
       end
-    end
+
+    if Enum.all?(keys, & &1), do: keys
   end
 
   # Gate atomisation on existing-atom membership. The zone data has
@@ -2262,10 +2323,13 @@ defmodule Localize.DateTime.Timezone do
     |> Localize.Utils.Helpers.existing_atom()
   end
 
+  # A part of a zone's name as the locale data keys it: in snake case, as the
+  # data build writes every key, so "Blanc-Sablon" is `blanc_sablon`,
+  # "DumontDUrville" `dumont_d_urville` and "McMurdo" `mc_murdo`.
   defp leaf_key(component) do
     component
-    |> String.downcase()
     |> String.replace(" ", "_")
+    |> Localize.Utils.Map.underscore()
   end
 
   # "America/Los_Angeles" -> "Los Angeles", "America/Argentina/Salta" -> "Salta"

@@ -142,6 +142,17 @@ TR35's generic non-location format (`v`, `vvvv`) qualifies a metazone name, unle
 | `America/Phoenix` | Mountain Time (Phoenix) | Mountain Standard Time |
 | `America/New_York` in `en-JM`, January | Eastern Time (United States) | Eastern Time |
 
+The specific format (`z`, `zzzz`) takes the same steps, which TR35 gives for "the non-location formats (generic or specific)", and CLDR's `TimezoneFormatter` qualifies a specific name as it does a generic one. ICU4C 78.3 never qualifies a specific name, so Vancouver's and Los Angeles's are one string. Localize follows TR35 and CLDR's formatter (user, 2026-10-04), and a qualified name reads back as its own zone; asserted in `test/localize/datetime/specific_zone_format_test.exs`.
+
+| `zzzz` in `en`, July 2026 | TR35, CLDR's formatter and Localize | ICU4C formats |
+|---|---|---|
+| `Europe/Berlin` | Central European Summer Time (Germany) | Central European Summer Time |
+| `America/Vancouver` | Pacific Daylight Time (Canada) | Pacific Daylight Time |
+| `America/Phoenix` | Mountain Standard Time (Phoenix) | Mountain Standard Time |
+| `Africa/Abidjan` | Greenwich Mean Time (Côte d’Ivoire) | Greenwich Mean Time |
+
+Where a locale has no name for a zone, Localize and ICU both write the localized GMT format, the short one for `z` and the long one for `zzzz`. TR35 49's symbol table gives `zzzz` the short one, while its text on semantic skeletons has the offset follow the length; Localize keeps the long, as ICU4C and ICU4X write it (user, 2026-10-04). CLDR's `TimezoneFormatter` is not followed there: it writes a region format ("Jordan Time"), which TR35 49 removed, for a long name and the long GMT format for a short one.
+
 ### Interval formatting
 
 An interval takes the formats of its endpoints' calendar. ICU4C 78.3 differs from Localize in nine places, asserted in `test/localize/interval_calendar_test.exs`, `test/localize/interval_skeleton_test.exs`, `test/localize/interval_closest_match_test.exs` and `test/localize/interval_standard_format_test.exs`; the third follows ECMA-402 and the others TR35.

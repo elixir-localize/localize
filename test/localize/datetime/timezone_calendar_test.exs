@@ -1,8 +1,8 @@
 defmodule Localize.DateTime.TimezoneCalendarTest do
   use ExUnit.Case, async: true
 
-  # The tests of every locale decode each locale's data, half a minute where
-  # all 657 are on the machine and longer beside the rest of the suite.
+  # The tests of every test locale decode each locale's data, which takes a
+  # while beside the rest of the suite.
   @moduletag timeout: 300_000
 
   alias Localize.DateTime.Timezone
@@ -182,9 +182,9 @@ defmodule Localize.DateTime.TimezoneCalendarTest do
     end
   end
 
-  # Every locale on this machine: all of them where they have all been
-  # generated, and in CI the locales `test/test_helper.exs` downloads.
-  describe "in every locale on this machine" do
+  # Every test locale: the locales `test/test_helper.exs` lists, the same
+  # on every machine (`Localize.Test.InstalledLocales`).
+  describe "in every test locale" do
     @moments [
       {~N[2026-01-15 12:00:00], "Asia/Almaty"},
       {~N[2000-06-01 12:00:00], "America/Indiana/Knox"},

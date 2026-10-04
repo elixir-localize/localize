@@ -62,6 +62,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Changed
 
+* **Breaking.** A specific zone name (`z`, `zzzz`) taken from a metazone is qualified by the zone's country or city unless the zone is the metazone's preferred zone for the locale's country, by TR35's steps for the non-location formats and as CLDR's own `TimezoneFormatter` writes it: in `en`, Berlin is "Central European Summer Time (Germany)" and Phoenix "Mountain Standard Time (Phoenix)". Each reads back as its own zone; ICU never qualifies one, which the ICU divergences guide records.
+
 * **Breaking.** `y` in a calendar of cyclic years, the Chinese and Dangi calendars, is the year's place in the sixty-year cycle, the number `U` names, as TR35 has it and ICU4C writes it: the year that began in 2026 is "43" where it was "4663", in `ko`'s Dangi short date "43. 5. 2." and in every locale's `yMd` interval, "5/2/43 – 5/6/43" in `en`. `u` writes the year's number, and a place is read back as the year of that place nearest the reference date.
 
 * **Breaking.** An interval at a standard format writes its dates and times with the fields and widths of the pattern the single value is written with, where it asked for CLDR's `datetimeSkeleton`, which is not the pattern's in many locales: `vi`'s short interval is "1/4/23 – 10/4/23" beside "1/4/23", where it was "01/04/2023 – 10/04/2023". Dates change in 71 locales, a `:short` time interval takes the clock of the short time pattern (`ady-JO` "10:05–11:30"), and a month written as a number beside a word (`ja`'s "M月") stays the named month.
@@ -131,6 +133,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 * **Breaking.** A zero offset is spelled out wherever a localized GMT format is used, `"GMT+00:00"` long and `"GMT+0"` short, as TR35's examples and ICU give it. `Localize.DateTime.Timezone.gmt_format/3` drops its `:zero_format` option, which selected between the two.
 
 ### Fixed
+
+* The six zones whose locale data key is not their lowercase name (`America/Blanc-Sablon`, `America/Port-au-Prince`, `Africa/Porto-Novo`, `Asia/Ust-Nera`, `Antarctica/DumontDUrville`, `Antarctica/McMurdo`) take the city and names their locale gives them, "بلانك-سابلون" in `ar`, and are read from them. They were written with the city their own name gives, in every locale.
+
+* A zone name qualified by a place is read where the place or the name holds the fallback format's own text: `pt-AO`'s "Hora de Greenwich (Côte d’Ivoire (Costa do Marfim))" was an error, and `ko`'s "중부유럽 하계 표준시(독일)", whose name has the shape of the standard region format, was read as standard time.
 
 * A date and time in another calendar than `Calendar.ISO` is given the zone names of the instant it names: its fields were read as ISO's, so a Persian date in January 2026 in `Asia/Almaty` was "GMT+05:00" where it is "Kazakhstan Time", and so in 10 of 13 calendars tried. `Localize.DateTime.Timezone.metazone_for/2` reads a date and time in its calendar too.
 

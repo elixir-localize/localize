@@ -368,7 +368,10 @@ defmodule Localize.DateTime.TimezoneFormatTest do
       winnipeg =
         Map.merge(@summer, %{time_zone: "America/Winnipeg", utc_offset: -18_000, std_offset: 0})
 
-      assert {:ok, "Central Daylight Time"} = Timezone.non_location_format(winnipeg, :en)
+      # Winnipeg is Canada's zone for Central time and not the United States', so in
+      # `en` its name is qualified, as CLDR's `TimezoneFormatter` writes it.
+      assert {:ok, "Central Daylight Time (Canada)"} =
+               Timezone.non_location_format(winnipeg, :en)
     end
 
     test "leave the flag to decide where the period names none" do

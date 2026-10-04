@@ -100,6 +100,13 @@ test_locales = [
   "zh-Hant-HK"
 ]
 
+# A test of "every locale" walks these (`Localize.Test.InstalledLocales`),
+# on every machine. A loaded locale stays in `:persistent_term`, about
+# 1.2 MB each, so a test that walked all 657 beside the rest of the suite
+# ran the VM out of literal memory, and in CI each one that is not listed
+# here would be fetched from the CDN.
+Application.put_env(:localize, :test_locales, test_locales)
+
 # The locale cache is shared by every branch checked out here, so running
 # another branch's tests leaves that branch's data in place of this one's,
 # and data for a CLDR pre-release is not on the CDN to download again. A
