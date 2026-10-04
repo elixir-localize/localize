@@ -296,6 +296,55 @@ defmodule Localize.IntervalCalendarTest do
     end
   end
 
+  # An interval at a standard format is written with the widths of that
+  # format's pattern, so where the pattern writes `yy` beside an era the
+  # interval's years are two digits and its era is written once. `nl.xml`:
+  # the generic calendar's short date is "dd-MM-yy GGGGG" and its `yMd`
+  # interval "dd-MM-y – dd-MM-y G"; `de.xml`: "dd.MM.yy GGGGG", with root's
+  # `GyMd` interval "G y-MM-dd – y-MM-dd". Both years are read in the
+  # century around the reference date, as the year of a single date written
+  # so is: the first was, and the second, beside the era, was the year 69.
+  describe "an interval with a two-digit year and its era written once" do
+    test "is written with the pattern's year and read back" do
+      from = date(Buddhist, 2569, 6, 16)
+
+      for {locale, to, text} <- [
+            {:nl, date(Buddhist, 2569, 6, 20), "16-06-69 – 20-06-69 BE"},
+            {:nl, date(Buddhist, 2570, 8, 20), "16-06-69 – 20-08-70 BE"},
+            {:de, date(Buddhist, 2569, 6, 20), "BE 69-06-16 – 69-06-20"},
+            {:de, date(Buddhist, 2570, 8, 20), "BE 69-06-16 – 70-08-20"}
+          ] do
+        assert Localize.Interval.to_string(from, to, locale: locale, format: :short) ==
+                 {:ok, text},
+               "#{locale} #{inspect(to)}"
+
+        assert Localize.Interval.parse(text,
+                 locale: locale,
+                 calendar: Buddhist,
+                 reference_date: from
+               ) == {:ok, Date.range(from, to)},
+               "#{locale} #{text}"
+      end
+    end
+
+    test "is the year as written where the year is written in full" do
+      from = date(Buddhist, 2569, 6, 16)
+      to = date(Buddhist, 2569, 6, 20)
+
+      assert Localize.Interval.parse("16-06-2569 – 20-06-2569 BE",
+               locale: :nl,
+               calendar: Buddhist,
+               reference_date: from
+             ) == {:ok, Date.range(from, to)}
+
+      assert Localize.Interval.parse("6/16/2569 – 6/20/2569 BE",
+               locale: :en,
+               calendar: Buddhist,
+               reference_date: from
+             ) == {:ok, Date.range(from, to)}
+    end
+  end
+
   describe "a date-time is read with its calendar's date-time pattern" do
     # CLDR 49 gives `or`'s generic calendar, whose date-time patterns the
     # Buddhist calendar takes, the long at-time pattern "{1} ରେ {0}"; its

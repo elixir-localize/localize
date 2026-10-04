@@ -775,8 +775,8 @@ defmodule Localize.Date.Parser do
         |> Enum.uniq()
         |> Enum.sort_by(&pattern_specificity/1)
 
-      related? = related_years?(locale, calendar_module, own_calendar, reference)
-      Enum.find_value(patterns, :error, &interval_reading(transliterated, &1, related?, ctx, as))
+      years = written_years(locale, calendar_module, own_calendar, reference)
+      Enum.find_value(patterns, :error, &interval_reading(transliterated, &1, years, ctx, as))
     else
       _ -> :error
     end
@@ -786,64 +786,82 @@ defmodule Localize.Date.Parser do
   # writes them with the year its format asks for: the related Gregorian
   # year where the calendar's formats write `r`, as the Chinese and Dangi
   # calendars' standard formats do ("11/8/2023 – 11/18/2023" for two days of
-  # the Chinese year 4660). An interval's year is then read both ways, as
-  # the calendar's year and as its related year, and the reading nearer the
-  # reference year is taken, as a single date's is (`run_locale_pass/4`). A
-  # year written as its two low-order digits (`yy`) is no related year.
-  defp interval_reading(input, pattern, related?, ctx, as) do
+  # the Chinese year 4660), and the year's two low-order digits where a
+  # format writes `yy`, as `lij`'s short Islamic date does ("30/12/47 –
+  # 4/1/48 AH"). An interval's year is then read each way its calendar's
+  # formats write one, and the reading whose years are nearest the reference
+  # year is taken, as a single date's is (`run_locale_pass/4`). A year
+  # written as its two low-order digits is no related year.
+  defp interval_reading(input, pattern, years, ctx, as) do
     pattern
     |> tokenize_pattern()
-    |> year_readings(related?)
+    |> year_readings(years)
     |> Enum.map(&match_interval_tokens(input, &1, ctx, as))
     |> Enum.reject(&(&1 == :error))
     |> Enum.min_by(&interval_distance(&1, ctx.reference_year), fn -> nil end)
   end
 
-  defp year_readings(tokens, false), do: [tokens]
+  defp year_readings(tokens, %{related: related?, truncated: truncated?}) do
+    related = if related?, do: [with_year(tokens, &{:r, &1})], else: []
+    truncated = if truncated?, do: [with_year(tokens, fn _count -> {:y, 2} end)], else: []
 
-  defp year_readings(tokens, true) do
-    related =
-      Enum.map(tokens, fn
-        {:y, count} when count != 2 -> {:r, count}
-        token -> token
-      end)
-
-    Enum.uniq([tokens, related])
+    Enum.uniq([tokens | related ++ truncated])
   end
 
-  defp interval_distance({:ok, %{year: year}, _to}, reference_year) when is_integer(year),
-    do: abs(year - reference_year)
+  defp with_year(tokens, year) do
+    Enum.map(tokens, fn
+      {:y, count} when count != 2 -> year.(count)
+      token -> token
+    end)
+  end
+
+  # How far a reading's years are from the reference year, both ends
+  # counted: an era written once beside the second date leaves the first
+  # year the same in two readings, and the second tells them apart.
+  defp interval_distance({:ok, from, to}, reference_year),
+    do: year_distance(from, reference_year) + year_distance(to, reference_year)
 
   defp interval_distance(_reading, _reference_year), do: 0
 
-  # Whether the calendar's dates are written with their related Gregorian
-  # year in the locale: one of its date patterns has an `r`. Cached, as the
-  # patterns' regexes are.
-  defp related_years?(locale, calendar_module, own_calendar, reference) do
-    key = {__MODULE__, :related_years, locale, calendar_module}
+  defp year_distance(%{year: year}, reference_year) when is_integer(year),
+    do: abs(year - reference_year)
+
+  defp year_distance(_value, _reference_year), do: 0
+
+  # How the calendar's dates write their year in the locale, other than as
+  # the `y` an interval pattern is keyed by: as the related Gregorian year,
+  # where one of its date patterns has an `r`, and as the year's two
+  # low-order digits, where one has `yy`. Cached, as the patterns' regexes
+  # are.
+  defp written_years(locale, calendar_module, own_calendar, reference) do
+    key = {__MODULE__, :written_years, locale, calendar_module}
 
     case :persistent_term.get(key, nil) do
       nil ->
-        related? =
+        years =
           case locale_patterns(locale, calendar_module, own_calendar, reference) do
-            {:ok, patterns, _ctx} -> Enum.any?(patterns, &related_year_pattern?/1)
-            _no_patterns -> false
+            {:ok, patterns, _ctx} ->
+              tokens = Enum.flat_map(patterns, &pattern_tokens/1)
+
+              %{
+                related: Enum.any?(tokens, &match?({:r, _count}, &1)),
+                truncated: two_digit_year?(tokens)
+              }
+
+            _no_patterns ->
+              %{related: false, truncated: false}
           end
 
-        :persistent_term.put(key, related?)
-        related?
+        :persistent_term.put(key, years)
+        years
 
-      related? ->
-        related?
+      years ->
+        years
     end
   end
 
-  defp related_year_pattern?({_skeleton, pattern}) do
-    pattern
-    |> pattern_text()
-    |> tokenize_pattern()
-    |> Enum.any?(&match?({:r, _count}, &1))
-  end
+  defp pattern_tokens({_skeleton, pattern}),
+    do: pattern |> pattern_text() |> tokenize_pattern()
 
   defp match_interval_tokens(input, tokens, ctx, as) do
     {tokens_l, tokens_r} = split_interval_tokens(tokens)

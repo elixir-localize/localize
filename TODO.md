@@ -20,7 +20,11 @@ Outstanding work on Localize. The design detail behind these items lives under [
 
 * [ ] **A lunisolar interval at the medium format does not read back** — the formatter writes the related year in CLDR's `U`-keyed item, "2026 M05 2–6" in 487 locales and "Mo5 2 – 6, 2026" in `en`, and the reader offers the related-year reading only for an item's `y`, so the text is an error.
 
-* [ ] **An interval item with a variant form is not read** — `en-CA`'s `yMd` item is a default and a variant pattern, which the interval reader skips, so "43-05-02 – 43-05-06" is read as two single dates, each by its related year (the Chinese year 2680).
+* [ ] **An interval item with a variant form is neither written nor read** — `en-CA`'s `yMd` item is a default and a variant pattern, which the formatter and the reader both pass over: its short interval is "06/16/2026–06/20/2026" beside the date "2026-06-16" and is an error to read, and in the Chinese calendar "43-05-02 – 43-05-06" is read as two single dates, each by its related year.
+
+* [ ] **Standard-format intervals in other calendars do not all read back** — of 130,118 intervals at `:short`, `:medium` and `:long` in 33 calendars and 657 locales, 3,826 are an error or, 139 of them, another range: the Japanese calendar's short interval in 505 locales ("R 8-06-16 – 8-06-20"), the Buddhist and Islamic ones in 90 (`fr`'s "16–20/06/2569 EB"), a calendar of weeks' in 32 ("2026-W20-3-2026-W20-7"), and in the Gregorian `mn`'s Roman-numeral months and `ha`'s year first in two digits ("26-06-16 – 27-08-20"). All were so before intervals took their pattern's widths; the lunisolar `:medium` ones are the item above.
+
+* [ ] **An interval asked for with the cyclic year's name writes its number** — a format whose pattern names the year (`de`'s Chinese medium "dd.MM U") takes the `yMd` interval item and keeps its `y`, "43-05-02 – 43-05-06" beside "02.05 bing-wu": the matcher replaces an item's year with `Y`, `u` or `r` when asked for, and not with `U`. 25 locales, in each of the three cyclic calendars.
 
 * [ ] **A `y` skeleton takes the cyclic name's format in a lunisolar calendar** — `yMd` for a Chinese date in `en` matches `UMd`, "5/2/bing-wu", where TR35's larger distance between a numeric and a text field, and ICU4C 78.3, take `yyyyMd`'s "M/d/r", "5/2/2026"; `yM`, `yMMM` and `yMMMd` likewise, 22 of 56 single dates over eight locales.
 
@@ -63,6 +67,8 @@ Outstanding work on Localize. The design detail behind these items lives under [
 * [ ] **`localize_emoji` sibling library** — plan item 11, a separate package on its own schedule. A Phoenix LiveView picker (`localize_emoji_live`) is out of scope for its 0.1.0.
 
 ## Done
+
+* [x] **An interval's two-digit years beside an era written once read back** — a standard format with `yy` and an era (the short date of `nl`, `de` and `lij` in the era calendars) writes such an interval, and its second year was read as the year itself, "69"; found by running the standard-format intervals through every calendar before and after the change that gave them their pattern's widths. 2026-10-04, v1.4.0.
 
 * [x] **Specific zone names are qualified as CLDR's own formatter qualifies them** — `z` and `zzzz` take TR35's steps for the non-location formats, "Pacific Standard Time (Canada)" for Vancouver in `en`, and read back as their own zone; against `TimezoneFormatter` over 656 locales and 551 zones no name differs but where the tool departs from TR35. 2026-10-04, v1.4.0.
 
