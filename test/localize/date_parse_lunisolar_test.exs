@@ -55,6 +55,33 @@ defmodule Localize.DateParseLunisolarTest do
     end
   end
 
+  # The same years, displayed as TR35 has a calendar of cyclic years display
+  # one: its `calendar_year/3`, which `y` writes, is the year's place in the
+  # sixty-year cycle, and its `extended_year/3`, which `u` writes, the year's
+  # number.
+  defmodule CyclicLunisolar do
+    @moduledoc false
+    use Localize.Test.StandInCalendar
+
+    def cldr_calendar_type, do: :chinese
+    def cardinal_month(month), do: month
+
+    defdelegate months_in_year(year), to: Lunisolar
+    defdelegate days_in_month(year, month), to: Lunisolar
+    defdelegate valid_date?(year, month, day), to: Lunisolar
+    defdelegate month_of_year(year, month, day), to: Lunisolar
+    defdelegate year_of_era(year, month, day), to: Lunisolar
+    defdelegate related_gregorian_year(year, month, day), to: Lunisolar
+    defdelegate cyclic_year(year, month, day), to: Lunisolar
+    defdelegate date_to_string(year, month, day), to: Calendar.ISO
+
+    defdelegate naive_datetime_to_iso_days(year, month, day, hour, minute, second, microsecond),
+      to: Lunisolar
+
+    def calendar_year(year, month, day), do: cyclic_year(year, month, day)
+    def extended_year(year, _month, _day), do: year
+  end
+
   # A calendar numbering its years 543 ahead of the Gregorian, as the
   # Buddhist calendar does, with no era before its first.
   defmodule Offset do
@@ -346,6 +373,96 @@ defmodule Localize.DateParseLunisolarTest do
     test "digits that read as the calendar's year or the related year take the nearer" do
       assert parse("4660. 2. 30.", :ko) == {:ok, date(4660, 2, 30)}
       assert parse("2023. 2. 30.", :ko) == {:ok, date(4660, 2, 30)}
+    end
+  end
+
+  # TR35's `U` names "the year value" and, where it has no name for it, is
+  # written as `y` writes it, so `y` and `U` write one number: the year's
+  # place in the sixty-year cycle. ICU4C 78.3 writes the Chinese and Dangi
+  # year that began in 2023 as 40 and the one that began in 2026 as 43
+  # (`y` "40", `yy` "40", `yyyy` "0040", `ko`'s Dangi short date
+  # "y. M. d." "40. 윤2. 29."). The calendar answers its displayed year, and
+  # a calendar that answers the place in the cycle is written and read so.
+  describe "a calendar that displays a year as its place in the cycle" do
+    defp cyclic(year, month, day), do: Date.new!(year, month, day, CyclicLunisolar)
+
+    defp parse_cyclic(text, locale, options \\ []) do
+      reference = %{calendar: CyclicLunisolar, year: 4662, month: 6, day: 1}
+
+      [locale: locale, calendar: CyclicLunisolar, reference_date: reference]
+      |> Keyword.merge(options)
+      |> then(&Localize.Date.parse(text, &1))
+    end
+
+    test "writes y as that place, and u as the year's number" do
+      date = cyclic(4660, 2, 29)
+
+      for {pattern, expected} <- [
+            {"y", "40"},
+            {"yy", "40"},
+            {"yyyy", "0040"},
+            {"u", "4660"},
+            {"r", "2023"},
+            {"U", "gui-mao"}
+          ] do
+        assert Localize.Date.to_string(date, format: pattern, locale: :en) == {:ok, expected},
+               pattern
+      end
+
+      assert Localize.Date.to_string(cyclic(4663, 5, 2), format: "y", locale: :en) == {:ok, "43"}
+      assert Localize.Date.to_string(cyclic(4625, 1, 1), format: "yy", locale: :en) == {:ok, "05"}
+    end
+
+    # `ko.xml`: the Chinese calendar's short date is "y/M/d" and the Dangi
+    # calendar's "y. M. d.".
+    test "writes a locale's formats with it" do
+      assert Localize.Date.to_string(cyclic(4660, 2, 29), format: :short, locale: :ko) ==
+               {:ok, "40/2/29"}
+
+      assert Localize.Date.to_string(cyclic(4660, 2, 29), format: "y. M. d.", locale: :ko) ==
+               {:ok, "40. 2. 29."}
+    end
+
+    # The place recurs every sixty years, so it is the year of that place
+    # nearest the reference year, as a cyclic name is.
+    test "reads y as the year of that place nearest the reference year" do
+      assert parse_cyclic("40. 2. 29.", :ko) == {:ok, cyclic(4660, 2, 29)}
+      assert parse_cyclic("43. 5. 2.", :ko) == {:ok, cyclic(4663, 5, 2)}
+      assert parse_cyclic("40/2/29", :ko) == {:ok, cyclic(4660, 2, 29)}
+
+      later = %{calendar: CyclicLunisolar, year: 4700, month: 1, day: 1}
+      assert parse_cyclic("40. 2. 29.", :ko, reference_date: later) == {:ok, cyclic(4720, 2, 29)}
+
+      assert parse_cyclic("40. 2. 29.", :ko, as: :map) ==
+               {:ok, %{calendar: CyclicLunisolar, year: 4660, month: 2, day: 29}}
+    end
+
+    # A number beyond the cycle is the year as the calendar numbers it, and
+    # a related year is read as it is in any lunisolar calendar.
+    test "reads a number beyond the cycle as the year's number" do
+      assert parse_cyclic("4660. 2. 29.", :ko) == {:ok, cyclic(4660, 2, 29)}
+      assert parse_cyclic("2023. 2. 29.", :ko) == {:ok, cyclic(4660, 2, 29)}
+    end
+
+    test "reads back every date it writes in a locale's standard formats" do
+      dates = [cyclic(4660, 2, 30), cyclic(4660, 3, 1), cyclic(4660, 4, 1), cyclic(4661, 12, 30)]
+
+      failures =
+        for locale <- [:en, :zh, :ja, :ko, :vi, :de, :fr],
+            format <- [:short, :medium, :long],
+            date <- dates,
+            {:ok, text} = Localize.Date.to_string(date, format: format, locale: locale),
+            parse_cyclic(text, locale) != {:ok, date} do
+          {locale, format, date, text}
+        end
+
+      assert failures == []
+    end
+
+    # A calendar that displays a year as its number is read as it was.
+    test "leaves a calendar that displays its year's number as it was" do
+      assert parse("4660. 2. 30.", :ko) == {:ok, date(4660, 2, 30)}
+      assert parse("40. 2. 30.", :ko) != {:ok, date(4660, 2, 30)}
     end
   end
 

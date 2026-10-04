@@ -14,8 +14,6 @@ Outstanding work on Localize. The design detail behind these items lives under [
 
 * [ ] **`Localize.DateTime.parse/2` does not read a date and time with a semantic skeleton** — a `Localize.DateTime.SemanticSkeleton` of a date and time given as `:format` is not used, so each half is read in any of the locale's formats, where `Localize.Date.parse/2` and `Localize.Time.parse/2` read one with a semantic skeleton of their own. The formatter resolves one against the value it writes (its year style and time precision), which a parser does not have (found 2026-10-04).
 
-* [ ] **`y` in the Chinese and Dangi calendars** — ICU4C writes the year of the sixty-year cycle ("40. 2. 30." in `ko`), Localize the sequential year ("4660. 2. 30."), which CLDR's era data calls the year; TR35's `U` falling back to `y` suggests the cycle year. Decide which to follow and record it.  Decision: Follow TR35.
-
 * [ ] **`Localize.Calendar.localize/3` names the first value of a part the date lacks** — a map without a month is January, the first quarter and a Monday, and one without a year the current era; characterization tests pin this. Decide whether they should be errors.
 
 ## In progress
@@ -23,6 +21,8 @@ Outstanding work on Localize. The design detail behind these items lives under [
 * [ ] **CLDR 49 upgrade** — the plan's items are closed bar item 11; the data is built from CLDR `main` pending beta3 (below), then the final release. [plans/cldr-49.md](plans/cldr-49.md).
 
 ## Blocked
+
+* [ ] **`y` in the Chinese and Dangi calendars** — TR35's `y` in a calendar of cyclic years is the year's place in the sixty-year cycle, the number `U` names, as ICU4C writes it ("40. 2. 30." in `ko`); the decision is to follow TR35 (user, 2026-10-04). Localize writes the year its calendar displays and reads a place in the cycle back, but Calendrical's Chinese and Korean calendars display the year's number ("4660. 2. 30."). Blocked on Calendrical answering the place in the cycle from their `calendar_year/3`.
 
 * [ ] **Move the CLDR pin to beta3** — the data is built from CLDR `main` at `6198cae999`, `release-49-beta2` with the converter fix it lacks (CLDR-19774) and the Manitoba DST metazone change (user, 2026-09-30). Blocked on CLDR 49 beta3, expected 2026-10.
 
@@ -49,6 +49,8 @@ Outstanding work on Localize. The design detail behind these items lives under [
 * [ ] **`localize_emoji` sibling library** — plan item 11, a separate package on its own schedule. A Phoenix LiveView picker (`localize_emoji_live`) is out of scope for its 0.1.0.
 
 ## Done
+
+* [x] **A year displayed as its place in the sixty-year cycle is read back** — `Localize.Date.parse/2` reads `y` in a calendar that displays its years so as the year of that place nearest the reference date, as it reads a cyclic name, which is Localize's half of following TR35 for the Chinese and Dangi calendars' `y`. 2026-10-04, v1.4.0.
 
 * [x] **An interval at a standard format takes the fields of its pattern** — its dates, its times and the times of a date and time are written at the widths, and in the clock, the single value is written with, where CLDR's `datetimeSkeleton` or the region's preferred hour cycle decided (dates in 71 locales, a short time in 5, a date and time's times in 14); a month numbered beside a word stays the named month. 2026-10-04, v1.4.0.
 

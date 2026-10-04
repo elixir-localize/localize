@@ -85,6 +85,8 @@ The extended year (`u`) is the calendar's own answer, its `extended_year/3`. TR3
 | Chinese | 4663 | 2026, the related Gregorian year `r` writes |
 | Dangi | 4359 | 2026, the related Gregorian year `r` writes |
 
+The year `y` writes is the calendar's own answer as well, the year it displays (`calendar_year/3`). TR35's `U` names "the year value" and, where it has no name for it, is written as `y` writes it, so in a calendar of cyclic years the two write one number, the year's place in the sixty-year cycle, and `u` the number that takes in the cycles. ICU4C 78.3 writes the Chinese and Dangi year that began in 2026 as 43 with `y` and 0043 with `yyyy`, and `ko`'s Dangi short date "y. M. d." as "43. 5. 2.". Localize follows TR35 (user, 2026-10-04): a calendar that displays the place in the cycle is written so and read back as the year of that place nearest the reference date, asserted in `test/localize/date_parse_lunisolar_test.exs`. A calendar that displays the year's number is written with that number.
+
 ### Date parsing
 
 TR35 makes `y` the year of the era `G` names, and leaves the reading of a two-digit year to the implementation. ICU4C 78.3 reads any two-digit year as one within 80 years before and 20 after today, even beside an era, so it cannot read back the "44 BC" it formats itself. Localize takes a year its era qualifies as written where the format writes the year in full (`y`), and applies the pivot to a year written without an era and, as ICU does, to one the format writes as `yy`, its two low-order digits; asserted in `test/localize/date_parse_era_test.exs` and `test/localize/date_parse_lunisolar_test.exs`.
