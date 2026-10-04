@@ -27,6 +27,12 @@ defmodule Localize.DateTime.Parser do
   # delegate to `Localize.Date.parse/2` and
   # `Localize.Time.parse/2` for the two halves.
   #
+  # Where `:format`, `:date_format` or `:time_format` names the format
+  # the text was written with, ISO 8601 is not tried: each half is read
+  # with its part of the format alone, and a pattern of a date and time
+  # is split, with the input, at the text between its date fields and
+  # its time fields (`half_formats/2`).
+  #
   # Implements the parts of [TR35 §Parsing Dates
   # Times](https://unicode.org/reports/tr35/tr35-dates.html#Parsing_Dates_Times)
   # that apply to date+time input. A fixed UTC offset — ISO 8601
@@ -254,8 +260,138 @@ defmodule Localize.DateTime.Parser do
     # through `Localize.Date.parse/2`, which reads it in the calendar's
     # `parsing_calendar/0` and converts it, as for a calendar of weeks. A
     # date and time in the calendar's own formats comes before either.
-    with nil <- own_format_datetime(candidates, locale, options, as) do
-      iso_or_locale_datetime(candidates, locale, options, calendar_module, as)
+    #
+    # Where a format names how the text was written, each half is read
+    # with its part of it and with nothing else, ISO 8601 included, as
+    # `Localize.Date.parse/2` and `Localize.Time.parse/2` read with one.
+    case half_formats(options, locale) do
+      {:ok, nil} ->
+        with nil <- own_format_datetime(candidates, locale, options, as) do
+          iso_or_locale_datetime(candidates, locale, options, calendar_module, as)
+        end
+
+      {:ok, halves} ->
+        try_locale_glue_candidates(candidates, locale, Keyword.merge(options, halves), as)
+
+      {:error, _exception} = error ->
+        error
+    end
+  end
+
+  # The format each half of a date and time was written with, as
+  # `Localize.DateTime.to_string/2` writes them: `:date_format` and
+  # `:time_format` where given, else the halves of `:format`. A standard
+  # format is the date's and the time's alike; a skeleton is split into its
+  # date fields and its time fields, which the formatter resolves on their
+  # own; a pattern is split at the text between its date fields and its time
+  # fields, where the input is then split too. `nil` where no format is
+  # given, and the text is read in any format.
+  defp half_formats(options, locale) do
+    given = {Keyword.get(options, :date_format), Keyword.get(options, :time_format)}
+
+    with {:ok, {date_half, time_half, glue}} <-
+           format_halves(Keyword.get(options, :format), locale) do
+      case {elem(given, 0) || date_half, elem(given, 1) || time_half} do
+        {nil, nil} ->
+          {:ok, nil}
+
+        {date_format, time_format} ->
+          {:ok, [format: nil, date_format: date_format, time_format: time_format, glue: glue]}
+      end
+    end
+  end
+
+  defp format_halves(nil, _locale), do: {:ok, {nil, nil, nil}}
+
+  defp format_halves(format, _locale) when format in @standard_formats,
+    do: {:ok, {format, format, nil}}
+
+  # A skeleton is the caller's, so a half of it is a format only where a
+  # format of that name is known already: no atom is made for it. A half
+  # that is none is read in any format.
+  defp format_halves(format, locale) when is_atom(format) do
+    alias Localize.Utils.Helpers
+
+    case Format.Match.separate_date_and_time(format) do
+      {date_fields, time_fields} ->
+        {:ok, {Helpers.existing_atom(date_fields), Helpers.existing_atom(time_fields), nil}}
+
+      nil ->
+        cond do
+          Format.Match.only_fields?(format, :date) ->
+            {:ok, {format, nil, nil}}
+
+          Format.Match.only_fields?(format, :time) ->
+            {:ok, {nil, format, nil}}
+
+          true ->
+            {:error,
+             Localize.DateTimeUnresolvedFormatError.exception(format: format, locale: locale)}
+        end
+    end
+  end
+
+  defp format_halves(format, _locale) when is_binary(format), do: split_pattern(format)
+
+  # A semantic skeleton of a date and time is not yet read as a format.
+  defp format_halves(%Localize.DateTime.SemanticSkeleton{}, _locale), do: {:ok, {nil, nil, nil}}
+
+  defp format_halves(format, _locale),
+    do: {:error, Localize.DateTimeFormatError.exception(format: format, reason: :invalid_format)}
+
+  @date_letters ~w(G y Y u U r Q q M L l w W d D F g E e c)
+  @time_letters ~w(a b B h H K k j J C m s S A z Z O v V X x)
+
+  # A pattern of a date and time writes its date fields in one run and its
+  # time fields in another, with literal text between them: "d/M/y HH:mm",
+  # "HH:mm 'on' d MMMM y". The halves are patterns of a date and of a time,
+  # and the text between them is where the input is split. A pattern whose
+  # date and time fields are not two runs, or that is no pattern, is an
+  # error.
+  defp split_pattern(pattern) do
+    segments =
+      ~r/'(?:[^']|'')*'|([a-zA-Z])\1*|[^'a-zA-Z]+/u
+      |> Regex.scan(pattern)
+      |> Enum.map(fn [segment | _letter] -> {segment_kind(segment), segment} end)
+
+    kinds = for {kind, _segment} <- segments, kind != :literal, do: kind
+
+    with true <- Enum.map_join(segments, &elem(&1, 1)) == pattern,
+         [first, second] when first in [:date, :time] and second in [:date, :time] <-
+           Enum.dedup(kinds) do
+      {before, second_half} = Enum.split_while(segments, &(elem(&1, 0) != second))
+      first_half = trim_trailing_literals(before)
+      glue = Enum.drop(before, length(first_half))
+
+      halves = %{
+        first => Enum.map_join(first_half, &elem(&1, 1)),
+        second => Enum.map_join(second_half, &elem(&1, 1))
+      }
+
+      order = if first == :date, do: :date_first, else: :time_first
+      separator = glue |> Enum.map_join(&elem(&1, 1)) |> unquote_cldr_literal()
+      {:ok, {halves.date, halves.time, {separator, order}}}
+    else
+      _not_two_runs ->
+        {:error, Localize.DateTimeFormatError.exception(format: pattern, reason: :invalid_format)}
+    end
+  end
+
+  defp trim_trailing_literals(segments) do
+    segments
+    |> Enum.reverse()
+    |> Enum.drop_while(&(elem(&1, 0) == :literal))
+    |> Enum.reverse()
+  end
+
+  defp segment_kind(segment) do
+    letter = String.first(segment)
+
+    cond do
+      letter in @date_letters -> :date
+      letter in @time_letters -> :time
+      letter =~ ~r/\A[a-zA-Z]\z/ -> :unknown
+      true -> :literal
     end
   end
 
@@ -364,7 +500,7 @@ defmodule Localize.DateTime.Parser do
       |> Keyword.get(:calendar, Calendar.ISO)
       |> Localize.Date.Parser.cldr_calendar_type()
 
-    case glue_separators(locale, cldr_calendar) do
+    case split_separators(Keyword.get(options, :glue), locale, cldr_calendar) do
       [] ->
         {:error, no_match_error(input, locale)}
 
@@ -393,6 +529,22 @@ defmodule Localize.DateTime.Parser do
           finder
         )
     end
+  end
+
+  # The text is split where the locale's date-time patterns join a date to
+  # a time, or, read with a pattern of a date and time, at the text that
+  # pattern puts between its date fields and its time fields and nowhere
+  # else: with surrounding spaces or without them, and at every place where
+  # the two run together ("yyyyMMddHHmmss").
+  defp split_separators(nil, locale, cldr_calendar), do: glue_separators(locale, cldr_calendar)
+
+  defp split_separators({"", order}, _locale, _cldr_calendar), do: [{"", "", "", order}]
+
+  defp split_separators({glue, order}, _locale, _cldr_calendar) do
+    [glue, String.trim(glue)]
+    |> Enum.uniq()
+    |> Enum.reject(&(&1 == ""))
+    |> Enum.map(&{"", &1, "", order})
   end
 
   # A glue pattern with the time first, as `vi`'s "{0} {1}", has its date
@@ -426,7 +578,7 @@ defmodule Localize.DateTime.Parser do
         _ -> {:ok, resolve_zone(zone, ndt, options)}
       end
     else
-      _ -> nil
+      unread -> half_error(unread)
     end
   end
 
@@ -495,43 +647,29 @@ defmodule Localize.DateTime.Parser do
 
   defp named_zone_fields(_zone, time_zone, nil, _options), do: %{time_zone: time_zone}
 
-  # The options a date and time's date is read with. The format its date
-  # was written with is `:date_format`, as `Localize.DateTime.to_string/2`
-  # takes it, or a standard `:format`, which is the date's and the time's
-  # alike, or the date fields of a skeleton given as `:format`, which the
-  # formatter writes the date with. A pattern or a semantic skeleton given
-  # as `:format` is a date and time's, not a date's, so the date is read
-  # without it.
-  defp date_options(options) do
-    format =
-      case {Keyword.get(options, :date_format), Keyword.get(options, :format)} do
-        {nil, nil} -> nil
-        {nil, format} when format in @standard_formats -> format
-        {nil, format} when is_atom(format) -> date_skeleton(format)
-        {date_format, _format} -> date_format
-      end
+  # The options each half of a date and time is read with: the half's
+  # format, which `half_formats/2` has put under `:date_format` and
+  # `:time_format`, as that parser's `:format`, or none.
+  defp date_options(options), do: half_options(options, :date_format)
+  defp time_options(options), do: half_options(options, :time_format)
 
-    options = Keyword.drop(options, [:format, :date_format, :time_format])
+  defp half_options(options, half) do
+    format = Keyword.get(options, half)
+    options = Keyword.drop(options, [:format, :date_format, :time_format, :glue])
     if is_nil(format), do: options, else: Keyword.put(options, :format, format)
   end
 
-  # The date fields of a skeleton that names a date and a time, which the
-  # formatter resolves on their own and joins to the time's. A skeleton is
-  # the caller's, so its date fields are one only where a format of that
-  # name is known already: no atom is made for them.
-  defp date_skeleton(skeleton) do
-    case Format.Match.separate_date_and_time(skeleton) do
-      {date_skeleton, _time_skeleton} -> Localize.Utils.Helpers.existing_atom(date_skeleton)
-      nil -> nil
-    end
-  end
+  # A format that is none is an error whatever the text, and is reported
+  # for the first split that meets it rather than taken for text the half
+  # does not read.
+  @format_errors [
+    Localize.DateTimeFormatError,
+    Localize.DateTimeUnresolvedFormatError,
+    Localize.DateTimeInvalidInputError
+  ]
 
-  # The options a date and time's time is read with. Its time is read in
-  # any of the locale's time formats, whatever format is given: a format of
-  # a date and time is not a time's, so `Localize.Time.parse/2` is not
-  # given one.
-  defp time_options(options),
-    do: Keyword.drop(options, [:format, :date_format, :time_format])
+  defp half_error({:error, %error{}} = result) when error in @format_errors, do: result
+  defp half_error(_unread), do: nil
 
   defp try_split_as_map({date_text, time_text}, options) do
     date_opts = options |> date_options() |> Keyword.put(:as, :map)
@@ -550,7 +688,7 @@ defmodule Localize.DateTime.Parser do
       merged = Map.merge(time_map, date_map)
       {:ok, put_zone_fields(merged, zone, options)}
     else
-      _ -> nil
+      unread -> half_error(unread)
     end
   end
 

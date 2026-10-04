@@ -1083,9 +1083,9 @@ defmodule Localize.DateTime do
     a module that implements only the `Calendar` behaviour, returns a
     `t:Localize.UnknownCalendarError.t/0`.
 
-  * `:date_format` is the format the date was written with, as `to_string/2` takes it and `Localize.Date.parse/2` reads it: a standard format, a skeleton atom, a `Localize.DateTime.SemanticSkeleton` or a pattern string. The date is read with that format and no other. The default is `:format` where that is a standard format, or the date fields of a skeleton given as `:format`; otherwise the date is read in whichever of the locale's formats reads it first.
+  * `:format` is the format the date and time were written with, as `to_string/2` takes it: a standard format (`:short`, `:medium`, `:long` or `:full`), a skeleton atom such as `:yMdHm`, or a pattern string such as `"d/M/y HH:mm"`. Each half is read with its part of it and with nothing else, ISO 8601 included. A standard format is the date's and the time's alike. A skeleton is split into its date fields and its time fields. A pattern, which writes its date fields in one run and its time fields in another, is split at the text between them, where the input is split too. A `Localize.DateTime.SemanticSkeleton` is not yet read as a format. The default is `nil`: the text is read as ISO 8601 or in whichever of the locale's formats reads it first.
 
-  * `:format` is the standard format (`:short`, `:medium`, `:long` or `:full`) or the skeleton atom, such as `:yMdHm`, the date and time were written with, and sets the default of `:date_format`. A pattern string and a semantic skeleton of a date and time are no format of the date alone and are not used: give the date's as `:date_format`. The time is read in any of the locale's time formats, whatever format is given.
+  * `:date_format` and `:time_format` are the formats the date and the time were written with, each as `Localize.Date.parse/2` and `Localize.Time.parse/2` take `:format`, and take the place of the halves of `:format`. A half with no format is read in any of the locale's formats.
 
   * `:reference_date` is the `t:Date.t/0` that partial input is completed
     against, taken in the calendar the input is read in. The default is

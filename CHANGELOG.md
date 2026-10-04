@@ -8,7 +8,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
-* `Localize.Date.parse/2` takes `:format`, the standard format, skeleton or pattern the text was written with, and reads the text with that format alone, so a date written by a skeleton whose fields stand in another order than the standard formats' reads back: `mt`'s `:yMd` "4/3/2024" is 3 April. `Localize.DateTime.parse/2` reads its date with `:date_format`, a standard `:format` or a skeleton's date fields, and `Localize.Interval.parse/2` reads each end with `:format`.
+* `Localize.Date.parse/2` takes `:format`, the standard format, skeleton or pattern the text was written with, and reads the text with that format alone, so a date written by a skeleton whose fields stand in another order than the standard formats' reads back: `mt`'s `:yMd` "4/3/2024" is 3 April. `Localize.Interval.parse/2` reads each end with `:format`.
+
+* `Localize.DateTime.parse/2` reads each half of a date and time with its part of `:format`, a standard format, a skeleton or a pattern, which is split at the text between its date fields and its time fields: "3/4/2024 22:05" with `format: "d/M/y HH:mm"`. `:date_format` and `:time_format` name a half's format on its own.
 
 * `Localize.Time.parse/2` takes `:format` too, a standard format, a skeleton or a pattern, and reads the text with that format alone: "14h30" with `format: "HH'h'mm"`. A `:long` or a `:full` format reads a time with its zone and, as it is written for a time that has none, without it.
 

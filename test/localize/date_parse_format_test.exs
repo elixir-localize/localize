@@ -247,12 +247,13 @@ defmodule Localize.DateParseFormatTest do
       assert failures == []
     end
 
-    # A pattern of a date and time is no format of the date alone, and the
-    # time is read in any of the locale's formats, so the date is read as it
-    # is without a format. The date's own format is `:date_format`.
-    test "reads its date in any format where the format is a pattern of both" do
+    # A pattern of a date and time is split at the text between its date
+    # fields and its time fields, and each half is read with its part
+    # (`test/localize/datetime_parse_format_test.exs`). The date's own format
+    # is `:date_format`.
+    test "reads its date with the date fields of a pattern of both" do
       assert Localize.DateTime.parse("4/3/2024 10:30", locale: :mt, format: "M/d/y HH:mm") ==
-               {:ok, ~N[2024-03-04 10:30:00]}
+               {:ok, ~N[2024-04-03 10:30:00]}
 
       assert Localize.DateTime.parse("4/3/2024 10:30", locale: :mt, date_format: "M/d/y") ==
                {:ok, ~N[2024-04-03 10:30:00]}

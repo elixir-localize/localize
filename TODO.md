@@ -12,7 +12,7 @@ Outstanding work on Localize. The design detail behind these items lives under [
 
 * [ ] **Decide whether specific zone names are qualified** — CLDR's own `TimezoneFormatter` qualifies the specific format (`z`, `zzzz`) as it does the generic one, "Central European Summer Time (Germany)" for Berlin in `en`, where ICU4C never does; a specific name already reads back to its instant, and Localize qualifies only the generic format.
 
-* [ ] **`Localize.DateTime.parse/2` does not read a date and time with a pattern or a semantic skeleton** — a pattern string or a semantic skeleton of both given as `:format` is not used, so the date is read in any of the locale's formats and "4/3/2024 10:30" with `format: "M/d/y HH:mm"` in `mt` is 4 March; `:date_format` names the date's meanwhile, and the time is read in any of the locale's time formats whatever format is given. `Localize.Time.parse/2` now reads a time with a format, so what is left is to give each half its part: `:time_format`, a standard format's and a skeleton's time fields, and a pattern split at the text between its date fields and its time fields (found 2026-10-04).
+* [ ] **`Localize.DateTime.parse/2` does not read a date and time with a semantic skeleton** — a `Localize.DateTime.SemanticSkeleton` of a date and time given as `:format` is not used, so each half is read in any of the locale's formats, where `Localize.Date.parse/2` and `Localize.Time.parse/2` read one with a semantic skeleton of their own. The formatter resolves one against the value it writes (its year style and time precision), which a parser does not have (found 2026-10-04).
 
 * [ ] **Decide which skeleton an interval at a standard format asks for** — it asks for CLDR's `datetimeSkeleton`, which in 75 locales (123 of 2,628 Gregorian formats) gives the year, a numeric month or the day another width than the pattern beside it, so the interval is written unlike the single date: `vi` short "1/4/23" and "01/04/2023 – 10/04/2023", `en-CA` "2023-04-01" and "4/1/23–4/10/23", `zu` "2023-04-01" and "23-04-01 – 23-04-10". TR35 calls the skeleton "derived from the pattern" and is silent on an interval's; deriving it from the pattern the single date is written with, as ICU and ECMA-402 do, makes the two agree in every locale. A datetime interval reads CLDR's skeleton for its time half too, which in 14 locales names another hour cycle than the pattern; `Localize.Time.to_string/2` now takes a pattern's own fields (found 2026-10-04).
 
@@ -53,6 +53,8 @@ Outstanding work on Localize. The design detail behind these items lives under [
 * [ ] **`localize_emoji` sibling library** — plan item 11, a separate package on its own schedule. A Phoenix LiveView picker (`localize_emoji_live`) is out of scope for its 0.1.0.
 
 ## Done
+
+* [x] **`Localize.DateTime.parse/2` reads a date and time with the format it was written with** — each half is read with its part of `:format` and nothing else: a standard format's and a skeleton's date and time fields, and a pattern split at the text between its date fields and its time fields ("3/4/2024 22:05" with `"d/M/y HH:mm"`, "20240403T220509" with `"yyyyMMdd'T'HHmmss"`), or with `:date_format` and `:time_format`. 2026-10-04, v1.4.0.
 
 * [x] **`Localize.Time.parse/2` takes the format the text was written with** — `:format` is a standard format, a skeleton or a pattern, as `to_string/2` takes it, and the text is read with it alone ("14h30" with `"HH'h'mm"`); a `:long` or a `:full` format reads a time with its zone and one written without it. 2026-10-04, v1.4.0.
 
