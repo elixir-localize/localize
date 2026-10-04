@@ -1423,12 +1423,19 @@ defmodule Localize.DateTime.Timezone do
   database the application configures, such as `:tz`
   (`config :elixir, :time_zone_database, Tz.TimeZoneDatabase`).
 
-  A name of standard or daylight time keeps its own offset, as ICU reads it:
-  "10:00 EST" in July is 10:00 at -05:00, a fixed offset, since New York
-  keeps daylight time then; on a date the zone keeps that time it is the
-  zone's own `t:DateTime.t/0`. Any other form follows the zone's clock, and
-  a wall time its clocks pass twice is read in standard time, one they skip
-  at the offset before the change, as ICU reads them.
+  A name of standard or daylight time is the zone's own `t:DateTime.t/0` on
+  a date the zone keeps that time, as the formatter names it: by the offsets
+  CLDR names standard and daylight for the zone's metazone where it gives
+  them (Punta Arenas keeps Chile's summer time all year), and else as the
+  time zone database says. On any other date the name keeps its own offset,
+  as ICU reads it: "10:00 EST" in July is 10:00 at -05:00, a fixed offset,
+  since New York keeps daylight time then. A standard name whose zone and
+  metazone have no daylight name in the locale stands for every type, as
+  TR35's type fallback has it, and follows the zone's clock.
+
+  Any other form follows the zone's clock, and a wall time its clocks pass
+  twice is read in standard time, one they skip at the offset before the
+  change, as ICU reads them.
 
   ### Arguments
 
@@ -1466,8 +1473,10 @@ defmodule Localize.DateTime.Timezone do
 
   def resolve(zone_string, %NaiveDateTime{} = naive_datetime, options)
       when is_binary(zone_string) and is_keyword_list(options) do
-    with {:ok, zone} <- parse_zone(zone_string, options) do
-      resolve_parsed_zone(zone, naive_datetime, Calendar.get_time_zone_database())
+    with {:ok, language_tag} <-
+           Localize.validate_locale(Keyword.get(options, :locale) || Localize.get_locale()),
+         {:ok, zone} <- parse_zone(zone_string, Keyword.put(options, :locale, language_tag)) do
+      resolve_parsed_zone(zone, naive_datetime, Calendar.get_time_zone_database(), language_tag)
     end
   end
 
@@ -1932,10 +1941,10 @@ defmodule Localize.DateTime.Timezone do
 
   # ── Resolving a parsed zone ──────────────────────────────────
 
-  defp resolve_parsed_zone({:offset, offset}, naive_datetime, _database),
+  defp resolve_parsed_zone({:offset, offset}, naive_datetime, _database, _language_tag),
     do: {:ok, offset_datetime(naive_datetime, offset)}
 
-  defp resolve_parsed_zone({:zone, time_zone, :generic}, naive_datetime, database) do
+  defp resolve_parsed_zone({:zone, time_zone, :generic}, naive_datetime, database, _language_tag) do
     case DateTime.from_naive(naive_datetime, time_zone, database) do
       {:ok, datetime} ->
         {:ok, datetime}
@@ -1951,32 +1960,68 @@ defmodule Localize.DateTime.Timezone do
     end
   end
 
-  # A name of standard or daylight time: standard time is the zone's lesser
-  # offset and daylight time its greater, whichever way the database
-  # divides them (it may write Europe/Dublin's winter as a negative saving),
-  # found from the wall clock and the same clock every three months for nine
-  # months either side. A daylight name for a zone keeping no daylight time
-  # is an hour on its standard offset, as ICU reads it.
-  defp resolve_parsed_zone({:zone, time_zone, type}, naive_datetime, database) do
+  # A name of standard or daylight time is the zone's own reading of the
+  # wall clock where the zone keeps that time then: the reading the
+  # formatter names so (`specific_type/3`), which is how the name came to be
+  # written. Punta Arenas keeps -03:00 all year and CLDR names that Chile's
+  # summer time; Knox, Indiana kept Eastern Standard Time through 1991's
+  # winter and Central time after it. Of two such readings, a wall time the
+  # clocks pass twice, the later is taken, as a generic name's is.
+  #
+  # Where the zone keeps another time then, the name keeps its own offset,
+  # as ICU reads it: "10:00 EST" in July is 10:00 at -05:00. A standard name
+  # that stands for every type (`stands_for_every_type?/4`) has no offset of
+  # its own, and follows the zone's clock as a generic name does.
+  defp resolve_parsed_zone({:zone, time_zone, type}, naive_datetime, database, language_tag) do
     case DateTime.from_naive(naive_datetime, time_zone, database) do
       {:error, _reason} ->
         {:error, Localize.UnknownTimezoneError.exception(timezone: time_zone)}
 
       reading ->
-        {candidates, sides} = wall_readings(reading)
+        {candidates, reference} = wall_readings(reading)
+        named = Enum.filter(candidates, &(specific_type(:specific, time_zone, &1) == type))
 
-        offsets =
-          (candidates ++ sides ++ nearby_readings(naive_datetime, time_zone, database))
-          |> Enum.map(&total_offset/1)
+        cond do
+          named != [] ->
+            {:ok, Enum.min_by(named, &total_offset/1)}
 
-        offset = named_offset(type, Enum.min(offsets), Enum.max(offsets))
+          stands_for_every_type?(type, time_zone, reference, language_tag) ->
+            generic = {:zone, time_zone, :generic}
+            resolve_parsed_zone(generic, naive_datetime, database, language_tag)
 
-        case Enum.find(candidates, &(total_offset(&1) == offset)) do
-          %DateTime{} = datetime -> {:ok, datetime}
-          nil -> {:ok, offset_datetime(naive_datetime, offset)}
+          true ->
+            nearby = nearby_readings(naive_datetime, time_zone, database)
+            offset = named_offset(type, time_zone, reference, nearby)
+            {:ok, offset_datetime(naive_datetime, offset)}
         end
     end
   end
+
+  # TR35's type fallback: where the locale has no daylight name for a zone
+  # or its metazone they need none, and the standard name stands for all
+  # three types. "Kyrgyzstan Time", the only name `en` has for that metazone
+  # and its location format too, is Bishkek's time in the summers it kept
+  # daylight time as in its winters.
+  defp stands_for_every_type?(:standard, time_zone, reference, language_tag) do
+    case Localize.Locale.get(language_tag, [:dates, :time_zone_names]) do
+      {:ok, %{} = tz_data} ->
+        metazone = metazone_for(time_zone, reference)
+        metazone_names = metazone && get_in(tz_data, [:metazone, metazone])
+
+        not daylight_name?(zone_data(time_zone, tz_data)) and not daylight_name?(metazone_names)
+
+      _no_names ->
+        false
+    end
+  end
+
+  defp stands_for_every_type?(_daylight, _time_zone, _reference, _language_tag), do: false
+
+  defp daylight_name?(%{} = names) do
+    is_binary(get_in(names, [:long, :daylight])) or is_binary(get_in(names, [:short, :daylight]))
+  end
+
+  defp daylight_name?(_no_names), do: false
 
   # A wall time the clocks skip is read at the offset before the change,
   # as ICU reads it: New York's 02:30 on the day it springs forward is 03:30
@@ -1991,11 +2036,12 @@ defmodule Localize.DateTime.Timezone do
   end
 
   # The readings of the wall clock that can be the answer — one, or both
-  # sides of a fall-back overlap — and, in a spring-forward gap, which has
-  # none, the gap's two sides, whose offsets are still the zone's.
-  defp wall_readings({:ok, datetime}), do: {[datetime], []}
-  defp wall_readings({:ambiguous, first, second}), do: {[first, second], []}
-  defp wall_readings({:gap, just_before, just_after}), do: {[], [just_before, just_after]}
+  # sides of a fall-back overlap, or none in a spring-forward gap — and a
+  # reading the zone's time is known by there: the first of them, or the one
+  # before the gap.
+  defp wall_readings({:ok, datetime}), do: {[datetime], datetime}
+  defp wall_readings({:ambiguous, first, second}), do: {[first, second], first}
+  defp wall_readings({:gap, just_before, _just_after}), do: {[], just_before}
 
   defp nearby_readings(naive_datetime, time_zone, database) do
     case NaiveDateTime.convert(naive_datetime, Calendar.ISO) do
@@ -2018,9 +2064,29 @@ defmodule Localize.DateTime.Timezone do
     end
   end
 
-  defp named_offset(:standard, standard, _greatest), do: standard
-  defp named_offset(:daylight, standard, standard), do: standard + 3600
-  defp named_offset(:daylight, _standard, daylight), do: daylight
+  # The offset a name of standard or daylight time stands for in a zone
+  # keeping another time: the one its metazone period names (TR35's
+  # `stdOffset` and `dstOffset`), and else the zone's standard offset then,
+  # with, for daylight time, the most the zone saves within nine months
+  # either side, or an hour where it saves none, as ICU reads it.
+  defp named_offset(type, time_zone, reference, nearby) do
+    case metazone_period(time_zone, reference) do
+      %{std_offset: std, dst_offset: dst} when is_integer(std) and is_integer(dst) ->
+        if type == :daylight, do: dst, else: std
+
+      _no_named_offsets ->
+        if type == :daylight,
+          do: reference.utc_offset + daylight_saving(nearby),
+          else: reference.utc_offset
+    end
+  end
+
+  defp daylight_saving(readings) do
+    case readings |> Enum.map(& &1.std_offset) |> Enum.max(fn -> 0 end) do
+      saving when saving > 0 -> saving
+      _no_saving -> 3600
+    end
+  end
 
   @doc """
   Returns the ISO 8601 timezone offset format.

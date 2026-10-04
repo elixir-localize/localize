@@ -654,7 +654,7 @@ iex> Localize.DateTime.parse("samedi 1 juillet 2023 à 10:05:00 heure d’été 
 {:ok, #DateTime<2023-07-01 10:05:00-04:00 EDT America/New_York>}
 ```
 
-A name of standard or daylight time keeps its own offset, as ICU reads it, so `"July 1, 2023 at 10:05:00 AM EST"` is 10:05 at -05:00 although New York keeps daylight time in July. `Localize.DateTime.Timezone.parse_zone/2` reads a zone on its own. Without a time zone database a named zone is dropped and the parse still succeeds, returning a `t:NaiveDateTime.t/0` rather than failing the whole input:
+A name of standard or daylight time keeps its own offset, as ICU reads it, so `"July 1, 2023 at 10:05:00 AM EST"` is 10:05 at -05:00 although New York keeps daylight time in July. On a date the zone keeps that time the name is the zone's own time, by the offsets CLDR names standard and daylight for the zone's metazone where it gives them: Punta Arenas keeps -03:00 all year, which CLDR names Chile's summer time, so "Chile Summer Time (Punta Arenas)" is that zone's time in every month. `Localize.DateTime.Timezone.parse_zone/2` reads a zone on its own. Without a time zone database a named zone is dropped and the parse still succeeds, returning a `t:NaiveDateTime.t/0` rather than failing the whole input:
 
 ```elixir
 iex> Localize.DateTime.parse("May 16, 2026 2:30 PM Asia/Tokyo", locale: :en)

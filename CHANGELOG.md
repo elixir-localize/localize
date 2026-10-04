@@ -134,6 +134,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+* A name of standard or daylight time is read with the time its zone keeps at the date, as the formatter names it: "Chile Summer Time (Punta Arenas)", the -03:00 that zone keeps all year, read back an hour out, as did a name within nine months of a change of its zone's offset ("Eastern Standard Time (Knox, Indiana)" in 1991). A standard name that is the only name its metazone has ("Kyrgyzstan Time") follows the zone's clock, as TR35's type fallback has it.
+
 * The location format (`VVVV`, and `v` and `vvvv` where they fall back to it) writes a country the locale has no name for by its code, as TR35 composes it and ICU4C writes it: Havana's zone is "CU" in `su` and "ora de CU" in `oc`, where it was the city, "Havana". The code is read back as that country's zone in a locale that writes the country so.
 
 * A location whose country's name has the shape of the fallback format is read as that country: `fr-CA`'s "heure : Saint-Martin (France)" was read as France's zone, and `ru`'s "Виргинские о-ва (Великобритания)" as the United Kingdom's.

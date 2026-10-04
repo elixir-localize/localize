@@ -264,5 +264,36 @@ defmodule Localize.DateTime.SpecificZoneFormatTest do
 
       assert failures == []
     end
+
+    # Dates at which a zone keeps an offset it does not keep months either
+    # side, or one its metazone period names: Knox, Indiana on Eastern
+    # Standard Time in 1991, Caracas at -04:00 before it took -04:30,
+    # Bishkek in a summer of daylight time its metazone has no name for,
+    # Punta Arenas and Coyhaique, whose -03:00 all year CLDR names Chile's
+    # summer time, and Dublin, whose winter the database writes as a
+    # negative saving.
+    @changes [
+      {"America/Indiana/Knox", ~N[1991-11-15 12:00:00]},
+      {"America/Caracas", ~N[2007-03-15 12:00:00]},
+      {"Asia/Bishkek", ~N[1990-07-15 12:00:00]},
+      {"America/Punta_Arenas", @winter},
+      {"America/Punta_Arenas", @summer},
+      {"America/Coyhaique", @summer},
+      {"Europe/Dublin", @winter},
+      {"Europe/Dublin", @summer}
+    ]
+
+    test "is the same instant where the zone's offset is not its usual one" do
+      failures =
+        for locale <- Localize.Test.InstalledLocales.all(),
+            {zone, naive} <- @changes,
+            format <- ["zzzz", "z", "v", "VVVV"],
+            {_zone, result} = read(zone, naive, locale, format),
+            result != :eq do
+          {locale, zone, naive, format, specific(zone, naive, locale, format), result}
+        end
+
+      assert failures == []
+    end
   end
 end

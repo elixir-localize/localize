@@ -121,6 +121,13 @@ TR35's time zone parsing reads a zone written in any form — a specific or gene
 | "10:00:00 AM Eastern Time" in `h:mm:ss a zzzz` | 10:00 in New York | an error |
 | "10:00:00 AM New York Time" in `h:mm:ss a z` | 10:00 in New York | an error |
 
+Reading every form in every field, Localize reads a string one way where ICU reads it by the field. `en` names the Kyrgyzstan metazone "Kyrgyzstan Time" and nothing else, which is Bishkek's location format too; by TR35's type fallback a metazone with no daylight name needs none and its standard name stands for all three types, so Localize reads it as Bishkek's own time in the summers the zone kept daylight time. ICU4C 78.3 reads it so in a `VVVV` or `vvvv` field, and as standard time, an hour later, in a `zzzz` field; asserted in `test/localize/zone_parse_test.exs`.
+
+| "1990-07-15 10:00:00 Kyrgyzstan Time" | Localize | ICU4C parses |
+|---|---|---|
+| in `y-MM-dd HH:mm:ss VVVV` | 03:00 UTC | 03:00 UTC |
+| in `y-MM-dd HH:mm:ss zzzz` | 03:00 UTC | 04:00 UTC |
+
 TR35 gives each hour field its range, `h` 1 to 12, `H` 0 to 23, `K` 0 to 11 and `k` 1 to 24, and its parsing notes take a number beyond a field's range for no value of that field. ICU4C 78.3's parser, lenient unless told otherwise, carries such an hour on into the hours that follow, and into the next day where they run out; told not to be lenient, it refuses it. Localize refuses it, and refuses `k`'s 0, which TR35's range leaves out and ICU reads as midnight either way. It keeps the two readings at a 12-hour field's edge that ICU has: `h`'s 0 for its 12, and `K`'s 12 before noon as half past noon, which ICU refuses only when it is not lenient. Asserted in `test/localize/time_parse_test.exs`.
 
 | Input | Pattern | Localize | ICU4C, lenient | ICU4C, not lenient |

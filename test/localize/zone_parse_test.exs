@@ -186,6 +186,86 @@ defmodule Localize.ZoneParseTest do
       assert DateTime.compare(datetime, ~U[2023-07-01 14:00:00Z]) == :eq
     end
 
+    # ICU4C reads these four as 07:30, 06:30, 06:30 and 05:30 UTC: a name of
+    # standard or daylight time picks its own side of a wall time the clocks
+    # pass twice, and keeps its own offset at one they skip.
+    test "a name of standard or daylight time where the clocks change" do
+      for {text, naive, utc} <- [
+            {"Eastern Standard Time", ~N[2023-03-12 02:30:00], ~U[2023-03-12 07:30:00Z]},
+            {"Eastern Daylight Time", ~N[2023-03-12 02:30:00], ~U[2023-03-12 06:30:00Z]},
+            {"Eastern Standard Time", ~N[2023-11-05 01:30:00], ~U[2023-11-05 06:30:00Z]},
+            {"Eastern Daylight Time", ~N[2023-11-05 01:30:00], ~U[2023-11-05 05:30:00Z]}
+          ] do
+        assert {:ok, datetime} = Timezone.resolve(text, naive, locale: :en)
+        assert DateTime.compare(datetime, utc) == :eq, "#{text} at #{naive}"
+      end
+    end
+
+    # CLDR's `metaZones.xml` gives Punta Arenas `stdOffset="-04"` and
+    # `dstOffset="-03"` in the Chile metazone: the -03:00 the zone keeps all
+    # year is Chile's summer time, so that name is the zone's own time in
+    # every month, and the standard name stands at -04:00. Dublin has
+    # `stdOffset="+00" dstOffset="+01"`, and ICU4C reads "Irish Standard
+    # Time" in January as 09:00 UTC.
+    test "a name of the time a metazone period's offsets name" do
+      for naive <- [~N[2026-01-15 10:00:00], ~N[2026-07-15 10:00:00]] do
+        assert {:ok,
+                %DateTime{time_zone: "America/Punta_Arenas", utc_offset: -10_800, std_offset: 0}} =
+                 Timezone.resolve("Chile Summer Time (Punta Arenas)", naive, locale: :en)
+
+        assert {:ok, %DateTime{time_zone: "Etc/UTC", utc_offset: -14_400}} =
+                 Timezone.resolve("Chile Standard Time (Punta Arenas)", naive, locale: :en)
+      end
+
+      assert {:ok, %DateTime{time_zone: "Europe/Dublin"} = summer} =
+               Timezone.resolve("Irish Standard Time", ~N[2026-07-15 10:00:00], locale: :en)
+
+      assert DateTime.compare(summer, ~U[2026-07-15 09:00:00Z]) == :eq
+
+      assert {:ok, %DateTime{time_zone: "Etc/UTC"} = winter} =
+               Timezone.resolve("Irish Standard Time", ~N[2026-01-15 10:00:00], locale: :en)
+
+      assert DateTime.compare(winter, ~U[2026-01-15 09:00:00Z]) == :eq
+    end
+
+    # Knox, Indiana kept Eastern Standard Time from October 1991 and Central
+    # time before it, and Caracas -04:00 until December 2007 and -04:30
+    # after. A name is read with the time the zone keeps at the date, not
+    # one it kept in the months either side; ICU4C reads the second as
+    # 14:00 UTC.
+    test "a name near a change of the zone's offset" do
+      assert {:ok, %DateTime{time_zone: "America/Indiana/Knox"} = knox} =
+               Timezone.resolve("Eastern Standard Time (Knox, Indiana)", ~N[1991-11-15 10:00:00],
+                 locale: :en
+               )
+
+      assert DateTime.compare(knox, ~U[1991-11-15 15:00:00Z]) == :eq
+
+      assert {:ok, %DateTime{time_zone: "America/Caracas"} = caracas} =
+               Timezone.resolve("Venezuela Time", ~N[2007-03-15 10:00:00], locale: :en)
+
+      assert DateTime.compare(caracas, ~U[2007-03-15 14:00:00Z]) == :eq
+    end
+
+    # `en.xml` names the Kyrgyzstan metazone "Kyrgyzstan Time" and nothing
+    # else, and that is Bishkek's location format too. By TR35's type
+    # fallback a metazone with no daylight name needs none and its standard
+    # name stands for all three types, so the name is Bishkek's time in the
+    # summers it kept daylight time as well: ICU4C reads it as 03:00 UTC
+    # with `VVVV` and `vvvv`, and as standard time with `zzzz` (a recorded
+    # divergence).
+    test "the only name a metazone has, in a zone keeping daylight time" do
+      assert {:ok, %DateTime{time_zone: "Asia/Bishkek", std_offset: 3600} = summer} =
+               Timezone.resolve("Kyrgyzstan Time", ~N[1990-07-15 10:00:00], locale: :en)
+
+      assert DateTime.compare(summer, ~U[1990-07-15 03:00:00Z]) == :eq
+
+      assert {:ok, %DateTime{time_zone: "Asia/Bishkek", std_offset: 0} = winter} =
+               Timezone.resolve("Kyrgyzstan Time", ~N[1990-01-15 10:00:00], locale: :en)
+
+      assert DateTime.compare(winter, ~U[1990-01-15 04:00:00Z]) == :eq
+    end
+
     # 01:30 on the day New York falls back is read in standard time, and
     # 02:30 on the day it springs forward at the offset before the change.
     test "a wall time the clocks pass twice, or skip" do
