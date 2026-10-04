@@ -8,8 +8,6 @@ Outstanding work on Localize. The design detail behind these items lives under [
 
 * [ ] **A calendar of weeks reads a week date as its own only as it writes it** — for `Calendrical.NRF`, "2026-W25-2" is the calendar's own week 25 (20 July 2026) alone, after a space and before a `T`, but "2026W252" without its hyphens and "2026-W25" without its day are ISO 8601's week (16 and 15 June), since the calendar's notation is what its `parse_date/1` reads and its `date_to_string/3` writes. Decide whether week-date text in any ISO 8601 form is the calendar's own (found 2026-10-04).
 
-* [ ] **A 12-hour pattern with no day period reads an hour out of range** — `fr-CM`'s and `bal-Latn`'s `hm` is "h:mm", and `Localize.Time.parse/2` reads "45:30" with it as 09:30, "99:59" as 03:59 and "24:00" as 00:00, where every other locale refuses them (found 2026-10-04).
-
 * [ ] **Choose a fixed-offset representation that `DateTime` functions honour** — Localize and Calendrical carry an offset such as `-05:00` under `Etc/UTC`, so `DateTime.shift_zone(parsed, "Etc/UTC")` returns it unchanged. The MF2 interpreter converts from the instant instead; `Etc/GMT+5` or an offset string would need both libraries to change together.
 
 * [ ] **Decide whether specific zone names are qualified** — CLDR's own `TimezoneFormatter` qualifies the specific format (`z`, `zzzz`) as it does the generic one, "Central European Summer Time (Germany)" for Berlin in `en`, where ICU4C never does; a specific name already reads back to its instant, and Localize qualifies only the generic format.
@@ -55,6 +53,8 @@ Outstanding work on Localize. The design detail behind these items lives under [
 * [ ] **`localize_emoji` sibling library** — plan item 11, a separate package on its own schedule. A Phoenix LiveView picker (`localize_emoji_live`) is out of scope for its 0.1.0.
 
 ## Done
+
+* [x] **A time is read only with an hour its field has** — a 12-hour field took its hour modulo 12 ("45:30 PM" was 21:30 and "13:30 AM" 01:30 in 618 locales, "45:30" 09:30 in `fr-CM` and `bal-Latn`); an hour over 12 there is now no time, as TR35's ranges and ICU's strict parse have it, "13:30 PM" included. 2026-10-04, v1.4.0.
 
 * [x] **`Localize.Time.parse/2` reads ISO 8601's times alone** — after the designator `T` a time without its seconds, minutes or separators ("T10:30", "T10", "T103045"), and a time between colons in every locale ("10:30" in `fi`, whose own format is "H.mm"); digits alone stay unread without the `T`. 2026-10-04, v1.4.0.
 

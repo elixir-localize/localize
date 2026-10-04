@@ -128,6 +128,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+* A time is read only with an hour its field has, as TR35 gives each field's range and as ICU reads one when it is not lenient: a 12-hour field took its hour modulo 12, so "45:30 PM" was 21:30 and "13:30 AM" 01:30 in 618 locales, and "45:30" was 09:30 in `fr-CM` and `bal-Latn`. "13:30 PM", which read as 13:30, is an error with them.
+
 * `Localize.Time.parse/2` reads ISO 8601's times in every locale: a time between colons without its seconds ("14:30", which `fi`, `da` and 13 more locales that write a time another way did not read), and after the time designator `T` a time without its minutes or its separators ("T14", "T1430", "T143045"). `z` for `Z` and U+2212 in an offset are read as well.
 
 * `Localize.DateTime.parse/2` reads every form ISO 8601 joins a date to a time in, where it read one: a week date or a day of the year before the `T`, a time without its seconds or its minutes after it ("2026-W25-2T10:30", "2026-06-16T10:30"), and either without its separators ("20260616T103000"). MessageFormat 2's date/time literals take the same forms.

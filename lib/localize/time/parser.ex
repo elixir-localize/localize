@@ -886,11 +886,21 @@ defmodule Localize.Time.Parser do
   #   H: 0-23, no AM/PM
   #   K: 0-11, paired with a/b
   #   k: 1-24 (k=24 == midnight start of day)
+  #
+  # A number beyond a field's hours is no hour of that field, as TR35's
+  # parsing notes have it ("a number larger than the largest month cannot be
+  # a month") and as ICU reads one when it is not lenient: "13:30 AM" is no
+  # time, and "45:30" is none where a locale's only pattern for it is
+  # "h:mm". The edge of a 12-hour field is read as ICU reads it: `h` takes
+  # 0 for its 12, and `K` takes 12 as twelve hours on from its 0, as ICU
+  # does when it is lenient, so `ja`'s "午前12:30" is half past noon and
+  # "午後12:30", which would be the next day, is no time.
   defp resolve_hour(n, :H, _caps, _tokens, _day_periods) when n in 0..23, do: {:ok, n}
   defp resolve_hour(24, :k, _caps, _tokens, _day_periods), do: {:ok, 0}
   defp resolve_hour(n, :k, _caps, _tokens, _day_periods) when n in 1..23, do: {:ok, n}
 
-  defp resolve_hour(n, letter, caps, _tokens, day_periods) when letter in [:h, :K] do
+  defp resolve_hour(n, letter, caps, _tokens, day_periods)
+       when letter in [:h, :K] and n in 0..12 do
     base = if letter == :h, do: rem(n, 12), else: n
 
     period = caps |> Map.get("day_period", "") |> String.downcase()

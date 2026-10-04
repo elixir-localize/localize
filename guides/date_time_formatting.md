@@ -502,6 +502,8 @@ iex> Localize.Time.parse("14:30", locale: :de)
 {:ok, ~T[14:30:00]}
 ```
 
+An hour is read only where its field has it. Beside a day period it is an hour of the 12-hour clock, so "13:30 PM" and "13:30 AM" are no times, where "13:30" is one, and no hour is carried into the next day, as ICU carries one when it is lenient (see [ICU divergences](icu_divergences.md#time-parsing)).
+
 A day period is read by the locale's own names, before any pattern with a zone could take it for one, and a flexible day period is the period of that name the hour falls in, where a locale gives two periods one name:
 
 ```elixir

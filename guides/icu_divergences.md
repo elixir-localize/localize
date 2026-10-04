@@ -119,6 +119,16 @@ TR35's time zone parsing reads a zone written in any form — a specific or gene
 | "10:00:00 AM Eastern Time" in `h:mm:ss a zzzz` | 10:00 in New York | an error |
 | "10:00:00 AM New York Time" in `h:mm:ss a z` | 10:00 in New York | an error |
 
+TR35 gives each hour field its range, `h` 1 to 12, `H` 0 to 23, `K` 0 to 11 and `k` 1 to 24, and its parsing notes take a number beyond a field's range for no value of that field. ICU4C 78.3's parser, lenient unless told otherwise, carries such an hour on into the hours that follow, and into the next day where they run out; told not to be lenient, it refuses it. Localize refuses it, and refuses `k`'s 0, which TR35's range leaves out and ICU reads as midnight either way. It keeps the two readings at a 12-hour field's edge that ICU has: `h`'s 0 for its 12, and `K`'s 12 before noon as half past noon, which ICU refuses only when it is not lenient. Asserted in `test/localize/time_parse_test.exs`.
+
+| Input | Pattern | Localize | ICU4C, lenient | ICU4C, not lenient |
+|---|---|---|---|---|
+| "13:30 PM" | `h:mm a` | an error | 01:30 the next day | an error |
+| "13:30 AM" | `h:mm a` | an error | 13:30 | an error |
+| "24:00" | `H:mm` | an error | 00:00 the next day | an error |
+| "0:30" | `k:mm` | an error | 00:30 | 00:30 |
+| "12:30 AM" | `K:mm a` | 12:30 | 12:30 | an error |
+
 ### Time zone formatting
 
 TR35's generic non-location format (`v`, `vvvv`) qualifies a metazone name, unless the zone is the metazone's preferred zone for the locale's country, with the zone's country where it is that country's preferred zone and with its city otherwise; CLDR's own `TimezoneFormatter` does exactly that. ICU4C 78.3 qualifies a metazone name only where the zone's offset at that moment differs from the preferred zone's, and writes a zone keeping no daylight time within 184 days by its standard name, so even TR35's worked example "Pacific Time (Canada)" for Vancouver in `en_MX` is "Pacific Time" in ICU. Localize follows TR35, and both read back to the same instant; asserted in `test/localize/datetime/generic_zone_format_test.exs`.
