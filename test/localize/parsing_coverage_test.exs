@@ -673,11 +673,17 @@ defmodule Localize.ParsingCoverageTest do
                Localize.DateTime.Timezone.parse_offset("+5")
     end
 
+    # An offset's hour is TR35's `H`, 0 to 23, and its minutes and seconds
+    # 0 to 59. Fifteen hours is in range: Juneau kept +15:02:19 until 1867.
+    # ICU4C 78.3 reads and refuses the same strings.
     test "offsets out of range are rejected" do
-      for zone <- ["+15:00", "+05:75", "+05:00:61"] do
+      for zone <- ["+24:00", "+05:75", "+05:00:61"] do
         assert {:error, %Localize.UnknownTimezoneError{}} =
                  Localize.DateTime.Timezone.parse_offset(zone)
       end
+
+      assert Localize.DateTime.Timezone.parse_offset("+15:00") == {:ok, 54_000}
+      assert Localize.DateTime.Timezone.parse_offset("+23:59") == {:ok, 86_340}
     end
 
     test "ASCII GMT, UTC and UT spellings, in either position" do
@@ -710,14 +716,17 @@ defmodule Localize.ParsingCoverageTest do
                {:ok, 10_800}
     end
 
-    test "a localized literal that is also a zone abbreviation needs an offset" do
-      # `yo` spells the GMT format "WAT", which is also West Africa Time.
-      # Reading a bare "WAT" as UTC would be wrong, so only the form
-      # carrying an offset resolves.
-      assert {:error, %Localize.UnknownTimezoneError{}} =
-               Localize.DateTime.Timezone.parse_offset("WAT", locale: :yo)
-
+    # TR35's parsing: "the absence of a numeric offset should be interpreted
+    # as offset 0, whether in localized or global formats", its "HPG" being
+    # `Etc/GMT`. CLDR 49's `gmtFormat` for `yo` is "WAT{0}", so "WAT" is GMT
+    # there, as ICU4C 78.3 reads it, whatever the letters stand for
+    # elsewhere; `yo` has no zone named so. It is no zone in another locale.
+    test "a localized literal alone is GMT in its locale" do
+      assert Localize.DateTime.Timezone.parse_offset("WAT", locale: :yo) == {:ok, 0}
       assert Localize.DateTime.Timezone.parse_offset("WAT+01:00", locale: :yo) == {:ok, 3600}
+
+      assert {:error, %Localize.UnknownTimezoneError{}} =
+               Localize.DateTime.Timezone.parse_offset("WAT", locale: :en)
     end
 
     test "named zones are rejected rather than guessed at" do
