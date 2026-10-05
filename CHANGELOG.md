@@ -134,6 +134,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+* A locale's GMT literal alone is read as GMT, as TR35's parsing reads "the absence of a numeric offset" in "localized or global formats": "غرينتش" in `ar` and `ga`'s "MAG" are offset 0, where only "GMT", "UTC" and "UT" were.
+
 * `Localize.DateTime.Timezone.parse_zone/2`, `parse_offset/2` and `resolve/3` read a number with no sign after the GMT literal as an offset east of it ("GMT 3", "UTC5:30", "غرينتش ٣"), as TR35's parsing allows "+, -, or nothing". A zone that is a field of a date or time keeps needing the sign, where the number can be the year or the hour that follows ("12:00:00 UTC 2026").
 
 * An offset's seconds are written by the localized GMT format (`O`, `OOOO`, `ZZZZ`) and by `Z` to `ZZZ`, which TR35 gives an optional seconds field: Los Angeles before standard time is "GMT-07:52:58" and "-075258", where "GMT-07:52" and "-0752" read back 58 seconds out. `Localize.DateTime.Timezone.parse_offset/2` reads seconds after an hour of one digit ("GMT+3:30:45") and an hour up to 23, so Juneau's "+15:02:19" before 1867 is read.

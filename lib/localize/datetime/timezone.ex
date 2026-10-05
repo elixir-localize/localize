@@ -1295,14 +1295,16 @@ defmodule Localize.DateTime.Timezone do
          {:ok, tz_data} <- Localize.Locale.get(locale_id, [:dates, :time_zone_names]),
          {:ok, place, remainder} <-
            strip_gmt_pattern(zone, tz_data[:gmt_format] || @default_gmt_format) do
-      # A bare localized literal is deliberately not read as a zero
-      # offset. Several locales spell the GMT format with a string that
-      # is also a real zone abbreviation — `yo` uses "WAT", `ga` uses
-      # "MAG" — and resolving those to UTC would be wrong, so only a
-      # literal carrying an actual offset resolves here.
-      case place do
-        :leading -> parse_offset_after_literal(remainder, sign)
-        :trailing -> parse_signed_offset(remainder, :short_hour)
+      # TR35's parsing: "the absence of a numeric offset should be
+      # interpreted as offset 0, whether in localized or global formats.
+      # For example, "GMT" or "UT" or "UTC+0" or "HPG" => Etc/GMT". The
+      # literal alone is GMT in its locale, as "GMT" is in every locale:
+      # "غرينتش" in `ar`, and `ga`'s "MAG", which is its name for Greenwich
+      # Mean Time too. `yo`'s is "WAT", which CLDR's data has for GMT there.
+      case {place, remainder} do
+        {_place, ""} when zone != "" -> {:ok, 0}
+        {:leading, remainder} -> parse_offset_after_literal(remainder, sign)
+        {:trailing, remainder} -> parse_signed_offset(remainder, :short_hour)
       end
     else
       _no_offset -> :error

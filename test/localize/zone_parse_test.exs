@@ -299,6 +299,48 @@ defmodule Localize.ZoneParseTest do
       assert Timezone.parse_zone("+3 GMT", locale: :en) == {:ok, {:offset, 10_800}}
     end
 
+    # TR35's parsing: "the absence of a numeric offset should be interpreted
+    # as offset 0, whether in localized or global formats. For example, "GMT"
+    # or "UT" or "UTC+0" or "HPG" => Etc/GMT". The literals are those of
+    # CLDR 49's `gmtFormat` in each locale, and ICU4C 78.3 reads each as GMT
+    # there but `dz`'s, and `he`'s only without the mark its pattern ends
+    # with. A literal is GMT in its own locale alone.
+    test "a locale's GMT literal alone is GMT" do
+      lrm = <<0x200E::utf8>>
+
+      for {locale, literal} <- [
+            {:"ar-EG", "غرينتش"},
+            {:fa, "گرینویچ"},
+            {:ckb, "گرینیچ"},
+            {:fr, "UTC"},
+            {:fi, "UTC"},
+            {:mr, "[GMT]"},
+            {:bg, "Гринуич"},
+            {:am, "ጂ ኤም ቲ"},
+            {:dz, "ཇི་ཨེམ་ཏི་"},
+            {:he, "GMT" <> lrm},
+            {:pt, "GMT"},
+            {:en, "GMT"}
+          ] do
+        assert Timezone.parse_zone(literal, locale: locale) == {:ok, {:offset, 0}},
+               "#{locale} #{literal}"
+
+        assert Timezone.parse_offset(literal, locale: locale) == {:ok, 0}, "#{locale} #{literal}"
+
+        assert {:ok, datetime} =
+                 Timezone.resolve(literal, ~N[2026-01-15 12:00:00], locale: locale)
+
+        assert {datetime.utc_offset, DateTime.to_naive(datetime)} ==
+                 {0, ~N[2026-01-15 12:00:00]}
+      end
+
+      for {locale, text} <- [{:en, "غرينتش"}, {:en, "Гринуич"}, {:fr, "[GMT]"}, {:en, ""}] do
+        assert {:error, %Localize.UnknownTimezoneError{}} =
+                 Timezone.parse_zone(text, locale: locale),
+               "#{locale} #{text}"
+      end
+    end
+
     # TR35 describes a zone read "as if it were an isolated string", and has
     # a zone "mixed in with other data" adapt that. Among the fields of a
     # date or time a number after the literal can be the next field's, so

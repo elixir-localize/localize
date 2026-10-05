@@ -38,8 +38,6 @@ Outstanding work on Localize. The design detail behind these items lives under [
 
 * [ ] **Any text before a country in the fallback format's shape is read as a zone** — TR35's sample parse returns the zone of a country with one zone for "xxx (Italy)" whatever xxx is, and the reader does, so a date and time read without its format can take its zone from too much text: `et`'s "4:00:00 PM (India)" is 04:00 in India, the 24-hour pattern reading "PM (India)" as its zone (also `ksh`, `ta-LK`), and `qu`'s "…2026 10:30:00 a.m. Hora del Meridiano de Greenwich (Côte d’Ivoire)" is 20:00, its hour taken from the year (also `az`, `ur`). The text before the country should be a name the locale writes.
 
-* [ ] **A locale's GMT literal alone is not read as GMT** — TR35's parsing reads the absence of an offset as offset 0 "whether in localized or global formats" ("HPG" is `Etc/GMT`), and ICU4C reads "غرينتش" so in `ar-EG`; Localize reads "GMT", "UTC" and "UT" alone, and of the 74 locales with a literal of their own only the four whose literal is also their name for Greenwich Mean Time (`ga`'s "MAG", `blo`, `ii`). No format has written one since CLDR dropped `gmtZeroFormat`.
-
 ## In progress
 
 * [ ] **CLDR 49 upgrade** — the plan's items are closed bar item 11; the data is built from CLDR `main` pending beta3 (below), then the final release. [plans/cldr-49.md](plans/cldr-49.md).
@@ -71,6 +69,8 @@ Outstanding work on Localize. The design detail behind these items lives under [
 * [ ] **`localize_emoji` sibling library** — plan item 11, a separate package on its own schedule. A Phoenix LiveView picker (`localize_emoji_live`) is out of scope for its 0.1.0.
 
 ## Done
+
+* [x] **A locale's GMT literal alone is GMT** — the 74 locales with a literal of their own read it with no offset as offset 0, "غرينتش" in `ar` and `ga`'s "MAG", as TR35's parsing has it ("HPG" is `Etc/GMT`) and ICU4C reads it in 647 of 656 locales; only "GMT", "UTC" and "UT" alone were. 2026-10-05, v1.4.0.
 
 * [x] **An offset with no sign is read after the GMT literal** — "GMT 3", "UTC5:30" and "غرينتش ٣" are offsets east to `parse_zone/2`, `parse_offset/2` and `resolve/3`, as TR35's parsing allows "+, -, or nothing"; a zone that is a field of a date or time keeps needing the sign ("12:00:00 UTC 2026" is no offset of 20:26), and so does a number before a literal that follows it ("10:30 GMT"). 2026-10-05, v1.4.0.
 
