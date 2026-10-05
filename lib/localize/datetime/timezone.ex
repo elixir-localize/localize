@@ -1471,6 +1471,11 @@ defmodule Localize.DateTime.Timezone do
   its location is written ("Germany Time"), where the string names no other
   zone.
 
+  A country or a city in parentheses qualifies a name the locale writes,
+  as every qualified name the formatter writes is one: "xyz (Italy)" is no
+  zone, though TR35's sample process reads it as Italy's whatever stands
+  before the country.
+
   ### Arguments
 
   * `zone_string` is the zone as written.
@@ -1699,18 +1704,28 @@ defmodule Localize.DateTime.Timezone do
       end)
       |> Enum.uniq()
 
+    qualified = Enum.filter(splits, &qualified_reading?(&1, index))
+
     readings =
-      if whole_reading?(key, index) do
-        [{key, nil} | splits]
-      else
-        Enum.filter(splits, fn {_name, place} ->
-          qualifier_country(place, index) || Map.has_key?(index.cities, place)
-        end) ++ [{key, nil}]
-      end
+      if whole_reading?(key, index),
+        do: [{key, nil} | qualified],
+        else: qualified ++ [{key, nil}]
 
     Enum.find_value(readings, fn {name, place} ->
       reading_zone(name, place, index, language_tag)
     end)
+  end
+
+  # A name and the place that qualifies it are a reading where the place is
+  # a country or a city and the name is one the locale writes: a zone's or a
+  # metazone's name, or a place, alone or in a region format. TR35's sample
+  # reads "xxx (Italy)" as Italy's zone whatever stands before the country,
+  # but a zone field takes whatever text the rest of its pattern leaves, and
+  # with that rule a time's day period or its date went into the zone:
+  # "4:00:00 pm (India)" was 04:00 in India to a 24-hour pattern.
+  defp qualified_reading?({name, place}, index) do
+    place? = not is_nil(qualifier_country(place, index)) or Map.has_key?(index.cities, place)
+    place? and whole_reading?(name, index)
   end
 
   # Whether the whole string is one of the locale's names, or a country or

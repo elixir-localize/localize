@@ -498,6 +498,58 @@ defmodule Localize.ZoneParseTest do
       end
     end
 
+    # TR35's sample parse returns a one-zone country's zone for "xxx (Italy)"
+    # whatever xxx is. A zone field takes whatever text the rest of its
+    # pattern leaves, so with that rule a time's day period, or its date,
+    # went into the zone. The text before the place has to be a name the
+    # locale writes, as everything the formatter puts there is; ICU4C 78.3
+    # reads none of the strings refused here, and none of them is written by
+    # a format.
+    test "text that is no name, before a country or a city, is no zone" do
+      for {locale, text} <- [
+            {:en, "PM (India)"},
+            {:en, "xyz (Italy)"},
+            {:en, "26 10:30:00 a.m. Greenwich Mean Time (Côte d’Ivoire)"},
+            {:en, "nonsense (Los Angeles)"},
+            {:de, "PM (Indien)"},
+            {:fr, "n’importe quoi (Inde)"}
+          ] do
+        assert {:error, %Localize.UnknownTimezoneError{}} =
+                 Timezone.parse_zone(text, locale: locale),
+               "#{locale} #{text}"
+      end
+
+      for {locale, text, time_zone} <- [
+            {:en, "Greenwich Mean Time (Côte d’Ivoire)", "Africa/Abidjan"},
+            {:en, "Central European Time (Italy)", "Europe/Rome"},
+            {:en, "PST (Juneau)", "America/Juneau"},
+            {:en, "Chile Time (Punta Arenas)", "America/Punta_Arenas"},
+            {:de, "Mitteleuropäische Zeit (Italien)", "Europe/Rome"}
+          ] do
+        assert {:ok, {:zone, ^time_zone, _type}} = Timezone.parse_zone(text, locale: locale),
+               "#{locale} #{text}"
+      end
+    end
+
+    # `en-GB` writes a time with a 24-hour pattern, "HH:mm:ss zzzz", which
+    # took "pm (India)" for its zone and read the time as four in the
+    # morning. A name is still read after a day period.
+    test "a time's day period is not read into its zone" do
+      assert {:error, %Localize.DateTimeParseError{}} =
+               Localize.DateTime.parse("15 January 2026 at 4:00:00 pm (India)", locale: :"en-GB")
+
+      for text <- [
+            "15 January 2026 at 16:00:00 India Standard Time",
+            "15 January 2026 at 4:00:00 pm India Standard Time"
+          ] do
+        assert {:ok, datetime} = Localize.DateTime.parse(text, locale: :"en-GB")
+
+        assert {datetime.utc_offset, DateTime.to_naive(datetime)} ==
+                 {19_800, ~N[2026-01-15 16:00:00]},
+               text
+      end
+    end
+
     # Bytes that are no UTF-8 name no zone, alone or after what would be
     # an offset or a name; `parse_zone/2` and `resolve/3` raised on them.
     test "bytes that are not text" do
