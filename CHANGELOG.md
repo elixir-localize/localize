@@ -134,6 +134,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+* A year of an era that began before a calendar changed how it numbers its years is read. `Calendrical.Reform.Japan` counts its years from 645 until 1872 and as the Gregorian calendar does from 1873, so every date from the reform to the end of Meiji in 1912, "Jun 16, 6 Meiji", was an error.
+
 * A range of two dates is cut at every place its separator is found, where only the first was tried: `da`'s and `el`'s fallback patterns join two dates with a hyphen, so a calendar of weeks' "2026-W25-2-2026-W27-1" was no interval, and "October 5, 2026 to October 10, 2026" was cut inside "October". The text a fallback pattern writes before its first date is read as well (`fr-CH`'s "du {0} au {1}"), and a pattern that writes the later date first (`kek`'s "{1} – {0}").
 
 * An interval is read by the pattern whose own separators are in the text before one that reads it through a lenient separator. `ha`'s `yMd` writes a year's difference with root's pattern, "26-06-16 – 27-08-20", which its own day-first pattern read as 26 June 2016 to 27 August 2020.

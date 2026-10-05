@@ -137,6 +137,86 @@ defmodule Localize.DateParseEraTest do
     defdelegate date_to_string(year, month, day), to: Calendar.ISO
   end
 
+  # The Japanese calendar numbering its years as Calendrical's
+  # `Reform.Japan` does: from 645 until the reform, its year 1228 being
+  # 1872, and as the Gregorian calendar numbers them from 1873, so it has no
+  # years 1229 to 1872. Its months and days are ISO's throughout. The eras
+  # are CLDR's (`supplementalData.xml`): Meiji from 1868-10-23, Taishō from
+  # 1912-07-30, Shōwa from 1926-12-25, Heisei from 1989-01-08 and Reiwa from
+  # 2019-05-01.
+  defmodule ReformedJapanese do
+    @moduledoc false
+    use Localize.Test.StandInCalendar
+
+    @reform 1873
+    @offset 644
+
+    @eras [
+      {{2019, 5, 1}, 236},
+      {{1989, 1, 8}, 235},
+      {{1926, 12, 25}, 234},
+      {{1912, 7, 30}, 233},
+      {{1868, 10, 23}, 232}
+    ]
+
+    def cldr_calendar_type, do: :japanese
+    def cardinal_month(month), do: month
+    def month_of_year(_year, month, _day), do: month
+
+    def year_of_era(_year, month, day) when is_nil(month) or is_nil(day),
+      do: {:error, :missing_fields}
+
+    def year_of_era(year, month, day) do
+      gregorian = {gregorian_year(year), month, day}
+
+      with true <- valid_date?(year, month, day),
+           {{start_year, _month, _day}, era} <-
+             Enum.find(@eras, fn {start, _era} -> gregorian >= start end) do
+        {gregorian_year(year) - start_year + 1, era}
+      else
+        _no_such_date_or_before_meiji -> {:error, :invalid_date}
+      end
+    end
+
+    def calendar_year(year, month, day) do
+      with {year_of_era, _era} <- year_of_era(year, month, day), do: year_of_era
+    end
+
+    def valid_date?(year, month, day) do
+      (year >= @reform or year < @reform - @offset) and
+        Calendar.ISO.valid_date?(gregorian_year(year), month, day)
+    end
+
+    def days_in_month(year, month), do: Calendar.ISO.days_in_month(gregorian_year(year), month)
+    def months_in_year(_year), do: 12
+
+    defdelegate date_to_string(year, month, day), to: Calendar.ISO
+    defdelegate day_rollover_relative_to_midnight_utc, to: Calendar.ISO
+
+    def naive_datetime_to_iso_days(year, month, day, hour, minute, second, microsecond) do
+      Calendar.ISO.naive_datetime_to_iso_days(
+        gregorian_year(year),
+        month,
+        day,
+        hour,
+        minute,
+        second,
+        microsecond
+      )
+    end
+
+    def naive_datetime_from_iso_days(iso_days) do
+      {year, month, day, hour, minute, second, microsecond} =
+        Calendar.ISO.naive_datetime_from_iso_days(iso_days)
+
+      own_year = if year >= @reform, do: year, else: year - @offset
+      {own_year, month, day, hour, minute, second, microsecond}
+    end
+
+    defp gregorian_year(year) when year >= @reform, do: year
+    defp gregorian_year(year), do: year + @offset
+  end
+
   @locales ~w(am ar bal be bn cy da de en en-AU es fa fi fr he hi hu it ja ko ky mr my pt ru th uk zh zh-Hant)a
 
   describe "a year written with its era" do
@@ -393,6 +473,85 @@ defmodule Localize.DateParseEraTest do
                calendar: Japanese,
                reference_date: @reiwa_8
              ) == {:ok, date}
+    end
+  end
+
+  # A calendar may number its years one way when an era begins and another
+  # before it ends: Calendrical's Japanese reform calendar counts its
+  # lunisolar years from 645 and its years from 1873 as the Gregorian
+  # calendar does, so Meiji, which CLDR begins on 1868-10-23, begins in its
+  # year 1224, and Meiji 6 is its year 1873. The year was counted on from
+  # 1224 alone, to a year 1229 the calendar does not have, so no date from
+  # the reform to the end of Meiji in 1912 was read.
+  describe "a year of an era that began before the calendar renumbered its years" do
+    @reiwa_8_reformed Date.new!(2026, 6, 16, ReformedJapanese)
+
+    defp reformed(text, locale) do
+      Localize.Date.parse(text,
+        locale: locale,
+        calendar: ReformedJapanese,
+        reference_date: @reiwa_8_reformed
+      )
+    end
+
+    # en.xml's Japanese medium date is "MMM d, y G" and ja.xml's "Gy年M月d日".
+    test "is read from the year CLDR gives the era's beginning" do
+      meiji_6 = Date.new!(1873, 6, 16, ReformedJapanese)
+
+      assert Localize.Date.to_string(meiji_6, locale: :en, format: :medium) ==
+               {:ok, "Jun 16, 6 Meiji"}
+
+      assert reformed("Jun 16, 6 Meiji", :en) == {:ok, meiji_6}
+      assert reformed("明治6年6月16日", :ja) == {:ok, meiji_6}
+
+      # Meiji's last day was 1912-07-29.
+      assert reformed("Jul 29, 45 Meiji", :en) == {:ok, Date.new!(1912, 7, 29, ReformedJapanese)}
+    end
+
+    test "is still counted from the era's first year before the calendar renumbers" do
+      # Meiji 2 is 1869, the calendar's year 1225.
+      meiji_2 = Date.new!(1225, 6, 16, ReformedJapanese)
+
+      assert Localize.Date.to_string(meiji_2, locale: :en, format: :medium) ==
+               {:ok, "Jun 16, 2 Meiji"}
+
+      assert reformed("Jun 16, 2 Meiji", :en) == {:ok, meiji_2}
+    end
+
+    test "is read as it was for an era that began after it" do
+      assert reformed("Jun 16, 2 Taishō", :en) == {:ok, Date.new!(1913, 6, 16, ReformedJapanese)}
+      assert reformed("Jun 16, 5 Heisei", :en) == {:ok, Date.new!(1993, 6, 16, ReformedJapanese)}
+    end
+
+    # A format that writes no era leaves the year to the era of the
+    # reference date, so the formats here are the ones with an era, and
+    # each text is read with the format that wrote it: `my`'s `GyMd` is
+    # "GGGGG y/M/d" beside a short date of "GGGGG d/M/y".
+    test "reads back in each locale's formats with an era" do
+      dates = [
+        Date.new!(1873, 1, 1, ReformedJapanese),
+        Date.new!(1873, 6, 16, ReformedJapanese),
+        Date.new!(1900, 2, 28, ReformedJapanese),
+        Date.new!(1912, 7, 29, ReformedJapanese)
+      ]
+
+      failures =
+        for locale <- @locales,
+            format <- [:GyMd, :GyMMMd, :GyMMMEd],
+            date <- dates,
+            {:ok, text} = Localize.Date.to_string(date, locale: locale, format: format),
+            parsed =
+              Localize.Date.parse(text,
+                locale: locale,
+                calendar: ReformedJapanese,
+                format: format,
+                reference_date: @reiwa_8_reformed
+              ),
+            parsed != {:ok, date} do
+          {locale, format, text, parsed}
+        end
+
+      assert failures == [], inspect(Enum.take(failures, 5), pretty: true)
     end
   end
 

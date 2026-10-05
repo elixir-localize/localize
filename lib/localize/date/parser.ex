@@ -3701,7 +3701,12 @@ defmodule Localize.Date.Parser do
   end
 
   # The year of era `era_index` counted from the calendar year the era
-  # begins in, where the calendar's eras have more than one beginning.
+  # begins in, where the calendar's eras have more than one beginning, and
+  # then from the year CLDR gives for that beginning. A calendar may number
+  # its years one way when an era begins and another before it ends:
+  # Calendrical's Japanese reform calendar counts its lunisolar years from
+  # 645 and its years from the reform of 1873 as the Gregorian calendar
+  # does, so Meiji begins in its year 1224 and Meiji 6 is its year 1873.
   defp counted_from_era_start(year, era_index, calendar_module) do
     starts = era_starts(calendar_module)
 
@@ -3709,7 +3714,7 @@ defmodule Localize.Date.Parser do
          {:ok, [start_year, start_month, start_day]} <- Map.fetch(starts, era_index),
          {:ok, start} <- Date.new(start_year, start_month, start_day),
          {:ok, %{year: first_year}} <- Date.convert(start, calendar_module) do
-      [first_year + year - 1]
+      [first_year + year - 1, start_year + year - 1]
     else
       _no_era_start -> []
     end
