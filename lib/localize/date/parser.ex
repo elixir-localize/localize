@@ -1989,8 +1989,10 @@ defmodule Localize.Date.Parser do
         |> collect_patterns()
         |> Enum.sort_by(fn {_skeleton, pattern} -> pattern_specificity(pattern) end)
 
+      standard = Format.standard_format_entries(locale, cldr_calendar)
+
       patterns =
-        Format.standard_format_entries(locale, cldr_calendar)
+        standard
         |> collect_patterns()
         |> Enum.concat(available_patterns)
         |> Enum.uniq_by(fn {_skeleton, pattern} -> pattern end)
@@ -2005,8 +2007,24 @@ defmodule Localize.Date.Parser do
       ctx = Map.put(ctx, :regexes, pattern_regexes(patterns, ctx))
       ctx = Map.put(ctx, :mixed_years, mixed_year_fields?(patterns, ctx))
 
+      ctx =
+        Map.put(
+          ctx,
+          :variants,
+          variant_patterns(standard) |> MapSet.union(variant_patterns(available))
+        )
+
       {:ok, patterns, ctx}
     end
+  end
+
+  # The patterns a format has as its variant, which the formatter writes
+  # only when it is asked for one (`en-CA`'s day-first numeric dates).
+  defp variant_patterns(entries) do
+    for {_skeleton, %{variant: variant}} <- entries,
+        is_binary(variant),
+        into: MapSet.new(),
+        do: variant
   end
 
   # The lax pass takes the patterns in a fixed order, day-bearing first,
@@ -2016,7 +2034,29 @@ defmodule Localize.Date.Parser do
   end
 
   defp run_candidate_pass(patterns, inputs, ctx, pass_as) do
-    Enum.find_value(inputs, &run_locale_pass(patterns, &1, ctx, pass_as))
+    Enum.find_value(inputs, &run_locale_pass(written_first(patterns, &1, ctx), &1, ctx, pass_as))
+  end
+
+  # The patterns whose own text is in the input, in the order they are
+  # tried, before those that read it only through a lenient separator, as
+  # an interval's patterns are taken (`interval_pattern_order/2`): the text
+  # a pattern writes holds its separators as they are. `af`'s `GyMd` in the
+  # generic calendar is "M-d-y G" beside a `yyyyMd` of "d/M/y GGGGG", and
+  # each reads the "1-7-8 Reiwa" the first writes, the second, a hyphen for
+  # its slash, as the first of July. A variant is not moved up: the
+  # formatter writes it only when it is asked to, so `en-CA`'s "5/3" stays
+  # its default "MM-dd"'s third of May, read through a lenient separator,
+  # before its variant "d/M"'s fifth of March.
+  defp written_first(patterns, input, ctx) do
+    plain_input = plain_spaces(input)
+
+    {written, lenient} =
+      Enum.split_with(patterns, fn {_kind, pattern} ->
+        text = pattern_text(pattern)
+        not MapSet.member?(ctx.variants, text) and literals_in?(text, plain_input)
+      end)
+
+    written ++ lenient
   end
 
   # A day the input gave is never read as something else: once a pattern
@@ -2404,6 +2444,7 @@ defmodule Localize.Date.Parser do
       implied_era: implied_era(reference, calendar_module),
       cyclic_year_written: cyclic_year_written?(reference, calendar_module, locale),
       narrow_eras: false,
+      variants: MapSet.new(),
       mixed_years: false,
       calendar_module: calendar_module,
       own_calendar: own_calendar,

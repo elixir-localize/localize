@@ -28,6 +28,7 @@ Application.put_env(:localize, :default_locale, :en)
 # and only canonical ids exist as generated ETF files on the CDN.
 test_locales = [
   "aa",
+  "af",
   "am",
   "ar",
   "ar-EG",

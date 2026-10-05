@@ -700,6 +700,38 @@ defmodule Localize.DateParseLunisolarTest do
   # date as ISO 8601 writes one, and ISO 8601 read its text as a Gregorian
   # date. The Chinese year 4660 began in 2023, its related year, and its
   # eleventh month is its twelfth, after the leap second month.
+  # af.xml's generic calendar writes `GyMd` as "M-d-y G" and `yyyyMd` as
+  # "d/M/y GGGGG". Each reads "10-7-2569 BE", the second taking a hyphen
+  # for its slash, and TR35's parsing matches "fields and literals against
+  # those in the format string": the format whose own separators the text
+  # has is the one that wrote it. It was the tenth of July, read by the
+  # first of the two to be tried.
+  describe "a date two of a locale's formats read" do
+    test "is read by the format whose own separators it has" do
+      date = Date.new!(2569, 10, 7, Offset)
+
+      assert Localize.Date.to_string(date, locale: :af, format: :GyMd) == {:ok, "10-7-2569 BE"}
+      assert Localize.Date.to_string(date, locale: :af, format: :yyyyMd) == {:ok, "7/10/2569 BE"}
+
+      for text <- ["10-7-2569 BE", "7/10/2569 BE"] do
+        assert Localize.Date.parse(text, locale: :af, calendar: Offset, reference_date: date) ==
+                 {:ok, date},
+               text
+      end
+    end
+
+    # `en_CA.xml`'s `Md` is "MM-dd" with the variant "d/M". The formatter
+    # writes a variant only when it is asked to, so one is never moved
+    # ahead of the default that reads the text.
+    test "is still the default's where the other is its variant" do
+      assert Localize.Date.parse("5/3", locale: :"en-CA", as: :map) ==
+               {:ok, %{calendar: Calendar.ISO, month: 5, day: 3}}
+
+      assert Localize.Date.parse("05-03", locale: :"en-CA", as: :map) ==
+               {:ok, %{calendar: Calendar.ISO, month: 5, day: 3}}
+    end
+  end
+
   describe "a date ISO 8601 also reads" do
     test "is the calendar's own date where a format of the calendar writes it so" do
       eleventh = date(4660, 12, 22)

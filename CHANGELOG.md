@@ -134,6 +134,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+* A date two of a locale's formats read is read by the one whose own separators it has. `af`'s "10-7-2569 BE" is its `GyMd`'s, "M-d-y G", the seventh of October, where its "d/M/y GGGGG" read it first, a hyphen for its slash, as the tenth of July.
+
 * An interval written without a year is read as dates of the reference date's year, as a date alone is. "Jun 16 – 20", which the month and day fields write, was read only as two partial dates with `as: :map`.
 
 * An interval is read with the spaces about its dash left out or put in, as TR35's parsing has spaces ignored but where they set tokens apart. `en`'s "Jun 16–20, 2026", its dash typed without spaces, was an error, as `de`'s "16. – 20.06.2026" was with them.
