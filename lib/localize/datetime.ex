@@ -473,14 +473,7 @@ defmodule Localize.DateTime do
                  locale_id,
                  options
                ) do
-          options_map =
-            options
-            |> Map.new()
-            |> Map.update(:number_system_overrides, numbers, fn
-              given when is_map(given) -> Map.merge(numbers, given)
-              given -> given
-            end)
-
+          options_map = with_date_numbers(Map.new(options), numbers)
           invoke_formatter(output, datetime, pattern, locale_id, options_map)
         end
 
@@ -510,6 +503,15 @@ defmodule Localize.DateTime do
       _other ->
         format_with_classical_skeleton(datetime, options, locale_id, semantic_skeleton, output)
     end
+  end
+
+  # The numbering a date's format states, with the options the date is
+  # written with; a numbering the caller gives stands before it.
+  defp with_date_numbers(options_map, numbers) do
+    Map.update(options_map, :number_system_overrides, numbers, fn
+      given when is_map(given) -> Map.merge(numbers, given)
+      given -> given
+    end)
   end
 
   defp format_with_classical_skeleton(datetime, options, locale_id, semantic_skeleton, output) do
