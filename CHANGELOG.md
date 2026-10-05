@@ -134,6 +134,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+* An interval written without a year is read as dates of the reference date's year, as a date alone is. "Jun 16 – 20", which the month and day fields write, was read only as two partial dates with `as: :map`.
+
 * An interval is read with the spaces about its dash left out or put in, as TR35's parsing has spaces ignored but where they set tokens apart. `en`'s "Jun 16–20, 2026", its dash typed without spaces, was an error, as `de`'s "16. – 20.06.2026" was with them.
 
 * An interval in a year two eras share is read where one of its dates is written without its month. `en`'s "May 1 – 5, 1 Reiwa" asked the calendar about the year 2019 alone, which is Heisei 31 until April, and was an error; each date now asks with the month and the day it takes from the other.

@@ -36,6 +36,8 @@ Outstanding work on Localize. The design detail behind these items lives under [
 
 * [ ] **A metazone's name is written for dates before 1970** — a `usesMetazone` period with no `from` is taken to reach back without end, so Los Angeles in 1850, at -7:52:58, is "Pacific Standard Time"; TR35 does not say where such a period begins, CLDR's zones are told apart only "back to 1970", and ICU4C begins it at 1970, writing "GMT-07:52:58" and "Los Angeles Time" there and "GMT-05:00" for New York in 1965. Decide where a first period begins.
 
+* [ ] **An interval typed without years across the new year is refused** — "Dec 28 – Jan 3" is two dates of the reference date's year, the later first, and so an inverted range, as it was when each side was read alone. The formatter never writes one, adding the years where they differ, and neither TR35 nor ICU reads an interval. A decision: whether the second date is of the year after.
+
 ## In progress
 
 * [ ] **CLDR 49 upgrade** — the plan's items are closed bar item 11; the data is built from CLDR `main` pending beta3 (below), then the final release. [plans/cldr-49.md](plans/cldr-49.md).
@@ -83,6 +85,8 @@ Outstanding work on Localize. The design detail behind these items lives under [
 * [ ] **`localize_emoji` sibling library** — plan item 11, a separate package on its own schedule. A Phoenix LiveView picker (`localize_emoji_live`) is out of scope for its 0.1.0.
 
 ## Done
+
+* [x] **An interval written without a year is of the reference date's year** — two dates an interval format reads with no year, `en`'s "Jun 16 – 20" at `MMMd`, had no year to be dates of and were read only as two partial dates with `as: :map`: each is a date of the reference date's year, as a date alone written without one is. All 57,904 intervals written without a year at eight formats in eleven calendars and 329 locales read back (39,776 before, and 624 of the rest as another range). 2026-10-06, v1.4.0.
 
 * [x] **An interval is read with the spaces beside its dash left out or put in** — an interval's pattern was read only with the spaces it has about its dash, so `en`'s "Jun 16–20, 2026" was an error, as `de`'s "16. – 20.06.2026" was with them: TR35's parsing has spaces "ignored (except to delimit the tokens of the input string)", and a dash delimits without them, so the spaces beside a dash are optional wherever the pattern has it (`fil`'s Hebrew "d – MMM d y" is split at its second day) and the rest of the text between the dates is kept (`hy`'s "dd MMM, y թ․ – dd MMM, y թ."). Of 52,091 intervals with one en or em dash at five formats in eleven calendars and 329 locales, 51,551 read back as written, without the spaces and with them (23,410 before), the other 540 not reading as written either; none of the 195,257 at the standard formats in 35 calendars and 657 locales or the 183,582 with an era reads otherwise, and none of 59,787 single dates is read as a range. 2026-10-06, v1.4.0.
 

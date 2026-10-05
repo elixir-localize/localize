@@ -987,9 +987,14 @@ defmodule Localize.Date.Parser do
     end)
   end
 
-  defp interval_endpoints_for(:struct, left_partial, right_partial, calendar_module, _reference) do
-    with {:ok, left_date} <- materialise(left_partial, right_partial, calendar_module),
-         {:ok, right_date} <- materialise(right_partial, left_partial, calendar_module) do
+  # Two dates written without a year, "Jun 16 – 20", are of the reference
+  # date's year, as a date alone written without one is.
+  defp interval_endpoints_for(:struct, left_partial, right_partial, calendar_module, reference) do
+    left = in_reference_year(left_partial, right_partial, reference)
+    right = in_reference_year(right_partial, left_partial, reference)
+
+    with {:ok, left_date} <- materialise(left, right, calendar_module),
+         {:ok, right_date} <- materialise(right, left, calendar_module) do
       {:ok, left_date, right_date}
     else
       _ -> :error
@@ -1008,6 +1013,14 @@ defmodule Localize.Date.Parser do
       _ -> :error
     end
   end
+
+  # A date of an interval in the reference date's year, where neither date
+  # is written with a year; one that takes the other's year keeps none here
+  # (`materialise/3`).
+  defp in_reference_year(%{year: nil} = partial, %{year: nil}, reference_year),
+    do: %{partial | year: reference_year}
+
+  defp in_reference_year(partial, _other, _reference_year), do: partial
 
   # Build the partial map for one interval endpoint. Missing
   # fields inherit from the other endpoint (CLDR interval

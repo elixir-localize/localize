@@ -610,7 +610,7 @@ iex> Localize.Interval.parse({"2026-05-05", "2026-05-10"})
 {:ok, Date.range(~D[2026-05-05], ~D[2026-05-10])}
 ```
 
-Fields missing from one endpoint are inherited from the other, following the CLDR interval convention, so `"5.–10. Mai 2026"` gives both endpoints a month and a year. The spaces about an interval format's dash may be left out or put in, so "May 5–10, 2026" reads as "May 5 – 10, 2026" does. An end-before-start interval is rejected unless `allow_inverted: true` is passed.
+Fields missing from one endpoint are inherited from the other, following the CLDR interval convention, so `"5.–10. Mai 2026"` gives both endpoints a month and a year. Two dates written without a year are of the reference date's year, as a date alone is, and the spaces about an interval format's dash may be left out or put in, so "May 5–10, 2026" reads as "May 5 – 10, 2026" does. An end-before-start interval is rejected unless `allow_inverted: true` is passed.
 
 ### When the shape is not known
 

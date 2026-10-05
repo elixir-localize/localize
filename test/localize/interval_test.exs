@@ -687,6 +687,57 @@ defmodule Localize.IntervalTest do
     end
   end
 
+  # A date alone written without a year is of the reference date's year,
+  # and two such dates read by an interval format had no year to be dates
+  # of: en.xml's `MMMd` interval is "MMM d – d", which was read only as two
+  # partial dates (`as: :map`), and as dates only where each side was a
+  # date of its own ("Jun 16 – Aug 20").
+  describe "parse/2 of an interval written without a year" do
+    test "is of the reference date's year" do
+      assert Interval.to_string(%{month: 6, day: 16}, %{month: 6, day: 20}, locale: :en) ==
+               {:ok, "Jun 16 – 20"}
+
+      for {locale, text} <- [en: "Jun 16 – 20", de: "16.–20. Juni", fr: "16–20 juin"] do
+        assert Interval.parse(text, locale: locale, reference_date: ~D[2026-01-01]) ==
+                 {:ok, Date.range(~D[2026-06-16], ~D[2026-06-20])},
+               text
+
+        assert Interval.parse(text, locale: locale, reference_date: ~D[2031-01-01]) ==
+                 {:ok, Date.range(~D[2031-06-16], ~D[2031-06-20])},
+               text
+      end
+    end
+
+    test "is still two partial dates as a map" do
+      assert Interval.parse("Jun 16 – 20", locale: :en, as: :map) ==
+               {:ok,
+                {%{calendar: Calendar.ISO, month: 6, day: 16},
+                 %{calendar: Calendar.ISO, month: 6, day: 20}}}
+    end
+
+    for {name, options} <- [
+          {":Md", [format: :Md]},
+          {":MMMd", [format: :MMMd]},
+          {":MMMMd", [format: :MMMMd]},
+          {":medium with the month and day", [format: :medium, fields: :month_and_day]}
+        ] do
+      test "reads back in each locale at #{name}" do
+        options = unquote(options)
+
+        failures =
+          for locale <- Localize.Test.InstalledLocales.all(),
+              to <- [~D[2026-06-20], ~D[2026-08-20]],
+              {:ok, text} = Interval.to_string(~D[2026-06-16], to, [locale: locale] ++ options),
+              parsed = Interval.parse(text, locale: locale, reference_date: ~D[2026-01-01]),
+              parsed != {:ok, Date.range(~D[2026-06-16], to)} do
+            {locale, text, parsed}
+          end
+
+        assert failures == [], inspect(Enum.take(failures, 5), pretty: true)
+      end
+    end
+  end
+
   describe "split_interval/1" do
     test "splits a simple interval pattern" do
       assert {:ok, ["MMM d – ", "d, y"]} = Interval.split_interval("MMM d – d, y")
