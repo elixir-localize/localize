@@ -476,6 +476,53 @@ defmodule Localize.DateParseEraTest do
     end
   end
 
+  # In a year two eras share, the year alone names neither: 2019 is Heisei
+  # 31 until April and Reiwa 1 from May, and 1989 Shōwa 64 for a week.
+  # en.xml's Japanese `yMMMd` interval for a day's difference is
+  # "MMM d – d, y G", whose second date is written without its month, and
+  # its year was asked about without the month it takes from the first.
+  describe "an interval in a year two eras share" do
+    test "is read where one date takes its month from the other" do
+      for {from, to, text} <- [
+            {{2019, 5, 1}, {2019, 5, 5}, "May 1 – 5, 1 Reiwa"},
+            {{2019, 4, 26}, {2019, 4, 30}, "Apr 26 – 30, 31 Heisei"},
+            {{1989, 1, 8}, {1989, 1, 12}, "Jan 8 – 12, 1 Heisei"},
+            {{1989, 1, 1}, {1989, 1, 5}, "Jan 1 – 5, 64 Shōwa"}
+          ] do
+        {year, month, day} = from
+        from = Date.new!(year, month, day, Japanese)
+        {year, month, day} = to
+        to = Date.new!(year, month, day, Japanese)
+
+        assert Localize.Interval.to_string(from, to, locale: :en, format: :medium) ==
+                 {:ok, text}
+
+        assert japanese_interval(text, :en) == {:ok, Date.range(from, to)}, text
+      end
+    end
+
+    test "reads back in each locale's formats" do
+      spans = [
+        {Date.new!(2019, 5, 1, Japanese), Date.new!(2019, 5, 5, Japanese)},
+        {Date.new!(2019, 5, 1, Japanese), Date.new!(2019, 8, 20, Japanese)},
+        {Date.new!(1989, 1, 8, Japanese), Date.new!(1989, 1, 12, Japanese)},
+        {Date.new!(1989, 1, 1, Japanese), Date.new!(1989, 1, 5, Japanese)}
+      ]
+
+      failures =
+        for locale <- [:en, :ja, :de, :fr, :ko, :zh, :ar, :ru],
+            format <- [:medium, :long, :GyMd, :GyMMMd],
+            {from, to} <- spans,
+            {:ok, text} = Localize.Interval.to_string(from, to, locale: locale, format: format),
+            parsed = japanese_interval(text, locale),
+            parsed != {:ok, Date.range(from, to)} do
+          {locale, format, text, parsed}
+        end
+
+      assert failures == [], inspect(Enum.take(failures, 5), pretty: true)
+    end
+  end
+
   # ja.xml's Japanese full, long and medium dates are written with
   # `numbers="y=jpanyear"`, whose rule (`rbnf/ja.xml`,
   # `%spellout-numbering-year-latn`) writes 1 as 元 and every other year in

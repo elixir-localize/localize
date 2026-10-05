@@ -134,6 +134,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+* An interval in a year two eras share is read where one of its dates is written without its month. `en`'s "May 1 – 5, 1 Reiwa" asked the calendar about the year 2019 alone, which is Heisei 31 until April, and was an error; each date now asks with the month and the day it takes from the other.
+
 * A skeleton with a numbered field takes the abbreviated width of a named one where the calendar has no numbered format for its fields, as CLDR's conformance data and ICU do. `GyMd` for a Chinese or Dangi date in `en` is "Mo5 2, 2026", from `GyMMMd`, where the order of two format ids chose `GyMMMMd`'s "Fifth Month 2, 2026(bing-wu)".
 
 * An interval's two values are written, and read, in the order the locale's fallback pattern states, as TR35 has it and ICU does: `kek`'s Gregorian pattern is "{1} – {0}", so its `yMd` item writes 16 June 2026 to 20 August 2027 as "20/8/2027 – 16/6/2026", where it wrote the earlier date first beside ranges the fallback pattern joined the other way. A date written once beside two times stays before them, and an open interval keeps no space where its missing value was.

@@ -933,8 +933,8 @@ defmodule Localize.Date.Parser do
       with {:ok, regex} <- compile_interval_regex(tokens_l, tokens_r, ctx),
            %{} = caps <- Regex.named_captures(regex, input),
            {left_era, right_era} = interval_eras(caps),
-           {:ok, left_partial} <- extract_partial(caps, "left_", left_era, ctx),
-           {:ok, right_partial} <- extract_partial(caps, "right_", right_era, ctx) do
+           {:ok, left_partial} <- extract_partial(caps, {"left_", "right_"}, left_era, ctx),
+           {:ok, right_partial} <- extract_partial(caps, {"right_", "left_"}, right_era, ctx) do
         interval_endpoints_for(
           as,
           left_partial,
@@ -1262,11 +1262,18 @@ defmodule Localize.Date.Parser do
     {left || right, right || left}
   end
 
-  defp extract_partial(caps, prefix, era_index, ctx) do
+  # One date of an interval, from the captures of its side of the pattern.
+  # Its year of an era is asked of the calendar about the date it will be:
+  # with the month and the day it takes from the other date where it writes
+  # none of its own (`materialise/3`). In a year two eras share the year
+  # alone names neither: `en`'s "May 1 – 5, 1 Reiwa" ends on a day written
+  # without its month, and 2019 is Heisei 31 until April.
+  defp extract_partial(caps, {prefix, other}, era_index, ctx) do
     month = extract_month(caps, prefix)
     day = extract_day(caps, prefix)
+    asked = {month || extract_month(caps, other), day || extract_day(caps, other)}
 
-    with {:ok, year} <- extract_calendar_year(caps, prefix, nil, era_index, ctx, {month, day}) do
+    with {:ok, year} <- extract_calendar_year(caps, prefix, nil, era_index, ctx, asked) do
       reject_invalid(%{year: year, month: month, day: day})
     end
   end
