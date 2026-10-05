@@ -827,7 +827,7 @@ defmodule Localize.Time do
     `Calendar.ISO`. Anything that is not a calendar module, a CLDR
     calendar type included, is a `t:Localize.UnknownCalendarError.t/0`.
 
-  * `:format` is the format the text was written with, as `to_string/2` takes it: a standard format (`:short`, `:medium`, `:long` or `:full`), a skeleton atom such as `:Hm`, a `Localize.DateTime.SemanticSkeleton` or a pattern string such as `"HH'h'mm"`. The text is read with that format and no other, ISO 8601 included. A `:long` or a `:full` format reads a time with its zone and, as it is written for a value that has none, without it. The default is `nil`: the text is read as ISO 8601 or in whichever of the locale's formats reads it first.
+  * `:format` is the format the text was written with, as `to_string/2` takes it: a standard format (`:short`, `:medium`, `:long` or `:full`), a skeleton atom such as `:Hm`, a `Localize.DateTime.SemanticSkeleton` or a pattern string such as `"HH'h'mm"`. The text is read with that format and no other, ISO 8601 included. A `:long` or a `:full` format reads a time with its zone and, as it is written for a value that has none, without it, and a semantic skeleton whose minutes are optional reads a time on the hour written without them. The default is `nil`: the text is read as ISO 8601 or in whichever of the locale's formats reads it first.
 
   * `:as` is `:struct` or `:map`. `:map` returns only the fields the input
     actually carried, rather than completing them; a minute or second no

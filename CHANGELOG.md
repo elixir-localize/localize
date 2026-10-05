@@ -134,6 +134,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+* `Localize.DateTime.parse/2` reads a date and time with the `Localize.DateTime.SemanticSkeleton` given as `:format`, each half with the skeleton's date fields or its time fields; the skeleton was ignored, and text in any of the locale's formats read. A skeleton whose minutes are optional reads a time on the hour written without them, "2 PM", which `Localize.Time.parse/2` refused.
+
 * A date and time is written with the numbering its date format states, CLDR's `numbers` attribute, as the date alone is. `he`'s Hebrew date and time was "1 בתמוז 5786, 14:30" beside the date's "א׳ בתמוז ה׳תשפ״ו", and `zh`'s Chinese day "2" beside "初二".
 
 * An interval whose CLDR item names the year is read with the related year the formatter writes in its place. `en`'s Chinese "Mo5 2 – 6, 2026", from the item "MMM d – d, U" at the medium format, was an error, as "2026 M05 2–6" was in 487 locales.

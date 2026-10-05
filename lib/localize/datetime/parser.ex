@@ -288,6 +288,10 @@ defmodule Localize.DateTime.Parser do
     end
   end
 
+  # The fields of a semantic skeleton that are a date's; its time and its
+  # zone are the time's.
+  @semantic_date_fields [:year, :month, :day, :weekday]
+
   defp format_halves(nil, _locale), do: {:ok, {nil, nil, nil}}
 
   defp format_halves(format, _locale) when format in @standard_formats,
@@ -320,11 +324,26 @@ defmodule Localize.DateTime.Parser do
 
   defp format_halves(format, _locale) when is_binary(format), do: split_pattern(format)
 
-  # A semantic skeleton of a date and time is not yet read as a format.
-  defp format_halves(%Localize.DateTime.SemanticSkeleton{}, _locale), do: {:ok, {nil, nil, nil}}
+  # A semantic skeleton's date fields and its time fields are each a
+  # semantic skeleton, as `Localize.DateTime.to_string/2` writes its two
+  # halves, a zone going with the time: each half is read as
+  # `Localize.Date.parse/2` and `Localize.Time.parse/2` read with one. A zone
+  # with no time is no time's format, and that half is read in any format.
+  defp format_halves(%Localize.DateTime.SemanticSkeleton{fields: fields} = semantic, _locale) do
+    case Enum.split_with(fields, &(&1 in @semantic_date_fields)) do
+      {date_fields, [:time | _zone] = time_fields} ->
+        {:ok, {semantic_half(semantic, date_fields), %{semantic | fields: time_fields}, nil}}
+
+      {date_fields, _no_time} ->
+        {:ok, {semantic_half(semantic, date_fields), nil, nil}}
+    end
+  end
 
   defp format_halves(format, _locale),
     do: {:error, Localize.DateTimeFormatError.exception(format: format, reason: :invalid_format)}
+
+  defp semantic_half(_semantic, []), do: nil
+  defp semantic_half(semantic, fields), do: %{semantic | fields: fields}
 
   @date_letters ~w(G y Y u U r Q q M L l w W d D F g E e c)
   @time_letters ~w(a b B h H K k j J C m s S A z Z O v V X x)

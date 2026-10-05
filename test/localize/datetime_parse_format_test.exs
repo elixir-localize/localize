@@ -158,6 +158,78 @@ defmodule Localize.DateTimeParseFormatTest do
     end
   end
 
+  describe "a semantic skeleton of a date and time" do
+    import Localize.DateTime.SemanticSkeleton, only: [semantic: 2]
+
+    # TR35 resolves a semantic skeleton from the locale's own formats at its
+    # length: en.xml's short date is "M/d/yy", its medium "MMM d, y" and its
+    # long "MMMM d, y", its time to the minute "h:mm a", and the two are
+    # joined "{1}, {0}" or, at the long length, "{1} 'at' {0}".
+    test "reads each half with its fields" do
+      for {length, text} <- [
+            short: "4/3/24, 10:05 PM",
+            medium: "Apr 3, 2024, 10:05 PM",
+            long: "April 3, 2024 at 10:05 PM"
+          ] do
+        format = semantic("YMDT", length: length, time_precision: :minute)
+
+        assert Localize.DateTime.to_string(~N[2024-04-03 22:05:00], locale: :en, format: format) ==
+                 {:ok, text},
+               text
+
+        assert Localize.DateTime.parse(text, locale: :en, format: format) ==
+                 {:ok, ~N[2024-04-03 22:05:00]},
+               text
+      end
+    end
+
+    # A time precision of optional minutes leaves the minutes out of a time
+    # on the hour, en.xml's `h`, "h a", for its `hm`, "h:mm a".
+    test "reads a time on the hour written without its minutes" do
+      format = semantic("YMDT", length: :short, time_precision: :minute_optional)
+
+      for {value, text} <- [
+            {~N[2024-04-03 22:00:00], "4/3/24, 10 PM"},
+            {~N[2024-04-03 22:05:00], "4/3/24, 10:05 PM"}
+          ] do
+        assert Localize.DateTime.to_string(value, locale: :en, format: format) == {:ok, text},
+               text
+
+        assert Localize.DateTime.parse(text, locale: :en, format: format) == {:ok, value}, text
+      end
+    end
+
+    # As with a pattern, the text is read with the skeleton's formats alone:
+    # neither another length's format, nor another hour cycle's, nor ISO
+    # 8601 is tried.
+    test "is the only format the text is read with" do
+      format = semantic("YMDT", length: :short, time_precision: :minute)
+
+      for text <- ["April 3, 2024 at 10:05 PM", "4/3/24, 22:05", "2024-04-03T22:05:00"] do
+        assert {:error, %Localize.DateTimeParseError{}} =
+                 Localize.DateTime.parse(text, locale: :en, format: format),
+               text
+      end
+    end
+
+    # en.xml's time with a zone is "h:mm a z". A date written without its
+    # year is of the reference date's year, as it is read alone.
+    test "reads a zone with the time, and a date without its year" do
+      zoned = semantic("YMDTZ", length: :medium, time_precision: :minute)
+
+      assert Localize.DateTime.parse("Apr 3, 2024, 10:05 PM UTC", locale: :en, format: zoned) ==
+               {:ok, ~U[2024-04-03 22:05:00Z]}
+
+      yearless = semantic("MDT", length: :medium, time_precision: :minute)
+
+      assert Localize.DateTime.parse("Apr 3, 10:05 PM",
+               locale: :en,
+               format: yearless,
+               reference_date: ~D[2024-01-01]
+             ) == {:ok, ~N[2024-04-03 22:05:00]}
+    end
+  end
+
   describe "what the formatter writes" do
     test "reads back with the format it was written with, in each locale" do
       failures =

@@ -69,6 +69,33 @@ defmodule Localize.TimeParseFormatTest do
     end
   end
 
+  # TR35's time precision of optional minutes leaves the minutes out of a
+  # time on the hour: en.xml's `h` is "h a" and its `hm` "h:mm a", so 14:00
+  # is "2 PM" and 14:30 "2:30 PM". The formatter chooses between them by the
+  # time it writes, which the reader does not have, so it reads either.
+  describe "a semantic skeleton of optional minutes" do
+    import Localize.DateTime.SemanticSkeleton, only: [semantic: 2]
+
+    test "reads a time on the hour and a time with its minutes" do
+      format = semantic("T", time_precision: :minute_optional)
+
+      for {time, text} <- [{~T[14:00:00], "2 PM"}, {~T[14:30:00], "2:30 PM"}] do
+        assert Localize.Time.to_string(time, locale: :en, format: format) == {:ok, text}, text
+        assert Localize.Time.parse(text, locale: :en, format: format) == {:ok, time}, text
+      end
+    end
+
+    test "is still the only format the text is read with" do
+      format = semantic("T", time_precision: :minute_optional)
+
+      for text <- ["2:30:45 PM", "14:30", "14"] do
+        assert {:error, %Localize.TimeParseError{}} =
+                 Localize.Time.parse(text, locale: :en, format: format),
+               text
+      end
+    end
+  end
+
   describe "a long or a full format" do
     # Both formats end in a zone. A time with no zone is written with the
     # format's other fields, as the locale writes them alone, and a time in

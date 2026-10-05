@@ -573,7 +573,7 @@ iex> Localize.Date.parse("4/3/2024", locale: :en, format: "d/M/y")
 {:ok, ~D[2024-03-04]}
 ```
 
-`Localize.Time.parse/2` takes `:format` the same way, and reads a `:long` or a `:full` time with its zone or, as it is written for a time that has none, without it. `Localize.DateTime.parse/2` reads each half with its part of `:format`: a standard format is the date's and the time's alike, a skeleton is split into its date fields and its time fields, and a pattern is split at the text between its date fields and its time fields, where the input is split too. `:date_format` and `:time_format` name a half's format on its own. `Localize.Interval.parse/2` reads each end with `:format`:
+`Localize.Time.parse/2` takes `:format` the same way, and reads a `:long` or a `:full` time with its zone or, as it is written for a time that has none, without it. `Localize.DateTime.parse/2` reads each half with its part of `:format`: a standard format is the date's and the time's alike, a skeleton or a semantic skeleton is split into its date fields and its time fields, and a pattern is split at the text between its date fields and its time fields, where the input is split too. `:date_format` and `:time_format` name a half's format on its own. `Localize.Interval.parse/2` reads each end with `:format`:
 
 ```elixir
 iex> Localize.Time.parse("14h30", locale: :en, format: "HH'h'mm")

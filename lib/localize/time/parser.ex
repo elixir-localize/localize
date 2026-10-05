@@ -137,20 +137,24 @@ defmodule Localize.Time.Parser do
   # error, as it is to `Localize.Time.to_string/2`: a quote left open, a
   # letter that is no field, a field of a date, or a field longer than any
   # format writes, which is written as U+FFFD.
+  #
+  # A semantic skeleton of optional minutes writes a time on the hour
+  # without them, "2 PM" beside "2:30 PM", so the patterns are those of a
+  # time with minutes and of one on the hour; for any other format the two
+  # are one pattern.
   defp format_patterns(format, locale, calendar, options) do
     time = %{calendar: calendar, hour: 10, minute: 30, second: 45, microsecond: {0, 6}}
-
-    zoned =
-      Map.merge(time, %{time_zone: "Etc/UTC", zone_abbr: "UTC", utc_offset: 0, std_offset: 0})
+    on_the_hour = %{time | minute: 0, second: 0}
+    zone = %{time_zone: "Etc/UTC", zone_abbr: "UTC", utc_offset: 0, std_offset: 0}
+    times = [time, Map.merge(time, zone), on_the_hour, Map.merge(on_the_hour, zone)]
 
     time_options =
       options |> Keyword.take([:prefer]) |> Keyword.merge(format: format, locale: locale)
 
     with {:ok, written} <- Localize.Time.to_string(time, time_options),
          false <- String.contains?(written, "�"),
-         {:ok, pattern} <- Localize.Time.resolve_pattern(time, format, locale, options),
-         {:ok, zoned_pattern} <- Localize.Time.resolve_pattern(zoned, format, locale, options) do
-      {:ok, Enum.uniq([pattern, zoned_pattern])}
+         {:ok, patterns} <- resolved_patterns(times, format, locale, options) do
+      {:ok, Enum.uniq(patterns)}
     else
       true ->
         {:error, Localize.DateTimeFormatError.exception(format: format, reason: :invalid_format)}
@@ -158,6 +162,15 @@ defmodule Localize.Time.Parser do
       {:error, _exception} = error ->
         error
     end
+  end
+
+  defp resolved_patterns(times, format, locale, options) do
+    Enum.reduce_while(times, {:ok, []}, fn time, {:ok, patterns} ->
+      case Localize.Time.resolve_pattern(time, format, locale, options) do
+        {:ok, pattern} -> {:cont, {:ok, patterns ++ [pattern]}}
+        {:error, _exception} = error -> {:halt, error}
+      end
+    end)
   end
 
   # A time is read in the time formats of the calendar it is written for,
