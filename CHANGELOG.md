@@ -134,6 +134,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+* A date of an interval written without an era is of the era beside the other date, where it was read in the era of the reference date: `ja`'s "H5/06/16～5/06/20", five days of 1993, read as 1993 to 2023, and `en`'s "6/16/5 – 6/20/5 Heisei" was an error. A narrow era name is read wherever it names one era, by a format that states it before one that only allows it, so the narrow era a short interval writes ("R 8/06/16 – 8/06/20") reads back.
+
 * A Hebrew date in Elul is read beside its era. The year of an era is settled by asking the calendar about the date, and it was asked about CLDR's number for the month, 13, in a common year of twelve months, so `de`'s "07.13.5786 AM", `af`'s "07 Elul 5786 AM" and every interval ending in Elul were errors.
 
 * A narrow month name is read where the format writes one and the calendar's narrow names tell its months apart. `mn`'s `yM` is "y MMMMM" and its narrow months are Roman numerals, so the "2026 VI" it writes and its intervals, "2026 оны VI/16 – VIII/20", read back where every narrow name was passed over; `en`'s "J", three months' name, is still no month.

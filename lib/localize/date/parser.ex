@@ -270,7 +270,15 @@ defmodule Localize.Date.Parser do
     with {:ok, pattern} <- format_pattern(format, options, reading),
          {:ok, _patterns, ctx} <-
            locale_patterns(locale, calendar_module, own_calendar, reference) do
-      ctx = %{ctx | regexes: %{pattern => build_pattern_regex(pattern, ctx)}, mixed_years: false}
+      # One format reads the text, so an era's narrow name is read whatever
+      # width the format states (`narrow_era_branches/2`).
+      ctx = %{
+        ctx
+        | regexes: %{pattern => build_pattern_regex(pattern, ctx)},
+          mixed_years: false,
+          narrow_eras: true
+      }
+
       transliterated = inputs |> Enum.map(&transliterate_digits(&1, locale)) |> Enum.uniq()
 
       read_patterns([{:format, pattern}], transliterated, ctx, as) ||
@@ -889,8 +897,9 @@ defmodule Localize.Date.Parser do
 
       with {:ok, regex} <- compile_interval_regex(tokens_l, tokens_r, ctx),
            %{} = caps <- Regex.named_captures(regex, input),
-           {:ok, left_partial} <- extract_partial(caps, "left_", ctx),
-           {:ok, right_partial} <- extract_partial(caps, "right_", ctx) do
+           {left_era, right_era} = interval_eras(caps),
+           {:ok, left_partial} <- extract_partial(caps, "left_", left_era, ctx),
+           {:ok, right_partial} <- extract_partial(caps, "right_", right_era, ctx) do
         interval_endpoints_for(
           as,
           left_partial,
@@ -1207,8 +1216,18 @@ defmodule Localize.Date.Parser do
   # endpoint's portion of the pattern); represented as `nil`
   # so `materialise/3` can fill from the other side. A year
   # written with its era is the year of that era.
-  defp extract_partial(caps, prefix, ctx) do
-    era_index = extract_partial_era_index(caps, prefix)
+  # The era of each date of an interval. A pattern writes the era once where
+  # the two dates share it ("M/d/y – M/d/y G", "G y-MM-dd – y-MM-dd"), so a
+  # date written without one is of the era beside the other, as it takes the
+  # other's year where it has none: "H5/06/16～5/06/20" is five days of
+  # Heisei 5, whatever era the reference date is in.
+  defp interval_eras(caps) do
+    left = extract_partial_era_index(caps, "left_")
+    right = extract_partial_era_index(caps, "right_")
+    {left || right, right || left}
+  end
+
+  defp extract_partial(caps, prefix, era_index, ctx) do
     month = extract_month(caps, prefix)
     day = extract_day(caps, prefix)
 
@@ -1452,7 +1471,8 @@ defmodule Localize.Date.Parser do
   # The era field's capture index, which `resolve_calendar_year/4`
   # turns a year of that era into the calendar's year with.
   defp extract_partial_era_index(caps, prefix) do
-    prefixed_indexed_capture(caps, prefix, "__e", ~r/__e(\d+)__$/)
+    prefixed_indexed_capture(caps, prefix, "__e", ~r/__e(\d+)__$/) ||
+      prefixed_indexed_capture(caps, prefix, "__f", ~r/__f(\d+)__$/)
   end
 
   # The month a `<prefix>__mN__` capture names. A month name gives CLDR's
@@ -1733,8 +1753,26 @@ defmodule Localize.Date.Parser do
       transliterated = inputs |> Enum.map(&transliterate_digits(&1, locale)) |> Enum.uniq()
 
       read_patterns(patterns, transliterated, ctx, as) ||
+        read_by_narrow_era(patterns, transliterated, ctx, as) ||
         {:error, no_match_error(hd(inputs), locale, calendar_module)}
     end
+  end
+
+  # The reading of the inputs that takes the era by a narrow name the
+  # pattern does not state (`narrow_era_branches/2`), tried once no pattern
+  # reads them otherwise, so a pattern that states the narrow name, or reads
+  # no era at all, is never passed over for one that only allows it.
+  defp read_by_narrow_era(patterns, inputs, ctx, as) do
+    patterns
+    |> Enum.filter(fn {_kind, pattern} -> era_field?(pattern) end)
+    |> read_patterns(inputs, %{ctx | narrow_eras: true}, as)
+  end
+
+  defp era_field?(pattern) do
+    pattern
+    |> pattern_text()
+    |> tokenize_pattern()
+    |> Enum.any?(&match?({:G, _count}, &1))
   end
 
   # The first reading of the inputs any of the patterns gives, or `nil`.
@@ -2187,6 +2225,7 @@ defmodule Localize.Date.Parser do
       reference_year: reference.year,
       implied_era: implied_era(reference, calendar_module),
       cyclic_year_written: cyclic_year_written?(reference, calendar_module, locale),
+      narrow_eras: false,
       mixed_years: false,
       calendar_module: calendar_module,
       own_calendar: own_calendar,
@@ -3004,8 +3043,8 @@ defmodule Localize.Date.Parser do
   # and keeps CLDR's alternative era names at negative indices: `-1`
   # for era 0 ("BCE") and `-2` for era 1 ("CE"). They fold onto their
   # era here, because a regex group name cannot carry a minus sign and
-  # a pattern whose regex does not compile never matches. The wide
-  # and abbreviated names are accepted whatever the pattern's width.
+  # a pattern whose regex does not compile never matches. A name of
+  # another width than the pattern's is accepted where it names one era.
   defp era_name_regex(eras_data, width) when is_map(eras_data) do
     declared = era_names(Map.get(eras_data, width) || Map.get(eras_data, :abbreviated))
 
@@ -3014,7 +3053,32 @@ defmodule Localize.Date.Parser do
         era_names(Map.get(eras_data, era_width))
       end)
 
-    grouped_name_regex(declared, lenient, "__e")
+    case name_branches(declared, lenient, "__e") ++
+           narrow_era_branches(eras_data, declared ++ lenient) do
+      [] -> :none
+      branches -> {:branches, "(?i:" <> Enum.join(branches, "|") <> ")"}
+    end
+  end
+
+  # The narrow name is among an era's other forms: an interval item states
+  # its era as `G` and the formatter writes it at the width the format asks
+  # for, the narrow "R" of a short date in "R 8/06/16 – 8/06/20". It is one
+  # letter in most locales, so a narrow name the pattern does not state is
+  # captured under a marker of its own, `__f`, after every name the pattern
+  # does read, and a date is read by it only where no pattern reads the text
+  # otherwise (`read_by_narrow_era/4`): `sv-AX` writes a Japanese date at
+  # `GyMd` as "8-01-07 R", from "y-MM-dd GGGGG", and its short date is
+  # "d.M.y G", which would read that text as the 8th of January of Reiwa 7.
+  defp narrow_era_branches(eras_data, read) do
+    read_names = MapSet.new(read, fn {_index, name} -> String.downcase(name) end)
+
+    unread =
+      eras_data
+      |> Map.get(:narrow)
+      |> era_names()
+      |> Enum.reject(fn {_index, name} -> String.downcase(name) in read_names end)
+
+    name_branches([], unread, "__f")
   end
 
   defp era_names(names) when is_map(names) do
@@ -3039,6 +3103,13 @@ defmodule Localize.Date.Parser do
   # "if they are unique", so a lenient name is added only when it
   # belongs to a single index.
   defp grouped_name_regex(declared, lenient, marker) do
+    case name_branches(declared, lenient, marker) do
+      [] -> :none
+      branches -> {:branches, "(?i:" <> Enum.join(branches, "|") <> ")"}
+    end
+  end
+
+  defp name_branches(declared, lenient, marker) do
     indices_by_name =
       Enum.group_by(declared ++ lenient, &String.downcase(elem(&1, 1)), &elem(&1, 0))
 
@@ -3047,23 +3118,15 @@ defmodule Localize.Date.Parser do
         match?([_index], Enum.uniq(Map.fetch!(indices_by_name, String.downcase(name))))
       end)
 
-    case Enum.group_by(declared ++ unique, &elem(&1, 0), &elem(&1, 1)) do
-      groups when map_size(groups) == 0 ->
-        :none
-
-      groups ->
-        branches =
-          groups
-          |> Enum.map(fn {index, names} ->
-            {index, names |> Enum.uniq() |> Enum.sort_by(&(-byte_size(&1)))}
-          end)
-          |> Enum.sort_by(fn {_index, [longest | _shorter]} -> -byte_size(longest) end)
-          |> Enum.map(fn {index, names} ->
-            "(?P<#{marker}#{index}__>#{Enum.map_join(names, "|", &Regex.escape/1)})"
-          end)
-
-        {:branches, "(?i:" <> Enum.join(branches, "|") <> ")"}
-    end
+    (declared ++ unique)
+    |> Enum.group_by(&elem(&1, 0), &elem(&1, 1))
+    |> Enum.map(fn {index, names} ->
+      {index, names |> Enum.uniq() |> Enum.sort_by(&(-byte_size(&1)))}
+    end)
+    |> Enum.sort_by(fn {_index, [longest | _shorter]} -> -byte_size(longest) end)
+    |> Enum.map(fn {index, names} ->
+      "(?P<#{marker}#{index}__>#{Enum.map_join(names, "|", &Regex.escape/1)})"
+    end)
   end
 
   # CLDR width map for `E`/`e`/`c` letters.
@@ -3183,10 +3246,13 @@ defmodule Localize.Date.Parser do
   end
 
   # `{:ok, result}`, `:error` when the pattern matched but its fields
-  # make no date, or `:no_match` when it did not match.
+  # make no date, or `:no_match` when it did not match. A pattern that
+  # reads the era by a narrow name it does not state matches only once
+  # `ctx.narrow_eras` allows it (`read_by_narrow_era/4`).
   defp match_pattern(input, pattern, ctx, as) do
     with %Regex{} = regex <- Map.get(ctx.regexes, pattern),
-         %{} = caps <- Regex.named_captures(regex, input) do
+         %{} = caps <- Regex.named_captures(regex, input),
+         true <- ctx.narrow_eras or is_nil(named_capture_index(caps, "__f")) do
       tokens = pattern |> pattern_text() |> tokenize_pattern()
 
       caps
@@ -3489,7 +3555,7 @@ defmodule Localize.Date.Parser do
   end
 
   defp extract_era(caps) do
-    {:ok, named_capture_index(caps, "__e")}
+    {:ok, named_capture_index(caps, "__e") || named_capture_index(caps, "__f")}
   end
 
   # Find the first non-empty capture named `<marker><N>__`

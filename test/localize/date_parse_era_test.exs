@@ -101,6 +101,42 @@ defmodule Localize.DateParseEraTest do
     end
   end
 
+  # The Japanese calendar's last three eras, Shōwa from 1926-12-25, Heisei
+  # from 1989-01-08 and Reiwa from 2019-05-01 (CLDR's `supplementalData.xml`),
+  # its dates otherwise ISO's, as Calendrical's Japanese calendar has them.
+  defmodule Japanese do
+    @moduledoc false
+    use Localize.Test.StandInCalendar
+
+    @eras [{~D[2019-05-01], 236}, {~D[1989-01-08], 235}, {~D[1926-12-25], 234}]
+
+    def cldr_calendar_type, do: :japanese
+    def cardinal_month(month), do: month
+    def month_of_year(_year, month, _day), do: month
+
+    def year_of_era(_year, month, day) when is_nil(month) or is_nil(day),
+      do: {:error, :missing_fields}
+
+    def year_of_era(year, month, day) do
+      with {:ok, date} <- Date.new(year, month, day),
+           {start, era} <-
+             Enum.find(@eras, fn {start, _era} -> Date.compare(date, start) != :lt end) do
+        {year - start.year + 1, era}
+      else
+        _no_era -> {:error, :invalid_date}
+      end
+    end
+
+    def calendar_year(year, month, day) do
+      with {year_of_era, _era} <- year_of_era(year, month, day), do: year_of_era
+    end
+
+    defdelegate valid_date?(year, month, day), to: Calendar.ISO
+    defdelegate days_in_month(year, month), to: Calendar.ISO
+    defdelegate months_in_year(year), to: Calendar.ISO
+    defdelegate date_to_string(year, month, day), to: Calendar.ISO
+  end
+
   @locales ~w(am ar bal be bn cy da de en en-AU es fa fi fr he hi hu it ja ko ky mr my pt ru th uk zh zh-Hant)a
 
   describe "a year written with its era" do
@@ -203,6 +239,160 @@ defmodule Localize.DateParseEraTest do
         end
 
       assert failures == [], inspect(Enum.take(failures, 5), pretty: true)
+    end
+  end
+
+  # CLDR's interval patterns write an era once where both dates are in it:
+  # `en.xml`'s Japanese `GyMd` is "M/d/y – M/d/y G" and `ja.xml`'s
+  # "GGGGGy/MM/dd～y/MM/dd". The date without the era is of the era beside
+  # the other date. It was read in the era of the reference date, so five
+  # days of Heisei 5 (1993) read from 2026 ran on to Reiwa 5 (2023).
+  describe "an interval's era, written once" do
+    @reiwa_8 Date.new!(2026, 6, 16, Japanese)
+
+    defp japanese_interval(text, locale) do
+      Localize.Interval.parse(text, locale: locale, calendar: Japanese, reference_date: @reiwa_8)
+    end
+
+    test "is the era of the date written without one" do
+      from = Date.new!(1993, 6, 16, Japanese)
+      to = Date.new!(1993, 6, 20, Japanese)
+
+      assert Localize.Interval.to_string(from, to, locale: :en, format: :GyMd) ==
+               {:ok, "6/16/5 – 6/20/5 Heisei"}
+
+      assert japanese_interval("6/16/5 – 6/20/5 Heisei", :en) ==
+               {:ok, Date.range(from, to)}
+
+      assert Localize.Interval.to_string(from, to, locale: :ja, format: :GyMd) ==
+               {:ok, "H5/06/16～5/06/20"}
+
+      assert japanese_interval("H5/06/16～5/06/20", :ja) == {:ok, Date.range(from, to)}
+    end
+
+    test "is the era of a year written without one" do
+      from = Date.new!(1993, 6, 16, Japanese)
+
+      failures =
+        for locale <- [:en, :ja, :de, :fr, :ko, :zh],
+            format <- [:medium, :long, :GyMd, :GyMMMd],
+            to <- [
+              Date.new!(1993, 6, 20, Japanese),
+              Date.new!(1993, 8, 20, Japanese),
+              Date.new!(1994, 8, 20, Japanese)
+            ],
+            {:ok, text} = Localize.Interval.to_string(from, to, locale: locale, format: format),
+            parsed = japanese_interval(text, locale),
+            parsed != {:ok, Date.range(from, to)} do
+          {locale, format, text, parsed}
+        end
+
+      assert failures == [], inspect(Enum.take(failures, 5), pretty: true)
+    end
+
+    # Two eras are each written, and each date keeps its own.
+    test "leaves a date the era written beside it" do
+      from = Date.new!(1988, 6, 16, Japanese)
+      to = Date.new!(1990, 8, 20, Japanese)
+
+      for locale <- [:en, :ja, :de], format <- [:medium, :GyMd] do
+        {:ok, text} = Localize.Interval.to_string(from, to, locale: locale, format: format)
+
+        assert japanese_interval(text, locale) == {:ok, Date.range(from, to)},
+               "#{locale} #{inspect(text)}"
+      end
+    end
+
+    # `en.xml`'s Gregorian `GyMMMd` for a year's difference is
+    # "MMM d, y – MMM d, y G": 45 BC to 44 BC.
+    test "is the era before the common era of both years" do
+      assert Localize.Interval.to_string(~D[-0044-03-15], ~D[-0043-05-20],
+               locale: :en,
+               format: :GyMMMd
+             ) == {:ok, "Mar 15, 45 – May 20, 44 BC"}
+
+      assert Localize.Interval.parse("Mar 15, 45 – May 20, 44 BC", locale: :en) ==
+               {:ok, Date.range(~D[-0044-03-15], ~D[-0043-05-20])}
+    end
+  end
+
+  # An interval item states its era as `G`, and the formatter writes it at
+  # the width the format asks for: most locales' short date formats write
+  # the narrow era, `am.xml`'s Japanese short date being "dd/MM/y GGGGG" and
+  # its interval "R 8/06/16 – 8/06/20". TR35's parsing takes a field's other
+  # forms "if they are unique"; the narrow name was read only where the
+  # pattern in hand had five letters.
+  describe "a narrow era name" do
+    test "is read in an interval whose item states another width" do
+      from = Date.new!(2026, 6, 16, Japanese)
+
+      failures =
+        for locale <- [:am, :ar, :en, :fr, :de, :ja, :ko],
+            format <- [:short, :medium],
+            to <- [
+              Date.new!(2026, 6, 20, Japanese),
+              Date.new!(2026, 8, 20, Japanese),
+              Date.new!(2027, 8, 20, Japanese)
+            ],
+            {:ok, text} = Localize.Interval.to_string(from, to, locale: locale, format: format),
+            parsed = japanese_interval(text, locale),
+            parsed != {:ok, Date.range(from, to)} do
+          {locale, format, text, parsed}
+        end
+
+      assert failures == [], inspect(Enum.take(failures, 5), pretty: true)
+    end
+
+    test "is read beside a date, where it names one era" do
+      assert Localize.Date.parse("6/16/8 R",
+               locale: :en,
+               calendar: Japanese,
+               reference_date: @reiwa_8
+             ) == {:ok, Date.new!(2026, 6, 16, Japanese)}
+
+      assert Localize.Date.parse("6/16/5 H",
+               locale: :en,
+               calendar: Japanese,
+               reference_date: @reiwa_8
+             ) == {:ok, Date.new!(1993, 6, 16, Japanese)}
+    end
+
+    # en.xml's Gregorian formats state the era as `G`, "AD" and "BC", and
+    # its narrow names are "A" and "B": no format states them, and the text
+    # is read once one that allows them is tried.
+    test "is read beside a date where no format states it" do
+      assert Localize.Date.parse("6/16/2026 A", locale: :en) == {:ok, ~D[2026-06-16]}
+      assert Localize.Date.parse("3/15/44 B", locale: :en) == {:ok, ~D[-0043-03-15]}
+      assert Localize.Date.parse("Mar 15, 44 B", locale: :en) == {:ok, ~D[-0043-03-15]}
+    end
+
+    # `sv.xml` writes a Japanese date at `GyMd` with "y-MM-dd GGGGG", the
+    # narrow era stated, and `sv_AX.xml`'s short date is "d.M.y G". Each
+    # reads "8-01-07 R", CLDR's lenient dates taking a hyphen for a full
+    # stop: the format that states the narrow name is the one that wrote it,
+    # and the other would make it the 8th of January of Reiwa 7.
+    test "is read by the format that states it before one that allows it" do
+      date = Date.new!(2026, 1, 7, Japanese)
+
+      assert Localize.Date.to_string(date, locale: :"sv-AX", format: :GyMd) ==
+               {:ok, "8-01-07 R"}
+
+      assert Localize.Date.parse("8-01-07 R",
+               locale: :"sv-AX",
+               calendar: Japanese,
+               reference_date: @reiwa_8
+             ) == {:ok, date}
+
+      # The short date's own text is read in its order, the era's
+      # abbreviated name stated.
+      assert Localize.Date.to_string(date, locale: :"sv-AX", format: :short) ==
+               {:ok, "7.1.8 Reiwa"}
+
+      assert Localize.Date.parse("7.1.8 Reiwa",
+               locale: :"sv-AX",
+               calendar: Japanese,
+               reference_date: @reiwa_8
+             ) == {:ok, date}
     end
   end
 

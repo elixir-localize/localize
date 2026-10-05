@@ -92,6 +92,7 @@ test_locales = [
   "sd-Deva",
   "su",
   "sv",
+  "sv-AX",
   "sw",
   "th",
   "uk",
