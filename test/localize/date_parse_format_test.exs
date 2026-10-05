@@ -328,4 +328,72 @@ defmodule Localize.DateParseFormatTest do
                  %{calendar: Calendar.ISO, year: 2024, month: 3, day: 10}}}
     end
   end
+
+  # `mn.xml` writes a narrow month in five of its formats and in its
+  # interval patterns: `yM` is "y MMMMM" and `Md` "MMMMM/dd", and its narrow
+  # months are the Roman numerals. ICU4C 78.3 writes 16 June 2026 at `yM` as
+  # "2026 VI" and 16 June to 20 August at `yMd` as "2026 оны VI/16 –
+  # VIII/20". No narrow name was read, in any locale.
+  describe "a narrow month name" do
+    test "is read where the pattern writes one and the names tell the months apart" do
+      june = %{calendar: Calendar.ISO, year: 2026, month: 6}
+
+      assert Localize.Date.to_string(~D[2026-06-16], format: :yM, locale: :mn) ==
+               {:ok, "2026 VI"}
+
+      assert Localize.Date.parse("2026 VI", locale: :mn, format: :yM, as: :map) == {:ok, june}
+      assert Localize.Date.parse("2026 VI", locale: :mn, as: :map) == {:ok, june}
+
+      for {numeral, month} <- [
+            {"I", 1},
+            {"II", 2},
+            {"III", 3},
+            {"IV", 4},
+            {"V", 5},
+            {"VII", 7},
+            {"VIII", 8},
+            {"IX", 9},
+            {"X", 10},
+            {"XI", 11},
+            {"XII", 12}
+          ] do
+        assert Localize.Date.parse("2026 " <> numeral, locale: :mn, as: :map) ==
+                 {:ok, %{june | month: month}},
+               numeral
+      end
+
+      assert {:error, %Localize.DateParseError{}} =
+               Localize.Date.parse("2026 XIII", locale: :mn, as: :map)
+    end
+
+    test "is read beside a day and in an interval" do
+      assert Localize.Date.to_string(~D[2026-06-16], format: :Md, locale: :mn) == {:ok, "VI/16"}
+
+      assert Localize.Date.parse("VI/16", locale: :mn, format: :Md, as: :map) ==
+               {:ok, %{calendar: Calendar.ISO, month: 6, day: 16}}
+
+      for {to, text} <- [
+            {~D[2026-06-20], "2026 оны VI/16 – VI/20"},
+            {~D[2026-08-20], "2026 оны VI/16 – VIII/20"},
+            {~D[2027-08-20], "2026 оны VI/16 – 2027 оны VIII/20"}
+          ] do
+        assert Localize.Interval.to_string(~D[2026-06-16], to, format: :yMd, locale: :mn) ==
+                 {:ok, text}
+
+        assert Localize.Interval.parse(text, locale: :mn) ==
+                 {:ok, Date.range(~D[2026-06-16], to)},
+               text
+      end
+    end
+
+    # `en.xml`'s narrow months are one letter each, "J" for January, June
+    # and July, so its narrow month names no month.
+    test "is not read where the names do not tell the months apart" do
+      assert Localize.Date.to_string(~D[2026-06-16], format: :yMMMMM, locale: :en) ==
+               {:ok, "J 2026"}
+
+      assert {:error, %Localize.DateParseError{}} =
+               Localize.Date.parse("J 2026", locale: :en, format: :yMMMMM, as: :map)
+    end
+  end
 end

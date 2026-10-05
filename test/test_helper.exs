@@ -73,6 +73,7 @@ test_locales = [
   "ko",
   "ku",
   "ky",
+  "mn",
   "mr",
   "ms",
   "my",

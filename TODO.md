@@ -26,7 +26,7 @@ Outstanding work on Localize. The design detail behind these items lives under [
 
 * [ ] **A skeleton is not matched against the standard formats' patterns** — TR35 has the list a skeleton is matched against hold "`dateFormatItem` elements as well as the predefined patterns", the standard date and time formats, and ICU4C adds them: `pl`'s Chinese `yMd` is root's `yyyyMd`, "2026-05-02", where its short date "dd.MM.y" is nearer and ICU writes "2.5.43", and `gsw`'s Buddhist `yyMd` is "BE 69-06-16" beside its short date "d.M.y".
 
-* [ ] **A narrow month name is not read** — `mn`'s `yM` is "y MMMMM" and its narrow months are Roman numerals, so the "2026 VI" it writes is an error to read with that skeleton, as "AH 1444 9" is in the Islamic calendar: 58 of the 448,074 dates written at eleven skeletons in 31 calendars and 657 locales, the other 16 that are not read back being CLDR's week-based years (`te`, `my` and `ksh`, in the report below).
+* [ ] **A Hebrew date in Elul is not read beside its era** — a year of an era is settled by asking the calendar about the date, with CLDR's number for the month where the calendar counts months by their place in the year, so a common year's Elul, written 13, is a month the year has not: `de`'s "07.13.5786 AM" and `af`'s "07 Elul 5786 AM" are errors, as is every Hebrew interval that ends in Elul in 235 locales (706 of 195,257 intervals). `mn`'s narrow Hebrew months, where "7" names Adar and Adar II alike, are not read either.
 
 * [ ] **An interval across sixty-year cycles writes its two dates alike** — two Chinese or Dangi dates sixty years apart take the interval's pattern for a year, "5/2/43 – 5/2/43" for `en`'s `yMd`, where ICU4C holds the cycle as an era and writes both in the skeleton's own format, "5/2/2026 – 5/2/2086". Decide whether a year of another cycle is written in full, as a year of another era is.
 
@@ -71,6 +71,8 @@ Outstanding work on Localize. The design detail behind these items lives under [
 * [ ] **`localize_emoji` sibling library** — plan item 11, a separate package on its own schedule. A Phoenix LiveView picker (`localize_emoji_live`) is out of scope for its 0.1.0.
 
 ## Done
+
+* [x] **A narrow month name is read where it names one month** — where a format writes a narrow month and the calendar's narrow names are each one month's, as `mn`'s Roman numerals are and `en`'s "J" is not: `mn` alone writes one, in five formats and 37 interval patterns, so its `yM` "2026 VI" and its numeric intervals read back (52 of its 54 dates that were not, the two left Hebrew), and of 1,486,134 narrow months written in 29 calendars and 657 locales none reads as another month. 2026-10-05, v1.4.0.
 
 * [x] **A format with a variant is read as the formatter writes it** — `en-CA`, the one locale with variants of its date formats, has its standard and default patterns read before their variants: its short date in a calendar it takes from `en` ("5/2/2026", read day first in ten of 173,576 dates) and its numeric intervals, items of two patterns the reader passed over (42 of 195,257 intervals, CLDR's month-first "6/16/2026–6/20/2026" among them, which the formatter writes as ICU4C does). 2026-10-05, v1.4.0.
 

@@ -2879,14 +2879,14 @@ defmodule Localize.Date.Parser do
   defp space_char?("　"), do: true
   defp space_char?(_), do: false
 
-  defp month_name_regex(months_data, _declared_width, month_patterns) do
+  defp month_name_regex(months_data, declared_width, month_patterns) do
     # CLDR TR35 §6.5 (lenient parsing): the pattern declares a
     # width (`MMM` = abbreviated, `MMMM` = wide), but real-world
     # input may use any of them. We accept both wide and
     # abbreviated names regardless of the pattern's declared
-    # width. Narrow forms are deliberately excluded — they're
-    # single-letter display forms (en's `:narrow` is "J" for both
-    # January and June), useless for parsing.
+    # width. A narrow name is read only where the pattern writes
+    # one and the names tell the months apart
+    # (`month_name_widths/2`).
     #
     # Format (`M`) and stand-alone (`L`) names are both accepted
     # for either symbol: ru's format July is "июля" and its
@@ -2900,7 +2900,7 @@ defmodule Localize.Date.Parser do
     # match a prefix of input.
     by_index =
       for context <- [:format, :stand_alone],
-          width <- [:wide, :abbreviated],
+          width <- month_name_widths(months_data, declared_width),
           {index, name} <- get_in(months_data, [context, width]) || %{} do
         {index, name, width}
       end
@@ -2922,6 +2922,41 @@ defmodule Localize.Date.Parser do
     # case-insensitive, so French "Mai" matches lowercase "mai"
     # in CLDR data, English "MAY" matches "May", etc.
     "(?i:" <> Enum.join(leap_month_branches(months_data, month_patterns) ++ branches, "|") <> ")"
+  end
+
+  # The widths of name a month field is read in. A narrow name is one
+  # letter in most locales, `en`'s "J" being January, June and July, so it
+  # is read only where the pattern writes a narrow month and the calendar's
+  # narrow names are each one month's and no other month's wide or
+  # abbreviated name: `mn`'s `yM` is "y MMMMM" and its narrow months are
+  # Roman numerals in the Gregorian calendar, "2026 VI", and digits in the
+  # others.
+  defp month_name_widths(months_data, :narrow) do
+    if distinct_narrow_months?(months_data),
+      do: [:wide, :abbreviated, :narrow],
+      else: [:wide, :abbreviated]
+  end
+
+  defp month_name_widths(_months_data, _declared_width), do: [:wide, :abbreviated]
+
+  defp distinct_narrow_months?(months_data) do
+    narrow = month_names(months_data, [:narrow])
+    names = narrow ++ month_names(months_data, [:wide, :abbreviated])
+
+    narrow != [] and
+      Enum.all?(narrow, fn {name, index} ->
+        Enum.all?(names, fn {its_name, its_index} -> its_name != name or its_index == index end)
+      end)
+  end
+
+  # Each name of the widths with its month, in lower case, as a name is
+  # read whatever its case.
+  defp month_names(months_data, widths) do
+    for context <- [:format, :stand_alone],
+        width <- widths,
+        {index, name} when is_binary(name) <- get_in(months_data, [context, width]) || %{},
+        uniq: true,
+        do: {String.downcase(name), index}
   end
 
   # A lunisolar calendar's leap months: each month's name in the
