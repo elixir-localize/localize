@@ -2949,14 +2949,17 @@ defmodule Localize.Date.Parser do
       end)
   end
 
-  # Each name of the widths with its month, in lower case, as a name is
-  # read whatever its case.
+  # Each name of the widths with CLDR's number for its month, in lower case,
+  # as a name is read whatever its case. A leap-year name of a month (the
+  # Hebrew `7_yeartype_leap`, "Adar II") is that month's: its narrow name is
+  # the month's own, "7", which the year then places (`named_month/3`).
   defp month_names(months_data, widths) do
     for context <- [:format, :stand_alone],
         width <- widths,
         {index, name} when is_binary(name) <- get_in(months_data, [context, width]) || %{},
+        {month, _leap_or_nothing} <- [index |> to_string() |> Integer.parse()],
         uniq: true,
-        do: {String.downcase(name), index}
+        do: {String.downcase(name), month}
   end
 
   # A lunisolar calendar's leap months: each month's name in the
@@ -3529,14 +3532,11 @@ defmodule Localize.Date.Parser do
   # first year counts from the calendar year it begins in, so Amete Alem
   # 5495 is the Ethiopic year -5. Those are the candidates, each asked of
   # the calendar through the functions the formatter uses. The month and
-  # day, where the input has them as numbers, settle an era that begins
-  # mid-year.
+  # day, where the input has them, settle an era that begins mid-year.
   defp year_in_era(year, era_index, calendar_module, {month, day}) do
-    probe = era_probe(calendar_module, era_month(month), era_day(day))
-
     ([year, -year, 1 - year] ++ counted_from_era_start(year, era_index, calendar_module))
     |> Enum.uniq()
-    |> Enum.find(&written_as?(Map.put(probe, :year, &1), year, era_index))
+    |> Enum.find(&written_as?(era_probe(calendar_module, &1, month, day), year, era_index))
     |> case do
       nil -> {:error, :unknown_era}
       calendar_year -> {:ok, calendar_year}
@@ -3578,22 +3578,30 @@ defmodule Localize.Date.Parser do
       match?({:ok, {_year_of_era, ^era_index}}, Localize.Calendar.year_of_era(date))
   end
 
-  # Asked of the year's first day: the probe's month may be a lunisolar
-  # month's traditional number, where the calendar counts months by their
-  # place in the year.
+  # Asked of the year's first day, which every year the calendar holds has,
+  # before a month is placed in the year.
   defp calendar_holds?(%{calendar: calendar, year: year}) do
     Localize.Calendar.answering(calendar).valid_date?(year, 1, 1)
   end
 
-  defp era_probe(calendar_module, nil, _day), do: %{calendar: calendar_module}
+  # The date a candidate year is asked about. The month the input gave is
+  # CLDR's number for it, and the calendar is asked about the month of the
+  # candidate year it names so (`named_month/3`): a Hebrew common year has
+  # twelve months and its Elul is written 13, a month the calendar would say
+  # the year has not. Where the year has no such month, or the input gave
+  # none, the year alone is asked about.
+  defp era_probe(calendar_module, year, month, day) do
+    probe = %{calendar: calendar_module, year: year}
 
-  defp era_probe(calendar_module, month, nil),
-    do: %{calendar: calendar_module, month: month}
+    with true <- calendar_holds?(probe),
+         placed when is_integer(placed) <- named_month(era_month(month), year, calendar_module) do
+      probe |> Map.put(:month, placed) |> maybe_put(:day, era_day(day))
+    else
+      _no_month_to_ask_about -> probe
+    end
+  end
 
-  defp era_probe(calendar_module, month, day),
-    do: %{calendar: calendar_module, month: month, day: day}
-
-  defp era_month({:named, month}) when is_integer(month), do: month
+  defp era_month({:named, _month} = month), do: month
   defp era_month(_month), do: nil
 
   defp era_day(day) when is_integer(day), do: day

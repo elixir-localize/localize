@@ -134,6 +134,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+* A Hebrew date in Elul is read beside its era. The year of an era is settled by asking the calendar about the date, and it was asked about CLDR's number for the month, 13, in a common year of twelve months, so `de`'s "07.13.5786 AM", `af`'s "07 Elul 5786 AM" and every interval ending in Elul were errors.
+
 * A narrow month name is read where the format writes one and the calendar's narrow names tell its months apart. `mn`'s `yM` is "y MMMMM" and its narrow months are Roman numerals, so the "2026 VI" it writes and its intervals, "2026 оны VI/16 – VIII/20", read back where every narrow name was passed over; `en`'s "J", three months' name, is still no month.
 
 * A date or interval format with a variant is read as the formatter writes it, the standard or default pattern before the variant: `en-CA`'s Chinese short date "5/2/2026" is the second day of the fifth month, where the variant "d/M/r" was tried first, and its `yMd` interval "6/16/2026–6/20/2026", an item of a default and a variant pattern, reads back where it was an error.
