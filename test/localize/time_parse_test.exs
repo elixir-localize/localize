@@ -133,6 +133,37 @@ defmodule Localize.TimeParseTest do
       end
     end
 
+    # TR35: a 24-hour pattern "should not include fields with day period
+    # characters", and in parsing "the dayperiod is checked for consistency
+    # with the hour". CLDR 49's `Hmsv` for `ksh` is "H:mm:ss a v" all the
+    # same, and read four in the afternoon, "4:00:00 n.M.", as 04:00. A
+    # 24-hour hour its day period does not hold is no time. ICU4C 78.3 is no
+    # guide here: lenient or not, it reads "4:00 PM" and "16:00 PM" alike as
+    # noon, and "16:00 AM" as midnight.
+    test "of a 24-hour field agrees with a day period beside it" do
+      for {text, pattern, expected} <- [
+            {"16:00 PM", "H:mm a", ~T[16:00:00]},
+            {"12:30 PM", "H:mm a", ~T[12:30:00]},
+            {"4:00 AM", "H:mm a", ~T[04:00:00]},
+            {"0:30 AM", "H:mm a", ~T[00:30:00]},
+            {"13:00 PM", "k:mm a", ~T[13:00:00]},
+            {"24:30 AM", "k:mm a", ~T[00:30:00]},
+            {"4:00", "H:mm", ~T[04:00:00]}
+          ] do
+        assert read(text, pattern) == {:ok, expected}, "#{text} #{pattern}"
+      end
+
+      for {text, pattern} <- [
+            {"4:00 PM", "H:mm a"},
+            {"16:00 AM", "H:mm a"},
+            {"12:30 AM", "H:mm a"},
+            {"1:00 PM", "k:mm a"},
+            {"13:00 AM", "k:mm a"}
+          ] do
+        assert {:error, %Localize.TimeParseError{}} = read(text, pattern), "#{text} #{pattern}"
+      end
+    end
+
     # Read in any of a locale's formats, an hour beyond a field's range is
     # no time either: "45:30 PM" was 21:30 and "13:30 AM" 01:30 wherever a
     # locale has a 12-hour pattern, and "45:30" was 09:30 in `fr-CM`.

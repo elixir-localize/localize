@@ -34,8 +34,6 @@ Outstanding work on Localize. The design detail behind these items lives under [
 
 * [ ] **A metazone's name is written for dates before 1970** — a `usesMetazone` period with no `from` is taken to reach back without end, so Los Angeles in 1850, at -7:52:58, is "Pacific Standard Time"; TR35 does not say where such a period begins, CLDR's zones are told apart only "back to 1970", and ICU4C begins it at 1970, writing "GMT-07:52:58" and "Los Angeles Time" there and "GMT-05:00" for New York in 1965. Decide where a first period begins.
 
-* [ ] **A 24-hour pattern with a day period reads an afternoon as the morning** — `ksh`'s `Hmsv` is "H:mm:ss a v" in CLDR 49, a 24-hour hour beside a day period, and it is tried before the 12-hour `hmsv`, so "4:00:00 n.M. GMT+5:30", which `hmsz` writes for 16:00, is read without its format as 04:00. An hour and a day period that disagree should be no reading of that pattern.
-
 ## In progress
 
 * [ ] **CLDR 49 upgrade** — the plan's items are closed bar item 11; the data is built from CLDR `main` pending beta3 (below), then the final release. [plans/cldr-49.md](plans/cldr-49.md).
@@ -49,6 +47,8 @@ Outstanding work on Localize. The design detail behind these items lives under [
 * [ ] **Report `pt`'s `GyMMMM`, `gd`'s `yMMM` and `my`'s generic `yyyyMd` to CLDR** — each writes the week-based year `Y` where every sibling format has `y`, so 2025-12-29 renders "dezembro de 2026 d.C.", and `my` writes the Japanese calendar's 22 November 2023 "R 22/11/2023", which reads back as no date it was written from. Blocked on the user filing `tmp/cldr-reports/01-week-based-year-in-month-year-formats.md`.
 
 * [ ] **Report 12-hour patterns without a day period to CLDR** — `fr-CM`'s `h`, `hm` and `hms`, `bal-Latn`'s `hm` and `es-AR`'s `hms` are 12-hour patterns with no day period, which TR35 forbids, so the "12:30" and "1:45" they write each name two times. Blocked on the user filing `tmp/cldr-reports/02-twelve-hour-patterns-without-a-day-period.md`.
+
+* [ ] **Report `ksh`'s 24-hour pattern with a day period to CLDR** — its `Hmsv` is "H:mm:ss a v", which TR35 says a 24-hour pattern should not be, the only one in any locale; it writes "16:05:09 n.M." and has the shape of the 12-hour text for four in the afternoon. Blocked on the user filing `tmp/cldr-reports/07-twenty-four-hour-pattern-with-a-day-period.md`.
 
 * [ ] **Report standard date and time formats whose `datetimeSkeleton` is not the pattern's to CLDR** — 123 Gregorian date formats in 75 locales, where the pattern changed and the skeleton did not (`id`, `te`), or one of the two is inherited and the other the locale's own (`zu`, `en_NZ`, `vi`, `en_CA`), and 61 time formats in 17 locales, 14 of them with a skeleton of another hour cycle than the pattern (`cop`, `syr`, `bo`). Blocked on the user filing `tmp/cldr-reports/06-date-skeletons-not-derived-from-their-patterns.md`.
 
@@ -67,6 +67,8 @@ Outstanding work on Localize. The design detail behind these items lives under [
 * [ ] **`localize_emoji` sibling library** — plan item 11, a separate package on its own schedule. A Phoenix LiveView picker (`localize_emoji_live`) is out of scope for its 0.1.0.
 
 ## Done
+
+* [x] **A 24-hour hour agrees with a day period beside it** — TR35's parsing checks "the dayperiod … for consistency with the hour", so an `H` or `k` hour its day period does not hold is no reading: `ksh`'s `Hmsv`, "H:mm:ss a v", read "4:00:00 n.M. GMT+5:30", which `hmsz` writes for 16:00, as 04:00. 2026-10-05, v1.4.0.
 
 * [x] **A string with two readings is the zone that writes it at the date** — `resolve/3` takes the first reading whose zone is written as the string then: `it`'s "Ora dell’Europa orientale (Kaliningrad)" is Kaliningrad in 2026 (Minsk before), "Malaysia Time" in 1975 Kuala Lumpur at +07:30 (Kuching in 279 locales), `sv`'s "Kaliningradtid" in a summer Kaliningrad's clock, each the moment ICU4C reads; and a name qualified by a city is that city's zone, "Israel Time (Gaza)" Gaza. 2026-10-05, v1.4.0.
 

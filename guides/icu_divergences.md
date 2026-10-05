@@ -156,6 +156,15 @@ TR35 gives each hour field its range, `h` 1 to 12, `H` 0 to 23, `K` 0 to 11 and 
 | "0:30" | `k:mm` | an error | 00:30 | 00:30 |
 | "12:30 AM" | `K:mm a` | 12:30 | 12:30 | an error |
 
+TR35 says a 24-hour pattern should have no day period, and that in parsing "the dayperiod is checked for consistency with the hour". One pattern in CLDR 49 has both, `ksh`'s `Hmsv`, "H:mm:ss a v". Localize reads a 24-hour hour beside a day period where the two agree and refuses it where they do not, which leaves "4:00:00 n.M.", four in the afternoon, to the 12-hour pattern that wrote it. ICU4C 78.3 takes the day period and drops the hour, lenient or not. Asserted in `test/localize/time_parse_test.exs`.
+
+| Input | Pattern | Localize | ICU4C |
+|---|---|---|---|
+| "16:00 PM" | `H:mm a` | 16:00 | 12:00 |
+| "4:00 PM" | `H:mm a` | an error | 12:00 |
+| "4:00 AM" | `H:mm a` | 04:00 | 00:00 |
+| "16:00 AM" | `H:mm a` | an error | 00:00 |
+
 ### Time zone formatting
 
 TR35's generic non-location format (`v`, `vvvv`) qualifies a metazone name, unless the zone is the metazone's preferred zone for the locale's country, with the zone's country where it is that country's preferred zone and with its city otherwise; CLDR's own `TimezoneFormatter` does exactly that. ICU4C 78.3 qualifies a metazone name only where the zone's offset at that moment differs from the preferred zone's, and writes a zone keeping no daylight time within 184 days by its standard name, so even TR35's worked example "Pacific Time (Canada)" for Vancouver in `en_MX` is "Pacific Time" in ICU. Localize follows TR35, and both read back to the same instant; asserted in `test/localize/datetime/generic_zone_format_test.exs`.

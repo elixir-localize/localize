@@ -134,6 +134,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+* A 24-hour hour beside a day period is read only where the two agree, as TR35's parsing checks a day period against its hour. `ksh`'s `Hmsv`, "H:mm:ss a v" in CLDR 49, read "4:00:00 n.M. GMT+5:30", four in the afternoon, as 04:00.
+
 * `Localize.DateTime.Timezone.resolve/3` takes, of a string's readings, the one whose zone is written so at the date: `it`'s "Ora dell’Europa orientale (Kaliningrad)" is Kaliningrad in 2026 where it was Minsk, "Malaysia Time" in 1975 is Kuala Lumpur at +07:30, and `sv`'s "Kaliningradtid" in a summer follows Kaliningrad's clock. A name qualified by a city is that city's zone, so "Israel Time (Gaza)" is Gaza and not Jerusalem.
 
 * A country or city in parentheses is read as a zone's qualifier only after a name the locale writes, so text that is no name before it is no zone. A 24-hour pattern took a time's day period for part of its zone: `en-GB` read "4:00:00 pm (India)" as 04:00 in India.

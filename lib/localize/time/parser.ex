@@ -897,9 +897,14 @@ defmodule Localize.Time.Parser do
   # 0 for its 12, and `K` takes 12 as twelve hours on from its 0, as ICU
   # does when it is lenient, so `ja`'s "午前12:30" is half past noon and
   # "午後12:30", which would be the next day, is no time.
-  defp resolve_hour(n, :H, _caps, _tokens, _day_periods) when n in 0..23, do: {:ok, n}
-  defp resolve_hour(24, :k, _caps, _tokens, _day_periods), do: {:ok, 0}
-  defp resolve_hour(n, :k, _caps, _tokens, _day_periods) when n in 1..23, do: {:ok, n}
+  defp resolve_hour(n, :H, caps, _tokens, day_periods) when n in 0..23,
+    do: consistent_hour(n, caps, day_periods)
+
+  defp resolve_hour(24, :k, caps, _tokens, day_periods),
+    do: consistent_hour(0, caps, day_periods)
+
+  defp resolve_hour(n, :k, caps, _tokens, day_periods) when n in 1..23,
+    do: consistent_hour(n, caps, day_periods)
 
   defp resolve_hour(n, letter, caps, _tokens, day_periods)
        when letter in [:h, :K] and n in 0..12 do
@@ -916,6 +921,40 @@ defmodule Localize.Time.Parser do
   end
 
   defp resolve_hour(_, _, _, _, _), do: :error
+
+  # A 24-hour hour beside a day period. TR35 says a 24-hour pattern "should
+  # not include fields with day period characters", but CLDR 49's `Hmsv` for
+  # `ksh` is "H:mm:ss a v", and TR35's parsing of day periods has "the
+  # dayperiod … checked for consistency with the hour". An hour its day
+  # period does not hold is no reading of the pattern: "4:00:00 n.M.", four
+  # in the afternoon, was 04:00 to that one, and is left to a 12-hour
+  # pattern. A pattern with no day period, or text with none, has nothing to
+  # check.
+  defp consistent_hour(hour, caps, day_periods) do
+    period = caps |> Map.get("day_period", "") |> String.downcase()
+    flexes = flex_periods(caps, day_periods)
+
+    cond do
+      period == "" and flexes == [] ->
+        {:ok, hour}
+
+      hour_in_half?(hour, day_period_half(period, flexes, day_periods), flexes, day_periods) ->
+        {:ok, hour}
+
+      true ->
+        :error
+    end
+  end
+
+  defp hour_in_half?(hour, :am, _flexes, _day_periods), do: hour < 12
+  defp hour_in_half?(hour, :pm, _flexes, _day_periods), do: hour >= 12
+
+  # A flexible day period holds the hour where one of its rules does, and
+  # any hour where the locale has no rule for it.
+  defp hour_in_half?(hour, :flex, flexes, day_periods) do
+    rules = for flex <- flexes, rule = get_in(day_periods, [:rules, flex]), do: rule
+    rules == [] or Enum.any?(rules, &hour_in_period?(hour, &1))
+  end
 
   # Which half of the day a captured day-period name puts the hour in, or
   # `:flex` when only a flexible day period (B) can decide.
