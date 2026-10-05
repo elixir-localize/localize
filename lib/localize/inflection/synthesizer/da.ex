@@ -218,7 +218,7 @@ defmodule Localize.Inflection.Synthesizer.Da do
         first_mask = first_type || 0
 
         pair? =
-          length(words) == 2 and
+          match?([_, _], words) and
             (first_type == nil or
                ((first_mask &&& adjective) != 0 and (first_mask &&& noun) == 0 and
                   (last_type &&& noun) != 0))

@@ -173,7 +173,7 @@ defmodule Localize.Unit.ParserTest do
   describe "mixed units" do
     test "parses foot-and-inch" do
       assert {:ok, {:mixed_unit, units}} = Parser.parse("foot-and-inch")
-      assert length(units) == 2
+      assert [_, _] = units
 
       assert Enum.at(units, 0) ==
                {:single_unit, prefix: nil, power: nil, base: "foot"}
@@ -186,7 +186,7 @@ defmodule Localize.Unit.ParserTest do
       assert {:ok, {:mixed_unit, units}} =
                Parser.parse("degree-and-arc-minute-and-arc-second")
 
-      assert length(units) == 3
+      assert [_, _, _] = units
     end
   end
 
@@ -197,16 +197,16 @@ defmodule Localize.Unit.ParserTest do
       assert {:ok, {:unit, type: nil, numerator: numerator, denominator: denominator}} =
                Parser.parse("kilogram-square-meter-per-cubic-second")
 
-      assert length(numerator) == 2
-      assert length(denominator) == 1
+      assert [_, _] = numerator
+      assert [_] = denominator
     end
 
     test "parses kilogram-meter-per-square-second (force)" do
       assert {:ok, {:unit, type: nil, numerator: numerator, denominator: denominator}} =
                Parser.parse("kilogram-meter-per-square-second")
 
-      assert length(numerator) == 2
-      assert length(denominator) == 1
+      assert [_, _] = numerator
+      assert [_] = denominator
     end
   end
 

@@ -223,7 +223,7 @@ defmodule Localize.Inflection.ConceptList do
   defp base_list(locale, internal, concepts, style, customization) do
     with {:ok, separators} <- separators(locale, style) do
       base =
-        if length(concepts) == 2 do
+        if match?([_, _], concepts) do
           %__MODULE__{locale: internal, concepts: concepts, before_last: separators.two}
         else
           %__MODULE__{

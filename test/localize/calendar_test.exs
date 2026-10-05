@@ -212,7 +212,7 @@ defmodule Localize.CalendarTest do
   describe "localize/3 with :days_of_week" do
     test "returns all 7 days" do
       assert {:ok, days} = Localize.Calendar.localize(~D[2019-01-01], :days_of_week)
-      assert length(days) == 7
+      assert Enum.count(days) == 7
       assert {1, "Monday"} = hd(days)
       assert {7, "Sunday"} = List.last(days)
     end

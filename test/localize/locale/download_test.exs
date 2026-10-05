@@ -149,7 +149,7 @@ defmodule Localize.Locale.Provider.DownloadTest do
       assert {:error, %Localize.LocaleDownloadError{reason: :http_error, http_status: 503}} =
                result
 
-      assert length(ScriptedHttpServer.requests(server)) == 4
+      assert [_, _, _, _] = ScriptedHttpServer.requests(server)
     end
   end
 

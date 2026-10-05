@@ -95,7 +95,7 @@ defmodule Localize.Locale.GettextBackendSupportedLocalesTest do
       assert :"de-AT" in result
       # `:basic` contributed many locales — exact count is data-driven,
       # we just sanity-check it's substantial.
-      assert length(result) > 10
+      assert Enum.count(result) > 10
     end
   end
 end

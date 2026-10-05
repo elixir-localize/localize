@@ -154,7 +154,7 @@ defmodule Localize.DateTime.SemanticSkeletonTest do
     end
 
     test "the suite is actually running" do
-      assert length(conformance_cases()) == 240
+      assert Enum.count(conformance_cases()) == 240
     end
 
     # The mapping test above checks only which classical skeleton a semantic

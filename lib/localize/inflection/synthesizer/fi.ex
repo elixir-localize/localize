@@ -136,7 +136,7 @@ defmodule Localize.Inflection.Synthesizer.Fi do
     words = display_string |> String.trim() |> String.split(" ", trim: true)
 
     special =
-      if String.contains?(display_string, " ") and length(words) == 2 do
+      if String.contains?(display_string, " ") and match?([_, _], words) do
         [dependant, head] = words
 
         cond do
@@ -455,7 +455,7 @@ defmodule Localize.Inflection.Synthesizer.Fi do
           |> inflect_units(inner_case, outer_case)
           |> Enum.join(", ")
 
-        length(words) > 1 ->
+        match?([_, _ | _], words) ->
           words
           |> best_combination()
           |> inflect_units(inner_case, outer_case)

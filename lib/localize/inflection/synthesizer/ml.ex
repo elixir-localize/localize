@@ -301,8 +301,6 @@ defmodule Localize.Inflection.Synthesizer.Ml do
       else
         "singular"
       end
-    else
-      value -> value
     end
   end
 
@@ -318,8 +316,6 @@ defmodule Localize.Inflection.Synthesizer.Ml do
          "" <- determine_from_any_token(tokens, tags, disambiguation),
          "" <- guess_gender_by_suffix(tokens) do
       "masculine"
-    else
-      value -> value
     end
   end
 

@@ -112,9 +112,11 @@ defmodule Localize.Credo.NoTryRescue do
        ),
        do: plain?(argument)
 
-  defp existing_atom_call?({{:., _, [:erlang, :binary_to_existing_atom]}, _, [_ | _] = arguments})
-       when length(arguments) <= 2,
-       do: Enum.all?(arguments, &plain?/1)
+  defp existing_atom_call?({{:., _, [:erlang, :binary_to_existing_atom]}, _, [binary]}),
+    do: plain?(binary)
+
+  defp existing_atom_call?({{:., _, [:erlang, :binary_to_existing_atom]}, _, [binary, encoding]}),
+    do: plain?(binary) and plain?(encoding)
 
   defp existing_atom_call?(_expression), do: false
 

@@ -200,38 +200,38 @@ defmodule Localize.Number.RbnfRuleProcessorTest do
     end
   end
 
-  describe "Processor.process/5 with string-keyed rule maps" do
+  describe "Processor.process/5 with rule maps of its own" do
     alias Localize.Number.Rbnf.Processor
 
     defp units do
       [
         %{
-          "base_value" => 0,
-          "radix" => 10,
-          "definition" => "zero",
-          "range" => "undefined",
-          "divisor" => 1
+          base_value: 0,
+          radix: 10,
+          definition: "zero",
+          range: "undefined",
+          divisor: 1
         },
         %{
-          "base_value" => 1,
-          "radix" => 10,
-          "definition" => "one",
-          "range" => 2,
-          "divisor" => 1
+          base_value: 1,
+          radix: 10,
+          definition: "one",
+          range: 2,
+          divisor: 1
         },
         %{
-          "base_value" => 2,
-          "radix" => 10,
-          "definition" => "two",
-          "range" => "undefined",
-          "divisor" => 1
+          base_value: 2,
+          radix: 10,
+          definition: "two",
+          range: "undefined",
+          divisor: 1
         },
         %{
-          "base_value" => 20,
-          "radix" => 10,
-          "definition" => "twenty[->>]",
-          "range" => "undefined",
-          "divisor" => 10
+          base_value: 20,
+          radix: 10,
+          definition: "twenty[->>]",
+          range: "undefined",
+          divisor: 10
         }
       ]
     end
@@ -258,11 +258,11 @@ defmodule Localize.Number.RbnfRuleProcessorTest do
     test "a -x rule formats negative numbers" do
       rules = [
         %{
-          "base_value" => "-x",
-          "radix" => 10,
-          "definition" => "minus >>",
-          "range" => "undefined",
-          "divisor" => 1
+          base_value: "-x",
+          radix: 10,
+          definition: "minus >>",
+          range: "undefined",
+          divisor: 1
         }
         | units()
       ]
@@ -275,18 +275,18 @@ defmodule Localize.Number.RbnfRuleProcessorTest do
     test "fractions use the 0.x rule and synthesize a minus sign" do
       rules = [
         %{
-          "base_value" => "0.x",
-          "radix" => 10,
-          "definition" => "point >>",
-          "range" => "undefined",
-          "divisor" => 1
+          base_value: "0.x",
+          radix: 10,
+          definition: "point >>",
+          range: "undefined",
+          divisor: 1
         },
         %{
-          "base_value" => "x.x",
-          "radix" => 10,
-          "definition" => "<< point >>",
-          "range" => "undefined",
-          "divisor" => 1
+          base_value: "x.x",
+          radix: 10,
+          definition: "<< point >>",
+          range: "undefined",
+          divisor: 1
         }
         | units()
       ]
@@ -301,11 +301,11 @@ defmodule Localize.Number.RbnfRuleProcessorTest do
     test "an unparseable definition returns an error" do
       rules = [
         %{
-          "base_value" => 0,
-          "radix" => 10,
-          "definition" => "=%",
-          "range" => "undefined",
-          "divisor" => 1
+          base_value: 0,
+          radix: 10,
+          definition: "=%",
+          range: "undefined",
+          divisor: 1
         }
       ]
 
@@ -316,11 +316,11 @@ defmodule Localize.Number.RbnfRuleProcessorTest do
     test "a decimal-format call formats with the pattern" do
       rules = [
         %{
-          "base_value" => 0,
-          "radix" => 10,
-          "definition" => "=#,##0=",
-          "range" => "undefined",
-          "divisor" => 1
+          base_value: 0,
+          radix: 10,
+          definition: "=#,##0=",
+          range: "undefined",
+          divisor: 1
         }
       ]
 
@@ -330,11 +330,11 @@ defmodule Localize.Number.RbnfRuleProcessorTest do
     test "ruleset calls resolve string, atom, dashed and underscored names" do
       call_rules = [
         %{
-          "base_value" => 0,
-          "radix" => 10,
-          "definition" => "=%units=",
-          "range" => "undefined",
-          "divisor" => 1
+          base_value: 0,
+          radix: 10,
+          definition: "=%units=",
+          range: "undefined",
+          divisor: 1
         }
       ]
 
@@ -346,11 +346,11 @@ defmodule Localize.Number.RbnfRuleProcessorTest do
 
       dashed_rules = [
         %{
-          "base_value" => 0,
-          "radix" => 10,
-          "definition" => "=%my-units=",
-          "range" => "undefined",
-          "divisor" => 1
+          base_value: 0,
+          radix: 10,
+          definition: "=%my-units=",
+          range: "undefined",
+          divisor: 1
         }
       ]
 
@@ -364,11 +364,11 @@ defmodule Localize.Number.RbnfRuleProcessorTest do
     test "a missing ruleset is an error" do
       call_rules = [
         %{
-          "base_value" => 0,
-          "radix" => 10,
-          "definition" => "=%units=",
-          "range" => "undefined",
-          "divisor" => 1
+          base_value: 0,
+          radix: 10,
+          definition: "=%units=",
+          range: "undefined",
+          divisor: 1
         }
       ]
 

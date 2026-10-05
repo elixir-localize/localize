@@ -69,7 +69,7 @@ defmodule Localize.Inflection.Lookup do
   defp determine_unknown_phrase(locale, phrase, mask, first_word_determines?, options) do
     tokens = Tokenizer.word_tokens(locale, phrase)
 
-    if length(tokens) > 1 do
+    if match?([_, _ | _], tokens) do
       first_relevant = find_relevant_token(locale, tokens, mask, first_word_determines?)
 
       result =

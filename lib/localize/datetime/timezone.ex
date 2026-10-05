@@ -891,7 +891,7 @@ defmodule Localize.DateTime.Timezone do
   defp offset_changes_near(time_zone, datetime) do
     with %NaiveDateTime{} = instant <- metazone_instant(datetime),
          {:ok, offsets} <- sampled_offsets(instant, time_zone, Calendar.get_time_zone_database()) do
-      {:ok, length(Enum.uniq(offsets)) > 1}
+      {:ok, match?([_, _ | _], Enum.uniq(offsets))}
     else
       _no_offsets -> :unknown
     end

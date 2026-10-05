@@ -34,7 +34,7 @@ defmodule Localize.DurationZonedMatrixTest do
           do: {from, to, {days, seconds}, measured}
 
     assert mismatches == [], report(mismatches)
-    assert length(rows) == 3025
+    assert Enum.count(rows) == 3025
   end
 
   # The one case kept apart from the specification: no whole day is counted,
@@ -44,7 +44,7 @@ defmodule Localize.DurationZonedMatrixTest do
     apart =
       for {_from, _to, _days, _seconds, specification} = row <- rows(), specification, do: row
 
-    assert length(apart) == 301
+    assert Enum.count(apart) == 301
 
     for {from, to, days, seconds, specification} <- apart do
       assert {:ambiguous, _first, ^from} =

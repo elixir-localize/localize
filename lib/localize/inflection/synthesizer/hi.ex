@@ -152,10 +152,10 @@ defmodule Localize.Inflection.Synthesizer.Hi do
         end
       end)
 
-    case inflected do
-      :error -> :error
-      list when length(words) == 1 -> {:ok, Enum.reverse(list)}
-      list -> plural_verb_agreement(Enum.reverse(list), guess?)
+    case {inflected, words} do
+      {:error, _words} -> :error
+      {list, [_one_word]} -> {:ok, Enum.reverse(list)}
+      {list, _words} -> plural_verb_agreement(Enum.reverse(list), guess?)
     end
   end
 

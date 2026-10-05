@@ -471,14 +471,12 @@ defmodule Localize.Inflection.Synthesizer.Tr do
   end
 
   defp one_vowel_word?(word) do
-    count =
+    vowels =
       word
       |> String.graphemes()
-      |> Enum.count(fn grapheme ->
-        PhraseProperties.ends_with_vowel?(@locale, grapheme)
-      end)
+      |> Enum.count_until(&PhraseProperties.ends_with_vowel?(@locale, &1), 2)
 
-    count <= 1
+    vowels <= 1
   end
 
   defp starts_with_vowel?(word), do: PhraseProperties.starts_with_vowel?(@locale, word)
@@ -518,7 +516,7 @@ defmodule Localize.Inflection.Synthesizer.Tr do
   end
 
   defp one_token?(word) do
-    length(Tokenizer.word_tokens(@locale, word)) == 1
+    match?([_], Tokenizer.word_tokens(@locale, word))
   end
 
   # ── Consonant phonology ──────────────────────────────────────

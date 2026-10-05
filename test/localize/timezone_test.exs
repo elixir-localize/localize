@@ -9,7 +9,7 @@ defmodule Localize.DateTime.TimezoneTest do
 
       assert zones == Enum.sort(zones)
       assert zones == Enum.uniq(zones)
-      assert length(zones) > 400
+      assert Enum.count(zones) > 400
     end
 
     test "contains canonical names, not non-primary aliases" do

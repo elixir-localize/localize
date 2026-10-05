@@ -341,7 +341,7 @@ defmodule Localize.Inflection.Synthesizer.De do
       nil ->
         tokens = Tokenizer.word_tokens(@locale, display_string)
 
-        if length(tokens) > 1 do
+        if match?([_, _ | _], tokens) do
           last = List.last(tokens)
           Dictionary.combined_grammemes(@locale, last.value) || 0
         else

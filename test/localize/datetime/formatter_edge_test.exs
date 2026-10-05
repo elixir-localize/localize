@@ -293,13 +293,6 @@ defmodule Localize.DateTime.FormatterEdgeTest do
                Formatter.format(@date, "y", :en, %{number_system_overrides: %{"y" => :bogus}})
     end
 
-    test "string-keyed override maps are honoured" do
-      assert {:ok, "٦"} =
-               Formatter.format(@date, "d", :en, %{
-                 "number_system_overrides" => %{"d" => :arab}
-               })
-    end
-
     test "a user-supplied override survives Localize.Date.to_string/2" do
       # Localize.Date.to_string/2 computes calendar-derived overrides
       # internally; it must merge them under (not clobber) an override

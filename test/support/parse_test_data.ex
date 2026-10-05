@@ -132,12 +132,12 @@ defmodule Localize.DateTime.TestData do
   end
 
   defp all_one_field?(skeleton) do
-    field_list =
+    fields =
       skeleton
       |> String.graphemes()
       |> Enum.chunk_by(& &1)
 
-    length(field_list) == 1
+    match?([_one_field], fields)
   end
 
   # CLDR's generator joins a standard date format and time format with the

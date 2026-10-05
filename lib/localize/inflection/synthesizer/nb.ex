@@ -163,7 +163,7 @@ defmodule Localize.Inflection.Synthesizer.Nb do
         first_mask = Dictionary.combined_grammemes(@locale, List.first(words)) || 0
 
         pair? =
-          length(words) == 2 and (first_mask &&& adjective) != 0 and (last_type &&& noun) != 0
+          match?([_, _], words) and (first_mask &&& adjective) != 0 and (last_type &&& noun) != 0
 
         if pair? do
           [first, second] = words

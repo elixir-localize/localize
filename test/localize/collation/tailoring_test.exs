@@ -50,7 +50,7 @@ defmodule Localize.Collation.TailoringTest do
     test "parses multiple lines" do
       rules = "&N<ñ<<<Ñ\n&C<ch<<<Ch<<<CH"
       ops = Localize.Collation.Tailoring.parse_rules(rules)
-      assert length(ops) == 7
+      assert Enum.count(ops) == 7
     end
 
     test "parses star syntax with a positional anchor" do

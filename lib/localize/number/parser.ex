@@ -875,7 +875,9 @@ defmodule Localize.Number.Parser do
         # than a group, so the primary size repeats; a second separator is what
         # introduces a distinct secondary size, as in `en-IN`'s `#,##,##0`.
         secondary =
-          if length(runs) >= 3, do: runs |> Enum.at(-2) |> String.length(), else: primary
+          if match?([_, _, _ | _], runs),
+            do: runs |> Enum.at(-2) |> String.length(),
+            else: primary
 
         {primary, secondary}
     end

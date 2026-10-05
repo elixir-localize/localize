@@ -4,22 +4,22 @@ defmodule Localize.Number.RbnfDecimalCoverageTest do
   alias Localize.Number
   alias Localize.Number.Rbnf.Processor
 
-  # String-keyed rule maps exercise the map-normalization clauses of
-  # get_base_value/1, get_range/1, and to_rule_struct/1.
+  # Rule maps as the locale data has them, keyed by atoms, given to the
+  # processor without the rule sets of a locale around them.
   @raw_rules [
     %{
-      "base_value" => 0,
-      "range" => 20,
-      "definition" => "small=#,##0=",
-      "radix" => 10,
-      "divisor" => 1
+      base_value: 0,
+      range: 20,
+      definition: "small=#,##0=",
+      radix: 10,
+      divisor: 1
     },
     %{
-      "base_value" => 20,
-      "range" => "undefined",
-      "definition" => "big =%nope=",
-      "radix" => 10,
-      "divisor" => 10
+      base_value: 20,
+      range: "undefined",
+      definition: "big =%nope=",
+      radix: 10,
+      divisor: 10
     }
   ]
 

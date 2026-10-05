@@ -1243,7 +1243,7 @@ defmodule Localize.Message.Interpreter do
   defp format_with_function(name, value, func_opts, options) do
     case resolve_custom_function(name, options) do
       {:ok, module} ->
-        module.format(value, func_opts, options)
+        module.format(value, stringify_option_keys(func_opts), options)
 
       :not_found ->
         case resolve_namespace_handler(name, options) do
@@ -1272,7 +1272,7 @@ defmodule Localize.Message.Interpreter do
   end
 
   defp test_decimal_places(func_opts) do
-    case func_opts[:decimalPlaces] || func_opts["decimalPlaces"] do
+    case func_opts[:decimalPlaces] do
       nil ->
         {:ok, 0}
 
@@ -1286,7 +1286,7 @@ defmodule Localize.Message.Interpreter do
   end
 
   defp test_fails(func_opts) do
-    case func_opts[:fails] || func_opts["fails"] do
+    case func_opts[:fails] do
       nil ->
         {:ok, "never"}
 
@@ -1362,7 +1362,7 @@ defmodule Localize.Message.Interpreter do
   end
 
   defp sign_display_option(func_opts) do
-    case func_opts[:signDisplay] || func_opts["signDisplay"] do
+    case func_opts[:signDisplay] do
       nil ->
         {:ok, nil}
 
@@ -1406,7 +1406,7 @@ defmodule Localize.Message.Interpreter do
   end
 
   defp trailing_zero_display_option(func_opts) do
-    case func_opts[:trailingZeroDisplay] || func_opts["trailingZeroDisplay"] do
+    case func_opts[:trailingZeroDisplay] do
       nil ->
         {:ok, nil}
 
@@ -1420,7 +1420,7 @@ defmodule Localize.Message.Interpreter do
   end
 
   defp rounding_priority_option(func_opts) do
-    case func_opts[:roundingPriority] || func_opts["roundingPriority"] do
+    case func_opts[:roundingPriority] do
       nil ->
         {:ok, nil}
 
@@ -1434,9 +1434,9 @@ defmodule Localize.Message.Interpreter do
     end
   end
 
-  # A namespace handler is third-party code, so it receives option
-  # names as strings — the documented contract — even though the
-  # built-in clauses read them as atoms.
+  # A custom function or a namespace handler is third-party code, so it
+  # receives option names as strings — the documented contract — even
+  # though the built-in clauses read them as atoms.
   defp stringify_option_keys(func_opts) do
     Map.new(func_opts, fn {key, value} -> {to_string(key), value} end)
   end
@@ -1703,8 +1703,8 @@ defmodule Localize.Message.Interpreter do
   # integer). See "The `:offset` function" in tr35-messageFormat.md.
 
   defp offset_adjustment(func_opts) do
-    add = func_opts[:add] || func_opts["add"]
-    subtract = func_opts[:subtract] || func_opts["subtract"]
+    add = func_opts[:add]
+    subtract = func_opts[:subtract]
     resolve_offset_adjustment(add, subtract)
   end
 
@@ -3032,6 +3032,10 @@ defmodule Localize.Message.Interpreter do
 
   # ── General utilities ──────────────────────────────────────────
 
+  # An option's name is its atom where that atom exists, and else the
+  # string as written, so that no message can add an atom. Every name a
+  # built-in clause reads is an atom in this module, so exists: the
+  # built-in clauses read atoms and nothing else.
   defp option_key(name) do
     Helpers.existing_atom(name) || name
   end

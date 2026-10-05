@@ -39,14 +39,16 @@
         included: ["lib/", "test/", "data/", "credo/"],
         excluded: ["test/support/data/"]
       },
+      plugins: [{ExSlop, []}],
       requires: ["credo/checks/no_try_rescue.ex"],
       checks: %{
         disabled: [
           {Credo.Check.Design.AliasUsage, []}
         ],
-        extra: [
-          {Localize.Credo.NoTryRescue, allowed_try_after: [{Localize, :with_locale, 2}]}
-        ]
+        extra:
+          [
+            {Localize.Credo.NoTryRescue, allowed_try_after: [{Localize, :with_locale, 2}]}
+          ] ++ Enum.map(ExSlop.recommended_checks(), &{&1, []})
       }
     }
   ]

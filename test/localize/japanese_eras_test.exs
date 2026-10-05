@@ -92,7 +92,7 @@ defmodule Localize.JapaneseErasTest do
 
   describe "era set completeness" do
     test "all 237 eras are present" do
-      assert length(eras()) == 237
+      assert Enum.count(eras()) == 237
     end
 
     test "era indices are contiguous from 大化 to 令和" do
@@ -107,7 +107,7 @@ defmodule Localize.JapaneseErasTest do
       indices = Enum.map(eras(), fn [index, _era] -> index end)
 
       assert Enum.min(indices) == 0
-      assert length(Enum.filter(indices, &(&1 < 232))) == 232
+      assert Enum.count(indices, &(&1 < 232)) == 232
     end
 
     test "every era carries a start date" do
@@ -155,7 +155,7 @@ defmodule Localize.JapaneseErasTest do
       assert %{private_era: true} = Map.get(indexed(), 2)
 
       private = Enum.filter(eras(), fn [_index, era] -> Map.get(era, :private_era) end)
-      assert length(private) == 1
+      assert [_] = private
     end
 
     # Four entries lack primary-source attestation. They stay published —
@@ -185,7 +185,7 @@ defmodule Localize.JapaneseErasTest do
 
   describe "the curated source" do
     test "carries one entry per CLDR era index" do
-      assert length(curated()) == 237
+      assert Enum.count(curated()) == 237
 
       indices = curated() |> Enum.map(&Map.fetch!(&1, "idx")) |> Enum.sort()
       assert indices == Enum.to_list(0..236)

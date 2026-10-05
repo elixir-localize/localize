@@ -67,9 +67,11 @@ defmodule Localize.Message.Function do
 
   * `value` — the resolved operand from the MF2 expression.
 
-  * `func_opts` — a map of MF2 function options parsed from the
-    expression (e.g. `%{"format" => "long", "formality" => "formal"}`).
-    Keys and values are strings.
+  * `func_opts` — a map of the MF2 function options written in the
+    expression, each under its name as a string (e.g.
+    `%{"format" => "long", "formality" => "formal"}`). A literal value
+    is a string, a number literal a number, and a variable's value is
+    whatever is bound to it.
 
   * `options` — the interpreter's keyword list, which includes at
     least `:locale` and `:bindings`.
@@ -84,8 +86,8 @@ defmodule Localize.Message.Function do
 
   * `value` is the resolved operand from the MF2 expression.
 
-  * `func_opts` is a map of string key/value pairs from the MF2
-    function options (e.g. `%{"format" => "long"}`).
+  * `func_opts` is a map of the MF2 function options, each under its
+    name as a string (e.g. `%{"format" => "long"}`).
 
   * `options` is the interpreter's keyword list (contains at least
     `:locale`).

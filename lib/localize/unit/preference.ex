@@ -442,10 +442,7 @@ defmodule Localize.Unit.Preference do
       territory_str = Atom.to_string(territory)
       matching = Enum.filter(preferences, fn p -> territory_str in p.regions end)
 
-      case find_by_geq(matching, base_value) do
-        nil -> nil
-        result -> result
-      end
+      find_by_geq(matching, base_value)
     end)
   end
 

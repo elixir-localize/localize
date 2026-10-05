@@ -104,7 +104,7 @@ defmodule Localize.PrivTest do
 
     assert {:ok, priv} = Localize.Priv.extract(first, cache_root)
     assert {:ok, ^priv} = Localize.Priv.extract(second, cache_root)
-    assert length(Path.wildcard(Path.join(cache_root, "escript-*"))) == 2
+    assert [_, _] = Path.wildcard(Path.join(cache_root, "escript-*"))
   end
 
   test "a copy deleted from the cache is extracted again", %{tmp_dir: tmp_dir} do

@@ -664,7 +664,7 @@ defmodule Localize.Number.Format do
         # grouping like "#,##0" → both are 3).
         rest_size =
           case rest_groups do
-            [second | _more] when length(rest_groups) > 1 ->
+            [second, _third | _more] ->
               String.length(second)
 
             _ ->

@@ -53,7 +53,7 @@ defmodule Localize.Unit.DataTest do
 
   describe "si_prefix_names/0" do
     test "returns 32 prefixes (24 decimal + 8 binary)" do
-      assert length(Data.si_prefix_names()) == 32
+      assert Enum.count(Data.si_prefix_names()) == 32
     end
 
     test "includes common SI prefixes" do
@@ -89,7 +89,7 @@ defmodule Localize.Unit.DataTest do
 
   describe "base_units/0" do
     test "returns a non-empty list" do
-      assert length(Data.base_units()) > 100
+      assert Enum.count(Data.base_units()) > 100
     end
 
     test "includes common base units" do
@@ -127,7 +127,7 @@ defmodule Localize.Unit.DataTest do
 
   describe "valid_unit_identifiers/0" do
     test "returns a large list" do
-      assert length(Data.valid_unit_identifiers()) > 200
+      assert Enum.count(Data.valid_unit_identifiers()) > 200
     end
 
     test "includes known identifiers" do

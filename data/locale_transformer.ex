@@ -110,7 +110,7 @@ defmodule Localize.Data.LocaleTransformer do
         struct(Currency, %{
           data
           | code: code_atom,
-            count: atomize_count(data[:count] || data["count"])
+            count: atomize_count(data[:count])
         })
 
       {code_atom, currency}
@@ -137,5 +137,4 @@ defmodule Localize.Data.LocaleTransformer do
       {key, value} when is_binary(key) -> {String.to_atom(key), value}
     end)
   end
-
 end

@@ -143,7 +143,7 @@ defmodule Localize.Utils.HttpTest do
       {result, log} = with_log(fn -> Localize.Utils.Http.get(server.url, @quick) end)
 
       assert result == {:ok, "locale data"}
-      assert length(Server.requests(server)) == 2
+      assert [_, _] = Server.requests(server)
       assert log =~ "HTTP Error: (500)"
       assert log =~ "Retrying in"
     end
@@ -166,7 +166,7 @@ defmodule Localize.Utils.HttpTest do
       {result, log} = with_log(fn -> Localize.Utils.Http.get(server.url, @quick) end)
 
       assert result == {:error, 404}
-      assert length(Server.requests(server)) == 1
+      assert [_] = Server.requests(server)
       refute log =~ "Retrying"
     end
 
@@ -177,7 +177,7 @@ defmodule Localize.Utils.HttpTest do
         with_log(fn -> Localize.Utils.Http.get(server.url, [retries: 2] ++ @quick) end)
 
       assert result == {:error, 503}
-      assert length(Server.requests(server)) == 3
+      assert [_, _, _] = Server.requests(server)
       assert log =~ "attempt 3 of 3"
     end
 
@@ -188,7 +188,7 @@ defmodule Localize.Utils.HttpTest do
         with_log(fn -> Localize.Utils.Http.get(server.url, [retries: 0] ++ @quick) end)
 
       assert result == {:error, 500}
-      assert length(Server.requests(server)) == 1
+      assert [_] = Server.requests(server)
     end
 
     test "a conditional request stays conditional when retried" do
@@ -199,7 +199,7 @@ defmodule Localize.Utils.HttpTest do
 
       assert {:not_modified, _headers} = result
       requests = Server.requests(server)
-      assert length(requests) == 2
+      assert [_, _] = requests
       assert Enum.all?(requests, &(&1 =~ ~r/if-none-match: "abc"/i))
     end
 
@@ -207,7 +207,7 @@ defmodule Localize.Utils.HttpTest do
       server = Server.start([{304, [], ""}])
 
       assert {:not_modified, _headers} = Localize.Utils.Http.get(server.url, @quick)
-      assert length(Server.requests(server)) == 1
+      assert [_] = Server.requests(server)
     end
 
     test "an oversized body fails at once" do
@@ -217,7 +217,7 @@ defmodule Localize.Utils.HttpTest do
         with_log(fn -> Localize.Utils.Http.get(server.url, [max_body_bytes: 10] ++ @quick) end)
 
       assert result == {:error, :response_too_large}
-      assert length(Server.requests(server)) == 1
+      assert [_] = Server.requests(server)
       assert log =~ "Refusing oversized HTTP response"
     end
 

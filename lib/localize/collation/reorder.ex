@@ -211,15 +211,9 @@ defmodule Localize.Collation.Reorder do
   defp parse_frac_line_for_lead(line, acc) do
     with [_cp_part, rest] <- String.split(line, ";", parts: 2),
          [_, frac_hex] <- Regex.run(~r/\[([0-9A-Fa-f ]+),/, rest),
-         [_, allkeys_hex] <- Regex.run(~r/\[([0-9A-Fa-f]+)\.[0-9A-Fa-f]+\.[0-9A-Fa-f]+\]/, rest) do
-      frac_bytes =
-        frac_hex
-        |> String.trim()
-        |> String.split()
-        |> Enum.map(&String.to_integer(&1, 16))
-
-      frac_lead = hd(frac_bytes)
-      frac_sub = if length(frac_bytes) > 1, do: Enum.at(frac_bytes, 1), else: 0
+         [_, allkeys_hex] <- Regex.run(~r/\[([0-9A-Fa-f]+)\.[0-9A-Fa-f]+\.[0-9A-Fa-f]+\]/, rest),
+         [frac_lead | sub_bytes] <- frac_bytes(frac_hex) do
+      frac_sub = List.first(sub_bytes, 0)
       allkeys_primary = String.to_integer(allkeys_hex, 16)
 
       if allkeys_primary > 0 do
@@ -232,6 +226,13 @@ defmodule Localize.Collation.Reorder do
     else
       _ -> acc
     end
+  end
+
+  defp frac_bytes(frac_hex) do
+    frac_hex
+    |> String.trim()
+    |> String.split()
+    |> Enum.map(&String.to_integer(&1, 16))
   end
 
   defp normalize_code(code) when is_atom(code) do

@@ -70,7 +70,7 @@ defmodule Localize.DateTime.TimeSkeletonMatrixTest do
            "#{length(failures)} rows differ: " <>
              inspect(Enum.take(failures, 30), pretty: true, limit: :infinity)
 
-    assert length(rows) == 5_746
+    assert Enum.count(rows) == 5_746
   end
 
   test "b and B render midnight at a time that shows as midnight" do

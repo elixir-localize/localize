@@ -212,8 +212,8 @@ defmodule Localize.Message.ParserTest do
         ".input {$g :string}\n.input {$c :number}\n.match $g $c\nfemale 1 {{she has one}}\n* * {{they have many}}"
 
       assert {:ok, [{:complex, _, {:match, selectors, variants}}]} = Parser.parse(msg)
-      assert length(selectors) == 2
-      assert length(variants) == 2
+      assert [_, _] = selectors
+      assert [_, _] = variants
 
       assert [
                {:variant, [{:literal, "female"}, {:number_literal, "1"}], _},

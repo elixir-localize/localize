@@ -313,7 +313,7 @@ defmodule Localize.Inflection.Synthesizer.He do
       tokens == [] ->
         prefix_he(input)
 
-      length(tokens) == 1 ->
+      match?([_], tokens) ->
         prefix_he(input)
 
       preposition_in_tail?(tl(tokens)) ->

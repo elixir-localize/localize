@@ -83,7 +83,7 @@ defmodule Mix.Tasks.Localize.Unit.GenConversions do
   end
 
   defp retirement_message(retired) do
-    "#{Enum.join(retired, " and ")} #{if length(retired) == 1, do: "is", else: "are"} no longer " <>
+    "#{Enum.join(retired, " and ")} #{if match?([_], retired), do: "is", else: "are"} no longer " <>
       "needed. The generated module accepts every unit Localize.Unit accepts — defined, " <>
       "prefixed, powered and compound — so there is nothing to select. Run the task with no " <>
       "arguments, or with --module to name the module."

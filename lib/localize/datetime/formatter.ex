@@ -450,12 +450,12 @@ defmodule Localize.DateTime.Formatter do
   # fields, validated as a known CLDR numbering system. Without the
   # option, the locale's default system applies (below).
   defp with_number_system(options, locale_id) when is_map(options) do
-    case options[:number_system] || options["number_system"] do
+    case options[:number_system] do
       nil ->
         {:ok, with_default_number_system(options, locale_id)}
 
       system ->
-        locale = formatting_locale(options[:locale] || options["locale"], locale_id)
+        locale = formatting_locale(options[:locale], locale_id)
 
         with {:ok, system_name} <- Localize.Number.System.system_name_from(system, locale) do
           overrides = options[:number_system_overrides] || %{}
@@ -475,8 +475,8 @@ defmodule Localize.DateTime.Formatter do
   # their resolved locale into the options for this purpose; the
   # locale id is the fallback for direct `format/4` callers.
   defp with_default_number_system(options, locale_id) when is_map(options) do
-    overrides = options[:number_system_overrides] || options["number_system_overrides"] || %{}
-    locale = formatting_locale(options[:locale] || options["locale"], locale_id)
+    overrides = options[:number_system_overrides] || %{}
+    locale = formatting_locale(options[:locale], locale_id)
 
     with %{} <- overrides,
          false <- Map.has_key?(overrides, "all"),
@@ -903,7 +903,7 @@ defmodule Localize.DateTime.Formatter do
   end
 
   defp fetch_override(options, field) do
-    overrides = options[:number_system_overrides] || options["number_system_overrides"] || %{}
+    overrides = options[:number_system_overrides] || %{}
     Map.get(overrides, field) || Map.get(overrides, "all")
   end
 
@@ -964,14 +964,14 @@ defmodule Localize.DateTime.Formatter do
   end
 
   defp transliterate_via_digits(string, digits) when byte_size(digits) > 0 do
-    digit_list = String.graphemes(digits)
+    digit_table = digits |> String.graphemes() |> List.to_tuple()
 
-    if length(digit_list) == 10 do
+    if tuple_size(digit_table) == 10 do
       string
       |> String.graphemes()
       |> Enum.map_join(fn
         c when c in ~w(0 1 2 3 4 5 6 7 8 9) ->
-          Enum.at(digit_list, String.to_integer(c))
+          elem(digit_table, String.to_integer(c))
 
         c ->
           c

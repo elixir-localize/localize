@@ -407,7 +407,7 @@ defmodule Localize.Inflection.Synthesizer.It do
     known? = Dictionary.combined_grammemes(@locale, display_string) != nil
     tokens = Tokenizer.word_tokens(@locale, display_string)
 
-    if known? or length(tokens) == 1 do
+    if known? or match?([_], tokens) do
       word_type = Dictionary.combined_grammemes(@locale, display_string) || 0
       inflect_word(display_string, word_type, constraints, guess?)
     else

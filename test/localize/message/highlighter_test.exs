@@ -52,7 +52,7 @@ defmodule Localize.Message.HighlighterTest do
 
       # Both the open and close tag names are classified.
       tag_tokens = Enum.filter(tokens, &match?({:tag, _}, &1))
-      assert length(tag_tokens) == 2
+      assert [_, _] = tag_tokens
       assert Enum.all?(tag_tokens, fn {_, t} -> t == "bold" end)
     end
 

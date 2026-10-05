@@ -136,7 +136,7 @@ defmodule Localize.Inflection.DownloadTest do
         end)
 
       assert log =~ "No inflection hash manifest found"
-      assert length(String.split(log, "No inflection hash manifest found")) == 2
+      assert [_, _] = String.split(log, "No inflection hash manifest found")
     end
 
     test "a file missing from the server is a download error" do

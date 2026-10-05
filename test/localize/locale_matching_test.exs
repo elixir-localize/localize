@@ -123,10 +123,10 @@ defmodule Localize.LocaleMatchingTest do
     for {test_case, index} <- Enum.with_index(@filtered_cases) do
       @test_case test_case
 
-      @tag_supported_display if(length(test_case.supported) > 5,
-                               do: Enum.join(Enum.take(test_case.supported, 5), ", ") <> "...",
-                               else: Enum.join(test_case.supported, ", ")
-                             )
+      @tag_supported_display (case Enum.split(test_case.supported, 5) do
+                                {first, []} -> Enum.join(first, ", ")
+                                {first, _more} -> Enum.join(first, ", ") <> "..."
+                              end)
 
       test "#{index}: best_match(#{Enum.join(test_case.desired, ", ")} in [#{@tag_supported_display}]) == #{test_case.expected}" do
         supported = @test_case.supported

@@ -264,7 +264,7 @@ defmodule Localize.Inflection.Quantify do
           Locale.parent(internal) in @single_category_locales
 
       categories ->
-        length(categories) <= 1
+        not match?([_, _ | _], categories)
     end
   end
 

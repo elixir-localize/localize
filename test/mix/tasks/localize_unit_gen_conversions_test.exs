@@ -116,7 +116,7 @@ defmodule Mix.Tasks.Localize.Unit.GenConversionsTest do
     test "every unit CLDR defines a conversion for", %{units: units} do
       defined = Localize.Unit.known_units_by_category() |> Map.values() |> List.flatten()
 
-      assert length(defined) > 100
+      assert Enum.count(defined) > 100
 
       for unit <- defined, unit != "beaufort", value <- @values do
         assert_agrees(units, unit, value)
@@ -269,7 +269,7 @@ defmodule Mix.Tasks.Localize.Unit.GenConversionsTest do
     test "reports the tabulated units", %{units: units} do
       units = units.known_units()
 
-      assert length(units) > 100
+      assert Enum.count(units) > 100
       assert "meter" in units
       assert "celsius" in units
     end

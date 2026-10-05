@@ -72,7 +72,7 @@ defmodule Localize.Collation.Table.ParserTest do
 
     test "parses multiple elements in sequence" do
       elements = Parser.parse_elements("[.2453.0020.0002][.0000.0024.0002]")
-      assert length(elements) == 2
+      assert [_, _] = elements
     end
 
     test "returns an empty list for input with no weight groups" do

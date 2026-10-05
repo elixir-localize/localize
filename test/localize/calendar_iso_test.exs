@@ -75,7 +75,7 @@ defmodule Localize.CalendarISOTest do
             not function_exported?(ISO, name, arity),
             do: {name, arity}
 
-      assert length(@calendrical_callbacks) == 27
+      assert Enum.count(@calendrical_callbacks) == 27
       assert missing == []
     end
 

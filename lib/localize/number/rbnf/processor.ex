@@ -266,10 +266,10 @@ defmodule Localize.Number.Rbnf.Processor do
   defp remainder_operation?(_parsed), do: false
 
   defp get_definition(%Rule{definition: definition}), do: definition
-  defp get_definition(rule) when is_map(rule), do: rule[:definition] || rule["definition"]
+  defp get_definition(rule) when is_map(rule), do: rule[:definition]
 
   defp get_divisor(%Rule{divisor: divisor}), do: divisor
-  defp get_divisor(rule) when is_map(rule), do: rule[:divisor] || rule["divisor"]
+  defp get_divisor(rule) when is_map(rule), do: rule[:divisor]
 
   # ── Rule execution ─────────────────────────────────────────
 
@@ -885,23 +885,20 @@ defmodule Localize.Number.Rbnf.Processor do
 
   defp get_base_value(%{base_value: base}) when is_integer(base), do: base
   defp get_base_value(%{base_value: base}) when is_binary(base), do: base
-  defp get_base_value(%{"base_value" => base}) when is_integer(base), do: base
-  defp get_base_value(%{"base_value" => base}) when is_binary(base), do: base
   defp get_base_value(_), do: 0
 
   defp get_range(%{range: range}), do: range
-  defp get_range(%{"range" => range}), do: range
   defp get_range(_), do: "undefined"
 
   defp to_rule_struct(%Rule{} = rule), do: rule
 
   defp to_rule_struct(rule) when is_map(rule) do
     %Rule{
-      base_value: rule[:base_value] || rule["base_value"],
-      radix: rule[:radix] || rule["radix"] || 10,
-      definition: rule[:definition] || rule["definition"],
-      range: rule[:range] || rule["range"],
-      divisor: rule[:divisor] || rule["divisor"] || 1
+      base_value: rule[:base_value],
+      radix: rule[:radix] || 10,
+      definition: rule[:definition],
+      range: rule[:range],
+      divisor: rule[:divisor] || 1
     }
   end
 end

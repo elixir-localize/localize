@@ -36,7 +36,7 @@ defmodule Localize.DateParseMatrixTest do
       |> Task.async_stream(&parse_failure/1, timeout: 60_000, ordered: false)
       |> Enum.flat_map(fn {:ok, failure} -> List.wrap(failure) end)
 
-    assert length(rows) == 6_443
+    assert Enum.count(rows) == 6_443
     assert failures == [], inspect(Enum.take(failures, 20), pretty: true, limit: 12)
   end
 

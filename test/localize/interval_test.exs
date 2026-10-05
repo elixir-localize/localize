@@ -247,7 +247,7 @@ defmodule Localize.IntervalTest do
       assert String.contains?(result, "12:00")
       assert String.contains?(result, "2:00")
       # Date must appear only once (not on both sides).
-      assert length(String.split(result, "Apr 8")) == 2
+      assert [_, _] = String.split(result, "Apr 8")
     end
 
     test "different-day interval shows full datetime on both sides" do
@@ -656,7 +656,7 @@ defmodule Localize.IntervalTest do
       assert interval =~ "PM"
       # CLDR's :hm interval-format collapses the shared AM/PM marker —
       # one "PM" at the end, not two.
-      assert length(String.split(interval, "PM")) == 2
+      assert [_, _] = String.split(interval, "PM")
     end
 
     test "-u-hc-h12 override on a 24-hour locale flips :short to 12-hour" do

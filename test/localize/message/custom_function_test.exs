@@ -31,10 +31,10 @@ defmodule Localize.Message.CustomFunctionTest do
     @impl true
     def format(value, func_opts, options) do
       locale = Keyword.get(options, :locale)
-      # MF2 option keys are atomized when an existing atom matches
-      # (e.g. "style" → :style), otherwise kept as strings. Look
-      # up both forms for robustness.
-      style = Map.get(func_opts, :style) || Map.get(func_opts, "style") || "default"
+      # A custom function receives option names as strings, the
+      # behaviour's documented contract, whether or not an atom of
+      # the name exists (`:style` does).
+      style = Map.get(func_opts, "style", "default")
       {:ok, "#{value}|locale=#{locale}|style=#{style}"}
     end
   end

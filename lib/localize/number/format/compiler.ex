@@ -459,9 +459,9 @@ defmodule Localize.Number.Format.Compiler do
   defp scientific_rounding(_), do: 0
 
   defp count_zeros(format) do
-    format
-    |> String.graphemes()
-    |> Enum.count(&(&1 == "0"))
+    for <<byte <- format>>, byte == ?0, reduce: 0 do
+      count -> count + 1
+    end
   end
 
   # ── Grouping extraction ────────────────────────────────────

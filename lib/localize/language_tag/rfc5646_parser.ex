@@ -50,8 +50,8 @@ defmodule Localize.Rfc5646.Parser do
   # extension maps collide on the same singleton key).
   defp duplicate_singleton(fields) do
     cond do
-      length(Keyword.get_values(fields, :locale)) > 1 -> "u"
-      length(Keyword.get_values(fields, :transform)) > 1 -> "t"
+      match?([_, _ | _], Keyword.get_values(fields, :locale)) -> "u"
+      match?([_, _ | _], Keyword.get_values(fields, :transform)) -> "t"
       singleton = Keyword.get(fields, :duplicate_singleton) -> singleton
       true -> nil
     end

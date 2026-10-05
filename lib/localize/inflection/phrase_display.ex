@@ -39,10 +39,7 @@ defmodule Localize.Inflection.PhraseDisplay do
               {:ok, inflect_compound(locale, display_string, constraints, options)}
 
             grammemes ->
-              case inflect_word(locale, display_string, grammemes, constraints, options) do
-                {:ok, inflected} -> {:ok, inflected}
-                :error -> :error
-              end
+              inflect_word(locale, display_string, grammemes, constraints, options)
           end
         else
           {:ok, display_string}

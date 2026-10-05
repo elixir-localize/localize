@@ -173,7 +173,7 @@ defmodule Localize.Inflection.Synthesizer.Sv do
           []
         end
 
-      length(words) == 2 ->
+      match?([_, _], words) ->
         [first, second] = words
         first_type = Dictionary.combined_grammemes(@locale, first) || 0
         second_type = Dictionary.combined_grammemes(@locale, second) || 0

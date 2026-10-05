@@ -50,7 +50,7 @@ defmodule Localize.DateTime.ZoneSkeletonMatrixTest do
           result != {:ok, expected},
           do: {locale, skeleton, expected, result}
 
-    assert length(rows) == 438
+    assert Enum.count(rows) == 438
     assert failures == [], inspect(failures, pretty: true, limit: :infinity)
   end
 

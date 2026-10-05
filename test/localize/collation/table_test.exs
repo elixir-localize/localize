@@ -17,7 +17,7 @@ defmodule Localize.Collation.TableTest do
       # L + MIDDLE DOT is a CLDR context contraction in the root table.
       assert {:ok, elements} = Table.lookup([0x004C, 0x00B7])
       assert is_list(elements)
-      assert length(elements) >= 2
+      assert [_, _ | _] = elements
     end
 
     test "returns :unmapped for a sequence with no entry" do
