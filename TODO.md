@@ -70,6 +70,8 @@ Outstanding work on Localize. The design detail behind these items lives under [
 
 * [ ] **Settle TR35's `Auto` zone style with CLDR** — TR35 makes it the default but its mapping table gives it no row, so Localize defaults to `:specific`; ICU4X offers no automatic style at all. Blocked on the user filing `tmp/cldr-reports/05-auto-time-zone-style.md`.
 
+* [ ] **Report `hy`'s day-first intervals beside its year-first dates to CLDR** — CLDR 49's Survey Tool import made Armenian's Gregorian dates year-first, "2026 թ. հնս 16", and left its `yMMMd` and `yMMMEd` interval formats day-first, "16–20 հնս, 2026 թ."; three interval patterns write the year's abbreviation with a one-dot leader after one year and a full stop after the other. Blocked on the user filing `tmp/cldr-reports/13-hy-intervals-day-first-beside-year-first-dates.md`.
+
 ## Deferred
 
 * [ ] **An interval pattern's `latestFirst:` and `earliestFirst:` prefixes are not read** — TR35 lets one pattern override the order its locale's fallback pattern states, and ICU4C reads the prefixes. No pattern of CLDR 49 has one, and one would be taken for pattern letters; reading them needs the data build to keep a prefix apart from its pattern.
@@ -81,6 +83,8 @@ Outstanding work on Localize. The design detail behind these items lives under [
 * [ ] **`localize_emoji` sibling library** — plan item 11, a separate package on its own schedule. A Phoenix LiveView picker (`localize_emoji_live`) is out of scope for its 0.1.0.
 
 ## Done
+
+* [x] **An interval is read with the spaces beside its dash left out or put in** — an interval's pattern was read only with the spaces it has about its dash, so `en`'s "Jun 16–20, 2026" was an error, as `de`'s "16. – 20.06.2026" was with them: TR35's parsing has spaces "ignored (except to delimit the tokens of the input string)", and a dash delimits without them, so the spaces beside a dash are optional wherever the pattern has it (`fil`'s Hebrew "d – MMM d y" is split at its second day) and the rest of the text between the dates is kept (`hy`'s "dd MMM, y թ․ – dd MMM, y թ."). Of 52,091 intervals with one en or em dash at five formats in eleven calendars and 329 locales, 51,551 read back as written, without the spaces and with them (23,410 before), the other 540 not reading as written either; none of the 195,257 at the standard formats in 35 calendars and 657 locales or the 183,582 with an era reads otherwise, and none of 59,787 single dates is read as a range. 2026-10-06, v1.4.0.
 
 * [x] **An interval in a year two eras share is read** — a date an interval writes without its month asked the calendar which year its year of the era was with no month, and 2019 alone is neither Heisei 31 nor Reiwa 1, so `en`'s "May 1 – 5, 1 Reiwa" and the medium interval of 25 locales in an era's first or last year were errors: each date asks with the month and the day it takes from the other. The 102 such intervals of 105,280 dates and intervals in 329 locales read back, and none of 183,582 intervals with an era or 195,257 at the standard formats reads otherwise. 2026-10-05, v1.4.0.
 

@@ -949,10 +949,42 @@ defmodule Localize.Date.Parser do
   end
 
   defp compile_interval_regex(tokens_l, tokens_r, ctx) do
-    left_regex = compile_capture_regex(tokens_l, ctx, "left_")
-    right_regex = compile_capture_regex(tokens_r, ctx, "right_")
+    left_regex = compile_capture_regex(joined(tokens_l), ctx, "left_")
+    right_regex = compile_capture_regex(spaced_dashes(tokens_r), ctx, "right_")
 
     Regex.compile("\\A" <> left_regex <> right_regex <> "\\z", "u")
+  end
+
+  # The text between an interval's two dates is the last of its first part,
+  # and is read with its spaces as the writer chose them (`expand_join/2`).
+  defp joined(tokens_l) do
+    tokens = spaced_dashes(tokens_l)
+
+    case List.last(tokens) do
+      {:lit, text} -> List.replace_at(tokens, -1, {:join, text})
+      _other -> tokens
+    end
+  end
+
+  # A pattern is split where a field first comes again, which is not always
+  # at its dash: `fil`'s Hebrew "d – MMM d y" is split at its second day, so
+  # the dash is in its first part. Any text with a dash set off by a space is
+  # read as the text between the dates is.
+  defp spaced_dashes(tokens) do
+    Enum.map(tokens, fn
+      {:lit, text} = literal -> if spaced_dash?(text), do: {:join, text}, else: literal
+      token -> token
+    end)
+  end
+
+  defp spaced_dash?(text) do
+    text
+    |> String.graphemes()
+    |> Enum.chunk_every(2, 1, :discard)
+    |> Enum.any?(fn [first, second] ->
+      (first in @dash_chars and space_char?(second)) or
+        (space_char?(first) and second in @dash_chars)
+    end)
   end
 
   defp interval_endpoints_for(:struct, left_partial, right_partial, calendar_module, _reference) do
@@ -2718,6 +2750,7 @@ defmodule Localize.Date.Parser do
   end
 
   defp classify_plain({:lit, _}), do: :literal
+  defp classify_plain({:join, _}), do: :literal
   defp classify_plain(_), do: :field
 
   defp maybe_prefix_capture(regex, ""), do: regex
@@ -2725,6 +2758,10 @@ defmodule Localize.Date.Parser do
 
   defp field_regex({:lit, text}, _months, _eras, lenient, _ctx) do
     {:plain, expand_literal(text, lenient)}
+  end
+
+  defp field_regex({:join, text}, _months, _eras, lenient, _ctx) do
+    {:plain, expand_join(text, lenient)}
   end
 
   # A calendar without a before era writes a year below 1 with its
@@ -3025,6 +3062,43 @@ defmodule Localize.Date.Parser do
     optional_comma? = Enum.any?(graphemes, &space_char?/1)
 
     Enum.map_join(graphemes, &expand_char(&1, lenient, optional_comma?))
+  end
+
+  # The text that joins an interval's two dates. Where it has a dash, the
+  # spaces about the dash are the writer's to leave out or put in: TR35's
+  # parsing has spaces "ignored (except to delimit the tokens of the input
+  # string)", and a dash delimits without them. `en`'s "MMM d – d, y" reads
+  # "Jun 16–20, 2026" and `de`'s "dd.–dd.MM.y" reads "16. – 20.06.2026".
+  # Only the spaces beside a dash are so: `hy`'s "dd MMM, y թ․ – dd MMM, y
+  # թ." keeps the space before its "թ․", and a join of words keeps its
+  # spaces, which are what sets the words apart.
+  defp expand_join(text, lenient) do
+    graphemes = String.graphemes(text)
+    optional_comma? = Enum.any?(graphemes, &space_char?/1)
+
+    runs = Enum.chunk_by(graphemes, &space_char?/1)
+
+    [nil | runs]
+    |> Enum.concat([nil])
+    |> Enum.chunk_every(3, 1, :discard)
+    |> Enum.map_join(fn [before, run, later] ->
+      if beside_a_dash?(before, run, later),
+        do: "",
+        else: Enum.map_join(run, &expand_join_char(&1, lenient, optional_comma?))
+    end)
+  end
+
+  # Whether a run of a join's text is the spaces before or after a dash.
+  defp beside_a_dash?(before, [char | _spaces], later) do
+    space_char?(char) and
+      ((is_list(before) and List.last(before) in @dash_chars) or
+         (is_list(later) and hd(later) in @dash_chars))
+  end
+
+  defp expand_join_char(char, lenient, optional_comma?) do
+    if char in @dash_chars,
+      do: @space_class <> expand_char(char, lenient, optional_comma?) <> @space_class,
+      else: expand_char(char, lenient, optional_comma?)
   end
 
   defp expand_char(char, lenient, optional_comma?) do

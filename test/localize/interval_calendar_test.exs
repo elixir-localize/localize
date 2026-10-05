@@ -83,7 +83,8 @@ defmodule Localize.IntervalCalendarTest do
     defdelegate date_to_string(year, month, day), to: Calendar.ISO
   end
 
-  # A calendar with the Hebrew calendar's CLDR data, for times.
+  # A calendar with the Hebrew calendar's CLDR data, for times and for the
+  # text of an interval.
   defmodule HebrewTimes do
     @moduledoc false
     use Localize.Test.StandInCalendar
@@ -213,6 +214,30 @@ defmodule Localize.IntervalCalendarTest do
                date(Chinese, 4660, 3, 20),
                locale: :en
              ) == {:ok, "Mo2bis 11\u2009–\u200920, 2023"}
+    end
+  end
+
+  # fil.xml's Hebrew `yMMMd` interval for a day's difference is "d – MMM d
+  # y", and the calendar's eleventh month in root.xml is "Tamuz". A pattern
+  # is split where a field first comes again, here at its second day, so the
+  # dash is in the pattern's first part and not at the split. TR35's parsing
+  # has spaces "ignored (except to delimit the tokens of the input string)".
+  describe "an interval whose dash is not where its pattern is split" do
+    test "is read with the spaces beside the dash left out" do
+      from = date(HebrewTimes, 5786, 11, 1)
+      to = date(HebrewTimes, 5786, 11, 5)
+
+      assert Localize.Interval.to_string(from, to, locale: :fil, format: :yMMMd) ==
+               {:ok, "1 – Tamuz 5 5786"}
+
+      for text <- ["1 – Tamuz 5 5786", "1–Tamuz 5 5786", "1 –Tamuz 5 5786"] do
+        assert Localize.Interval.parse(text,
+                 locale: :fil,
+                 calendar: HebrewTimes,
+                 reference_date: from
+               ) == {:ok, Date.range(from, to)},
+               text
+      end
     end
   end
 

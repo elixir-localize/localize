@@ -599,6 +599,94 @@ defmodule Localize.IntervalTest do
     end
   end
 
+  # TR35's parsing has spaces "ignored (except to delimit the tokens of the
+  # input string)", and a dash delimits without them. en.xml's `yMMMd`
+  # interval is "MMM d – d, y", de.xml's `yMd` "dd.–dd.MM.y" and fi.xml's
+  # "d.–d.M.y"; each was read only with the spaces its pattern has, so the
+  # dash people type with none was an error in `en`.
+  describe "parse/2 with other spaces about the dash than the pattern's" do
+    test "reads an interval written without the spaces the pattern has" do
+      assert Interval.parse("Jun 16–20, 2026", locale: :en) ==
+               {:ok, Date.range(~D[2026-06-16], ~D[2026-06-20])}
+
+      assert Interval.parse("Jun 16–Aug 20, 2026", locale: :en) ==
+               {:ok, Date.range(~D[2026-06-16], ~D[2026-08-20])}
+
+      assert Interval.parse("Jun 16, 2026–Aug 20, 2027", locale: :en) ==
+               {:ok, Date.range(~D[2026-06-16], ~D[2027-08-20])}
+
+      assert Interval.parse("Jun 16-20, 2026", locale: :en) ==
+               {:ok, Date.range(~D[2026-06-16], ~D[2026-06-20])}
+    end
+
+    test "reads an interval written with spaces the pattern has not" do
+      assert Interval.parse("16. – 20.06.2026", locale: :de) ==
+               {:ok, Date.range(~D[2026-06-16], ~D[2026-06-20])}
+
+      assert Interval.parse("16. – 20.6.2026", locale: :fi) ==
+               {:ok, Date.range(~D[2026-06-16], ~D[2026-06-20])}
+
+      # `en_CA.xml`'s default `yMd` item is "M/d/y–M/d/y", which was passed
+      # over for its day-first variant, "d/M/y – d/M/y", when the text had
+      # the variant's spaces.
+      assert Interval.parse("5/6/2026 – 7/8/2026", locale: :"en-CA") ==
+               {:ok, Date.range(~D[2026-05-06], ~D[2026-07-08])}
+    end
+
+    # ru.xml's `yMd` interval is "dd.MM.y—dd.MM.y" and uk.xml's "dd.MM.y —
+    # dd.MM.y", each with an em dash.
+    test "reads an interval joined by an em dash with its spaces either way" do
+      range = {:ok, Date.range(~D[2026-06-16], ~D[2026-06-20])}
+
+      for locale <- [:ru, :uk],
+          text <- ["16.06.2026—20.06.2026", "16.06.2026 — 20.06.2026"] do
+        assert Interval.parse(text, locale: locale) == range, "#{locale} #{text}"
+      end
+    end
+
+    # hy.xml's `yMMMd` interval across years is "dd MMM, y թ․ – dd MMM, y
+    # թ.", whose first year is followed by a space and "թ․" before the
+    # dash, and whose months are "հնս" and "օգս". Only the spaces beside
+    # the dash are the writer's to leave out.
+    test "keeps the spaces of the text between the dates that are not beside its dash" do
+      range = {:ok, Date.range(~D[2026-06-16], ~D[2027-08-20])}
+
+      assert Interval.parse("16 հնս, 2026 թ․ – 20 օգս, 2027 թ.", locale: :hy) == range
+      assert Interval.parse("16 հնս, 2026 թ․–20 օգս, 2027 թ.", locale: :hy) == range
+    end
+
+    # Most locales join an interval's dates with an en dash; ru.xml's `yMd`
+    # interval is "dd.MM.y—dd.MM.y" and uk.xml's "dd.MM.y — dd.MM.y", each
+    # with an em dash.
+    # An interval that reads back as the dates it was written from reads
+    # as them with its dash respaced.
+    for format <- [:short, :medium, :long] do
+      test "reads what each locale writes at #{inspect(format)}, with its spaces taken out and put in" do
+        spaced_dash = ~r/[\s\x{00A0}\x{2009}\x{202F}]*([–—])[\s\x{00A0}\x{2009}\x{202F}]*/u
+        from = ~D[2026-06-16]
+
+        failures =
+          for locale <- Localize.Test.InstalledLocales.all(),
+              to <- [~D[2026-06-20], ~D[2027-08-20]],
+              {:ok, text} = Interval.to_string(from, to, locale: locale, format: unquote(format)),
+              match?([_dash], Regex.scan(~r/[–—]/u, text)),
+              options = [locale: locale, reference_date: from],
+              Interval.parse(text, options) == {:ok, Date.range(from, to)},
+              respaced <- [
+                String.replace(text, spaced_dash, "\\1"),
+                String.replace(text, spaced_dash, " \\1 ")
+              ],
+              respaced != text,
+              read = Interval.parse(respaced, options),
+              read != {:ok, Date.range(from, to)} do
+            {locale, respaced, read}
+          end
+
+        assert failures == [], inspect(Enum.take(failures, 5), pretty: true)
+      end
+    end
+  end
+
   describe "split_interval/1" do
     test "splits a simple interval pattern" do
       assert {:ok, ["MMM d – ", "d, y"]} = Interval.split_interval("MMM d – d, y")

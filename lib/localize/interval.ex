@@ -2027,15 +2027,11 @@ defmodule Localize.Interval do
   @doc """
   Parses a localized date interval.
 
-  The inverse of `to_string/3`. Accepts either a single string
-  (e.g. `"May 5 – May 10, 2026"`) in which case the parser splits on the
-  locale's CLDR `intervalFormatFallback` separator, **or** a 2-tuple
-  `{from_string, to_string}` for two-input UIs that already have the
-  endpoints split.
+  The inverse of `to_string/3`. Accepts either a single string, such as `"May 5 – 10, 2026"`, or a 2-tuple `{from_string, to_string}` for two-input UIs that already have the endpoints split.
 
-  Each endpoint is parsed independently via `Localize.Date.parse/2`. The
-  result is a `t:Date.Range.t/0` whose endpoints share the calendar named
-  by the `:calendar` option, which defaults to `Calendar.ISO`.
+  A single string is read with the locale's interval formats, in which the two dates share the fields written once, and otherwise cut where the locale's fallback pattern or a separator people write, a dash or "to", has a date on each side, each read as `Localize.Date.parse/2` reads it. The spaces about an interval format's dash may be left out or put in.
+
+  The result is a `t:Date.Range.t/0` whose endpoints share the calendar named by the `:calendar` option, which defaults to `Calendar.ISO`.
 
   ### Arguments
 
@@ -2089,6 +2085,9 @@ defmodule Localize.Interval do
       iex> {:ok, range} = Localize.Interval.parse("May 5, 2026 – May 10, 2026", locale: :en)
       iex> {range.first, range.last}
       {~D[2026-05-05], ~D[2026-05-10]}
+
+      iex> Localize.Interval.parse("May 5–10, 2026", locale: :en)
+      {:ok, Date.range(~D[2026-05-05], ~D[2026-05-10])}
 
   """
   @spec parse(String.t() | {String.t(), String.t()}, Keyword.t()) ::
