@@ -174,6 +174,27 @@ defmodule Localize.DateTime.Format do
     Localize.Locale.get(locale_id, [:dates, :calendars, calendar_type, :interval_formats])
   end
 
+  # # interval_order/1
+  #
+  # The order a locale's interval patterns write their two values in, from
+  # the fallback pattern among its `interval_formats/2`. TR35: "The fallback
+  # pattern determines the default order of the interval pattern", "{1} -
+  # {0}" meaning that "the first part of the interval patterns in current
+  # locale are formatted with the end datetime". Only `kek`'s Gregorian
+  # calendar is latest first in CLDR 49.
+  #
+  @spec interval_order(map()) :: :earliest_first | :latest_first
+  def interval_order(%{interval_format_fallback: fallback}) when is_list(fallback) do
+    later = Enum.find_index(fallback, &(&1 == 1))
+    earlier = Enum.find_index(fallback, &(&1 == 0))
+
+    if is_integer(later) and is_integer(earlier) and later < earlier,
+      do: :latest_first,
+      else: :earliest_first
+  end
+
+  def interval_order(_formats), do: :earliest_first
+
   # # resolve_standard_format/3
   #
   # Resolves a standard format name to a pattern string.

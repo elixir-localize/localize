@@ -9,6 +9,8 @@ defmodule Localize.Interval do
 
   An interval is formatted with the formats of its endpoints' calendar: its interval patterns, its date and time formats, and the date-time pattern joining a date to a time range. Both endpoints must therefore be in the same calendar. An era is a calendar field like any other, so endpoints in different eras show their eras where the locale has a pattern for them, as ICU does: "Dec 31, 1 BC – Jan 1, 1 AD".
 
+  The two values are written in the order the locale's interval fallback pattern states, which TR35 makes the order of every interval pattern: the earlier first in every locale but one of CLDR 49. `kek`'s Gregorian pattern is "{1} – {0}", so it writes the later value first.
+
   """
 
   import Kernel, except: [to_string: 1]
@@ -866,13 +868,15 @@ defmodule Localize.Interval do
       difference = calendar_difference(from, to)
       units = displayed_units(date_skeleton) ++ displayed_units(time_skeleton)
       in_full = {Localize.DateTime, to, datetime_options}
-      time_only = {Localize.Time, to, time_options}
+      order = Localize.DateTime.Format.interval_order(formats)
 
-      # A format without a date half writes the times alone.
-      first =
-        if date_format == :none,
-          do: {Localize.Time, from, time_options},
-          else: {Localize.DateTime, from, datetime_options}
+      # The two times about the fallback pattern, the date written once with
+      # the time the locale writes first: `from`'s, or `to`'s where the
+      # fallback pattern is "{1} – {0}", as ICU4C writes "Jun 16, 2026,
+      # 14:30:00 – 10:00:00". A format without a date half writes the times
+      # alone.
+      {first, second} =
+        date_once(order, date_format, {from, to}, {datetime_options, time_options})
 
       cond do
         not units_show?(units, difference) ->
@@ -886,12 +890,21 @@ defmodule Localize.Interval do
           |> time_range_split(time_skeleton, difference, locale, {locale_id, calendar}, options)
           |> format_time_range(output, {from, to}, date_format, options, {
             first,
-            time_only,
+            second,
             fallback
           })
       end
     end
   end
+
+  defp date_once(_order, :none, {from, to}, {_datetime_options, time_options}),
+    do: {{Localize.Time, from, time_options}, {Localize.Time, to, time_options}}
+
+  defp date_once(:latest_first, _date_format, {from, to}, {datetime_options, time_options}),
+    do: {{Localize.Time, from, time_options}, {Localize.DateTime, to, datetime_options}}
+
+  defp date_once(:earliest_first, _date_format, {from, to}, {datetime_options, time_options}),
+    do: {{Localize.DateTime, from, datetime_options}, {Localize.Time, to, time_options}}
 
   # The formats of a datetime interval's date and time halves: `:date_format`
   # and `:time_format` where given, else `:format` for both. A skeleton is
@@ -1461,42 +1474,66 @@ defmodule Localize.Interval do
           :open_end -> {formatted, ""}
         end
 
+      # The pattern leaves a space beside the value that is not there, before
+      # its separator or after it as it orders its values.
       result =
         [a, b]
         |> Localize.Substitution.substitute(pattern)
         |> IO.iodata_to_binary()
-        |> trim_open_interval(side)
+        |> String.trim()
 
       {:ok, result}
     end
   end
 
-  defp trim_open_interval(string, :open_start), do: String.trim_leading(string)
-  defp trim_open_interval(string, :open_end), do: String.trim_trailing(string)
-
   # ── Output-mode terminals (string | parts) ──────────────────
 
-  # A split interval pattern: the left half formats `from`, the right
-  # half formats `to`, concatenated directly.
+  # A split interval pattern: the left half formats the value the locale
+  # writes first, `from` in every locale but one, and the right half the
+  # other, concatenated directly.
   defp format_split(:string, from, to, left, right, locale_id, options_map) do
     {left, right} = hour_cycle_split(left, right, options_map)
+    {first, second} = in_written_order({from, to}, from, locale_id)
 
     with {:ok, left_str} <-
-           Localize.DateTime.Formatter.format(from, left, locale_id, options_map),
+           Localize.DateTime.Formatter.format(first, left, locale_id, options_map),
          {:ok, right_str} <-
-           Localize.DateTime.Formatter.format(to, right, locale_id, options_map) do
+           Localize.DateTime.Formatter.format(second, right, locale_id, options_map) do
       {:ok, left_str <> right_str}
     end
   end
 
   defp format_split(:parts, from, to, left, right, locale_id, options_map) do
     {left, right} = hour_cycle_split(left, right, options_map)
+    {first, second} = in_written_order({from, to}, from, locale_id)
+    {first_source, second_source} = in_written_order({:start_range, :end_range}, from, locale_id)
 
     with {:ok, left_parts} <-
-           Localize.DateTime.Formatter.format_to_parts(from, left, locale_id, options_map),
+           Localize.DateTime.Formatter.format_to_parts(first, left, locale_id, options_map),
          {:ok, right_parts} <-
-           Localize.DateTime.Formatter.format_to_parts(to, right, locale_id, options_map) do
-      {:ok, join_split_parts(left_parts, right_parts)}
+           Localize.DateTime.Formatter.format_to_parts(second, right, locale_id, options_map) do
+      {:ok,
+       join_split_parts(
+         tag_source(left_parts, first_source),
+         tag_source(right_parts, second_source)
+       )}
+    end
+  end
+
+  # A pair in the order the locale's interval patterns write their two
+  # values in. TR35: "The fallback pattern determines the default order of
+  # the interval pattern", and with "{1} - {0}" "the first part of the
+  # interval patterns in current locale are formatted with the end
+  # datetime". `kek`'s Gregorian calendar has the one such pattern in CLDR
+  # 49, so its `yMd` item "d/M/y – d/M/y" writes 16 June 2026 to 20 August
+  # 2027 as "20/8/2027 – 16/6/2026", as its fallback pattern joins two
+  # dates and as ICU4C writes an interval for such a locale.
+  defp in_written_order({earlier, later}, value, locale_id) do
+    with {:ok, formats} <- interval_formats(locale_id, value),
+         :latest_first <- Localize.DateTime.Format.interval_order(formats) do
+      {later, earlier}
+    else
+      _earliest_first -> {earlier, later}
     end
   end
 
@@ -1508,12 +1545,9 @@ defmodule Localize.Interval do
   end
 
   # The split pattern's separator (" – ") sits at the boundary of the
-  # two halves as literal text; retag those bridging literals as
-  # `:shared` per ECMA-402.
-  defp join_split_parts(left_parts, right_parts) do
-    left = tag_source(left_parts, :start_range)
-    right = tag_source(right_parts, :end_range)
-
+  # two halves, each tagged with the end of the range it writes, as
+  # literal text; retag those bridging literals as `:shared` per ECMA-402.
+  defp join_split_parts(left, right) do
     {left_body, left_bridge} = split_trailing_literals(left)
     {right_bridge, right_body} = split_leading_literals(right)
 

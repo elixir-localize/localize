@@ -766,11 +766,23 @@ defmodule Localize.Date.Parser do
           interval_pattern_order(variants -- defaults, transliterated)
 
       years = written_years(locale, calendar_module, own_calendar, reference)
-      Enum.find_value(patterns, :error, &interval_reading(transliterated, &1, years, ctx, as))
+
+      patterns
+      |> Enum.find_value(:error, &interval_reading(transliterated, &1, years, ctx, as))
+      |> in_range_order(Format.interval_order(intervals))
     else
       _ -> :error
     end
   end
+
+  # The two dates an interval pattern read, the earlier first. TR35 has the
+  # locale's fallback pattern give the order of every interval pattern, and
+  # where it is "{1} – {0}", as `kek`'s is, the first date of a pattern is
+  # the later one: "20/8/2027 – 16/6/2026" is from 16 June 2026, and the
+  # same dates the other way round are an inverted range there, as
+  # "8/20/2027 – 6/16/2026" is in `en`.
+  defp in_range_order({:ok, first, second}, :latest_first), do: {:ok, second, first}
+  defp in_range_order(reading, _order), do: reading
 
   defp default_pattern(pattern) when is_binary(pattern), do: [pattern]
   defp default_pattern(%{default: pattern}) when is_binary(pattern), do: [pattern]
@@ -1682,11 +1694,25 @@ defmodule Localize.Date.Parser do
   # dates are read as Gregorian ones but written with CLDR's generic
   # calendar's patterns, `es-PA`'s "{0} a el {1}" and `fr-CH`'s
   # "du {0} au {1}" where the Gregorian calendar's is "{0} – {1}". `kek`'s
-  # Gregorian pattern is "{1} – {0}", the later date first.
+  # Gregorian pattern is "{1} – {0}", the later date first, and a separator
+  # a fallback pattern has is read in that pattern's order alone: an en
+  # dash is not also the earlier date first there.
   @spec range_joins(atom() | String.t() | Localize.LanguageTag.t(), [module()]) ::
           [{String.t(), String.t(), :earliest_first | :latest_first}]
-  def range_joins(locale, calendars),
-    do: Enum.uniq(fallback_range_joins(locale, calendars) ++ @written_range_joins)
+  def range_joins(locale, calendars) do
+    fallback = fallback_range_joins(locale, calendars)
+
+    stated =
+      for {before, separator, _order} <- fallback,
+          String.trim(before) == "",
+          into: MapSet.new(),
+          do: String.trim(separator)
+
+    fallback ++
+      Enum.reject(@written_range_joins, fn {_before, separator, _order} ->
+        String.trim(separator) in stated
+      end)
+  end
 
   @doc false
   # The joins of the calendars' fallback patterns alone.

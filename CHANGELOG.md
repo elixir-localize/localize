@@ -134,6 +134,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+* An interval's two values are written, and read, in the order the locale's fallback pattern states, as TR35 has it and ICU does: `kek`'s Gregorian pattern is "{1} – {0}", so its `yMd` item writes 16 June 2026 to 20 August 2027 as "20/8/2027 – 16/6/2026", where it wrote the earlier date first beside ranges the fallback pattern joined the other way. A date written once beside two times stays before them, and an open interval keeps no space where its missing value was.
+
 * The first year of a Japanese era is read as `ja` writes it. Its full, long and medium dates take CLDR's `jpanyear` numbering, whose year 1 is 元, so "令和元年5月1日" was an error.
 
 * A year of an era that began before a calendar changed how it numbers its years is read. `Calendrical.Reform.Japan` counts its years from 645 until 1872 and as the Gregorian calendar does from 1873, so every date from the reform to the end of Meiji in 1912, "Jun 16, 6 Meiji", was an error.

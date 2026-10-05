@@ -26,8 +26,6 @@ Outstanding work on Localize. The design detail behind these items lives under [
 
 * [ ] **A composite calendar's dates of its earlier calendar do not read back** — `Calendrical.Reform.Japan` writes a date before 1873 with the Chinese calendar's formats, its `cldr_calendar_type/3` answering for the date, and the reader has only the module's `cldr_calendar_type/0`, the Japanese calendar: "Mo5 11, 1872" and every date of its lunisolar years is an error, where `Calendrical.LunarJapanese` reads the same text. The reader needs every CLDR calendar a module's dates are written in, which no callback answers; decide the callback (an optional `cldr_calendar_types/0` in Calendrical, each reading held to the type the calendar gives the date it makes).
 
-* [ ] **An interval item is written earliest first where the fallback pattern is latest first** — TR35 makes the fallback pattern the order of every interval pattern, "{1} - {0}" meaning "the first part of the interval patterns in current locale are formatted with the end datetime", with `latestFirst:` and `earliestFirst:` to override it in one pattern, and ICU4C applies both. Localize applies the order to two dates joined by the fallback pattern alone, so `kek`, the one locale with "{1} – {0}", writes "16/6/2026 – 20/8/2027" from its `yMd` item and "20/8/2027 – 16/6/2026" where it has no item; no pattern has a prefix, and none would be read as one.
-
 * [ ] **A date two of a locale's formats read is read by the first** — `af`'s `GyMd` in the generic calendar is "M-d-y G" beside a `yyyyMd` of "d/M/y GGGGG", and each reads "1-7-8 Reiwa", the second through a lenient separator, as `az-Cyrl`'s "GGGGG dd.MM.y" reads the "Reiwa 8-01-07" its `GyMd` writes: 1,746 of 1,306,116 dates of every month, written at `GyMd` and `GyMMMd` in 29 locales, read back as another date. A format whose own separators are in the text should be read before one that only reads it leniently, as an interval's patterns now are.
 
 * [ ] **An interval is parsed by compiling its patterns' regexes on every call** — a date's patterns are compiled once for a locale and calendar and kept, an interval's are not, so `Localize.Interval.parse/2` takes about 70 ms where no early pattern reads the text, and `Localize.DateTime.Parser.parse/2` pays it for a single date wherever the locale's fallback separator is in the text (`da`'s hyphen). Keeping them costs literal memory, some megabytes for a locale and calendar; decide between keeping them, a bounded cache, and refusing a pattern by its count of fields before it is compiled.
@@ -74,6 +72,8 @@ Outstanding work on Localize. The design detail behind these items lives under [
 
 ## Deferred
 
+* [ ] **An interval pattern's `latestFirst:` and `earliestFirst:` prefixes are not read** — TR35 lets one pattern override the order its locale's fallback pattern states, and ICU4C reads the prefixes. No pattern of CLDR 49 has one, and one would be taken for pattern letters; reading them needs the data build to keep a prefix apart from its pattern.
+
 * [ ] **MF2's `calendar` option reaches into Calendrical** — `Localize.Message.Interpreter` resolves `calendar=hebrew` to a module through `Localize.OptionalDependency.call("Calendrical", ...)`, which the rule that Localize never depends on Calendrical forbids; deferred (user, 2026-10-01). A registry Calendrical fills at start-up is one way to a module.
 
 * [ ] **Recheck map-order selections that only today's data keeps deterministic** — seven lookups walk a map and never see two candidates in the current CLDR data; recheck them whenever it is regenerated. [plans/map-order.md](plans/map-order.md).
@@ -81,6 +81,8 @@ Outstanding work on Localize. The design detail behind these items lives under [
 * [ ] **`localize_emoji` sibling library** — plan item 11, a separate package on its own schedule. A Phoenix LiveView picker (`localize_emoji_live`) is out of scope for its 0.1.0.
 
 ## Done
+
+* [x] **An interval is written and read in the order the locale's fallback pattern states** — TR35 makes the fallback pattern the order of every interval pattern and ICU4C applies it, so `kek`, whose Gregorian pattern is "{1} – {0}", writes its interval formats the later value first, "20/8/2027 – 16/6/2026" and "14:30–10:00", as it joined two dates already, and reads them so; the same dates the other way round are an inverted range there, as the later date first is in `en`. A date written once beside two times stays before them, and an open interval keeps no space where its missing value was. Of `kek`'s 2,970 intervals in 33 calendars the 1,834 that read back still do, 1,120 of them rewritten, and no other locale's fallback pattern is latest first. 2026-10-05, v1.4.0.
 
 * [x] **The first year of a Japanese era is read as `ja` writes it** — its full, long and medium dates take CLDR's `jpanyear` numbering, whose year 1 is 元, and "令和元年5月1日" was an error, where a day in `hanidays` and a month in `romanlow` were read: a year an algorithmic numbering writes otherwise than in digits is read before the digits. The 27 dates of five eras' first years that `ja` writes so, of 105,280 in 329 locales, read back, and none reads otherwise. 2026-10-05, v1.4.0.
 

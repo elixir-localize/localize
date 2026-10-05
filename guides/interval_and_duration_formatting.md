@@ -233,6 +233,13 @@ The Japanese calendar changes era within a year, so its interval from 30 April t
 
 6. For open intervals (one endpoint is `nil`), the known endpoint is formatted using the appropriate single-value formatter (`Localize.Date`, `Localize.Time`, or `Localize.DateTime`), then substituted into the locale's `intervalFormatFallback` pattern with the appropriate trimming so only the separator on the "open" side remains.
 
+7. The two values are written in the order the fallback pattern states. TR35 has that pattern "determine the default order of the interval pattern", so where it is "{1} – {0}" the later value is written first, by every interval format of the locale as by the fallback pattern itself, and ICU does the same. `kek`'s Gregorian calendar has the one such pattern in CLDR 49:
+
+```elixir
+iex> Localize.Interval.to_string(~D[2026-06-16], ~D[2027-08-20], locale: :kek, format: :yMd)
+{:ok, "20/8/2027 – 16/6/2026"}
+```
+
 ## Duration formatting
 
 `Localize.Duration` represents an amount of elapsed time in calendar units (years, months, days, hours, minutes, seconds, microseconds). Unlike intervals, a duration is not tied to two specific points — it is a scalar quantity of time.

@@ -109,7 +109,6 @@ defmodule Localize.IntervalStandardFormatTest do
             {:vi, :short},
             {:id, :short},
             {:te, :short},
-            {:kek, :short},
             {:qu, :short},
             {:om, :short},
             {:om, :medium},
@@ -128,6 +127,18 @@ defmodule Localize.IntervalStandardFormatTest do
         assert {:ok, range} = interval(@from, @year, locale, format)
         assert String.starts_with?(range, alone), "#{locale} #{format}: #{range} beside #{alone}"
       end
+    end
+
+    # `kek.xml`'s fallback pattern is "{1} – {0}", which TR35 makes the order
+    # of its interval formats, so the date written first is the later one,
+    # and each is still the date as it is written alone.
+    test "writes the later date first where the locale's fallback pattern does" do
+      assert {:ok, earlier} = single(@from, :kek, :short)
+      assert {:ok, later} = single(@year, :kek, :short)
+      assert {:ok, range} = interval(@from, @year, :kek, :short)
+
+      assert String.starts_with?(range, later), "#{range} beside #{later}"
+      assert String.ends_with?(range, earlier), "#{range} beside #{earlier}"
     end
   end
 

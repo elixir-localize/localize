@@ -476,6 +476,129 @@ defmodule Localize.IntervalTest do
     end
   end
 
+  # TR35: "The fallback pattern determines the default order of the interval
+  # pattern", and with "{1} - {0}" "the first part of the interval patterns
+  # in current locale are formatted with the end datetime". `kek.xml`'s
+  # Gregorian fallback pattern is "{1} – {0}", alone among CLDR 49's locales,
+  # and its `yMd` item is "d/M/y – d/M/y"; ICU4C given that fallback pattern
+  # writes `en`'s `yMd` as "8/20/2027 – 6/16/2026". The item was written
+  # earliest first, beside two dates the fallback pattern joined latest
+  # first.
+  describe "a locale whose fallback pattern writes the later value first" do
+    test "writes the first part of an interval item with the later date" do
+      assert Interval.to_string(~D[2026-06-16], ~D[2027-08-20], locale: :kek, format: :yMd) ==
+               {:ok, "20/8/2027 – 16/6/2026"}
+
+      assert Interval.to_string(~D[2026-06-16], ~D[2026-06-20], locale: :kek, format: :yMd) ==
+               {:ok, "20/6/2026 – 16/6/2026"}
+    end
+
+    # Root's `Hm` item, which `kek` takes, is "HH:mm–HH:mm".
+    test "writes the first part of a time interval with the later time" do
+      assert Interval.to_string(~T[10:00:00], ~T[14:30:00], locale: :kek, format: :Hm) ==
+               {:ok, "14:30–10:00"}
+    end
+
+    # Two times with no item of their own are joined by the fallback pattern
+    # and the date is written once, with the time written first: ICU4C given
+    # that fallback pattern writes `en`'s `yMdHms` as "6/16/2026, 14:30:00 –
+    # 10:00:00". `kek.xml`'s `yMd` is "d/M/y".
+    test "writes a date once beside the later of two times joined" do
+      assert Interval.to_string(~N[2026-06-16 10:00:00], ~N[2026-06-16 14:30:00],
+               locale: :kek,
+               format: :yMdHms
+             ) == {:ok, "16/6/2026 14:30:00 – 10:00:00"}
+
+      assert Interval.to_string(~N[2026-06-16 10:00:00], ~N[2026-06-16 14:30:00],
+               locale: :en,
+               format: :yMdHms
+             ) == {:ok, "6/16/2026, 10:00:00 – 14:30:00"}
+    end
+
+    # An interval open at one end is the fallback pattern with nothing for
+    # that end, so "{1} – {0}" leaves its separator after the later date
+    # and before the earlier one, where root's "{0} – {1}" leaves it before
+    # the later and after the earlier.
+    test "writes an open interval with its separator beside the value it has" do
+      assert Interval.to_string(nil, ~D[2027-08-20], locale: :kek, format: :yMd) ==
+               {:ok, "20/8/2027 –"}
+
+      assert Interval.to_string(~D[2026-06-16], nil, locale: :kek, format: :yMd) ==
+               {:ok, "– 16/6/2026"}
+
+      assert Interval.to_string(nil, ~D[2027-08-20], locale: :en, format: :yMd) ==
+               {:ok, "– 8/20/2027"}
+
+      assert Interval.to_string(~D[2026-06-16], nil, locale: :en, format: :yMd) ==
+               {:ok, "6/16/2026 –"}
+    end
+
+    test "tags each part with the end of the range it writes" do
+      {:ok, parts} =
+        Interval.to_parts(~D[2026-06-16], ~D[2027-08-20], locale: :kek, format: :yMd)
+
+      years = for %{type: :year} = part <- parts, do: {part.value, part.source}
+      assert years == [{"2027", :end_range}, {"2026", :start_range}]
+    end
+
+    # The same dates the other way round are an inverted range there, as the
+    # later date first is one in `en`, whether an interval format reads the
+    # text or the fallback pattern joins it.
+    test "reads the interval back, the later date first" do
+      range = Date.range(~D[2026-06-16], ~D[2027-08-20])
+
+      assert Interval.parse("20/8/2027\u2009–\u200916/6/2026", locale: :kek) == {:ok, range}
+      assert Interval.parse("20/8/2027 – 16/6/2026", locale: :kek) == {:ok, range}
+
+      for inverted <- ["16/6/2026 – 20/8/2027", "2026-06-16 – 2027-08-20"] do
+        assert {:error, %Localize.DateRangeParseError{reason: :inverted}} =
+                 Interval.parse(inverted, locale: :kek),
+               inverted
+
+        assert Interval.parse(inverted, locale: :kek, allow_inverted: true) ==
+                 {:ok, Date.range(~D[2027-08-20], ~D[2026-06-16], -1)},
+               inverted
+      end
+
+      assert {:error, %Localize.DateRangeParseError{reason: :inverted}} =
+               Interval.parse("8/20/2027 – 6/16/2026", locale: :en)
+
+      for format <- [:short, :medium, :long, :yMd, :yMMMd],
+          to <- [~D[2026-06-20], ~D[2027-08-20]] do
+        {:ok, text} = Interval.to_string(~D[2026-06-16], to, locale: :kek, format: format)
+
+        assert Interval.parse(text, locale: :kek, reference_date: ~D[2026-06-16]) ==
+                 {:ok, Date.range(~D[2026-06-16], to)},
+               "#{format} #{inspect(text)}"
+      end
+    end
+
+    # en.xml's `yMd` item is "M/d/y – M/d/y" and root's fallback pattern
+    # "{0} – {1}".
+    test "leaves the order of every other locale" do
+      assert Interval.to_string(~D[2026-06-16], ~D[2027-08-20], locale: :en, format: :yMd) ==
+               {:ok, "6/16/2026 – 8/20/2027"}
+
+      alias Localize.DateTime.Format
+
+      assert Format.interval_order(%{interval_format_fallback: [0, " – ", 1]}) == :earliest_first
+      assert Format.interval_order(%{interval_format_fallback: [1, " – ", 0]}) == :latest_first
+
+      assert Format.interval_order(%{interval_format_fallback: ["du ", 0, " au ", 1]}) ==
+               :earliest_first
+
+      assert Format.interval_order(%{}) == :earliest_first
+
+      latest_first =
+        for locale <- Localize.Test.InstalledLocales.all(),
+            {:ok, formats} <- [Format.interval_formats(locale, :gregorian)],
+            Format.interval_order(formats) == :latest_first,
+            do: locale
+
+      assert latest_first == [:kek]
+    end
+  end
+
   describe "split_interval/1" do
     test "splits a simple interval pattern" do
       assert {:ok, ["MMM d – ", "d, y"]} = Interval.split_interval("MMM d – d, y")
