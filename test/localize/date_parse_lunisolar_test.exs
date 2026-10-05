@@ -613,6 +613,34 @@ defmodule Localize.DateParseLunisolarTest do
       end
     end
 
+    # The calendar's formats with an era name their month: `en.xml`'s
+    # `GyMMMd` is "MMM d, r" and its `GyMMMMd` "MMMM d, r(U)". A numbered
+    # month beside an era takes the abbreviated month's, as CLDR's
+    # conformance data resolves `GyMd` ("MMM d, r" in `en`, "r년 MMM d일" in
+    # `ko`, "r年MMMd" in `zh`, "d. MMM U" in `de`) and ICU4C writes it; it
+    # took the wide month's, "Fifth Month 2, 2026(bing-wu)". `ja.xml` has a
+    # `GyMd` of its own, "U-M-d".
+    test "with an era and a numbered month takes the abbreviated month's format" do
+      for {locale, expected} <- [
+            en: "Mo5 2, 2026",
+            ko: "2026년 5월 2일",
+            zh: "2026年五月2",
+            de: "2. M05 bing-wu",
+            fr: "2 5yuè bing-wu",
+            ja: "丙午-5-2"
+          ] do
+        assert Localize.Date.to_string(date(4663, 5, 2), format: :GyMd, locale: locale) ==
+                 {:ok, expected},
+               "#{locale}"
+      end
+
+      assert Localize.Date.to_string(date(4663, 5, 2), format: :GyM, locale: :en) ==
+               {:ok, "Mo5 2026"}
+
+      assert Localize.Date.to_string(date(4663, 5, 2), format: :GyMMMMd, locale: :en) ==
+               {:ok, "Fifth Month 2, 2026(bing-wu)"}
+    end
+
     test "is read back with that skeleton" do
       for {locale, skeleton, text} <- @skeleton_texts do
         if skeleton in [:yMd, :yMMMd] do

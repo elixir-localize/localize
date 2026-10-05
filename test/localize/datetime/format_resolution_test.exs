@@ -234,6 +234,26 @@ defmodule Localize.DateTime.FormatResolutionTest do
       assert Localize.Date.to_string(~D[2024-07-06], format: :yyyy, locale: :en) == {:ok, "2024"}
       assert Localize.Date.to_string(~D[2024-07-06], format: :yy, locale: :en) == {:ok, "’24"}
     end
+
+    # TR35 says only that a number and a name are "a larger distance from
+    # each other", and en.xml's Chinese calendar has no format of an era
+    # beside a numbered month: its `GyMMMd` is "MMM d, r" and its `GyMMMMd`
+    # "MMMM d, r(U)". CLDR's conformance data (`skeletons.tsv`: en, chinese,
+    # `GyMd` and each wider era) resolves the request to "MMM d, r": a name
+    # is measured from the abbreviated width where a number is asked for.
+    test "a numbered month takes an abbreviated month's format before a wide one's" do
+      for calendar <- [:chinese, :dangi] do
+        assert Match.best_match(:GyMd, :en, calendar) == {:ok, :GyMMMd}
+        assert Match.best_match(:GGGGyMd, :en, calendar) == {:ok, :GyMMMd}
+        assert Match.best_match(:GGGGGyMd, :en, calendar) == {:ok, :GyMMMd}
+        assert Match.best_match(:GyMEd, :en, calendar) == {:ok, :GyMMMEd}
+        assert Match.best_match(:GyM, :en, calendar) == {:ok, :GyMMM}
+      end
+
+      # The widths that are asked for are still the ones taken.
+      assert Match.best_match(:GyMMMMd, :en, :chinese) == {:ok, :GyMMMMd}
+      assert Match.best_match(:GyMMMd, :en, :chinese) == {:ok, :GyMMMd}
+    end
   end
 
   describe "Match.adjust_field_lengths/2" do

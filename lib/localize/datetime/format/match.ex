@@ -666,11 +666,11 @@ defmodule Localize.DateTime.Format.Match do
   defp distance_from({token_id, tokens}, skeleton) do
     distance =
       Enum.zip_reduce(sort_tokens(tokens), skeleton, 0, fn
-        # Same symbol, both numeric or both text
+        # Same symbol: of one kind, or a number against a name
         {symbol, count_a}, {symbol, count_b}, distance ->
           if text_field?(symbol, count_a) == text_field?(symbol, count_b),
             do: distance + width_distance(symbol, count_a, symbol, count_b),
-            else: distance + 10
+            else: distance + mixed_width_distance(symbol, count_a, count_b) + 10
 
         # a, b and B are one field to TR35, but ICU's pattern generator keeps b
         # nearer a than B, so `hb` takes `h a` (rendered "h b") over `Bh`.
@@ -694,7 +694,7 @@ defmodule Localize.DateTime.Format.Match do
                (sym_a in @time_zone and sym_b in @time_zone) ->
           if text_field?(sym_a, count_a) == text_field?(sym_b, count_b),
             do: distance + width_distance(sym_a, count_a, sym_b, count_b) + 10,
-            else: distance + abs(count_a - count_b) + 20
+            else: distance + mixed_width_distance(sym_a, count_a, count_b) + 20
 
         _other_a, _other_b, distance ->
           distance + 30
@@ -748,6 +748,23 @@ defmodule Localize.DateTime.Format.Match do
 
   defp two_digit_year?(symbol, 2) when symbol in ["y", "Y"], do: true
   defp two_digit_year?(_symbol, _count), do: false
+
+  # The widths of a number and a name, the first the candidate's and the
+  # second the request's. TR35 says only that the two kinds are "a larger
+  # distance from each other", which left `GyMMMd` and `GyMMMMd` equally far
+  # from `GyMd` in a calendar with no numeric format for those fields, and
+  # the wide month won on the order of the two ids. CLDR's reference pattern
+  # generator, and ICU's, measure a name from the abbreviated width where a
+  # number is asked for, and a number by its digits where a name is: `GyMd`
+  # for a Chinese date in `en` is `GyMMMd`'s "MMM d, r", "Mo6 1, 2024", as
+  # CLDR's own conformance data has it.
+  @abbreviated 3
+
+  defp mixed_width_distance(candidate_symbol, candidate_count, requested_count) do
+    if text_field?(candidate_symbol, candidate_count),
+      do: abs(text_width_rank(candidate_count) - text_width_rank(@abbreviated)),
+      else: abs(candidate_count - requested_count)
+  end
 
   defp text_width_rank(count) when count <= 3, do: 3
   defp text_width_rank(4), do: 4
