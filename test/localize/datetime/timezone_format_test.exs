@@ -250,6 +250,44 @@ defmodule Localize.DateTime.TimezoneFormatTest do
                Timezone.gmt_format(%{utc_offset: -34_200, std_offset: 0}, :en, format: :short)
     end
 
+    # TR35: "The long format always uses 2-digit hours field and minutes
+    # field", and the short format "uses hour fields without leading zero".
+    # `fi`'s `hourFormat` is "+H.mm;-H.mm", an hour of one digit, which the
+    # long format was written with. The strings are ICU4C 78.3's for `OOOO`
+    # and `O` in `fi`, for Kolkata, St. John's in summer, Paris in summer,
+    # the Marquesas, Kiritimati and UTC.
+    test "the long format has a two-digit hour whatever the locale's hourFormat writes" do
+      for {offset, long, short} <- [
+            {19_800, "UTC+05.30", "UTC+5.30"},
+            {-9000, "UTC-02.30", "UTC-2.30"},
+            {7200, "UTC+02.00", "UTC+2"},
+            {-34_200, "UTC-09.30", "UTC-9.30"},
+            {50_400, "UTC+14.00", "UTC+14"},
+            {0, "UTC+00.00", "UTC+0"}
+          ] do
+        datetime = %{utc_offset: offset, std_offset: 0}
+
+        assert Timezone.gmt_format(datetime, :fi) == {:ok, long}, "#{offset}"
+        assert Timezone.gmt_format(datetime, :fi, format: :short) == {:ok, short}, "#{offset}"
+
+        for text <- [long, short] do
+          assert Timezone.parse_offset(text, locale: :fi) == {:ok, offset}, text
+        end
+      end
+
+      {:ok, kolkata} = DateTime.new(~D[2026-07-15], ~T[17:30:00], "Asia/Kolkata")
+
+      for {pattern, expected} <- [
+            {"OOOO", "UTC+05.30"},
+            {"ZZZZ", "UTC+05.30"},
+            {"O", "UTC+5.30"}
+          ] do
+        assert Localize.DateTime.to_string(kolkata, locale: :fi, format: pattern) ==
+                 {:ok, expected},
+               pattern
+      end
+    end
+
     test "std_offset is added to the base offset" do
       assert {:ok, "GMT-04:00"} = Timezone.gmt_format(@new_york_daylight, :en)
     end

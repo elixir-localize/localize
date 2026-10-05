@@ -134,6 +134,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+* The long localized GMT format (`OOOO`, `ZZZZ`, and a zone name's fallback to it) has a two-digit hour in `cs`, `fi` and `vmw`, as TR35 gives the long format always: "GMT+05:30" and "UTC+05.30", where the one-digit hour of those locales' `hourFormat`, the short format's, wrote "GMT+5:30" and "UTC+5.30".
+
 * `Localize.DateTime.Timezone.resolve/3`, `parse_zone/2` and `parse_offset/2` read an offset in the digits of any numbering system, as TR35's parsing reads the localized GMT format with "non-Latin numbers": "غرينتش+٥:٣٠" and "GMT+५:३०", which the formatter writes in `ar-EG` and `ne`, were an unknown zone in the 67 locales with digits of their own.
 
 * `Localize.DateTime.Timezone.parse_zone/2` and `resolve/3` return an error for bytes that are not UTF-8, where they raised an `ArgumentError`.

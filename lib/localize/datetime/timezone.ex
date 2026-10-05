@@ -1002,7 +1002,10 @@ defmodule Localize.DateTime.Timezone do
 
   * `:format` is `:long` (e.g., `"GMT+01:00"`) or `:short` (e.g.,
     `"GMT+1"`; minutes are dropped when zero). The default is
-    `:long`.
+    `:long`. TR35 gives the long format a two-digit hour and the short
+    format an hour with no leading zero, whichever the locale's
+    `hourFormat` writes: `"UTC+05.30"` and `"UTC+5.30"` in `fi`, whose
+    pattern is `"+H.mm"`.
 
   * `:number_system` is the numbering system whose digits write the
     offset, as TR35 has it written in the locale's digits (`"GMT-४"` in
@@ -2304,7 +2307,10 @@ defmodule Localize.DateTime.Timezone do
 
     # TR35: the long format always has two-digit hours and minutes; the
     # short format has hours without a leading zero and two-digit minutes
-    # only when they are non-zero, so "GMT-8" and "GMT+5:30".
+    # only when they are non-zero, so "GMT-8" and "GMT+5:30". The format
+    # decides the hour's digits, not the pattern's hour field: `cs`, `fi`
+    # and `vmw` write it `H` ("+H:mm", "+H.mm"), and their long format is
+    # "GMT+05:30" and "UTC+05.30" all the same, as ICU writes it.
     {sign_format, hour_digits} =
       case format do
         :short when minutes == 0 ->
@@ -2318,8 +2324,7 @@ defmodule Localize.DateTime.Timezone do
       end
 
     sign_format
-    |> String.replace("HH", hour_digits)
-    |> String.replace("H", Integer.to_string(hours))
+    |> String.replace(~r/H+/, hour_digits, global: false)
     |> String.replace("mm", pad(minutes, 2))
   end
 
