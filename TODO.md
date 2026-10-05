@@ -16,11 +16,7 @@ Outstanding work on Localize. The design detail behind these items lives under [
 
 * [ ] **`Localize.Calendar.localize/3` names the first value of a part the date lacks** — a map without a month is January, the first quarter and a Monday, and one without a year the current era; characterization tests pin this. Decide whether they should be errors.
 
-* [ ] **`en-CA`'s lunisolar short date reads back day first** — "5/2/2026", written month first from `en`'s "M/d/r" for the second day of the fifth month, is read as the fifth day of the second, in the Chinese, Dangi and Vietnamese calendars; other calendars `en-CA` inherits from `en` are not checked.
-
 * [ ] **A lunisolar interval at the medium format does not read back** — the formatter writes the related year in CLDR's `U`-keyed item, "2026 M05 2–6" in 487 locales and "Mo5 2 – 6, 2026" in `en`, and the reader offers the related-year reading only for an item's `y`, so the text is an error.
-
-* [ ] **An interval item with a variant form is neither written nor read** — `en-CA`'s `yMd` item is a default and a variant pattern, which the formatter and the reader both pass over: its short interval is "06/16/2026–06/20/2026" beside the date "2026-06-16" and is an error to read, and in the Chinese calendar "43-05-02 – 43-05-06" is read as two single dates, each by its related year.
 
 * [ ] **Standard-format intervals in other calendars do not all read back** — of 130,118 intervals at `:short`, `:medium` and `:long` in 33 calendars and 657 locales, 3,826 are an error or, 139 of them, another range: the Japanese calendar's short interval in 505 locales ("R 8-06-16 – 8-06-20"), the Buddhist and Islamic ones in 90 (`fr`'s "16–20/06/2569 EB"), a calendar of weeks' in 32 ("2026-W20-3-2026-W20-7"), and in the Gregorian `mn`'s Roman-numeral months and `ha`'s year first in two digits ("26-06-16 – 27-08-20"). All were so before intervals took their pattern's widths; the lunisolar `:medium` ones are the item above.
 
@@ -52,6 +48,10 @@ Outstanding work on Localize. The design detail behind these items lives under [
 
 * [ ] **Report 12-hour patterns without a day period to CLDR** — `fr-CM`'s `h`, `hm` and `hms`, `bal-Latn`'s `hm` and `es-AR`'s `hms` are 12-hour patterns with no day period, which TR35 forbids, so the "12:30" and "1:45" they write each name two times. Blocked on the user filing `tmp/cldr-reports/02-twelve-hour-patterns-without-a-day-period.md`.
 
+* [ ] **Report `en_CA`'s month-first numeric intervals to CLDR** — its Gregorian `Md`, `MEd`, `yM`, `yMd` and `yMEd` interval items are "M/d/y–M/d/y" where its dates are "y-MM-dd" with a day-first variant, so 16 to 20 June 2026 is "6/16/2026–6/20/2026" beside "2026-06-16". Blocked on the user filing `tmp/cldr-reports/08-en-ca-numeric-intervals-month-first.md`.
+
+* [ ] **Report interval patterns that write their differing field once to CLDR** — twenty-two patterns in eighteen locales: `sw` and `rw` write 16 June to 20 August 2026 as "16 – 20 Ago 2026", which no reader can take for that range, `ru`'s `hm` writes 10:30 to 14:30 as "10:30 — 02:30", and fourteen name one era for two. Blocked on the user filing `tmp/cldr-reports/09-interval-patterns-with-the-differing-field-once.md`.
+
 * [ ] **Report `ksh`'s 24-hour pattern with a day period to CLDR** — its `Hmsv` is "H:mm:ss a v", which TR35 says a 24-hour pattern should not be, the only one in any locale; it writes "16:05:09 n.M." and has the shape of the 12-hour text for four in the afternoon. Blocked on the user filing `tmp/cldr-reports/07-twenty-four-hour-pattern-with-a-day-period.md`.
 
 * [ ] **Report standard date and time formats whose `datetimeSkeleton` is not the pattern's to CLDR** — 123 Gregorian date formats in 75 locales, where the pattern changed and the skeleton did not (`id`, `te`), or one of the two is inherited and the other the locale's own (`zu`, `en_NZ`, `vi`, `en_CA`), and 61 time formats in 17 locales, 14 of them with a skeleton of another hour cycle than the pattern (`cop`, `syr`, `bo`). Blocked on the user filing `tmp/cldr-reports/06-date-skeletons-not-derived-from-their-patterns.md`.
@@ -71,6 +71,8 @@ Outstanding work on Localize. The design detail behind these items lives under [
 * [ ] **`localize_emoji` sibling library** — plan item 11, a separate package on its own schedule. A Phoenix LiveView picker (`localize_emoji_live`) is out of scope for its 0.1.0.
 
 ## Done
+
+* [x] **A format with a variant is read as the formatter writes it** — `en-CA`, the one locale with variants of its date formats, has its standard and default patterns read before their variants: its short date in a calendar it takes from `en` ("5/2/2026", read day first in ten of 173,576 dates) and its numeric intervals, items of two patterns the reader passed over (42 of 195,257 intervals, CLDR's month-first "6/16/2026–6/20/2026" among them, which the formatter writes as ICU4C does). 2026-10-05, v1.4.0.
 
 * [x] **A skeleton's year is a number at every width** — a `y`, `r` or `u` request takes a numbered year's format before the cyclic year's name, `U` being a name at every width, by TR35's larger distance between a numeric and a text field: `en`'s Chinese `yMd` is `yyyyMd`'s "5/2/2026", not `UMd`'s "5/2/bing-wu", and `en-AU`'s Buddhist `yMMMd` "19 Apr 2566 BE", not "19/04/2566"; 21,968 of 1,127,700 dates in 33 calendars and 657 locales changed, none away from ICU4C. 2026-10-05, v1.4.0.
 

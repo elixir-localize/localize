@@ -107,6 +107,61 @@ defmodule Localize.IntervalTest do
       end
     end
 
+    # `en_CA.xml`'s `yMd` item is "M/d/y–M/d/y" beside the variant
+    # "d/M/y – d/M/y", and ICU4C 78.3 writes these three intervals so. The
+    # reader took only an item that is one pattern, so each was an error.
+    test "an interval the default pattern writes is read back" do
+      for {to, text} <- [
+            {~D[2026-06-20], "6/16/2026–6/20/2026"},
+            {~D[2026-08-20], "6/16/2026–8/20/2026"},
+            {~D[2027-08-20], "6/16/2026–8/20/2027"}
+          ] do
+        assert Interval.to_string(~D[2026-06-16], to, locale: :"en-CA", format: :yMd) ==
+                 {:ok, text}
+
+        assert Interval.parse(text, locale: :"en-CA") ==
+                 {:ok, Date.range(~D[2026-06-16], to)},
+               text
+      end
+
+      for {from, to, format} <- [
+            {~D[2026-05-03], ~D[2026-05-05], :short},
+            {~D[2026-05-03], ~D[2026-06-05], :short},
+            {~D[2026-05-03], ~D[2027-06-05], :short},
+            {~D[2026-05-03], ~D[2026-06-05], :yMEd},
+            {~D[2026-05-03], ~D[2026-06-05], :Md},
+            {~D[2026-05-03], ~D[2026-06-05], :MEd}
+          ] do
+        {:ok, text} = Interval.to_string(from, to, locale: :"en-CA", format: format)
+
+        assert Interval.parse(text, locale: :"en-CA", reference_date: ~D[2026-01-01]) ==
+                 {:ok, Date.range(from, to)},
+               "#{format} #{inspect(text)}"
+      end
+    end
+
+    # The formatter writes the default unless it is asked for the variant,
+    # so the default reads the text both could have written: 6 May to 8
+    # July, which the variant would read as 5 June to 7 August.
+    test "text the default and the variant both read is the default's" do
+      assert Interval.to_string(~D[2026-05-06], ~D[2026-07-08], locale: :"en-CA", format: :yMd) ==
+               {:ok, "5/6/2026–7/8/2026"}
+
+      assert Interval.parse("5/6/2026–7/8/2026", locale: :"en-CA") ==
+               {:ok, Date.range(~D[2026-05-06], ~D[2026-07-08])}
+    end
+
+    test "an interval the variant writes is read back where the default reads no date" do
+      assert Interval.to_string(~D[2026-06-16], ~D[2026-06-20],
+               locale: :"en-CA",
+               format: :yMd,
+               prefer: :variant
+             ) == {:ok, "16/6/2026 – 20/6/2026"}
+
+      assert Interval.parse("16/6/2026 – 20/6/2026", locale: :"en-CA") ==
+               {:ok, Date.range(~D[2026-06-16], ~D[2026-06-20])}
+    end
+
     test "split_interval/1 returns an error for a pattern that is not a string" do
       assert {:error, %Localize.DateTimeIntervalFormatError{reason: :invalid_format}} =
                Interval.split_interval(%{default: "M/d–M/d", variant: "d/M – d/M"})

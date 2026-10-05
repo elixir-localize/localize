@@ -871,6 +871,60 @@ defmodule Localize.DateParseLunisolarTest do
     end
   end
 
+  # `en_CA.xml` gives the Chinese calendar a variant of its short date,
+  # "d/M/r", beside the "M/d/r" it keeps from `en.xml`, and its `yMd`
+  # interval item a variant, "d/M/y – d/M/y", beside "y-MM-dd – y-MM-dd".
+  # The formatter writes the standard and the default form unless
+  # `prefer: :variant` asks for the other, so those are read first. The
+  # variant was read first and took the day for the month, and an item that
+  # is two patterns was not read at all.
+  describe "a format with a variant" do
+    test "is read as the standard pattern writes it" do
+      assert Localize.Date.to_string(date(4663, 5, 2), format: :short, locale: :"en-CA") ==
+               {:ok, "5/2/2026"}
+
+      assert parse("5/2/2026", :"en-CA") == {:ok, date(4663, 5, 2)}
+      assert parse("5/2/2026", :"en-CA", format: :short) == {:ok, date(4663, 5, 2)}
+    end
+
+    test "is read as the variant writes it where the standard pattern reads no date" do
+      assert Localize.Date.to_string(date(4663, 5, 30),
+               format: :short,
+               locale: :"en-CA",
+               prefer: :variant
+             ) == {:ok, "30/5/2026"}
+
+      assert parse("30/5/2026", :"en-CA") == {:ok, date(4663, 5, 30)}
+    end
+
+    test "is read as the variant writes it where the variant is asked for" do
+      assert parse("2/5/2026", :"en-CA", format: :short, prefer: :variant) ==
+               {:ok, date(4663, 5, 2)}
+    end
+
+    # ICU4C 78.3 writes the `yMd` interval of the second to the sixth day of
+    # the fifth month as "43-05-02 – 43-05-06", the year its place in the
+    # cycle. It was read as two dates, each by its related year.
+    test "is read as an interval's default pattern writes it" do
+      range = Date.range(date(4663, 5, 2), date(4663, 5, 6))
+
+      assert Localize.Interval.to_string(range.first, range.last, locale: :"en-CA", format: :yMd) ==
+               {:ok, "43-05-02 – 43-05-06"}
+
+      for format <- [:yMd, :short] do
+        {:ok, text} =
+          Localize.Interval.to_string(range.first, range.last, locale: :"en-CA", format: format)
+
+        assert Localize.Interval.parse(text,
+                 locale: :"en-CA",
+                 calendar: Lunisolar,
+                 reference_date: @reference
+               ) == {:ok, range},
+               "#{format} #{inspect(text)}"
+      end
+    end
+  end
+
   describe "the reference year is the reference date's year in the calendar" do
     test "a date without a year is in the calendar's year" do
       assert Localize.Date.parse("Mar 15",

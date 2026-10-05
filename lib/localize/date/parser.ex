@@ -749,37 +749,51 @@ defmodule Localize.Date.Parser do
       transliterated = transliterate_digits(input, locale)
       ctx = field_context(locale, calendar_module, own_calendar, reference, months_data)
 
-      cldr_patterns =
+      item_patterns =
         for {skeleton, by_field} <- intervals,
             is_atom(skeleton),
             is_map(by_field),
             {_field, pattern} <- by_field,
-            is_binary(pattern) do
-          pattern
-        end
+            do: pattern
 
-      # Each CLDR pattern is tried as-is, then also through a set
-      # of day-first variants (see `synthesize_day_first_variants/1`)
-      # so informal orderings like `"23 - 25 May, 2026"` and
-      # `"5 May – 10 June, 2026"` parse alongside the CLDR-canonical
-      # `"May 23 – 25, 2026"`.
-      # Try day-bearing patterns before month/year-only ones, longest
-      # first within each group. The CLDR interval data arrives as a
-      # map whose iteration order is arbitrary, and without this an
-      # M/y pattern can claim "May 5 – May 10" in map mode as
-      # year 5 / year 2010 depending on which pattern happens to be
-      # tried first.
+      # An item is a pattern or, in `en-CA`, a default pattern and a variant
+      # of it. The formatter writes the default unless it is asked for the
+      # variant, so every default is tried before any variant: `en-CA`'s
+      # `yMd` is "M/d/y–M/d/y" beside "d/M/y – d/M/y", and the
+      # "5/6/2026–7/8/2026" it writes is from 6 May.
+      defaults = for pattern <- item_patterns, text <- default_pattern(pattern), do: text
+      variants = for %{variant: text} <- item_patterns, is_binary(text), do: text
+
       patterns =
-        cldr_patterns
-        |> Enum.flat_map(fn p -> [p | synthesize_day_first_variants(p)] end)
-        |> Enum.uniq()
-        |> Enum.sort_by(&pattern_specificity/1)
+        interval_pattern_order(defaults) ++ interval_pattern_order(variants -- defaults)
 
       years = written_years(locale, calendar_module, own_calendar, reference)
       Enum.find_value(patterns, :error, &interval_reading(transliterated, &1, years, ctx, as))
     else
       _ -> :error
     end
+  end
+
+  defp default_pattern(pattern) when is_binary(pattern), do: [pattern]
+  defp default_pattern(%{default: pattern}) when is_binary(pattern), do: [pattern]
+  defp default_pattern(_other), do: []
+
+  # Each CLDR pattern is tried as-is, then also through a set
+  # of day-first variants (see `synthesize_day_first_variants/1`)
+  # so informal orderings like `"23 - 25 May, 2026"` and
+  # `"5 May – 10 June, 2026"` parse alongside the CLDR-canonical
+  # `"May 23 – 25, 2026"`.
+  # Try day-bearing patterns before month/year-only ones, longest
+  # first within each group. The CLDR interval data arrives as a
+  # map whose iteration order is arbitrary, and without this an
+  # M/y pattern can claim "May 5 – May 10" in map mode as
+  # year 5 / year 2010 depending on which pattern happens to be
+  # tried first.
+  defp interval_pattern_order(patterns) do
+    patterns
+    |> Enum.flat_map(fn pattern -> [pattern | synthesize_day_first_variants(pattern)] end)
+    |> Enum.uniq()
+    |> Enum.sort_by(&pattern_specificity/1)
   end
 
   # CLDR keys a calendar's interval patterns by `y`, and the formatter
@@ -2419,9 +2433,13 @@ defmodule Localize.Date.Parser do
   defp resolve_pattern_variants(nil), do: []
   defp resolve_pattern_variants(pattern) when is_binary(pattern), do: [pattern]
 
+  # The standard pattern is the one the formatter writes unless it is asked
+  # for the variant, so it is read first: `en-CA`'s Chinese short date is
+  # "M/d/r" beside the variant "d/M/r", and the "5/2/2026" it writes is the
+  # second day of the fifth month.
   defp resolve_pattern_variants(%{variant: variant, standard: standard})
        when is_binary(variant) and is_binary(standard),
-       do: [variant, standard]
+       do: [standard, variant]
 
   # A pattern that writes its fields in another numbering (`d=hanidays`
   # in `zh`'s Chinese calendar) keeps it, so the fields are read in it.

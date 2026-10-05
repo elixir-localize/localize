@@ -134,6 +134,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+* A date or interval format with a variant is read as the formatter writes it, the standard or default pattern before the variant: `en-CA`'s Chinese short date "5/2/2026" is the second day of the fifth month, where the variant "d/M/r" was tried first, and its `yMd` interval "6/16/2026–6/20/2026", an item of a default and a variant pattern, reads back where it was an error.
+
 * A skeleton's year is a number at every width and the cyclic year `U` a name at every width, so TR35's larger distance between a numeric and a text field keeps a `y` request from the format of the year's name: `yMd` for a Chinese date in `en` is `yyyyMd`'s "5/2/2026" where it was `UMd`'s "5/2/bing-wu", and `yMMMd` for a Buddhist date in `en-AU` is "19 Apr 2566 BE" where it was "19/04/2566". A whole year and TR35's "two low-order digits", `yy`, stay apart, so `yyyy` in `en` is "2024" and not its `yy` format widened.
 
 * A 24-hour hour beside a day period is read only where the two agree, as TR35's parsing checks a day period against its hour. `ksh`'s `Hmsv`, "H:mm:ss a v" in CLDR 49, read "4:00:00 n.M. GMT+5:30", four in the afternoon, as 04:00.
