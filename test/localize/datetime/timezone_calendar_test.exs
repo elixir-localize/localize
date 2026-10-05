@@ -233,12 +233,59 @@ defmodule Localize.DateTime.TimezoneCalendarTest do
       assert failures == []
     end
 
+    # TR35 writes the localized GMT format in the locale's digits and reads
+    # it with "non-Latin numbers". The text is held to the moment it was
+    # written from, in the calendar of the date and time read with it.
+    test "its offset is read back as the moment it was written from, in its calendar" do
+      written =
+        for locale <- Localize.Test.InstalledLocales.all(),
+            {naive, zone} <- [
+              {~N[2026-01-15 12:00:00], "Asia/Kolkata"},
+              {~N[2026-01-15 12:00:00], "America/St_Johns"},
+              {~N[2026-07-15 12:00:00], "Asia/Kathmandu"}
+            ],
+            calendar <- [Calendar.ISO | @calendars],
+            datetime = at(naive, zone, calendar),
+            pattern <- ["O", "OOOO", "ZZZZ"] do
+          {locale, calendar, pattern, datetime, name(datetime, pattern, locale)}
+        end
+
+      failures =
+        for {locale, calendar, pattern, datetime, text} <- written,
+            not same_moment?(read_offset(text, datetime, locale), datetime) do
+          {locale, calendar, pattern, text}
+        end
+
+      assert failures == []
+
+      # Some of the test locales write digits of their own.
+      other_digits =
+        for {locale, _calendar, _pattern, _datetime, text} <- written,
+            is_binary(text) and not String.match?(text, ~r/[0-9]/),
+            uniq: true,
+            do: locale
+
+      assert Enum.count(other_digits) >= 8
+    end
+
     defp read(text, naive, locale) do
       case Timezone.resolve(text, naive, locale: locale) do
         {:ok, %DateTime{} = datetime} -> {datetime.time_zone, DateTime.to_unix(datetime)}
         {:error, exception} -> {:error, exception.__struct__}
       end
     end
+
+    defp read_offset(text, datetime, locale) when is_binary(text),
+      do: Timezone.resolve(text, DateTime.to_naive(datetime), locale: locale)
+
+    defp read_offset(unwritten, _datetime, _locale), do: unwritten
+
+    defp same_moment?({:ok, %DateTime{} = read}, datetime) do
+      read.calendar == datetime.calendar and DateTime.compare(read, datetime) == :eq and
+        DateTime.to_naive(read) == DateTime.to_naive(datetime)
+    end
+
+    defp same_moment?(_unread, _datetime), do: false
   end
 
   describe "a calendar that does not answer" do

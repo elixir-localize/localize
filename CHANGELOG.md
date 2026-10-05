@@ -134,6 +134,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+* `Localize.DateTime.Timezone.resolve/3`, `parse_zone/2` and `parse_offset/2` read an offset in the digits of any numbering system, as TR35's parsing reads the localized GMT format with "non-Latin numbers": "غرينتش+٥:٣٠" and "GMT+५:३०", which the formatter writes in `ar-EG` and `ne`, were an unknown zone in the 67 locales with digits of their own.
+
+* `Localize.DateTime.Timezone.parse_zone/2` and `resolve/3` return an error for bytes that are not UTF-8, where they raised an `ArgumentError`.
+
 * A custom MF2 function receives its options under their names as strings, as `Localize.Message.Function` documents. It received an atom for any name an atom existed for, so the documented `func_opts["format"]` read `nil`.
 
 * A zone name qualified by a place is read as that place's zone where the country it also names has a primary zone: "Chile Time (Punta Arenas)" was read as Santiago, and `fo`'s "Vesturevropa tíð (Spania)", the Canary Islands' zone, as Madrid. A metazone's name in the shape of a standard or daylight region format is read as the name: `ko`'s "사모아 표준시", American Samoa's standard time, was read as Samoa's zone.

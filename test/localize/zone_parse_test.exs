@@ -84,6 +84,119 @@ defmodule Localize.ZoneParseTest do
       assert Timezone.parse_zone("UTC", locale: :en) == {:ok, {:offset, 0}}
     end
 
+    # TR35 writes the localized GMT format in "the locale's default decimal
+    # digits", and its parsing reads the format with "non-Latin numbers".
+    # ICU4C 78.3 writes Kolkata's offset so with `O` and `OOOO` in each of
+    # these locales, and reads each back as +05:30.
+    test "the localized GMT format in a locale's own digits" do
+      lrm = <<0x200E::utf8>>
+      {:ok, utc} = DateTime.from_naive(~N[2026-01-15 12:00:00], "Etc/UTC")
+      {:ok, kolkata} = DateTime.shift_zone(utc, "Asia/Kolkata")
+
+      for {locale, short, long} <- [
+            {:"ar-EG", "غرينتش+٥:٣٠", "غرينتش+٠٥:٣٠"},
+            {:bn, "GMT +৫:৩০", "GMT +০৫:৩০"},
+            {:fa, lrm <> "+۵:۳۰ گرینویچ", lrm <> "+۰۵:۳۰ گرینویچ"},
+            {:ne, "GMT+५:३०", "GMT+०५:३०"},
+            {:my, "GMT+၅:၃၀", "GMT+၀၅:၃၀"},
+            {:mr, "[GMT]+५:३०", "[GMT]+०५:३०"},
+            {:dz, "ཇི་ཨེམ་ཏི་+༥:༣༠", "ཇི་ཨེམ་ཏི་+༠༥:༣༠"},
+            {:ckb, "گرینیچ +٥:٣٠", "گرینیچ +٠٥:٣٠"}
+          ] do
+        assert Localize.DateTime.to_string(kolkata, locale: locale, format: "O") == {:ok, short}
+        assert Localize.DateTime.to_string(kolkata, locale: locale, format: "OOOO") == {:ok, long}
+
+        for text <- [short, long] do
+          assert Timezone.parse_zone(text, locale: locale) == {:ok, {:offset, 19_800}},
+                 "#{locale} #{text}"
+
+          assert Timezone.parse_offset(text, locale: locale) == {:ok, 19_800}, "#{locale} #{text}"
+
+          assert {:ok, resolved} = Timezone.resolve(text, ~N[2026-01-15 17:30:00], locale: locale)
+          assert DateTime.compare(resolved, utc) == :eq, "#{locale} #{text}"
+        end
+      end
+    end
+
+    # TR35's "non-Latin numbers" are not the locale's alone. CLDR's
+    # `numberingSystems.xml` gives each numeric system's digits in the order
+    # of their values. ICU4C 78.3 writes Kolkata's offset with the strings
+    # below in `en-u-nu-hanidec`, `-fullwide`, `-mathbold`, `-adlm`, `-nkoo`,
+    # `-thai`, `-arab` and `-deva`, and reads each as +05:30 in plain `en`
+    # but the two of `hanidec`, whose digits are no decimal digits to
+    # Unicode: those it reads where the locale asks for them.
+    test "the localized GMT format in the digits of any numbering system, in any locale" do
+      systems = Localize.Number.System.numeric_systems()
+      assert map_size(systems) >= 78
+
+      for {system, %{digits: digits}} <- systems do
+        [zero, _one, _two, three, _four, five | _rest] = String.graphemes(digits)
+        short = "GMT+" <> five <> ":" <> three <> zero
+        long = "UTC-" <> zero <> five <> ":" <> three <> zero
+
+        assert Timezone.parse_offset(short, locale: :en) == {:ok, 19_800}, "#{system} #{short}"
+        assert Timezone.parse_zone(long, locale: :de) == {:ok, {:offset, -19_800}}, "#{system}"
+      end
+
+      for text <- [
+            "GMT+五:三〇",
+            "GMT+〇五:三〇",
+            "GMT+５:３０",
+            "GMT+𝟎𝟓:𝟑𝟎",
+            "GMT+𞥕:𞥓𞥐",
+            "GMT+߀߅:߃߀",
+            "GMT+๕:๓๐",
+            "GMT+٠٥:٣٠",
+            "GMT+०५:३०"
+          ] do
+        assert Timezone.parse_zone(text, locale: :en) == {:ok, {:offset, 19_800}}, text
+
+        assert {:ok, resolved} = Timezone.resolve(text, ~N[2026-01-15 17:30:00], locale: :en)
+
+        assert {resolved.utc_offset, DateTime.to_naive(resolved)} ==
+                 {19_800, ~N[2026-01-15 17:30:00]}
+      end
+    end
+
+    # Localize's own: TR35's parsing speaks of other digits in the GMT
+    # format alone, and ICU4C 78.3 reads an ISO 8601 offset in 0 to 9 only,
+    # "12:00 +0530" in Arabic-Indic digits being an error to it in `ar-EG`.
+    # The date and time parsers read a time's digits in the locale's system
+    # before its fields, the offset among them, and the zone reader reads
+    # the same text alone. The digits are Unicode's decimal digits 0, 5, 3
+    # and 8 of each script.
+    test "an ISO 8601 offset in other digits" do
+      for {text, offset} <- [
+            {"+٠٥:٣٠", 19_800},
+            {"+٠٥٣٠", 19_800},
+            {"-०८:००", -28_800},
+            {"-०८", -28_800}
+          ] do
+        assert Timezone.parse_offset(text, locale: :en) == {:ok, offset}, text
+        assert Timezone.parse_zone(text, locale: :"ar-EG") == {:ok, {:offset, offset}}, text
+      end
+
+      {:ok, date} = Localize.Date.to_string(~D[2026-07-15], locale: :"ar-EG", format: :short)
+
+      assert {:ok, datetime} =
+               Localize.DateTime.parse(date <> " ١٢:٠٠ +٠٥٣٠",
+                 locale: :"ar-EG",
+                 date_format: :short,
+                 time_format: "HH:mm Z"
+               )
+
+      assert {datetime.utc_offset, DateTime.to_naive(datetime)} ==
+               {19_800, ~N[2026-07-15 12:00:00]}
+    end
+
+    # An hour no offset has, and digits with no sign, are no offset in any
+    # digits.
+    test "digits that are no offset" do
+      for text <- ["GMT+٢٥", "٥", "٠٥:٣٠"] do
+        assert {:error, %Localize.UnknownTimezoneError{}} = Timezone.parse_zone(text, locale: :en)
+      end
+    end
+
     test "a metazone name or a country stands for its zone in the country named" do
       for {locale, text, time_zone} <- [
             {:en, "Pacific Time (Canada)", "America/Vancouver"},
@@ -199,6 +312,26 @@ defmodule Localize.ZoneParseTest do
     test "text that is no zone" do
       for text <- ["XQZV", "Unknown City", "GMT+?", "AM", ""] do
         assert {:error, %Localize.UnknownTimezoneError{}} = Timezone.parse_zone(text, locale: :en)
+      end
+    end
+
+    # Bytes that are no UTF-8 name no zone, alone or after what would be
+    # an offset or a name; `parse_zone/2` and `resolve/3` raised on them.
+    test "bytes that are not text" do
+      for bytes <- [
+            <<0xFF, 0xFE>>,
+            "GMT+5" <> <<0xFF>>,
+            "Eastern " <> <<0xC3>> <> " Time",
+            <<0xED, 0xA0, 0x80>>
+          ] do
+        assert {:error, %Localize.UnknownTimezoneError{}} =
+                 Timezone.parse_zone(bytes, locale: :en)
+
+        assert {:error, %Localize.UnknownTimezoneError{}} =
+                 Timezone.parse_offset(bytes, locale: :en)
+
+        assert {:error, %Localize.UnknownTimezoneError{}} =
+                 Timezone.resolve(bytes, ~N[2023-07-01 10:00:00], locale: :en)
       end
     end
 

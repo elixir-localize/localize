@@ -34,7 +34,13 @@ Outstanding work on Localize. The design detail behind these items lives under [
 
 * [ ] **A string two readings share is not told apart by the date** — `it` names the Further-eastern European metazone "Ora dell’Europa orientale (Kaliningrad)", which is also Eastern European time qualified by Kaliningrad, as that zone's `vvvv` is written today; it is read as Minsk, the metazone's zone, though no zone has kept that metazone since 2014, where ICU4C reads Kaliningrad in a `vvvv` field. `resolve/3` has the date, and could take the reading whose metazone the zone keeps then.
 
-* [ ] **`Localize.DateTime.Timezone.resolve/3` does not read the GMT format in a locale's own digits** — "غرينتش-٨" and "GMT-۸", which the formatter writes in `ar-BH`, `lrc-IQ`, `dz` and other locales with digits of their own, are an unknown zone to it, though `Localize.DateTime.parse/2` reads them.
+* [ ] **An offset before standard time is not written whole or read back** — TR35 gives the localized GMT format and `Z` an optional seconds field, and Localize writes Los Angeles' local mean time of -7:52:58 as "GMT-07:52" and "-0752" where ICU4C writes "GMT-07:52:58" and "-075258", so `O`, `OOOO`, `ZZZZ`, `Z` and the names that fall back to them read back up to 59 seconds out. The reader takes no seconds after a one-digit hour ("GMT+3:30:45" and "33045", both in TR35's parsing) and no hour past 14, so the "+15:02:19" that `ZZZZZ` writes for Juneau before 1867, and Manila's -15:56:08 before 1845, are an unknown zone.
+
+* [ ] **The long localized GMT format has a one-digit hour in `cs`, `fi` and `vmw`** — TR35's long format "always uses 2-digit hours field", and these locales' `hourFormat` is "+H:mm" or "+H.mm", which Localize writes as it stands: `OOOO` is "GMT+5:30" in `cs` and "UTC+5.30" in `fi`, where ICU4C writes "GMT+05:30" and "UTC+05.30".
+
+* [ ] **An offset with no sign is not read** — TR35's parsing reads the GMT format with "+, -, or nothing", and "GMT 3" and "UTC3" are an unknown zone, to ICU4C as well. A leniency of TR35's sample process, not text any format writes.
+
+* [ ] **A locale's GMT literal alone is not read as GMT** — TR35's parsing reads the absence of an offset as offset 0 "whether in localized or global formats" ("HPG" is `Etc/GMT`), and ICU4C reads "غرينتش" so in `ar-EG`; Localize reads "GMT", "UTC" and "UT" alone, and of the 74 locales with a literal of their own only the four whose literal is also their name for Greenwich Mean Time (`ga`'s "MAG", `blo`, `ii`). No format has written one since CLDR dropped `gmtZeroFormat`.
 
 ## In progress
 
@@ -67,6 +73,8 @@ Outstanding work on Localize. The design detail behind these items lives under [
 * [ ] **`localize_emoji` sibling library** — plan item 11, a separate package on its own schedule. A Phoenix LiveView picker (`localize_emoji_live`) is out of scope for its 0.1.0.
 
 ## Done
+
+* [x] **`Timezone.resolve/3` reads an offset in the digits of any numbering system** — `parse_offset/2`, `parse_zone/2` and `resolve/3` read the localized GMT format with "non-Latin numbers", as TR35's parsing has it: the 154,753 of 3,961,584 zone strings the formatter writes in 67 locales' own digits were an unknown zone, and the digits of all 78 numbering systems are read in any locale. Bytes that are not UTF-8 are an error where they raised. 2026-10-05, v1.4.0.
 
 * [x] **A zone's name is read before a country in its shape, and its qualifier before a country's primary zone** — "Chile Time (Punta Arenas)" is Punta Arenas (Santiago in 289 locales), `ko`'s "사모아 표준시" American Samoa (Apia in nine) and `fo`'s "Vesturevropa tíð (Spania)" the Canary Islands (Madrid), as ICU4C reads each; a country with several zones stands for its primary zone last, after TR35's own steps. 2026-10-05, v1.4.0.
 

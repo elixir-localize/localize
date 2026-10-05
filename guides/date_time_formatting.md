@@ -628,7 +628,7 @@ When nothing matches, the returned `Localize.DateTimeParseError` carries an `:at
 
 ### Time zones
 
-A datetime carrying a fixed UTC offset resolves to a `t:DateTime.t/0`. The offset may be written ISO 8601 style or in the locale's GMT format, in that locale's own spelling, and both produce the same struct — the wall time you wrote, with the offset attached rather than normalised away:
+A datetime carrying a fixed UTC offset resolves to a `t:DateTime.t/0`. The offset may be written ISO 8601 style or in the locale's GMT format, in that locale's own spelling and in the digits of any numbering system ("غرينتش+٥:٣٠" in `ar-EG`), and both produce the same struct — the wall time you wrote, with the offset attached rather than normalised away:
 
 ```elixir
 iex> Localize.DateTime.parse("May 16, 2026 2:30 PM GMT+10:30", locale: :en)

@@ -128,6 +128,14 @@ Reading every form in every field, Localize reads a string one way where ICU rea
 | in `y-MM-dd HH:mm:ss VVVV` | 03:00 UTC | 03:00 UTC |
 | in `y-MM-dd HH:mm:ss zzzz` | 03:00 UTC | 04:00 UTC |
 
+TR35's parsing reads the localized GMT format with "non-Latin numbers", and ICU4C 78.3 reads any of Unicode's decimal digits in it, in any locale. Localize reads the digits of every CLDR numbering system in any locale, among them those of `hanidec`, which are no decimal digits to Unicode and which ICU reads only where the locale asks for them. It reads an ISO 8601 offset in other digits too, which TR35 does not speak of and ICU reads in 0 to 9 alone: Localize's date and time parsers read all of a time in the locale's digits, its offset with it, and the zone reader reads the same text alone. Asserted in `test/localize/zone_parse_test.exs`.
+
+| Input | Localize | ICU4C parses |
+|---|---|---|
+| "GMT+٠٥:٣٠" in `en` | +05:30 | +05:30 |
+| "GMT+五:三〇" in `en` | +05:30 | an error |
+| "+٠٥:٣٠" in `en` or `ar-EG` | +05:30 | an error |
+
 TR35 gives each hour field its range, `h` 1 to 12, `H` 0 to 23, `K` 0 to 11 and `k` 1 to 24, and its parsing notes take a number beyond a field's range for no value of that field. ICU4C 78.3's parser, lenient unless told otherwise, carries such an hour on into the hours that follow, and into the next day where they run out; told not to be lenient, it refuses it. Localize refuses it, and refuses `k`'s 0, which TR35's range leaves out and ICU reads as midnight either way. It keeps the two readings at a 12-hour field's edge that ICU has: `h`'s 0 for its 12, and `K`'s 12 before noon as half past noon, which ICU refuses only when it is not lenient. Asserted in `test/localize/time_parse_test.exs`.
 
 | Input | Pattern | Localize | ICU4C, lenient | ICU4C, not lenient |

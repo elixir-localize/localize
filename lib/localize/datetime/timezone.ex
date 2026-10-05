@@ -54,6 +54,19 @@ defmodule Localize.DateTime.Timezone do
   # no numeric meaning, so they come off before parsing.
   @bidi_marks ["\u200E", "\u200F", "\u061C"]
 
+  # Every digit CLDR's numbering systems write other than 0 to 9, by its
+  # value. TR35's parsing has the localized GMT format read with "non-Latin
+  # numbers", and the format is written in the locale's digits or in those
+  # asked for: "غرينتش+٥:٣٠" in `ar-EG`, "GMT+५:३०" in `ne`. The digits of
+  # any system are read in any locale, as ICU reads them, and in an ISO 8601
+  # offset too, where ICU reads 0 to 9 alone: the date and time parsers read
+  # all of a time in the locale's digits, its offset with it.
+  @ascii_digits for {_system, %{digits: digits}} <- Localize.Number.System.numeric_systems(),
+                    {digit, value} <- Enum.with_index(String.graphemes(digits)),
+                    digit not in ~w(0 1 2 3 4 5 6 7 8 9),
+                    into: %{},
+                    do: {digit, Integer.to_string(value)}
+
   @primary_zones SupplementalData.primary_zones()
 
   @metazone_data SupplementalData.metazones()
@@ -1077,6 +1090,10 @@ defmodule Localize.DateTime.Timezone do
   (`"PST"`, `"Asia/Tokyo"`) carries no offset of its own and needs a
   time-zone database to resolve; it is rejected here.
 
+  The offset is read in the digits of any numbering system, whatever the
+  locale, as TR35's parsing reads the localized GMT format with "non-Latin
+  numbers": `gmt_format/3` writes it in the locale's digits.
+
   ### Arguments
 
   * `zone_string` is the zone portion of a parsed time, such as `"Z"`,
@@ -1109,6 +1126,9 @@ defmodule Localize.DateTime.Timezone do
       iex> Localize.DateTime.Timezone.parse_offset("GMT-8")
       {:ok, -28800}
 
+      iex> Localize.DateTime.Timezone.parse_offset("GMT+५:३०", locale: :ne)
+      {:ok, 19800}
+
       iex> Localize.DateTime.Timezone.parse_offset("Asia/Tokyo")
       {:error, %Localize.UnknownTimezoneError{timezone: "Asia/Tokyo"}}
 
@@ -1118,7 +1138,7 @@ defmodule Localize.DateTime.Timezone do
 
   def parse_offset(zone_string, options)
       when is_binary(zone_string) and is_keyword_list(options) do
-    normalized = strip_bidi_marks(zone_string)
+    normalized = zone_string |> strip_bidi_marks() |> ascii_digits()
 
     attempts = [
       fn -> parse_iso_offset(normalized) end,
@@ -1149,6 +1169,19 @@ defmodule Localize.DateTime.Timezone do
     @bidi_marks
     |> Enum.reduce(zone_string, &String.replace(&2, &1, ""))
     |> String.trim()
+  end
+
+  # The string with each digit of another numbering system as the digit of
+  # its value. A string that is not text is left as it is, and is no
+  # offset.
+  defp ascii_digits(zone_string) do
+    if String.valid?(zone_string) do
+      for <<character::utf8 <- zone_string>>, into: "" do
+        Map.get(@ascii_digits, <<character::utf8>>, <<character::utf8>>)
+      end
+    else
+      zone_string
+    end
   end
 
   # ── ISO 8601 offsets ─────────────────────────────────────────
@@ -1340,8 +1373,9 @@ defmodule Localize.DateTime.Timezone do
   Parses a time zone written in any of the forms a locale formats one in.
 
   TR35's time zone parsing reads a zone as an ISO 8601 offset, the
-  localized GMT format in the locale's spelling or the global one ("GMT-4",
-  "UTC−4", "غرينتش-4"), a zone ID ("America/New_York") or its short form
+  localized GMT format in the locale's spelling or the global one, in the
+  digits of any numbering system ("GMT-4", "UTC−4", "غرينتش-4",
+  "غرينتش-٤"), a zone ID ("America/New_York") or its short form
   ("usnyc"), an exemplar city ("New York"), a location ("New York Time",
   "heure : New York"), or a zone or metazone name, long or short, generic,
   standard or daylight ("Eastern Time", "EDT", "heure d’été de l’Est
@@ -1525,11 +1559,16 @@ defmodule Localize.DateTime.Timezone do
   # A name or place comes before a zone ID, which TR35's process does not
   # read at all: "EST" is Eastern Standard Time in `en`, as ICU reads it,
   # though the time zone database also keeps it as a link to Panama.
+  #
+  # Bytes that are not text name no zone, and are not put to the names'
+  # patterns, which raise on them.
   defp parse_named_zone(zone_string, language_tag) do
-    key = name_key(zone_string)
-
-    case place_zone(key, zone_name_index(language_tag), language_tag) || zone_id(key) do
-      {time_zone, type} when time_zone != @unknown_zone -> {:ok, {:zone, time_zone, type}}
+    with true <- String.valid?(zone_string),
+         key = name_key(zone_string),
+         {time_zone, type} when time_zone != @unknown_zone <-
+           place_zone(key, zone_name_index(language_tag), language_tag) || zone_id(key) do
+      {:ok, {:zone, time_zone, type}}
+    else
       _no_zone -> {:error, Localize.UnknownTimezoneError.exception(timezone: zone_string)}
     end
   end
