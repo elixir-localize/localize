@@ -18,6 +18,27 @@ defmodule Localize.NifTest do
     test "collation_available?/0 returns a boolean" do
       assert is_boolean(Nif.collation_available?())
     end
+
+    # The library is compiled only when `LOCALIZE_NIF=true` or `config
+    # :localize, nif: true` asks for it, so one built once stays in `priv`
+    # and is loaded for good. Built before its source last changed, it
+    # answers as the source used to, and the tests below fail for a reason
+    # nothing in them names: one built in May read no `\u` escape, which
+    # the source had read since September.
+    test "a built library is not older than its source" do
+      library = Path.join(:code.priv_dir(:localize), "localize_nif.so")
+      source = Path.expand("../../c_src/localize_nif.cpp", __DIR__)
+
+      case {File.stat(library, time: :posix), File.stat(source, time: :posix)} do
+        {{:ok, %File.Stat{mtime: built}}, {:ok, %File.Stat{mtime: written}}} ->
+          assert built >= written,
+                 "priv/localize_nif.so is older than c_src/localize_nif.cpp: " <>
+                   "rebuild it with `LOCALIZE_NIF=true mix compile`"
+
+        _no_library_or_no_source ->
+          refute Nif.available?()
+      end
+    end
   end
 
   describe "mf2_format/3 unbound variable detection (pure Elixir path)" do
