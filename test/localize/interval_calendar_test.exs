@@ -298,6 +298,87 @@ defmodule Localize.IntervalCalendarTest do
     end
   end
 
+  # CLDR gives a date pattern the numbering its numeric fields are written
+  # in, the `numbers` attribute, and TR35 makes it the pattern's: "numeric
+  # quantities in the pattern are to be rendered using a numbering system
+  # other than the default". zh.xml's Chinese medium date is "r年MMMd" with
+  # `d=hanidays`, he.xml's Hebrew dates are `hebr`, and ja.xml's Japanese
+  # dates `y=jpanyear`. ICU4C 78.3 writes 16 June 2026 at 14:30:45 as
+  # "2026年五月初二 14:30:45" in `zh`'s Chinese calendar and as "א׳ בתמוז
+  # תשפ״ו, 14:30:45" in `he`'s Hebrew one, and 16 June 2019 as
+  # "令和元年6月16日 14:30:45" in `ja`'s Japanese one. The date-time wrote
+  # each in digits, "2026年五月2 14:30:45".
+  describe "a date-time's date takes the numbering of its format" do
+    test "the day's in zh's Chinese calendar" do
+      assert Localize.Date.to_string(date(Chinese, 4660, 5, 2), locale: :zh) ==
+               {:ok, "2023年四月初二"}
+
+      assert Localize.DateTime.to_string(datetime(Chinese, 4660, 5, 2, 14, 30), locale: :zh) ==
+               {:ok, "2023年四月初二 14:30:00"}
+    end
+
+    test "every field's in he's Hebrew calendar, and never the time's" do
+      assert Localize.Date.to_string(date(HebrewTimes, 5786, 11, 1), locale: :he) ==
+               {:ok, "א׳ בתמוז ה׳תשפ״ו"}
+
+      for {format, text} <- [
+            medium: "א׳ בתמוז ה׳תשפ״ו, 14:30:00",
+            long: "א׳ בתמוז ה׳תשפ״ו בשעה 14:30:00"
+          ] do
+        assert Localize.DateTime.to_string(datetime(HebrewTimes, 5786, 11, 1, 14, 30),
+                 locale: :he,
+                 format: format
+               ) == {:ok, text}
+      end
+    end
+
+    test "the year's in ja's Japanese calendar" do
+      assert Localize.DateTime.to_string(datetime(Japanese, 2019, 6, 16, 14, 30), locale: :ja) ==
+               {:ok, "令和元年6月16日 14:30:00"}
+    end
+
+    test "in its parts as in its text" do
+      value = datetime(Chinese, 4660, 5, 2, 14, 30)
+      {:ok, parts} = Localize.DateTime.to_parts(value, locale: :zh)
+
+      assert Enum.map_join(parts, & &1.value) == "2023年四月初二 14:30:00"
+    end
+
+    # A semantic skeleton of a year, month and day at medium length is the
+    # medium date format, its numbering with it.
+    test "under a semantic skeleton, of a date and of a date and time" do
+      import Localize.DateTime.SemanticSkeleton, only: [semantic: 2]
+      value = datetime(Chinese, 4660, 5, 2, 14, 30)
+
+      assert Localize.DateTime.to_string(value, locale: :zh, format: semantic("YMD", [])) ==
+               {:ok, "2023年四月初二"}
+
+      assert Localize.DateTime.to_string(value, locale: :zh, format: semantic("YMDT", [])) ==
+               {:ok, "2023年四月初二 14:30:00"}
+    end
+
+    test "unless the caller names a numbering, as for the date alone" do
+      options = [locale: :he, number_system: :latn]
+
+      assert Localize.Date.to_string(date(HebrewTimes, 5786, 11, 1), options) ==
+               {:ok, "1 בתמוז 5786"}
+
+      assert Localize.DateTime.to_string(datetime(HebrewTimes, 5786, 11, 1, 14, 30), options) ==
+               {:ok, "1 בתמוז 5786, 14:30:00"}
+    end
+
+    # The date written once beside two times is the date as it is written
+    # alone, as it was at the short format. ICU4C's `DateIntervalFormat`
+    # works from a skeleton and writes digits, "2026年五月2 14:30:45–15:30:45".
+    test "and so does the date a date-time interval writes once" do
+      assert Localize.Interval.to_string(
+               datetime(Chinese, 4660, 5, 2, 14, 30),
+               datetime(Chinese, 4660, 5, 2, 15, 30),
+               locale: :zh
+             ) == {:ok, "2023年四月初二 14:30:00–15:30:00"}
+    end
+  end
+
   describe "a date is read with its calendar's standard formats first" do
     # ICU4C 78.3 reads `de`'s Japanese short "dd.MM.yy GGGGG" "01.04.05 R"
     # as Reiwa 5: `yy` beside an era of a calendar that shows years of an

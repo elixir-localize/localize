@@ -89,6 +89,8 @@ The year `y` writes in those last two calendars is no difference: Localize and I
 
 The related year (`r`) keeps Latin digits whatever digits the rest of the date is written in. TR35 says of it that it "is usually displayed using the "latn" numbering system, regardless of what numbering systems may be used for other parts of the formatted date". ICU4C 78.3 writes it in the locale's digits, so the fifth month of the Chinese year that began in 2026 at root's `yyyyM`, "r-MM", in `ar-EG` is "2026-٠٥" here and "٢٠٢٦-٠٥" there, and so in every locale that writes its dates in digits of its own; asserted in `test/localize/datetime/cyclic_year_symbol_test.exs`.
 
+A Hebrew year in Hebrew numerals keeps its thousands, as CLDR's `hebr` numbering system writes any number: 5786 is "ה׳תשפ״ו". TR35 has a pattern's `numbers` attribute render its "numeric quantities" in the numbering system named, and says nothing of shortening a year. ICU4C 78.3 takes 5,000 from a year of the current millennium before it writes it, "תשפ״ו", and writes 4999 in full, "ד׳תתקצ״ט"; Localize reads both. Asserted in `test/localize/hebrew_numeral_date_parse_test.exs` and `test/localize/interval_calendar_test.exs`.
+
 ### Date parsing
 
 TR35 makes `y` the year of the era `G` names, and leaves the reading of a two-digit year to the implementation. ICU4C 78.3 reads any two-digit year as one within 80 years before and 20 after today, even beside an era, so it cannot read back the "44 BC" it formats itself. Localize takes a year its era qualifies as written where the format writes the year in full (`y`), and applies the pivot to a year written without an era and, as ICU does, to one the format writes as `yy`, its two low-order digits; asserted in `test/localize/date_parse_era_test.exs` and `test/localize/date_parse_lunisolar_test.exs`.
@@ -200,7 +202,7 @@ TR35's location format (`VVVV`) names a zone's country by "short country name, i
 
 ### Interval formatting
 
-An interval takes the formats of its endpoints' calendar. ICU4C 78.3 differs from Localize in nine places, asserted in `test/localize/interval_calendar_test.exs`, `test/localize/interval_skeleton_test.exs`, `test/localize/interval_closest_match_test.exs` and `test/localize/interval_standard_format_test.exs`; the third follows ECMA-402 and the others TR35.
+An interval takes the formats of its endpoints' calendar. ICU4C 78.3 differs from Localize in eleven places, asserted in `test/localize/interval_calendar_test.exs`, `test/localize/interval_skeleton_test.exs`, `test/localize/interval_closest_match_test.exs` and `test/localize/interval_standard_format_test.exs`; the third follows ECMA-402 and the others TR35.
 
 | Interval | Localize | ICU4C renders |
 |---|---|---|
@@ -216,6 +218,7 @@ An interval takes the formats of its endpoints' calendar. ICU4C 78.3 differs fro
 | `en` `Ed`, 15 June to 15 July 2026 | "Mon, 6/15 – Wed, 7/15" | "15 Mon – 15 Wed" |
 | `en` `QQQ`, 15 June 2026 to 15 June 2027 | "Q2 2026 – Q2 2027" | "Q2 – Q2" |
 | `ja` long, 1 to 10 April 2023 | "2023年4月1日～10日" | "2023/04/01～2023/04/10" |
+| `zh` Chinese medium, 14:30:45 to 15:30:45 on 16 June 2026 | "2026年五月初二 14:30:45–15:30:45" | "2026年五月2 14:30:45–15:30:45" |
 
 * **The date-time pattern.** TR35 joins a date to a time range with the calendar's `dateTimeFormat`. ICU's `DateIntervalFormat` reads `calendar/gregorian/DateTimePatterns` whatever the calendar, though its single date-time formatter uses the calendar's own.
 
@@ -236,6 +239,8 @@ An interval takes the formats of its endpoints' calendar. ICU4C 78.3 differs fro
 * **Fields compared as written.** TR35 formats one date where "there is no difference among any of the fields in the pattern", and Localize compares the value of each field a date interval's format writes, whether or not CLDR has an interval item for it: two dates in one quarter are one quarter, and two Mondays one weekday. ICU ranks calendar fields by size and writes both dates wherever they differ in a field as large as the smallest in the pattern, though the two halves read the same. It makes no pattern for a skeleton of weeks (`yw`, `MMMMW`), for which Localize writes both weeks around the fallback pattern, or one where the days are in the same week.
 
 * **A difference larger than the skeleton writes.** Both widen a skeleton that has an interval item with the month or the year its two dates differ in: `d` is "6/15 – 7/15" across months and "6/15/2026 – 6/15/2027" across years. ICU does not widen a skeleton CLDR has no item for and writes both dates with it as it stands. Localize widens it the same way, with the closest item's pattern (`MEd`'s for `Ed`) or, where there is none, with both dates in full (`yQQQ` for `QQQ`, `yw` for `w`).
+
+* **The date's numbering.** CLDR gives a date pattern the numbering its numeric fields are written in, the `numbers` attribute, and the date a date-time interval writes once beside two times is the date as `Localize.Date.to_string/2` writes it, in that numbering: `zh`'s Chinese day is "初二" and `he`'s Hebrew date is in Hebrew numerals. ICU's `DateIntervalFormat` works from the format's skeleton, which carries no numbering, and writes digits, though its single date-time formatter writes "2026年五月初二 14:30:45" as Localize does. An interval item's own fields are in digits in both, "2026年五月2至6".
 
 ### Relative time
 

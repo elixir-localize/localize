@@ -278,7 +278,7 @@ defmodule Localize.DateTime.Formatter do
   # and recurse into `format_to_parts/4`.
   defp placeholder_parts(:date, datetime, _count, locale_id, options)
        when is_date(datetime) do
-    with {:ok, pattern} <- placeholder_pattern(:date, datetime, locale_id, options),
+    with {:ok, pattern, options} <- date_placeholder(datetime, locale_id, options),
          {:ok, parts} <- format_to_parts(datetime, pattern, locale_id, options) do
       parts
     else
@@ -302,14 +302,40 @@ defmodule Localize.DateTime.Formatter do
   # as `Localize.Date` and `Localize.Time` would on their own: a skeleton
   # through TR35 matching, a semantic skeleton through its classical
   # skeleton, and the time half under any `-u-hc-` override in the locale.
-  defp placeholder_pattern(:date, datetime, locale_id, options) do
-    Localize.Date.resolve_pattern(
-      datetime,
-      options[:date_format] || :medium,
-      locale_id,
-      variant_options(options)
-    )
+  #
+  # The date takes the numbering its format states as well, CLDR's
+  # `numbers` attribute, which is the pattern's wherever the pattern is
+  # written: `he`'s Hebrew dates are in Hebrew numerals and `zh`'s Chinese
+  # day is "初二" beside a time as they are alone. The numbering goes with
+  # the options the date half is written with, never the time's, and a
+  # numbering the caller gives stands before it, as for a date alone.
+  defp date_placeholder(datetime, locale_id, options) do
+    format = options[:date_format] || :medium
+    variants = variant_options(options)
+
+    with {:ok, pattern, numbers} <-
+           Localize.Date.resolve_pattern_and_numbers(datetime, format, locale_id, variants) do
+      {:ok, pattern, with_date_numbers(options, numbers)}
+    end
   end
+
+  defp with_date_numbers(options, numbers) when map_size(numbers) == 0, do: options
+
+  defp with_date_numbers(options, numbers) do
+    case options[:number_system_overrides] do
+      nil ->
+        put_option(options, :number_system_overrides, numbers)
+
+      given when is_map(given) ->
+        put_option(options, :number_system_overrides, Map.merge(numbers, given))
+
+      _other ->
+        options
+    end
+  end
+
+  defp put_option(options, key, value) when is_list(options), do: Keyword.put(options, key, value)
+  defp put_option(options, key, value) when is_map(options), do: Map.put(options, key, value)
 
   defp placeholder_pattern(:time, datetime, locale_id, options) do
     Localize.Time.resolve_pattern(
@@ -1699,7 +1725,7 @@ defmodule Localize.DateTime.Formatter do
 
   @doc false
   def date(datetime, _count, locale_id, options) when is_date(datetime) do
-    with {:ok, pattern} <- placeholder_pattern(:date, datetime, locale_id, options),
+    with {:ok, pattern, options} <- date_placeholder(datetime, locale_id, options),
          {:ok, formatted} <- format(datetime, pattern, locale_id, options) do
       formatted
     else

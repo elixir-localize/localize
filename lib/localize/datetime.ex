@@ -462,10 +462,26 @@ defmodule Localize.DateTime do
            locale_id,
            calendar
          ) do
+      # A date alone, which takes the numbering its format states as
+      # `Localize.Date` writes it; a numbering the caller gives stands
+      # before it.
       {:ok, date_format, nil} when shape == :complete ->
-        with {:ok, pattern} <-
-               Localize.Date.resolve_pattern(datetime, date_format, locale_id, options) do
-          invoke_formatter(output, datetime, pattern, locale_id, Map.new(options))
+        with {:ok, pattern, numbers} <-
+               Localize.Date.resolve_pattern_and_numbers(
+                 datetime,
+                 date_format,
+                 locale_id,
+                 options
+               ) do
+          options_map =
+            options
+            |> Map.new()
+            |> Map.update(:number_system_overrides, numbers, fn
+              given when is_map(given) -> Map.merge(numbers, given)
+              given -> given
+            end)
+
+          invoke_formatter(output, datetime, pattern, locale_id, options_map)
         end
 
       # The wrapper's `{1}` takes the date half as the semantic date it is,

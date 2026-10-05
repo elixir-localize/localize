@@ -34,6 +34,8 @@ Outstanding work on Localize. The design detail behind these items lives under [
 
 * [ ] **An interval typed without years across the new year is refused** — "Dec 28 – Jan 3" is two dates of the reference date's year, the later first, and so an inverted range, as it was when each side was read alone. The formatter never writes one, adding the years where they differ, and neither TR35 nor ICU reads an interval. A decision: whether the second date is of the year after.
 
+* [ ] **An interval item is written in digits where the date alone takes its format's numbering** — `he`'s Hebrew medium interval is "1–5 בתמוז 5786" beside the date "א׳ בתמוז ה׳תשפ״ו", and `zh`'s Chinese "2026年五月2至6" beside "2026年五月初二", as ICU4C writes them: CLDR's interval items carry no numbering and TR35 says nothing of one for them. Decide whether an interval at a standard format takes the format's numbering, as it takes its fields.
+
 ## In progress
 
 * [ ] **CLDR 49 upgrade** — the plan's items are closed bar item 11; the data is built from CLDR `main` pending beta3 (below), then the final release. [plans/cldr-49.md](plans/cldr-49.md).
@@ -81,6 +83,8 @@ Outstanding work on Localize. The design detail behind these items lives under [
 * [ ] **`localize_emoji` sibling library** — plan item 11, a separate package on its own schedule. A Phoenix LiveView picker (`localize_emoji_live`) is out of scope for its 0.1.0.
 
 ## Done
+
+* [x] **A date and time is written with the numbering its date format states** — CLDR gives a date pattern the numbering of its numeric fields, the `numbers` attribute, which TR35 makes the pattern's, and the date half of a date and time lost it: `he`'s Hebrew date and time was "1 בתמוז 5786, 14:30" beside the date's "א׳ בתמוז ה׳תשפ״ו", `zh`'s Chinese day "2" beside "初二", `ja`'s first year of an era "1" beside "元" and `haw`'s month "6" beside "vi", where ICU4C writes each as the date alone. All 72,270 dates and times at the standard formats in eleven calendars and 657 locales now hold their date as it is written alone (210 did not, in the 17 locales whose formats state a numbering), as the 144,540 date-time intervals do (351 did not), and 142 more read back with the format they were written with; none of 289,080 rows is worse, nor of 714,816 written with a semantic skeleton. 2026-10-06, v1.4.0.
 
 * [x] **An interval whose item names the year is read with the related year written in its place** — the formatter writes the year a format asks for where CLDR's interval item has its year, so `en`'s Chinese medium interval, from the item "MMM d – d, U", is "Mo5 2 – 6, 2026", and the reader offered the related year only for an item's `y`: it reads it for an item's `U` too. 1,979 more of the 195,257 intervals at the standard formats in 35 calendars and 657 locales read back, every lunisolar medium interval among them, and 2,930 more of 183,582 at other dates and formats, 2,073 of which were read as another range; none fewer. The 248 left at the standard formats are written from CLDR patterns that cannot be read back (`sv`'s day written twice, `sw`'s month written once, `om`'s two orders), which the reports to CLDR under Blocked cover. 2026-10-06, v1.4.0.
 
