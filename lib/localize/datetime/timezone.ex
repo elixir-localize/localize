@@ -1643,19 +1643,20 @@ defmodule Localize.DateTime.Timezone do
   # location "Kaliningradtid", which is its standard time too.
   defp zone_readings(zone_string, language_tag) do
     case read_offset(zone_string, [locale: language_tag], :optional) do
-      {:ok, offset} ->
-        {:ok, [{:offset, offset}]}
+      {:ok, offset} -> {:ok, [{:offset, offset}]}
+      {:error, _not_an_offset} -> named_zone_readings(zone_string, language_tag)
+    end
+  end
 
-      {:error, _not_an_offset} ->
-        case named_zones(zone_string, language_tag) do
-          [_first | _rest] = zones ->
-            generic = for {time_zone, type} <- zones, type != :generic, do: {time_zone, :generic}
-            readings = Enum.uniq(zones ++ generic)
-            {:ok, Enum.map(readings, fn {time_zone, type} -> {:zone, time_zone, type} end)}
+  defp named_zone_readings(zone_string, language_tag) do
+    case named_zones(zone_string, language_tag) do
+      [] ->
+        {:error, Localize.UnknownTimezoneError.exception(timezone: zone_string)}
 
-          [] ->
-            {:error, Localize.UnknownTimezoneError.exception(timezone: zone_string)}
-        end
+      zones ->
+        generic = for {time_zone, type} <- zones, type != :generic, do: {time_zone, :generic}
+        readings = Enum.uniq(zones ++ generic)
+        {:ok, Enum.map(readings, fn {time_zone, type} -> {:zone, time_zone, type} end)}
     end
   end
 
