@@ -321,6 +321,39 @@ defmodule Localize.IntervalCalendarTest do
     end
   end
 
+  # en.xml's Chinese `yMMMd` interval names the year, "MMM d – d, U", and
+  # its medium date writes the related year, "MMM d, r", which the formatter
+  # puts where the item has its year: the Chinese year 4660 is "2023". The
+  # interval is read with the year it is written with, each date held to the
+  # date it was written from.
+  describe "an interval whose item names the year, written with the related year" do
+    test "is read back" do
+      from = date(Chinese, 4660, 5, 2)
+
+      assert Localize.Interval.to_string(from, date(Chinese, 4660, 5, 6), locale: :en) ==
+               {:ok, "Mo4 2 – 6, 2023"}
+
+      for to <- [date(Chinese, 4660, 5, 6), date(Chinese, 4660, 6, 6), date(Chinese, 4661, 6, 6)] do
+        {:ok, text} = Localize.Interval.to_string(from, to, locale: :en)
+
+        assert Localize.Interval.parse(text, locale: :en, calendar: Chinese, reference_date: from) ==
+                 {:ok, Date.range(from, to)},
+               text
+      end
+    end
+
+    test "is read back in a leap month" do
+      from = date(Chinese, 4660, 3, 11)
+      to = date(Chinese, 4660, 3, 20)
+
+      assert Localize.Interval.parse("Mo2bis 11 – 20, 2023",
+               locale: :en,
+               calendar: Chinese,
+               reference_date: from
+             ) == {:ok, Date.range(from, to)}
+    end
+  end
+
   # An interval at a standard format is written with the widths of that
   # format's pattern, so where the pattern writes `yy` beside an era the
   # interval's years are two digits and its era is written once. `nl.xml`:

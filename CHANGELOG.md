@@ -134,6 +134,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+* An interval whose CLDR item names the year is read with the related year the formatter writes in its place. `en`'s Chinese "Mo5 2 – 6, 2026", from the item "MMM d – d, U" at the medium format, was an error, as "2026 M05 2–6" was in 487 locales.
+
 * A date two of a locale's formats read is read by the one whose own separators it has. `af`'s "10-7-2569 BE" is its `GyMd`'s, "M-d-y G", the seventh of October, where its "d/M/y GGGGG" read it first, a hyphen for its slash, as the tenth of July.
 
 * An interval written without a year is read as dates of the reference date's year, as a date alone is. "Jun 16 – 20", which the month and day fields write, was read only as two partial dates with `as: :map`.

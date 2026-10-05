@@ -859,7 +859,7 @@ defmodule Localize.Date.Parser do
   end
 
   defp year_readings(tokens, %{related: related?, truncated: truncated?}) do
-    related = if related?, do: [with_year(tokens, &{:r, &1})], else: []
+    related = if related?, do: [related_year_tokens(tokens)], else: []
     truncated = if truncated?, do: [with_year(tokens, fn _count -> {:y, 2} end)], else: []
 
     Enum.uniq([tokens | related ++ truncated])
@@ -868,6 +868,18 @@ defmodule Localize.Date.Parser do
   defp with_year(tokens, year) do
     Enum.map(tokens, fn
       {:y, count} when count != 2 -> year.(count)
+      token -> token
+    end)
+  end
+
+  # The related year stands wherever the item has its year, as a number or
+  # by its name: the formatter writes the year a format asks for in the
+  # place of whichever the item has, so `en`'s Chinese "MMM d – d, U" is
+  # written "Mo5 2 – 6, 2026" at the medium format, whose date is "MMM d, r".
+  defp related_year_tokens(tokens) do
+    Enum.map(tokens, fn
+      {:y, count} when count != 2 -> {:r, count}
+      {:U, count} -> {:r, count}
       token -> token
     end)
   end
