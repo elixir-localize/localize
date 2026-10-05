@@ -677,6 +677,64 @@ defmodule Localize.ZoneParseTest do
 
     # 01:30 on the day New York falls back is read in standard time, and
     # 02:30 on the day it springs forward at the offset before the change.
+    # A string with more than one reading is the zone that writes it at the
+    # date. CLDR 49's `it.xml` names the Further-eastern European metazone
+    # "Ora dell’Europa orientale (Kaliningrad)", which `metaZones.xml` gives
+    # Minsk and Kaliningrad from 2011 to 2014; before and since it is
+    # Kaliningrad's Eastern European time, qualified by its city. "Malaysia
+    # Time" is the Malaysia metazone, which Kuching and Kuala Lumpur keep
+    # from 1982, and the location of Kuala Lumpur, CLDR's primary zone of
+    # Malaysia, at +07:30 until then. `sv`'s "Kaliningradtid" is that
+    # metazone's standard name and Kaliningrad's location, which in July
+    # 1990 kept summer time. The instants are the ones ICU4C 78.3 reads, in
+    # `vvvv` and `VVVV` fields.
+    test "a string with two readings is the zone that writes it at the date" do
+      for {locale, text, naive, utc} <- [
+            {:it, "Ora dell’Europa orientale (Kaliningrad)", ~N[2026-01-15 12:00:00],
+             ~U[2026-01-15 10:00:00Z]},
+            {:it, "Ora dell’Europa orientale (Kaliningrad)", ~N[2012-01-15 12:00:00],
+             ~U[2012-01-15 09:00:00Z]},
+            {:en, "Malaysia Time", ~N[1975-01-15 12:00:00], ~U[1975-01-15 04:30:00Z]},
+            {:en, "Malaysia Time", ~N[2026-01-15 12:00:00], ~U[2026-01-15 04:00:00Z]},
+            {:en, "Israel Time (Gaza)", ~N[1980-01-15 12:00:00], ~U[1980-01-15 10:00:00Z]},
+            {:sv, "Kaliningradtid", ~N[1990-07-15 12:00:00], ~U[1990-07-15 09:00:00Z]}
+          ] do
+        assert {:ok, datetime} = Timezone.resolve(text, naive, locale: locale)
+        assert DateTime.compare(datetime, utc) == :eq, "#{locale} #{text} at #{naive}"
+        assert DateTime.to_naive(datetime) == naive
+      end
+
+      assert {:ok, %DateTime{time_zone: "Europe/Kaliningrad"}} =
+               Timezone.resolve(
+                 "Ora dell’Europa orientale (Kaliningrad)",
+                 ~N[2026-01-15 12:00:00],
+                 locale: :it
+               )
+
+      assert {:ok, %DateTime{time_zone: "Asia/Kuala_Lumpur"}} =
+               Timezone.resolve("Malaysia Time", ~N[1975-01-15 12:00:00], locale: :en)
+    end
+
+    # A name is qualified by the city of the zone it is written for, and the
+    # name can be a country's location too: Gaza kept the Israel metazone
+    # until 1996, and "Israel Time" alone is the one zone of Israel. ICU4C
+    # 78.3 reads "Israel Time (Gaza)" and "Chile Time (Punta Arenas)" as the
+    # city's zone; it qualifies no specific name, which TR35's steps for the
+    # non-location formats and CLDR's own formatter do.
+    test "a name qualified by a city is that city's zone" do
+      for {text, time_zone} <- [
+            {"Israel Time (Gaza)", "Asia/Gaza"},
+            {"Israel Standard Time (Gaza)", "Asia/Gaza"},
+            {"India Standard Time (Colombo)", "Asia/Colombo"},
+            {"Chile Time (Punta Arenas)", "America/Punta_Arenas"}
+          ] do
+        assert {:ok, {:zone, ^time_zone, _type}} = Timezone.parse_zone(text, locale: :en), text
+      end
+
+      assert Timezone.parse_zone("Israel Time", locale: :en) ==
+               {:ok, {:zone, "Asia/Jerusalem", :generic}}
+    end
+
     test "a wall time the clocks pass twice, or skip" do
       assert {:ok, %DateTime{zone_abbr: "EST"} = datetime} =
                Timezone.resolve("ET", ~N[2023-11-05 01:30:00], locale: :en)

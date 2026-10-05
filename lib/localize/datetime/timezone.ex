@@ -1578,6 +1578,14 @@ defmodule Localize.DateTime.Timezone do
   twice is read in standard time, one they skip at the offset before the
   change, as ICU reads them.
 
+  Some strings have more than one reading: `it`'s "Ora dell’Europa
+  orientale (Kaliningrad)" names a metazone no zone has kept since 2014 and
+  is also Eastern European time in Kaliningrad, and "Malaysia Time" is the
+  time of Kuching and the location of Kuala Lumpur, which kept another
+  time until 1982. The date decides between them: the reading taken is the
+  first whose zone is written as that string on the date, where
+  `parse_zone/2`, which has no date, gives the first of them.
+
   ### Arguments
 
   * `zone_string` is the zone as written.
@@ -1616,8 +1624,9 @@ defmodule Localize.DateTime.Timezone do
       when is_binary(zone_string) and is_keyword_list(options) do
     with {:ok, language_tag} <-
            Localize.validate_locale(Keyword.get(options, :locale) || Localize.get_locale()),
-         {:ok, zone} <- parse_zone(zone_string, Keyword.put(options, :locale, language_tag)) do
-      resolve_parsed_zone(zone, naive_datetime, Calendar.get_time_zone_database(), language_tag)
+         {:ok, readings} <- zone_readings(zone_string, language_tag) do
+      database = Calendar.get_time_zone_database()
+      resolve_readings(readings, zone_string, naive_datetime, database, language_tag)
     end
   end
 
@@ -1626,6 +1635,79 @@ defmodule Localize.DateTime.Timezone do
 
   def resolve(zone_string, _naive_datetime, _options),
     do: {:error, Localize.UnknownTimezoneError.exception(timezone: zone_string)}
+
+  # Every reading of a zone string, the one `parse_zone/2` gives first: an
+  # offset, which has one reading, or each zone the string can name with the
+  # type of time it names there. After them, a name of standard or daylight
+  # time can be its zone's generic form as well: `sv` names Kaliningrad's
+  # location "Kaliningradtid", which is its standard time too.
+  defp zone_readings(zone_string, language_tag) do
+    case read_offset(zone_string, [locale: language_tag], :optional) do
+      {:ok, offset} ->
+        {:ok, [{:offset, offset}]}
+
+      {:error, _not_an_offset} ->
+        case named_zones(zone_string, language_tag) do
+          [_first | _rest] = zones ->
+            generic = for {time_zone, type} <- zones, type != :generic, do: {time_zone, :generic}
+            readings = Enum.uniq(zones ++ generic)
+            {:ok, Enum.map(readings, fn {time_zone, type} -> {:zone, time_zone, type} end)}
+
+          [] ->
+            {:error, Localize.UnknownTimezoneError.exception(timezone: zone_string)}
+        end
+    end
+  end
+
+  # A string with one reading is that reading. Of several, the first whose
+  # zone is written as the string at the date and time is taken, since that
+  # is the zone, and the type of time, it was written from; where none is,
+  # the first reading stands, as `parse_zone/2` gives it. The date and time
+  # is the one read: a reading that moves it, as a generic name's does where
+  # the clocks skip it, is not the one the string was written from.
+  defp resolve_readings([reading], _zone_string, naive_datetime, database, language_tag),
+    do: resolve_parsed_zone(reading, naive_datetime, database, language_tag)
+
+  defp resolve_readings([first | _rest] = readings, zone_string, naive_datetime, database, tag) do
+    key = name_key(zone_string)
+
+    written =
+      Enum.find_value(readings, fn reading ->
+        with {:ok, datetime} <- resolve_parsed_zone(reading, naive_datetime, database, tag),
+             :eq <- NaiveDateTime.compare(DateTime.to_naive(datetime), naive_datetime),
+             true <- written_as?(datetime, key, tag) do
+          {:ok, datetime}
+        else
+          _not_written_so -> nil
+        end
+      end)
+
+    written || resolve_parsed_zone(first, naive_datetime, database, tag)
+  end
+
+  # Whether one of the formats that name a zone writes the date and time's
+  # zone as the string read: its specific or generic name, long or short,
+  # its location, its city or its ID.
+  defp written_as?(%DateTime{time_zone: time_zone} = datetime, key, language_tag) do
+    locale_id = language_tag.cldr_locale_id
+
+    [
+      fn -> non_location_format(datetime, locale_id, format: :long, type: :specific) end,
+      fn -> non_location_format(datetime, locale_id, format: :long, type: :generic) end,
+      fn -> generic_location_format(time_zone, locale_id) end,
+      fn -> non_location_format(datetime, locale_id, format: :short, type: :specific) end,
+      fn -> non_location_format(datetime, locale_id, format: :short, type: :generic) end,
+      fn -> location_exemplar_city(time_zone, locale_id) end,
+      fn -> {:ok, time_zone} end,
+      fn -> {:ok, short_zone_id(time_zone)} end
+    ]
+    |> Enum.any?(fn name ->
+      case name.() do
+        {:ok, text} when is_binary(text) -> name_key(text) == key
+        _no_name -> false
+      end
+    end)
+  end
 
   @doc false
   # A date and time at a fixed offset, carried as Localize and Calendrical
@@ -1661,13 +1743,38 @@ defmodule Localize.DateTime.Timezone do
   # Bytes that are not text name no zone, and are not put to the names'
   # patterns, which raise on them.
   defp parse_named_zone(zone_string, language_tag) do
-    with true <- String.valid?(zone_string),
-         key = name_key(zone_string),
-         {time_zone, type} when time_zone != @unknown_zone <-
-           place_zone(key, zone_name_index(language_tag), language_tag) || zone_id(key) do
-      {:ok, {:zone, time_zone, type}}
+    case zone_string |> named_zone_stream(language_tag) |> Enum.at(0) do
+      {time_zone, type} when time_zone != @unknown_zone ->
+        {:ok, {:zone, time_zone, type}}
+
+      _no_zone ->
+        {:error, Localize.UnknownTimezoneError.exception(timezone: zone_string)}
+    end
+  end
+
+  # Every zone a string names, each with the type of time it names there,
+  # the first as `parse_zone/2` reads the string: none at all where that is
+  # the unknown zone.
+  defp named_zones(zone_string, language_tag) do
+    case zone_string |> named_zone_stream(language_tag) |> Enum.to_list() do
+      [{@unknown_zone, _type} | _rest] ->
+        []
+
+      zones ->
+        Enum.reject(zones, fn {time_zone, _type} -> time_zone == @unknown_zone end)
+    end
+  end
+
+  # The readings in order, worked out as they are asked for: `parse_zone/2`
+  # takes the first, and `resolve/3`, which has a date to choose by, all.
+  defp named_zone_stream(zone_string, language_tag) do
+    if String.valid?(zone_string) do
+      key = name_key(zone_string)
+      index = zone_name_index(language_tag)
+
+      Stream.concat(place_zones(key, index, language_tag), List.wrap(zone_id(key)))
     else
-      _no_zone -> {:error, Localize.UnknownTimezoneError.exception(timezone: zone_string)}
+      []
     end
   end
 
@@ -1693,7 +1800,7 @@ defmodule Localize.DateTime.Timezone do
   # names a country "Côte d’Ivoire (Costa do Marfim)", and "Hora de
   # Greenwich (Côte d’Ivoire (Costa do Marfim))" is that country's Greenwich
   # time.
-  defp place_zone(key, index, language_tag) do
+  defp place_zones(key, index, language_tag) do
     splits =
       index.fallback_formats
       |> Enum.flat_map(fn regex ->
@@ -1711,8 +1818,8 @@ defmodule Localize.DateTime.Timezone do
         do: [{key, nil} | qualified],
         else: qualified ++ [{key, nil}]
 
-    Enum.find_value(readings, fn {name, place} ->
-      reading_zone(name, place, index, language_tag)
+    Stream.flat_map(readings, fn {name, place} ->
+      reading_zones(name, place, index, language_tag)
     end)
   end
 
@@ -1741,12 +1848,19 @@ defmodule Localize.DateTime.Timezone do
   defp named_place?(place, index),
     do: Map.has_key?(index.countries, place) or Map.has_key?(index.cities, place)
 
-  # One reading: N may be a place in a region format ("Italy Time"), M,
-  # and a country among P, N and M is C. In TR35's order: C's zone where C
-  # has one zone; P as a city; N or M as a zone's own name, or a city; then
-  # N or M as a metazone's name, whose zone is C's, else the locale's
-  # country's. So "Chile Time (Punta Arenas)" is Punta Arenas, a city of a
-  # country with several zones, as ICU reads it.
+  # One reading's zones, the likeliest first: N may be a place in a region
+  # format ("Italy Time"), M, and a country among P, N and M is C. In TR35's
+  # order but for its first two steps: P as a city; C's zone where C has one
+  # zone; N or M as a zone's own name, or a city; then N or M as a
+  # metazone's name, whose zone is C's, else the locale's country's. So
+  # "Chile Time (Punta Arenas)" is Punta Arenas, a city of a country with
+  # several zones, as ICU reads it.
+  #
+  # The city comes before the country because a name is qualified by the
+  # city of the zone it was written for, and the name can be a country's
+  # location as well: "Israel Time (Gaza)" is Gaza's time while it kept the
+  # Israel metazone, as ICU reads it, and not the one zone of Israel that
+  # "Israel Time" alone is.
   #
   # After them comes what TR35's sample leaves out, the primary zone of a
   # country with several: its location format writes Berlin "Germany Time".
@@ -1759,7 +1873,7 @@ defmodule Localize.DateTime.Timezone do
   # else the region format's it is written in: `ko` names Central European
   # Summer Time "중부유럽 하계 표준시", which is also the shape of its
   # standard region format, "{0} 표준시".
-  defp reading_zone(name, place, index, language_tag) do
+  defp reading_zones(name, place, index, language_tag) do
     {located, region_type} = named_region_place(name, index)
     type = name_type(name, index) || region_type || :generic
 
@@ -1769,8 +1883,8 @@ defmodule Localize.DateTime.Timezone do
         unnamed_country(located, index)
 
     [
-      fn -> sole_zone(country, type) end,
       fn -> city_zone(place, type, index) end,
+      fn -> sole_zone(country, type) end,
       fn -> own_name_zone(name, index) end,
       fn -> own_name_zone(located, index) end,
       fn -> city_zone(located, type, index) end,
@@ -1781,7 +1895,8 @@ defmodule Localize.DateTime.Timezone do
       fn -> country && metazone_name_zone(name, nil, index, language_tag) end,
       fn -> country && metazone_name_zone(located, nil, index, language_tag) end
     ]
-    |> Enum.find_value(fn step -> step.() end)
+    |> Stream.map(fn step -> step.() end)
+    |> Stream.filter(&is_tuple/1)
   end
 
   # The place a string names in a region format, and that format's type of

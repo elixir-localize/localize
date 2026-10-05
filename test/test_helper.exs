@@ -90,6 +90,7 @@ test_locales = [
   "ru",
   "sd-Deva",
   "su",
+  "sv",
   "sw",
   "th",
   "uk",

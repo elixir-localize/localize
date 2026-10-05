@@ -34,8 +34,6 @@ Outstanding work on Localize. The design detail behind these items lives under [
 
 * [ ] **A metazone's name is written for dates before 1970** — a `usesMetazone` period with no `from` is taken to reach back without end, so Los Angeles in 1850, at -7:52:58, is "Pacific Standard Time"; TR35 does not say where such a period begins, CLDR's zones are told apart only "back to 1970", and ICU4C begins it at 1970, writing "GMT-07:52:58" and "Los Angeles Time" there and "GMT-05:00" for New York in 1965. Decide where a first period begins.
 
-* [ ] **A string two readings share is not told apart by the date** — `it` names the Further-eastern European metazone "Ora dell’Europa orientale (Kaliningrad)", which is also Eastern European time qualified by Kaliningrad, as that zone's `vvvv` is written today; it is read as Minsk, the metazone's zone, though no zone has kept that metazone since 2014, where ICU4C reads Kaliningrad in a `vvvv` field. `resolve/3` has the date, and could take the reading whose metazone the zone keeps then. The same choice is wrong wherever the zone a string is read as kept another time than the zone it was written for: "Malaysia Time", Kuala Lumpur's location format, is read as Kuching, half an hour ahead until 1982, and "Israel Time (Gaza)", Gaza's name until 1996, as Jerusalem.
-
 * [ ] **A 24-hour pattern with a day period reads an afternoon as the morning** — `ksh`'s `Hmsv` is "H:mm:ss a v" in CLDR 49, a 24-hour hour beside a day period, and it is tried before the 12-hour `hmsv`, so "4:00:00 n.M. GMT+5:30", which `hmsz` writes for 16:00, is read without its format as 04:00. An hour and a day period that disagree should be no reading of that pattern.
 
 ## In progress
@@ -69,6 +67,8 @@ Outstanding work on Localize. The design detail behind these items lives under [
 * [ ] **`localize_emoji` sibling library** — plan item 11, a separate package on its own schedule. A Phoenix LiveView picker (`localize_emoji_live`) is out of scope for its 0.1.0.
 
 ## Done
+
+* [x] **A string with two readings is the zone that writes it at the date** — `resolve/3` takes the first reading whose zone is written as the string then: `it`'s "Ora dell’Europa orientale (Kaliningrad)" is Kaliningrad in 2026 (Minsk before), "Malaysia Time" in 1975 Kuala Lumpur at +07:30 (Kuching in 279 locales), `sv`'s "Kaliningradtid" in a summer Kaliningrad's clock, each the moment ICU4C reads; and a name qualified by a city is that city's zone, "Israel Time (Gaza)" Gaza. 2026-10-05, v1.4.0.
 
 * [x] **A country or city qualifies a zone's name only after a name the locale writes** — TR35's sample parse reads "xxx (Italy)" as Rome whatever xxx is, and with it a 24-hour pattern read a time's day period into its zone, `en-GB`'s "4:00:00 pm (India)" as 04:00 in India, and a time's hour out of its year; "PM (India)" is now no zone. 2026-10-05, v1.4.0.
 
