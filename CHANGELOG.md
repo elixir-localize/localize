@@ -134,6 +134,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+* A pattern that writes a year's name beside its number keeps the name when a skeleton asks for another numbered year. The skeleton `r` wrote a Chinese year as "2026(2026)" in most locales, root's "r(U)" turned to "r(r)", and writes "2026(bing-wu)".
+
 * `Localize.DateTime.parse/2` reads a date and time with the `Localize.DateTime.SemanticSkeleton` given as `:format`, each half with the skeleton's date fields or its time fields; the skeleton was ignored, and text in any of the locale's formats read. A skeleton whose minutes are optional reads a time on the hour written without them, "2 PM", which `Localize.Time.parse/2` refused.
 
 * A date and time is written with the numbering its date format states, CLDR's `numbers` attribute, as the date alone is. `he`'s Hebrew date and time was "1 בתמוז 5786, 14:30" beside the date's "א׳ בתמוז ה׳תשפ״ו", and `zh`'s Chinese day "2" beside "初二".

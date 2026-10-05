@@ -101,5 +101,20 @@ defmodule Localize.DateTime.CyclicYearSymbolTest do
       assert Localize.DateTime.to_string(@chinese_date, format: "r(U)", locale: :en) ==
                {:ok, "2026(bing-wu)"}
     end
+
+    # en_CA.xml's Chinese `yyyyMMMEd` is "E, MMM d, r(U)", and a skeleton
+    # that asks for the related year takes it: the year's name stands beside
+    # the number, as ICU4C 78.3 writes it, "Tue, Mo5 2, 2026(bing-wu)" for 16
+    # June 2026, where the related year was written twice, "2026(2026)". The
+    # stand-in's days of the week are the Gregorian calendar's.
+    test "keeps a year's name beside the related year a skeleton asks for" do
+      weekday = Enum.at(~w(Mon Tue Wed Thu Fri Sat Sun), Date.day_of_week(~D[4663-05-21]) - 1)
+
+      assert Localize.Date.to_string(@chinese_date, locale: :"en-CA", format: :rMMMEd) ==
+               {:ok, "#{weekday}, Mo5 21, 2026(bing-wu)"}
+
+      assert Localize.Date.to_string(@chinese_date, locale: :"en-CA", format: :yMMMEd) ==
+               {:ok, "#{weekday}, Mo5 21, 2026(bing-wu)"}
+    end
   end
 end

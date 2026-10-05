@@ -342,17 +342,36 @@ defmodule Localize.DateTime.Format.Match do
 
   def adjust_field_lengths(format, skeleton_tokens, matched_id) when is_binary(format) do
     id_tokens = id_tokens(matched_id)
+    fields = tokenize_format_string(format)
+    name_stands? = year_name_stands?(fields, skeleton_tokens)
 
     adjusted =
-      format
-      |> tokenize_format_string()
-      |> Enum.reduce([], &adjust_field_length(&1, &2, skeleton_tokens, id_tokens))
+      fields
+      |> Enum.reduce([], fn
+        ["U" | _rest] = field, acc when name_stands? -> [field | acc]
+        field, acc -> adjust_field_length(field, acc, skeleton_tokens, id_tokens)
+      end)
       |> Enum.reverse()
       |> List.flatten()
       |> List.to_string()
       |> strip_day_periods_for_capital_j(skeleton_tokens)
 
     {:ok, adjusted}
+  end
+
+  # A pattern that writes a year's name beside its number, the Chinese
+  # calendar's "r(U)", keeps the name when another numbered year is asked
+  # for: the year asked for takes the number's place, and TR35's adjustments
+  # "should never convert a numeric element in the pattern to an alphabetic
+  # element, or the opposite". `en-CA`'s `yyyyMMMEd`, "E, MMM d, r(U)", is
+  # "Tue, Mo5 2, 2026(bing-wu)" for `rMMMEd`, as ICU4C writes it, where the
+  # related year took the name's place as well, "2026(2026)". A pattern with
+  # the name alone is adjusted as before.
+  defp year_name_stands?(fields, skeleton_tokens) do
+    symbols = for [char | _rest] <- fields, char in @year, do: char
+    requested = Enum.find_value(skeleton_tokens, fn {key, _count} -> key in @year && key end)
+
+    requested not in [nil, "y", "U"] and "U" in symbols and Enum.any?(symbols, &(&1 != "U"))
   end
 
   # TR35's `J` asks for the locale's preferred hour "but, unlike 'j', it

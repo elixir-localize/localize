@@ -280,6 +280,41 @@ defmodule Localize.DateTime.FormatResolutionTest do
       assert {:ok, %{unicode: "h:mm a", ascii: "h:mm a"}} =
                Match.adjust_field_lengths(%{unicode: "h:mm a", ascii: "h:mm a"}, [{"h", 2}])
     end
+
+    # en_CA.xml's Chinese `yyyyMMMEd` is "E, MMM d, r(U)", the year's name
+    # beside its number, and TR35's adjustments "should never convert a
+    # numeric element in the pattern to an alphabetic element, or the
+    # opposite". ICU4C 78.3 answers `rMMMEd` there with "EEE, MMM d, r(U)",
+    # "Tue, Mo5 2, 2026(bing-wu)"; the related year took the name's place as
+    # well, "r(r)", "2026(2026)".
+    test "a year's name beside its number stands when a numbered year is asked for" do
+      request = [{"r", 1}, {"M", 3}, {"E", 1}, {"d", 1}]
+
+      assert Match.adjust_field_lengths("E, MMM d, r(U)", request, :yyyyMMMEd) ==
+               {:ok, "E, MMM d, r(U)"}
+
+      assert Match.adjust_field_lengths("EEEE, MMMM d, r(U)", [{"u", 1}, {"M", 4}, {"d", 1}]) ==
+               {:ok, "EEEE, MMMM d, u(U)"}
+
+      {:ok, id} = Match.best_match(:rMMMEd, :"en-CA", :chinese)
+      {:ok, formats} = Localize.DateTime.Format.available_formats(:"en-CA", :chinese)
+
+      assert Map.fetch!(formats, id) == "E, MMM d, r(U)"
+      assert Match.adjust_field_lengths("E, MMM d, r(U)", request, id) == {:ok, "E, MMM d, r(U)"}
+    end
+
+    # A pattern with the name alone still takes the year asked for, and a
+    # `y` or a `U` asked for leaves every year of the pattern as it is.
+    test "a year's name alone is adjusted as before" do
+      assert Match.adjust_field_lengths("MMM d, U", [{"r", 1}, {"M", 3}, {"d", 1}]) ==
+               {:ok, "MMM d, r"}
+
+      assert Match.adjust_field_lengths("MMM d, r(U)", [{"y", 1}, {"M", 3}, {"d", 1}]) ==
+               {:ok, "MMM d, r(U)"}
+
+      assert Match.adjust_field_lengths("MMM d, r(U)", [{"U", 1}, {"M", 3}, {"d", 1}]) ==
+               {:ok, "MMM d, r(U)"}
+    end
   end
 
   describe "Match.time_preferences_for/1" do
