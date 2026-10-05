@@ -594,7 +594,7 @@ iex> Localize.Interval.parse("4/3/2024 – 10/3/2024", locale: :en, format: "d/M
 
 ### Intervals
 
-`Localize.Interval.parse/2` takes either one string, which it splits on the locale's own interval separator, or a `{from, to}` pair for a two-input form that already has the endpoints apart:
+`Localize.Interval.parse/2` takes either one string or a `{from, to}` pair for a two-input form that already has the endpoints apart. One string is read with the locale's interval formats, and otherwise cut where the locale's fallback pattern or a separator people write, a dash or "to", has a date on each side:
 
 ```elixir
 iex> Localize.Interval.parse("May 5 – May 10, 2026", locale: :en)
@@ -602,6 +602,9 @@ iex> Localize.Interval.parse("May 5 – May 10, 2026", locale: :en)
 
 iex> Localize.Interval.parse("5.–10. Mai 2026", locale: :de)
 {:ok, Date.range(~D[2026-05-05], ~D[2026-05-10])}
+
+iex> Localize.Interval.parse("October 5, 2026 to October 10, 2026", locale: :en)
+{:ok, Date.range(~D[2026-10-05], ~D[2026-10-10])}
 
 iex> Localize.Interval.parse({"2026-05-05", "2026-05-10"})
 {:ok, Date.range(~D[2026-05-05], ~D[2026-05-10])}

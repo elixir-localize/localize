@@ -683,6 +683,31 @@ defmodule Localize.CalendarCallbacksTest do
                 "2026-W25-2, 10:30:00#{@narrow}AM#{@thin}–#{@thin}2026-W27-1, 2:00:00#{@narrow}PM"}
     end
 
+    # The fallback pattern joins the two notations, and a locale's may join
+    # them with a hyphen, which the notation is written with: `da.xml`'s
+    # generic `intervalFormatFallback` is "{0}-{1}" and `el.xml`'s
+    # "{0} - {1}". The text was cut at the first hyphen, after "2026". A
+    # calendar of weeks is written with CLDR's generic calendar's patterns
+    # and read as a Gregorian one, so the pattern looked for was the
+    # Gregorian calendar's, "{0} – {1}" in `fr-CH`, where the generic
+    # calendar's is "du {0} au {1}".
+    test "reads an interval back whatever the locale's fallback pattern joins it with" do
+      from = %Date{year: 2026, month: 25, day: 2, calendar: IsoWeek}
+      to = %Date{year: 2026, month: 27, day: 1, calendar: IsoWeek}
+
+      for {locale, written} <- [
+            {:da, "2026-W25-2-2026-W27-1"},
+            {:el, "2026-W25-2 - 2026-W27-1"},
+            {:"fr-CH", "du 2026-W25-2 au 2026-W27-1"}
+          ] do
+        assert Localize.Interval.to_string(from, to, locale: locale) == {:ok, written}
+
+        assert Localize.Interval.parse(written, locale: locale, calendar: IsoWeek) ==
+                 {:ok, Date.range(from, to)},
+               "#{locale} #{inspect(written)}"
+      end
+    end
+
     test "writes a pattern with the calendar's answers" do
       value = date(2026, 25, 2, IsoWeek)
 

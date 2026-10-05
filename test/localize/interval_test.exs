@@ -404,6 +404,78 @@ defmodule Localize.IntervalTest do
     end
   end
 
+  # Two dates no interval pattern reads are cut apart at a separator: the
+  # locale's fallback pattern's, or one people write. The separator may be
+  # in the dates themselves, "to" in "October" and a hyphen in an ISO 8601
+  # date, and only the first place it was found was tried.
+  describe "parse/2 of two dates joined by a separator" do
+    test "cuts the text where both sides are dates" do
+      assert Interval.parse("October 5, 2026 to October 10, 2026", locale: :en) ==
+               {:ok, Date.range(~D[2026-10-05], ~D[2026-10-10])}
+
+      assert Interval.parse("2026-10-05 to 2026-10-10", locale: :en) ==
+               {:ok, Date.range(~D[2026-10-05], ~D[2026-10-10])}
+
+      # `da.xml`'s fallback pattern is "{0}-{1}".
+      assert Interval.parse("2026-06-16-2026-06-20", locale: :da) ==
+               {:ok, Date.range(~D[2026-06-16], ~D[2026-06-20])}
+    end
+
+    test "keeps the first cut's error where no cut gives two dates" do
+      assert {:error, %Localize.DateRangeParseError{reason: :from_parse_failed, cause: cause}} =
+               Interval.parse("gibberish to nonsense to more", locale: :en)
+
+      assert %Localize.DateParseError{input: "gibberish"} = cause
+
+      assert {:error, %Localize.DateRangeParseError{reason: :inverted}} =
+               Interval.parse("2026-10-10 to 2026-10-05", locale: :en)
+    end
+
+    # `kek.xml`'s Gregorian fallback pattern is "{1} – {0}", the later date
+    # first, alone among CLDR 49's locales, and TR35 has the pattern say
+    # which date is written first. What the formatter joins with it reads
+    # back, whichever order the data comes to state.
+    test "reads the two dates in the order the locale's fallback pattern writes them" do
+      {:ok, text} =
+        Interval.to_string(~D[2026-06-16], ~D[2027-08-20], locale: :kek, format: "d/M/y")
+
+      assert text == "20/8/2027 – 16/6/2026"
+
+      assert Interval.parse(text, locale: :kek, format: "d/M/y") ==
+               {:ok, Date.range(~D[2026-06-16], ~D[2027-08-20])}
+    end
+  end
+
+  # `ha.xml`'s `yMd` interval item has a pattern of its own for a day's and a
+  # month's difference, "dd/MM/y – dd/MM/y", and takes root's for a year's,
+  # "y-MM-dd – y-MM-dd". Each reads the other's text through its lenient
+  # separator, so the pattern whose separators are in the text is tried
+  # first: the day-first one read "26-06-16 – 27-08-20" as 26 June 2016 to
+  # 27 August 2020.
+  describe "parse/2 of an interval two of its item's patterns read" do
+    test "is read with the pattern whose own separators it has" do
+      for {to, written} <- [
+            {~D[2026-06-20], "16/06/26 – 20/06/26"},
+            {~D[2026-08-20], "16/06/26 – 20/08/26"},
+            {~D[2027-08-20], "26-06-16 – 27-08-20"}
+          ] do
+        assert Interval.to_string(~D[2026-06-16], to, locale: :ha, format: :short) ==
+                 {:ok, written}
+
+        assert Interval.parse(written, locale: :ha, reference_date: ~D[2026-06-16]) ==
+                 {:ok, Date.range(~D[2026-06-16], to)},
+               written
+      end
+    end
+
+    # Text with neither pattern's separators is read as it was, by the
+    # first pattern that reads it.
+    test "still reads text with separators of its own" do
+      assert Interval.parse("16.06.26 – 20.06.26", locale: :ha, reference_date: ~D[2026-06-16]) ==
+               {:ok, Date.range(~D[2026-06-16], ~D[2026-06-20])}
+    end
+  end
+
   describe "split_interval/1" do
     test "splits a simple interval pattern" do
       assert {:ok, ["MMM d – ", "d, y"]} = Interval.split_interval("MMM d – d, y")

@@ -687,18 +687,7 @@ defmodule Localize.Date.Parser do
         finalise_range(from, to, allow_inverted, as)
 
       :error ->
-        case split_on_interval_separator(normalised, locale, calendar_module) do
-          {:ok, from_string, to_string} ->
-            parse_range_pair(from_string, to_string, options)
-
-          :error ->
-            {:error,
-             DateRangeParseError.exception(
-               input: normalised,
-               reason: :no_separator,
-               locale: locale
-             )}
-        end
+        read_joined_range(normalised, locale, [own_calendar, calendar_module], options)
     end
   end
 
@@ -773,7 +762,8 @@ defmodule Localize.Date.Parser do
       variants = for %{variant: text} <- item_patterns, is_binary(text), do: text
 
       patterns =
-        interval_pattern_order(defaults) ++ interval_pattern_order(variants -- defaults)
+        interval_pattern_order(defaults, transliterated) ++
+          interval_pattern_order(variants -- defaults, transliterated)
 
       years = written_years(locale, calendar_module, own_calendar, reference)
       Enum.find_value(patterns, :error, &interval_reading(transliterated, &1, years, ctx, as))
@@ -797,12 +787,45 @@ defmodule Localize.Date.Parser do
   # M/y pattern can claim "May 5 – May 10" in map mode as
   # year 5 / year 2010 depending on which pattern happens to be
   # tried first.
-  defp interval_pattern_order(patterns) do
-    patterns
-    |> Enum.flat_map(fn pattern -> [pattern | synthesize_day_first_variants(pattern)] end)
-    |> Enum.uniq()
-    |> Enum.sort_by(&pattern_specificity/1)
+  #
+  # A pattern whose own text is in the input is tried before one that reads
+  # the input only through a lenient separator: the text a pattern writes
+  # holds its separators as they are. An item's patterns need not agree,
+  # where a locale gives some and takes the rest from root: `ha`'s `yMd` is
+  # "dd/MM/y – dd/MM/y" for a day's or a month's difference and root's
+  # "y-MM-dd – y-MM-dd" for a year's, whose "26-06-16 – 27-08-20" the first
+  # reads, a hyphen for its slash, as 26 June 2016 to 27 August 2020.
+  defp interval_pattern_order(patterns, input) do
+    plain_input = plain_spaces(input)
+
+    {written, lenient} =
+      patterns
+      |> Enum.flat_map(fn pattern -> [pattern | synthesize_day_first_variants(pattern)] end)
+      |> Enum.uniq()
+      |> Enum.sort_by(&pattern_specificity/1)
+      |> Enum.split_with(&literals_in?(&1, plain_input))
+
+    written ++ lenient
   end
+
+  # Whether each piece of the pattern's literal text is in the input, the
+  # spaces about it apart: a pattern's thin or no-break space is any space
+  # in the text read.
+  defp literals_in?(pattern, plain_input) do
+    pattern
+    |> tokenize_pattern()
+    |> Enum.all?(fn
+      {:lit, text} ->
+        literal = text |> plain_spaces() |> String.trim()
+        literal == "" or String.contains?(plain_input, literal)
+
+      _field ->
+        true
+    end)
+  end
+
+  defp plain_spaces(text),
+    do: String.replace(text, ~r/[\s\x{00A0}\x{2009}\x{202F}\x{3000}]+/u, " ")
 
   # CLDR keys a calendar's interval patterns by `y`, and the formatter
   # writes them with the year its format asks for: the related Gregorian
@@ -1610,45 +1633,113 @@ defmodule Localize.Date.Parser do
     end
   end
 
-  # Find the interval separator for this locale by consulting
-  # CLDR's `intervalFormatFallback` (`[0, separator, 1]`).
-  # Lenient: also accept `-`, `/`, `~`, `〜`, the en/em dashes,
-  # and the locale separator with optional surrounding
-  # whitespace.
-  defp split_on_interval_separator(input, locale, calendar_module) do
-    cldr_sep = lookup_interval_separator(locale, calendar_module)
+  # A range no interval pattern reads is two dates joined: by the locale's
+  # fallback pattern, as the formatter joins them, or by a separator people
+  # write. The text is cut at each place a join's separator is found, and
+  # the first cut whose two sides are dates is the range. The separator may
+  # be in the dates themselves: `da`'s fallback pattern is "{0}-{1}", and a
+  # calendar of weeks' range "2026-W25-2-2026-W27-1". Where no cut gives two
+  # dates, the error is the first cut's.
+  defp read_joined_range(input, locale, calendars, options) do
+    case range_cuts(input, range_joins(locale, calendars)) do
+      [] ->
+        {:error,
+         DateRangeParseError.exception(input: input, reason: :no_separator, locale: locale)}
 
-    candidates =
-      [cldr_sep | ["–", "—", "−", "〜", "~", "to", " - ", " / "]]
-      |> Enum.reject(&is_nil/1)
-      |> Enum.uniq()
-
-    Enum.find_value(candidates, :error, &split_at_separator(input, &1))
-  end
-
-  # The separator divides the input into a range only when both sides are
-  # non-empty once trimmed.
-  defp split_at_separator(input, separator) do
-    case String.split(input, separator, parts: 2) do
-      [left, right] -> non_empty_endpoints(String.trim(left), String.trim(right))
-      _no_separator -> nil
+      [{from_string, to_string} | _rest] = cuts ->
+        Enum.find_value(cuts, &range_at_cut(&1, options)) ||
+          parse_range_pair(from_string, to_string, options)
     end
   end
 
-  defp non_empty_endpoints("", _right), do: nil
-  defp non_empty_endpoints(_left, ""), do: nil
-  defp non_empty_endpoints(left, right), do: {:ok, left, right}
+  defp range_at_cut({from_string, to_string}, options) do
+    case parse_range_pair(from_string, to_string, options) do
+      {:ok, _range} = range -> range
+      {:error, _reason} -> nil
+    end
+  end
 
-  defp lookup_interval_separator(locale, calendar_module) do
-    case Format.interval_formats(locale, cldr_calendar_type(calendar_module)) do
-      {:ok, intervals} ->
-        case Map.get(intervals, :interval_format_fallback) do
-          [0, separator, 1] when is_binary(separator) -> String.trim(separator)
-          _ -> nil
-        end
+  # The separators people join two dates with, where the locale's pattern
+  # is not used: the dashes, a tilde, "to", and a hyphen or a slash between
+  # spaces.
+  @written_range_joins for separator <- ["–", "—", "−", "〜", "~", "to", " - ", " / "],
+                           do: {"", separator, :earliest_first}
 
-      _ ->
-        nil
+  @doc false
+  # The ways two dates are joined into a range, each the text before the
+  # first date, the separator and which date is written first: as the
+  # fallback pattern of each of the calendars joins them, then as people
+  # write them. The text's own calendar comes first: a calendar of weeks'
+  # dates are read as Gregorian ones but written with CLDR's generic
+  # calendar's patterns, `es-PA`'s "{0} a el {1}" and `fr-CH`'s
+  # "du {0} au {1}" where the Gregorian calendar's is "{0} – {1}". `kek`'s
+  # Gregorian pattern is "{1} – {0}", the later date first.
+  @spec range_joins(atom() | String.t() | Localize.LanguageTag.t(), [module()]) ::
+          [{String.t(), String.t(), :earliest_first | :latest_first}]
+  def range_joins(locale, calendars),
+    do: Enum.uniq(fallback_range_joins(locale, calendars) ++ @written_range_joins)
+
+  @doc false
+  # The joins of the calendars' fallback patterns alone.
+  @spec fallback_range_joins(atom() | String.t() | Localize.LanguageTag.t(), [module()]) ::
+          [{String.t(), String.t(), :earliest_first | :latest_first}]
+  def fallback_range_joins(locale, calendars) do
+    for calendar <- Enum.uniq(calendars),
+        {:ok, intervals} <- [Format.interval_formats(locale, cldr_calendar_type(calendar))],
+        join <- fallback_join(Map.get(intervals, :interval_format_fallback)),
+        uniq: true,
+        do: join
+  end
+
+  defp fallback_join([0, separator, 1]) when is_binary(separator),
+    do: [{"", separator, :earliest_first}]
+
+  defp fallback_join([1, separator, 0]) when is_binary(separator),
+    do: [{"", separator, :latest_first}]
+
+  defp fallback_join([before, 0, separator, 1]) when is_binary(before) and is_binary(separator),
+    do: [{before, separator, :earliest_first}]
+
+  defp fallback_join([before, 1, separator, 0]) when is_binary(before) and is_binary(separator),
+    do: [{before, separator, :latest_first}]
+
+  defp fallback_join(_other_shape), do: []
+
+  # Every way the joins cut the text in two, the earlier date's text first.
+  # A separator is looked for as the pattern has it, between its spaces,
+  # before it is looked for without them, so `el`'s " - " cuts
+  # "2026-W25-2 - 2026-W27-1" between its dates.
+  defp range_cuts(input, joins) do
+    cuts =
+      for {before, separator, order} <- joins,
+          {:ok, text} <- [after_join_start(input, String.trim(before))],
+          separator <- Enum.uniq([separator, String.trim(separator)]),
+          separator != "",
+          {left, right} <- cuts_at(text, separator),
+          left = String.trim(left),
+          right = String.trim(right),
+          left != "" and right != "" do
+        if order == :earliest_first, do: {left, right}, else: {right, left}
+      end
+
+    Enum.uniq(cuts)
+  end
+
+  defp after_join_start(input, ""), do: {:ok, input}
+
+  defp after_join_start(input, before) do
+    if String.starts_with?(input, before),
+      do: {:ok, String.replace_prefix(input, before, "")},
+      else: :error
+  end
+
+  # The text on each side of each place the separator is found.
+  defp cuts_at(text, separator) do
+    parts = String.split(text, separator)
+
+    for index <- 1..(Enum.count(parts) - 1)//1 do
+      {left, right} = Enum.split(parts, index)
+      {Enum.join(left, separator), Enum.join(right, separator)}
     end
   end
 

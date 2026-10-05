@@ -195,40 +195,25 @@ defmodule Localize.DateTime.Parser do
     end
   end
 
-  # Cheap check: does the input contain an interval-shaped separator?
-  # Mirrors the candidate list used by
-  # `Localize.Date.Parser.split_on_interval_separator/3` so that
+  # Cheap check: does the input contain an interval-shaped separator? The
+  # separators are those `Localize.Date.Parser` cuts a range at, the
+  # calendar's fallback pattern's and the ones people write, so that
   # anything `Localize.Interval.parse/2` could match is also detected
   # here.
   defp has_interval_separator?(input, locale, calendar_module) do
-    cldr_sep = lookup_interval_separator(locale, calendar_module)
+    fallback_separators =
+      for {_before, separator, _order} <-
+            Localize.Date.Parser.fallback_range_joins(locale, [calendar_module]),
+          do: String.trim(separator)
 
-    candidates =
-      [cldr_sep | ["–", "—", "−", "〜", "~", " - ", " / ", " to "]]
-      |> Enum.reject(&is_nil/1)
-      |> Enum.uniq()
-
-    Enum.any?(candidates, fn sep ->
+    (fallback_separators ++ ["–", "—", "−", "〜", "~", " - ", " / ", " to "])
+    |> Enum.uniq()
+    |> Enum.any?(fn sep ->
       case String.split(input, sep, parts: 2) do
         [left, right] -> String.trim(left) != "" and String.trim(right) != ""
         _ -> false
       end
     end)
-  end
-
-  defp lookup_interval_separator(locale, calendar_module) do
-    cldr_calendar = Localize.Date.Parser.cldr_calendar_type(calendar_module)
-
-    case Format.interval_formats(locale, cldr_calendar) do
-      {:ok, intervals} ->
-        case Map.get(intervals, :interval_format_fallback) do
-          [0, separator, 1] when is_binary(separator) -> String.trim(separator)
-          _ -> nil
-        end
-
-      _ ->
-        nil
-    end
   end
 
   @doc false

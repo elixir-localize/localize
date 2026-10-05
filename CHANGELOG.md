@@ -134,6 +134,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+* A range of two dates is cut at every place its separator is found, where only the first was tried: `da`'s and `el`'s fallback patterns join two dates with a hyphen, so a calendar of weeks' "2026-W25-2-2026-W27-1" was no interval, and "October 5, 2026 to October 10, 2026" was cut inside "October". The text a fallback pattern writes before its first date is read as well (`fr-CH`'s "du {0} au {1}"), and a pattern that writes the later date first (`kek`'s "{1} – {0}").
+
+* An interval is read by the pattern whose own separators are in the text before one that reads it through a lenient separator. `ha`'s `yMd` writes a year's difference with root's pattern, "26-06-16 – 27-08-20", which its own day-first pattern read as 26 June 2016 to 27 August 2020.
+
 * A date of an interval written without an era is of the era beside the other date, where it was read in the era of the reference date: `ja`'s "H5/06/16～5/06/20", five days of 1993, read as 1993 to 2023, and `en`'s "6/16/5 – 6/20/5 Heisei" was an error. A narrow era name is read wherever it names one era, by a format that states it before one that only allows it, so the narrow era a short interval writes ("R 8/06/16 – 8/06/20") reads back.
 
 * A Hebrew date in Elul is read beside its era. The year of an era is settled by asking the calendar about the date, and it was asked about CLDR's number for the month, 13, in a common year of twelve months, so `de`'s "07.13.5786 AM", `af`'s "07 Elul 5786 AM" and every interval ending in Elul were errors.
