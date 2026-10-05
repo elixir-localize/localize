@@ -32,9 +32,9 @@ Outstanding work on Localize. The design detail behind these items lives under [
 
 * [ ] **`G` for a Chinese or Dangi date is an error** — CLDR gives those calendars one era and no name for it, so a pattern with `G` returns `Localize.ItemNotFoundError`, where ICU4C writes the number of the sixty-year cycle, "78". TR35 is silent; decide what it writes.
 
-* [ ] **A string two readings share is not told apart by the date** — `it` names the Further-eastern European metazone "Ora dell’Europa orientale (Kaliningrad)", which is also Eastern European time qualified by Kaliningrad, as that zone's `vvvv` is written today; it is read as Minsk, the metazone's zone, though no zone has kept that metazone since 2014, where ICU4C reads Kaliningrad in a `vvvv` field. `resolve/3` has the date, and could take the reading whose metazone the zone keeps then.
+* [ ] **A metazone's name is written for dates before 1970** — a `usesMetazone` period with no `from` is taken to reach back without end, so Los Angeles in 1850, at -7:52:58, is "Pacific Standard Time"; TR35 does not say where such a period begins, CLDR's zones are told apart only "back to 1970", and ICU4C begins it at 1970, writing "GMT-07:52:58" and "Los Angeles Time" there and "GMT-05:00" for New York in 1965. Decide where a first period begins.
 
-* [ ] **An offset before standard time is not written whole or read back** — TR35 gives the localized GMT format and `Z` an optional seconds field, and Localize writes Los Angeles' local mean time of -7:52:58 as "GMT-07:52" and "-0752" where ICU4C writes "GMT-07:52:58" and "-075258", so `O`, `OOOO`, `ZZZZ`, `Z` and the names that fall back to them read back up to 59 seconds out. The reader takes no seconds after a one-digit hour ("GMT+3:30:45" and "33045", both in TR35's parsing) and no hour past 14, so the "+15:02:19" that `ZZZZZ` writes for Juneau before 1867, and Manila's -15:56:08 before 1845, are an unknown zone.
+* [ ] **A string two readings share is not told apart by the date** — `it` names the Further-eastern European metazone "Ora dell’Europa orientale (Kaliningrad)", which is also Eastern European time qualified by Kaliningrad, as that zone's `vvvv` is written today; it is read as Minsk, the metazone's zone, though no zone has kept that metazone since 2014, where ICU4C reads Kaliningrad in a `vvvv` field. `resolve/3` has the date, and could take the reading whose metazone the zone keeps then. The same choice is wrong wherever the zone a string is read as kept another time than the zone it was written for: "Malaysia Time", Kuala Lumpur's location format, is read as Kuching, half an hour ahead until 1982, and "Israel Time (Gaza)", Gaza's name until 1996, as Jerusalem.
 
 * [ ] **An offset with no sign is not read** — TR35's parsing reads the GMT format with "+, -, or nothing", and "GMT 3" and "UTC3" are an unknown zone, to ICU4C as well. A leniency of TR35's sample process, not text any format writes.
 
@@ -71,6 +71,8 @@ Outstanding work on Localize. The design detail behind these items lives under [
 * [ ] **`localize_emoji` sibling library** — plan item 11, a separate package on its own schedule. A Phoenix LiveView picker (`localize_emoji_live`) is out of scope for its 0.1.0.
 
 ## Done
+
+* [x] **An offset before standard time is written whole and read back** — the localized GMT format and `Z` write the seconds TR35 gives them an optional field for ("GMT-07:52:58" and "-075258" for Los Angeles' -7:52:58, as ICU4C writes them), and the reader takes seconds after a one-digit hour ("GMT+3:30:45", "33045") and an hour to 23, Juneau's +15:02:19 before 1867. 2026-10-05, v1.4.0.
 
 * [x] **The long localized GMT format has a two-digit hour in every locale** — `cs`, `fi` and `vmw` give their `hourFormat` a one-digit hour, the short format's, and `OOOO` wrote "GMT+5:30" and "UTC+5.30" with it; TR35's long format "always uses 2-digit hours field", so it is "GMT+05:30" and "UTC+05.30", as ICU4C writes them. 2026-10-05, v1.4.0.
 

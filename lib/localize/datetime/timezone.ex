@@ -1005,7 +1005,9 @@ defmodule Localize.DateTime.Timezone do
     `:long`. TR35 gives the long format a two-digit hour and the short
     format an hour with no leading zero, whichever the locale's
     `hourFormat` writes: `"UTC+05.30"` and `"UTC+5.30"` in `fi`, whose
-    pattern is `"+H.mm"`.
+    pattern is `"+H.mm"`. Both write the seconds of an offset that has
+    them, as the offsets zones kept before standard time do:
+    `"GMT-07:52:58"` and `"GMT-7:52:58"`.
 
   * `:number_system` is the numbering system whose digits write the
     offset, as TR35 has it written in the locale's digits (`"GMT-४"` in
@@ -1331,6 +1333,10 @@ defmodule Localize.DateTime.Timezone do
   # accepts the one-digit hour of the localized GMT format — `GMT-8` is
   # exactly what `gmt_format/3` emits with `format: :short`, and `cs` and
   # `fi` write `+H:mm` and `+H.mm` respectively.
+  #
+  # TR35's parsing reads the GMT format's number as "03, 3, 330, 3:30, 33045
+  # or 3:30:45": one to six digits, an hour of one digit where their count
+  # is odd.
   defp offset_seconds(digits, hour_digits) do
     digits
     |> String.replace([":", "."], "")
@@ -1339,6 +1345,13 @@ defmodule Localize.DateTime.Timezone do
   end
 
   defp offset_digit_groups(<<h::binary-size(2), m::binary-size(2), s::binary-size(2)>>, _hours) do
+    offset_total(h, m, s)
+  end
+
+  defp offset_digit_groups(
+         <<h::binary-size(1), m::binary-size(2), s::binary-size(2)>>,
+         :short_hour
+       ) do
     offset_total(h, m, s)
   end
 
@@ -1360,8 +1373,11 @@ defmodule Localize.DateTime.Timezone do
 
   defp offset_digit_groups(_digits, _hours), do: :error
 
+  # An hour is TR35's `H`, 0 to 23, which the pattern writes it with: the
+  # offsets zones keep today end at fourteen hours, but Juneau kept
+  # +15:02:19 until 1867 and Manila -15:56:08 until 1845.
   defp offset_total(hours, minutes, seconds) do
-    with {hh, ""} when hh <= 14 <- Integer.parse(hours),
+    with {hh, ""} when hh <= 23 <- Integer.parse(hours),
          {mm, ""} when mm < 60 <- Integer.parse(minutes),
          {ss, ""} when ss < 60 <- Integer.parse(seconds) do
       {:ok, hh * 3600 + mm * 60 + ss}
@@ -1551,13 +1567,9 @@ defmodule Localize.DateTime.Timezone do
 
   defp offset_abbreviation(0), do: "UTC"
 
-  defp offset_abbreviation(offset) do
-    sign = if offset < 0, do: "-", else: "+"
-    absolute = abs(offset)
-    hours = absolute |> div(3600) |> pad(2)
-    minutes = absolute |> rem(3600) |> div(60) |> pad(2)
-    "#{sign}#{hours}:#{minutes}"
-  end
+  # The offset as TR35's `xxxxx` writes it, its seconds where it has them:
+  # "+05:30", and "-07:52:58" for Los Angeles before standard time.
+  defp offset_abbreviation(offset), do: format_iso_offset(offset, :full, :extended)
 
   # A name or place comes before a zone ID, which TR35's process does not
   # read at all: "EST" is Eastern Standard Time in `en`, as ICU reads it,
@@ -2304,6 +2316,7 @@ defmodule Localize.DateTime.Timezone do
     abs_offset = abs(offset)
     hours = div(abs_offset, 3600)
     minutes = div(rem(abs_offset, 3600), 60)
+    seconds = rem(abs_offset, 60)
 
     # TR35: the long format always has two-digit hours and minutes; the
     # short format has hours without a leading zero and two-digit minutes
@@ -2311,9 +2324,14 @@ defmodule Localize.DateTime.Timezone do
     # decides the hour's digits, not the pattern's hour field: `cs`, `fi`
     # and `vmw` write it `H` ("+H:mm", "+H.mm"), and their long format is
     # "GMT+05:30" and "UTC+05.30" all the same, as ICU writes it.
+    #
+    # Each has an "optional 2-digit seconds field", for the offsets zones
+    # kept before standard time: Los Angeles' -7:52:58 is "GMT-07:52:58" and
+    # "GMT-7:52:58". Seconds bring their minutes with them, so N'Djamena's
+    # +1:00:12 is "GMT+1:00:12" in the short format.
     {sign_format, hour_digits} =
       case format do
-        :short when minutes == 0 ->
+        :short when minutes == 0 and seconds == 0 ->
           {hour_field_pattern(sign_format), Integer.to_string(hours)}
 
         :short ->
@@ -2324,8 +2342,10 @@ defmodule Localize.DateTime.Timezone do
       end
 
     sign_format
+    |> seconds_pattern(seconds)
     |> String.replace(~r/H+/, hour_digits, global: false)
     |> String.replace("mm", pad(minutes, 2))
+    |> String.replace("ss", pad(seconds, 2))
   end
 
   # The short format of a whole hour is the pattern up to its hour field, as
@@ -2338,6 +2358,30 @@ defmodule Localize.DateTime.Timezone do
          [_ | _] = hours <- :binary.matches(binary_part(sign_format, 0, minutes_at), "H") do
       {hour_at, _length} = List.last(hours)
       binary_part(sign_format, 0, hour_at + 1)
+    else
+      _no_minutes_or_hours -> sign_format
+    end
+  end
+
+  # CLDR's `hourFormat` has hours and minutes, and TR35 does not say where
+  # the seconds of an offset go. They follow the minutes behind the text the
+  # pattern has between its hours and its minutes, as ICU's
+  # `expandOffsetPattern` places them: "+HH:mm:ss", `fi`'s "+H.mm.ss" and
+  # `am`'s "+HHmmss", with what follows the minutes (`he`'s left-to-right
+  # mark) after them. An offset of whole minutes, and a pattern without
+  # minutes or hours, has none.
+  defp seconds_pattern(sign_format, 0), do: sign_format
+
+  defp seconds_pattern(sign_format, _seconds) do
+    with {minutes_at, 2} <- :binary.match(sign_format, "mm"),
+         [_ | _] = hours <- :binary.matches(binary_part(sign_format, 0, minutes_at), "H") do
+      {hour_at, _length} = List.last(hours)
+      separator = binary_part(sign_format, hour_at + 1, minutes_at - hour_at - 1)
+      minutes_end = minutes_at + 2
+
+      binary_part(sign_format, 0, minutes_end) <>
+        separator <>
+        "ss" <> binary_part(sign_format, minutes_end, byte_size(sign_format) - minutes_end)
     else
       _no_minutes_or_hours -> sign_format
     end

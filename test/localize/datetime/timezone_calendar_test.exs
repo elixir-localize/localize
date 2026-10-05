@@ -234,19 +234,24 @@ defmodule Localize.DateTime.TimezoneCalendarTest do
     end
 
     # TR35 writes the localized GMT format in the locale's digits and reads
-    # it with "non-Latin numbers". The text is held to the moment it was
-    # written from, in the calendar of the date and time read with it.
+    # it with "non-Latin numbers", and gives it and the longer ISO 8601
+    # fields an optional seconds field: in 1850 Los Angeles kept -7:52:58,
+    # Juneau +15:02:19 and N'Djamena +1:00:12. The text is held to the moment
+    # it was written from, in the calendar of the date and time read with it.
     test "its offset is read back as the moment it was written from, in its calendar" do
       written =
         for locale <- Localize.Test.InstalledLocales.all(),
             {naive, zone} <- [
               {~N[2026-01-15 12:00:00], "Asia/Kolkata"},
               {~N[2026-01-15 12:00:00], "America/St_Johns"},
-              {~N[2026-07-15 12:00:00], "Asia/Kathmandu"}
+              {~N[2026-07-15 12:00:00], "Asia/Kathmandu"},
+              {~N[1850-01-15 12:00:00], "America/Los_Angeles"},
+              {~N[1850-01-15 12:00:00], "America/Juneau"},
+              {~N[1850-01-15 12:00:00], "Africa/Ndjamena"}
             ],
             calendar <- [Calendar.ISO | @calendars],
             datetime = at(naive, zone, calendar),
-            pattern <- ["O", "OOOO", "ZZZZ"] do
+            pattern <- ["O", "OOOO", "ZZZZ", "Z", "ZZZZZ", "xxxx", "XXXXX"] do
           {locale, calendar, pattern, datetime, name(datetime, pattern, locale)}
         end
 

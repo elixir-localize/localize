@@ -136,6 +136,15 @@ TR35's parsing reads the localized GMT format with "non-Latin numbers", and ICU4
 | "GMT+五:三〇" in `en` | +05:30 | an error |
 | "+٠٥:٣٠" in `en` or `ar-EG` | +05:30 | an error |
 
+TR35's parsing has the localized GMT format matched leniently: its number as "03, 3, 330, 3:30, 33045 or 3:30:45", with spaces after "GMT", after the sign and before the number. ICU4C 78.3 reads the number as the locale's `hourFormat` writes it, so in `en` it wants the colons and no spaces, and reads digits with nothing between them only in a locale that writes them so, as `am` does. Localize reads each of TR35's forms in every locale. Both write an offset's seconds, which TR35 makes an optional field without saying where it goes: after the minutes, behind what the locale's `hourFormat` has between its hours and its minutes, as ICU places them. Asserted in `test/localize/zone_parse_test.exs` and `test/localize/datetime/timezone_format_test.exs`.
+
+| Input in `en` | TR35 and Localize | ICU4C parses |
+|---|---|---|
+| "GMT+3:30:45" | +03:30:45 | +03:30:45 |
+| "GMT+33045" | +03:30:45 | an error |
+| "GMT+330" | +03:30 | an error |
+| "GMT +3" | +03:00 | an error |
+
 TR35 gives each hour field its range, `h` 1 to 12, `H` 0 to 23, `K` 0 to 11 and `k` 1 to 24, and its parsing notes take a number beyond a field's range for no value of that field. ICU4C 78.3's parser, lenient unless told otherwise, carries such an hour on into the hours that follow, and into the next day where they run out; told not to be lenient, it refuses it. Localize refuses it, and refuses `k`'s 0, which TR35's range leaves out and ICU reads as midnight either way. It keeps the two readings at a 12-hour field's edge that ICU has: `h`'s 0 for its 12, and `K`'s 12 before noon as half past noon, which ICU refuses only when it is not lenient. Asserted in `test/localize/time_parse_test.exs`.
 
 | Input | Pattern | Localize | ICU4C, lenient | ICU4C, not lenient |

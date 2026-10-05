@@ -288,6 +288,49 @@ defmodule Localize.DateTime.TimezoneFormatTest do
       end
     end
 
+    # TR35 gives the long format "2-digit hours field and minutes field, with
+    # optional 2-digit seconds field" and the short one an hour without a
+    # leading zero "with optional 2-digit minutes and seconds fields". An
+    # offset a zone kept before standard time has seconds: Los Angeles
+    # -7:52:58, Juneau +15:02:19, N'Djamena +1:00:12 and Manaus -4:00:04.
+    # The strings are ICU4C 78.3's for `OOOO` and `O` on 15 January 1850. It
+    # writes the seconds after the minutes, behind what the locale's
+    # `hourFormat` has between its hours and minutes, which is nothing in
+    # `am`, and before what follows the minutes, a mark in `he`.
+    test "an offset's seconds are written after its minutes" do
+      lrm = <<0x200E::utf8>>
+
+      for {locale, offset, long, short} <- [
+            {:en, -28_378, "GMT-07:52:58", "GMT-7:52:58"},
+            {:en, 54_139, "GMT+15:02:19", "GMT+15:02:19"},
+            {:en, 3612, "GMT+01:00:12", "GMT+1:00:12"},
+            {:en, -14_404, "GMT-04:00:04", "GMT-4:00:04"},
+            {:fi, -28_378, "UTC-07.52.58", "UTC-7.52.58"},
+            {:fi, 3612, "UTC+01.00.12", "UTC+1.00.12"},
+            {:da, -28_378, "GMT-07.52.58", "GMT-7.52.58"},
+            {:fr, -28_378, "UTC−07:52:58", "UTC−7:52:58"},
+            {:am, -28_378, "ጂ ኤም ቲ-075258", "ጂ ኤም ቲ-75258"},
+            {:am, 3612, "ጂ ኤም ቲ+010012", "ጂ ኤም ቲ+10012"},
+            {:am, 54_139, "ጂ ኤም ቲ+150219", "ጂ ኤም ቲ+150219"},
+            {:"ar-EG", -28_378, "غرينتش-٠٧:٥٢:٥٨", "غرينتش-٧:٥٢:٥٨"},
+            {:fa, -28_378, lrm <> "−۰۷:۵۲:۵۸ گرینویچ", lrm <> "−۷:۵۲:۵۸ گرینویچ"},
+            {:he, -28_378, "GMT-07:52:58" <> lrm <> lrm, "GMT-7:52:58" <> lrm <> lrm},
+            {:he, 3612, "GMT" <> lrm <> "+01:00:12" <> lrm, "GMT" <> lrm <> "+1:00:12" <> lrm}
+          ] do
+        datetime = %{utc_offset: offset, std_offset: 0}
+
+        assert Timezone.gmt_format(datetime, locale) == {:ok, long}, "#{locale} #{offset}"
+
+        assert Timezone.gmt_format(datetime, locale, format: :short) == {:ok, short},
+               "#{locale} #{offset}"
+
+        for text <- [long, short] do
+          assert Timezone.parse_offset(text, locale: locale) == {:ok, offset},
+                 "#{locale} #{text}"
+        end
+      end
+    end
+
     test "std_offset is added to the base offset" do
       assert {:ok, "GMT-04:00"} = Timezone.gmt_format(@new_york_daylight, :en)
     end
@@ -376,6 +419,49 @@ defmodule Localize.DateTime.TimezoneFormatTest do
 
     test "a map with only utc_offset is accepted" do
       assert {:ok, "+0100"} = Timezone.iso_format(%{utc_offset: 3600})
+    end
+
+    # TR35's symbol table: `Z` to `ZZZ` are "the ISO8601 basic format with
+    # hours, minutes and optional seconds fields", "equivalent to the "xxxx"
+    # specifier"; `XXXX`, `XXXXX`, `xxxx`, `xxxxx` and `ZZZZZ` have the
+    # optional seconds too, and the shorter `X` and `x` fields have hours and
+    # minutes alone, so they cut an offset's seconds off. The strings are
+    # ICU4C 78.3's on 15 January 1850, for Los Angeles at -7:52:58 and
+    # N'Djamena at +1:00:12.
+    test "an offset's seconds in each pattern's zone field" do
+      {:ok, utc} = DateTime.new(~D[1850-01-15], ~T[12:00:00], "Etc/UTC")
+      {:ok, los_angeles} = DateTime.shift_zone(utc, "America/Los_Angeles")
+      {:ok, ndjamena} = DateTime.shift_zone(utc, "Africa/Ndjamena")
+
+      assert {los_angeles.utc_offset, ndjamena.utc_offset} == {-28_378, 3612}
+
+      for {pattern, west, east} <- [
+            {"Z", "-075258", "+010012"},
+            {"ZZ", "-075258", "+010012"},
+            {"ZZZ", "-075258", "+010012"},
+            {"ZZZZ", "GMT-07:52:58", "GMT+01:00:12"},
+            {"ZZZZZ", "-07:52:58", "+01:00:12"},
+            {"O", "GMT-7:52:58", "GMT+1:00:12"},
+            {"OOOO", "GMT-07:52:58", "GMT+01:00:12"},
+            {"X", "-0752", "+01"},
+            {"XX", "-0752", "+0100"},
+            {"XXX", "-07:52", "+01:00"},
+            {"XXXX", "-075258", "+010012"},
+            {"XXXXX", "-07:52:58", "+01:00:12"},
+            {"x", "-0752", "+01"},
+            {"xx", "-0752", "+0100"},
+            {"xxx", "-07:52", "+01:00"},
+            {"xxxx", "-075258", "+010012"},
+            {"xxxxx", "-07:52:58", "+01:00:12"}
+          ] do
+        assert Localize.DateTime.to_string(los_angeles, locale: :en, format: pattern) ==
+                 {:ok, west},
+               pattern
+
+        assert Localize.DateTime.to_string(ndjamena, locale: :en, format: pattern) ==
+                 {:ok, east},
+               pattern
+      end
     end
   end
 

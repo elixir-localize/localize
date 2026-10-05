@@ -1794,14 +1794,16 @@ defmodule Localize.DateTime.Formatter do
   # as the other fields write.
   defp zone_number_system(options), do: fetch_override(options, "all") || :latn
 
-  # Z (1-3): ISO 8601 basic format (+0500)
+  # Z (1-3): ISO 8601 basic format (+0500), with the seconds of an offset
+  #          that has them (-075258): TR35 makes it "equivalent to the
+  #          "xxxx" specifier"
   # Z (4):   Localized GMT format (GMT+05:00)
   # Z (5):   ISO 8601 extended with Z for zero (+05:00 or Z)
   @doc false
   def zone_basic(datetime, count, _locale_id, _options)
       when has_zone(datetime) and count in 1..3 do
     with {:ok, result} <-
-           Timezone.iso_format(datetime, format: :long, type: :basic, z_for_zero: false) do
+           Timezone.iso_format(datetime, format: :full, type: :basic, z_for_zero: false) do
       result
     end
   end

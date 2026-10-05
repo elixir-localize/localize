@@ -189,6 +189,64 @@ defmodule Localize.ZoneParseTest do
                {19_800, ~N[2026-07-15 12:00:00]}
     end
 
+    # TR35's parsing reads the GMT format's number as "03, 3, 330, 3:30,
+    # 33045 or 3:30:45", with "spaces after GMT, +/-, and before number",
+    # and its `hourFormat` writes the hour as `H`, 0 to 23. Juneau kept
+    # +15:02:19 until 1867 and Manila -15:56:08 until 1845, which ICU4C 78.3
+    # writes "GMT+15:02:19" and "GMT-15:56:08" and reads back, with every
+    # string here but those with spaces and those with nothing between
+    # their digits: it reads the number as the locale's `hourFormat` writes
+    # it, which has nothing between its digits in `am`.
+    test "an offset's seconds after an hour of one digit, and an hour to 23" do
+      for {text, offset} <- [
+            {"GMT+3:30:45", 12_645},
+            {"GMT+33045", 12_645},
+            {"GMT+03:30:45", 12_645},
+            {"GMT+033045", 12_645},
+            {"GMT+330", 12_600},
+            {"GMT +3", 10_800},
+            {"GMT+ 3", 10_800},
+            {"GMT+1:00:12", 3612},
+            {"GMT+15:02:19", 54_139},
+            {"GMT-15:56:08", -57_368},
+            {"+15:02:19", 54_139},
+            {"+150219", 54_139},
+            {"-1556", -57_360},
+            {"GMT+23:59:59", 86_399},
+            {"UTC-23", -82_800}
+          ] do
+        assert Timezone.parse_offset(text, locale: :en) == {:ok, offset}, text
+        assert Timezone.parse_zone(text, locale: :en) == {:ok, {:offset, offset}}, text
+      end
+
+      assert Timezone.parse_offset("ጂ ኤም ቲ+10012", locale: :am) == {:ok, 3612}
+      assert Timezone.parse_offset("ጂ ኤም ቲ-75258", locale: :am) == {:ok, -28_378}
+      assert Timezone.parse_offset("UTC-7.52.58", locale: :fi) == {:ok, -28_378}
+
+      for text <- ["GMT+24", "GMT+3:60", "GMT+3:30:60", "+24:00", "+2400"] do
+        assert {:error, %Localize.UnknownTimezoneError{}} =
+                 Timezone.parse_offset(text, locale: :en),
+               text
+      end
+    end
+
+    # A date and time at an offset with seconds keeps them: the offset is its
+    # `utc_offset`, and its abbreviation spells it as TR35's `xxxxx` does.
+    test "an offset with seconds resolves to a date and time at that offset" do
+      assert {:ok, datetime} =
+               Timezone.resolve("GMT-07:52:58", ~N[1850-01-15 04:07:02], locale: :en)
+
+      assert {datetime.utc_offset, datetime.std_offset, datetime.zone_abbr} ==
+               {-28_378, 0, "-07:52:58"}
+
+      assert DateTime.compare(datetime, ~U[1850-01-15 12:00:00Z]) == :eq
+
+      assert {:ok, whole_minutes} =
+               Timezone.resolve("GMT+5:30", ~N[2026-07-15 17:30:00], locale: :en)
+
+      assert whole_minutes.zone_abbr == "+05:30"
+    end
+
     # An hour no offset has, and digits with no sign, are no offset in any
     # digits.
     test "digits that are no offset" do
