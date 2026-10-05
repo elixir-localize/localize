@@ -465,6 +465,84 @@ defmodule Localize.DateTime.TimezoneFormatTest do
     end
   end
 
+  # CLDR gives most zones' first metazone period no beginning. TR35 has such
+  # a period reach "as far backwards in time as there is data for", and tells
+  # zones apart "at any time back to 1970"; no period of CLDR's data begins
+  # before 1971. So the period begins with 1970, in UTC (user, 2026-10-06),
+  # as ICU begins it, and before it a zone is written by its offset and its
+  # location, where it was "Eastern Standard Time" in 1965 and "Pacific
+  # Standard Time" at Los Angeles' local mean time of 1850. The strings are
+  # ICU4C 78.3's for the instants, in `z`, `zzzz`, `v` and `vvvv`.
+  describe "a zone before 1970, when it keeps no metazone" do
+    defp zone_names(utc, zone, locale) do
+      {:ok, datetime} = DateTime.shift_zone(utc, zone)
+
+      for pattern <- ["z", "zzzz", "v", "vvvv"] do
+        {:ok, text} = Localize.DateTime.to_string(datetime, locale: locale, format: pattern)
+        text
+      end
+    end
+
+    test "is written by its offset and its location" do
+      for {locale, zone, utc, expected} <- [
+            {:en, "America/New_York", ~U[1965-01-15 12:00:00Z],
+             ["GMT-5", "GMT-05:00", "New York Time", "New York Time"]},
+            {:en, "America/New_York", ~U[1965-07-15 12:00:00Z],
+             ["GMT-4", "GMT-04:00", "New York Time", "New York Time"]},
+            {:fr, "America/New_York", ~U[1965-01-15 12:00:00Z],
+             ["UTC−5", "UTC−05:00", "heure : New York", "heure : New York"]},
+            {:de, "Europe/Paris", ~U[1965-07-15 12:00:00Z],
+             ["GMT+1", "GMT+01:00", "Frankreich (Ortszeit)", "Frankreich (Ortszeit)"]},
+            {:en, "Asia/Kolkata", ~U[1965-01-15 12:00:00Z],
+             ["GMT+5:30", "GMT+05:30", "India Time", "India Time"]},
+            {:en, "America/Los_Angeles", ~U[1850-01-15 00:00:00Z],
+             ["GMT-7:52:58", "GMT-07:52:58", "Los Angeles Time", "Los Angeles Time"]}
+          ] do
+        assert zone_names(utc, zone, locale) == expected, "#{locale} #{zone} #{utc}"
+      end
+    end
+
+    # The period begins at 00:00 on 1 January 1970 in UTC: 19:00 the evening
+    # before in New York, and 09:00 that morning in Tokyo.
+    test "keeps its metazone from the first second of 1970 in UTC" do
+      assert zone_names(~U[1969-12-31 23:59:59Z], "America/New_York", :en) ==
+               ["GMT-5", "GMT-05:00", "New York Time", "New York Time"]
+
+      assert zone_names(~U[1970-01-01 00:00:00Z], "America/New_York", :en) ==
+               ["EST", "Eastern Standard Time", "ET", "Eastern Time"]
+
+      assert ["GMT+9", "GMT+09:00", "Japan Time", "Japan Time"] =
+               zone_names(~U[1969-12-31 23:59:59Z], "Asia/Tokyo", :en)
+
+      assert ["GMT+9", "Japan Standard Time", "Japan Time", _generic] =
+               zone_names(~U[1970-01-01 00:00:00Z], "Asia/Tokyo", :en)
+    end
+
+    # CLDR 49's `metaZones.xml` gives London the British metazone from
+    # 1971-10-31 02:00, a beginning of its own, which stands.
+    test "a period with a beginning of its own begins there" do
+      assert ["GMT+1", "GMT+01:00" | _location] =
+               zone_names(~U[1971-07-15 12:00:00Z], "Europe/London", :en)
+
+      assert ["GMT+1", "British Summer Time" | _generic] =
+               zone_names(~U[1972-07-15 12:00:00Z], "Europe/London", :en)
+    end
+
+    test "has none in metazone_for/2" do
+      assert Timezone.metazone_for("America/New_York", ~N[1969-12-31 23:59:59]) == nil
+
+      assert Timezone.metazone_for("America/New_York", ~N[1970-01-01 00:00:00]) ==
+               :america_eastern
+
+      assert Timezone.metazone_for("America/New_York", ~N[1850-06-01 00:00:00]) == nil
+      assert Timezone.metazone_for("America/New_York") == :america_eastern
+
+      {:ok, evening} = DateTime.shift_zone(~U[1970-01-01 00:00:00Z], "America/New_York")
+      assert {evening.year, evening.hour} == {1969, 19}
+      assert Timezone.metazone_for("America/New_York", evening) == :america_eastern
+    end
+  end
+
   # TR35 lets a metazone period name which offset is standard time and which
   # daylight, where the time zone database's flag is unreliable. CLDR 49's
   # `metaZones.xml` gives `Europe/Dublin` stdOffset "+00" and dstOffset

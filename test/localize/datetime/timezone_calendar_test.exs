@@ -168,6 +168,35 @@ defmodule Localize.DateTime.TimezoneCalendarTest do
       end
     end
 
+    # A zone's first metazone period begins with 1970 in UTC where CLDR
+    # gives it no beginning, and the instant is the one the fields name in
+    # their calendar. The names are ICU4C 78.3's for the instants.
+    test "and none before 1970, to the second" do
+      for calendar <- [Calendar.ISO | @calendars],
+          {naive, zone, pattern, expected} <- [
+            {~N[1969-12-31 23:59:59], "America/New_York", "zzzz", "GMT-05:00"},
+            {~N[1970-01-01 00:00:00], "America/New_York", "zzzz", "Eastern Standard Time"},
+            {~N[1969-12-31 23:59:59], "America/New_York", "vvvv", "New York Time"},
+            {~N[1970-01-01 00:00:00], "America/New_York", "vvvv", "Eastern Time"},
+            {~N[1965-07-15 12:00:00], "America/New_York", "zzzz", "GMT-04:00"},
+            {~N[1969-12-31 23:59:59], "Asia/Tokyo", "zzzz", "GMT+09:00"},
+            {~N[1970-01-01 00:00:00], "Asia/Tokyo", "zzzz", "Japan Standard Time"}
+          ] do
+        assert name(at(naive, zone, calendar), pattern, :en) == expected,
+               "#{inspect(calendar)} #{naive} #{zone} #{pattern}"
+      end
+
+      for calendar <- @calendars do
+        {:ok, before} = NaiveDateTime.convert(~N[1969-12-31 23:59:59], calendar)
+        {:ok, since} = NaiveDateTime.convert(~N[1970-01-01 00:00:00], calendar)
+
+        assert Timezone.metazone_for("America/New_York", before) == nil, inspect(calendar)
+
+        assert Timezone.metazone_for("America/New_York", since) == :america_eastern,
+               inspect(calendar)
+      end
+    end
+
     test "in metazone_for/2, for a date and time with no zone" do
       for calendar <- @calendars do
         {:ok, before} = NaiveDateTime.convert(~N[2000-06-01 00:00:00], calendar)

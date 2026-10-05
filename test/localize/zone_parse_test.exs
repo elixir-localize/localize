@@ -637,6 +637,44 @@ defmodule Localize.ZoneParseTest do
       assert DateTime.compare(winter, ~U[2026-01-15 09:00:00Z]) == :eq
     end
 
+    # A zone keeps no metazone before 1970 and is written then by its offset
+    # and its location, but a name is read wherever it is found, and a
+    # metazone's name read with such a date means what it means after it.
+    # ICU4C 78.3 reads these as 15:00, 15:00, 14:00 and 14:00 UTC: "Eastern
+    # Standard Time" keeps -05:00 in a July New York kept daylight time.
+    test "a metazone's name with a date before 1970" do
+      for {text, naive, utc} <- [
+            {"Eastern Standard Time", ~N[1965-07-15 10:00:00], ~U[1965-07-15 15:00:00Z]},
+            {"EST", ~N[1965-01-15 10:00:00], ~U[1965-01-15 15:00:00Z]},
+            {"Eastern Daylight Time", ~N[1965-07-15 10:00:00], ~U[1965-07-15 14:00:00Z]},
+            {"Eastern Time", ~N[1965-07-15 10:00:00], ~U[1965-07-15 14:00:00Z]}
+          ] do
+        assert {:ok, datetime} = Timezone.resolve(text, naive, locale: :en)
+        assert DateTime.compare(datetime, utc) == :eq, "#{text} at #{naive}"
+      end
+
+      assert {:ok, %DateTime{time_zone: "Etc/UTC", utc_offset: -18_000}} =
+               Timezone.resolve("Eastern Standard Time", ~N[1965-07-15 10:00:00], locale: :en)
+
+      assert {:ok, %DateTime{time_zone: "America/New_York", zone_abbr: "EST"}} =
+               Timezone.resolve("EST", ~N[1965-01-15 10:00:00], locale: :en)
+    end
+
+    test "what a zone is written as before 1970 reads back as its moment" do
+      for zone <- ["America/New_York", "Asia/Tokyo", "Europe/Paris", "Asia/Kolkata"],
+          utc <- [~U[1965-01-15 12:00:00Z], ~U[1965-07-15 12:00:00Z], ~U[1969-12-31 23:59:59Z]],
+          locale <- [:en, :fr, :de, :ja],
+          pattern <- ["z", "zzzz", "v", "vvvv", "VVVV"] do
+        {:ok, datetime} = DateTime.shift_zone(utc, zone)
+        {:ok, text} = Localize.DateTime.to_string(datetime, locale: locale, format: pattern)
+
+        assert {:ok, read} = Timezone.resolve(text, DateTime.to_naive(datetime), locale: locale)
+
+        assert DateTime.compare(read, datetime) == :eq,
+               "#{locale} #{zone} #{utc} #{pattern} #{text}"
+      end
+    end
+
     # Knox, Indiana kept Eastern Standard Time from October 1991 and Central
     # time before it, and Caracas -04:00 until December 2007 and -04:30
     # after. A name is read with the time the zone keeps at the date, not

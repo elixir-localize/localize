@@ -73,6 +73,20 @@ defmodule Localize.DateTime.Timezone do
   @metazone_mapzones @metazone_data.mapzones
   @metazone_info @metazone_data.metazone_info
 
+  # Where a zone's first metazone period begins, in UTC, when CLDR gives it
+  # no `from`. TR35 has such a period reach "as far backwards in time as
+  # there is data for", and CLDR's zones are told apart "at any time back to
+  # 1970": no period of its data begins before 1971. So a metazone is a
+  # zone's from 1970 on (user, 2026-10-06), as ICU has it, and before it a
+  # zone is written by its own names and its offset: New York in 1965 is
+  # "GMT-05:00" and "New York Time", and Los Angeles' local mean time of
+  # 1850, "GMT-07:52:58", is no "Pacific Standard Time".
+  #
+  # A name is read wherever it is found, and a metazone's name read with a
+  # date before 1970 means what it means after it (`:as_read`): "10:00 EST"
+  # in July 1965 is 10:00 at -05:00, as ICU reads it.
+  @metazones_from ~N[1970-01-01 00:00:00]
+
   # CLDR metazone data keys zones by their canonical IANA name; the
   # first alias of a BCP 47 timezone entry is that canonical name,
   # so map every alias (including the canonical name itself) to it.
@@ -468,6 +482,12 @@ defmodule Localize.DateTime.Timezone do
   eastern metazones), so the datetime selects the applicable usage
   period.
 
+  A zone keeps no metazone before 1970. CLDR tells zones apart back to
+  1970, and where it gives a zone's first period no beginning the
+  period begins at 00:00 on 1 January 1970 in UTC, as ICU begins it.
+  Before that a zone is written by its own names, its offset and its
+  location: New York in 1965 is "GMT-05:00" and "New York Time".
+
   ### Arguments
 
   * `time_zone` is an IANA timezone name (e.g., `"America/New_York"`)
@@ -501,6 +521,9 @@ defmodule Localize.DateTime.Timezone do
       iex> Localize.DateTime.Timezone.metazone_for("America/Indiana/Knox", ~N[2020-06-01 00:00:00])
       :america_central
 
+      iex> Localize.DateTime.Timezone.metazone_for("America/New_York", ~N[1969-12-31 23:59:59])
+      nil
+
   """
   @spec metazone_for(String.t(), map() | nil) :: atom() | nil
   def metazone_for(time_zone, datetime \\ nil) do
@@ -512,8 +535,10 @@ defmodule Localize.DateTime.Timezone do
 
   # The zone's metazone usage period at the datetime's instant: its
   # metazone, and the offsets it names as standard and daylight time, if
-  # any.
-  defp metazone_period(time_zone, datetime) do
+  # any. A period CLDR gives no beginning begins with 1970 where a zone is
+  # written (`:as_written`), and reaches back without end where a name is
+  # read (`:as_read`).
+  defp metazone_period(time_zone, datetime, reach \\ :as_written) do
     canonical = Map.get(@zone_canonical_names, time_zone, time_zone)
 
     # CLDR assigns no metazone to Etc/UTC, but its conformance data
@@ -522,8 +547,11 @@ defmodule Localize.DateTime.Timezone do
 
     periods = Map.get(@metazone_info, canonical, [])
     instant = metazone_instant(datetime)
+    first_from = if reach == :as_written, do: @metazones_from
 
-    Enum.find(periods, fn %{from: from, to: to} -> within_period?(instant, from, to) end)
+    Enum.find(periods, fn %{from: from, to: to} ->
+      within_period?(instant, from || first_from, to)
+    end)
   end
 
   @doc """
@@ -2286,7 +2314,9 @@ defmodule Localize.DateTime.Timezone do
 
       reading ->
         {candidates, reference} = wall_readings(reading)
-        named = Enum.filter(candidates, &(specific_type(:specific, time_zone, &1) == type))
+
+        named =
+          Enum.filter(candidates, &(specific_type(:specific, time_zone, &1, :as_read) == type))
 
         cond do
           named != [] ->
@@ -2312,8 +2342,11 @@ defmodule Localize.DateTime.Timezone do
   defp stands_for_every_type?(:standard, time_zone, reference, language_tag) do
     case Localize.Locale.get(language_tag, [:dates, :time_zone_names]) do
       {:ok, %{} = tz_data} ->
-        metazone = metazone_for(time_zone, reference)
-        metazone_names = metazone && get_in(tz_data, [:metazone, metazone])
+        metazone_names =
+          case metazone_period(time_zone, reference, :as_read) do
+            %{metazone: metazone} -> get_in(tz_data, [:metazone, metazone])
+            nil -> nil
+          end
 
         not daylight_name?(zone_data(time_zone, tz_data)) and not daylight_name?(metazone_names)
 
@@ -2377,7 +2410,7 @@ defmodule Localize.DateTime.Timezone do
   # with, for daylight time, the most the zone saves within nine months
   # either side, or an hour where it saves none, as ICU reads it.
   defp named_offset(type, time_zone, reference, nearby) do
-    case metazone_period(time_zone, reference) do
+    case metazone_period(time_zone, reference, :as_read) do
       %{std_offset: std, dst_offset: dst} when is_integer(std) and is_integer(dst) ->
         if type == :daylight, do: dst, else: std
 
@@ -2491,9 +2524,11 @@ defmodule Localize.DateTime.Timezone do
   # `Europe/Dublin`'s summer time is daylight time to CLDR, whatever
   # `std_offset` says, and `America/Winnipeg`'s -05:00 is Central Daylight
   # Time. Elsewhere the flag decides.
-  defp specific_type(:specific, time_zone, datetime) do
+  defp specific_type(type, time_zone, datetime, reach \\ :as_written)
+
+  defp specific_type(:specific, time_zone, datetime, reach) do
     with %{std_offset: std, dst_offset: dst} when is_integer(std) and is_integer(dst) <-
-           metazone_period(time_zone, datetime),
+           metazone_period(time_zone, datetime, reach),
          offset when is_integer(offset) <- total_offset(datetime) do
       cond do
         offset == dst -> :daylight
@@ -2505,7 +2540,7 @@ defmodule Localize.DateTime.Timezone do
     end
   end
 
-  defp specific_type(type, _time_zone, _datetime), do: type
+  defp specific_type(type, _time_zone, _datetime, _reach), do: type
 
   defp resolve_type(:generic, _datetime), do: :generic
   defp resolve_type(:standard, _datetime), do: :standard

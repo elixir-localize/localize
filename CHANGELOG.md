@@ -134,6 +134,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+* A zone keeps its metazone from 1970 on, where CLDR gives its first metazone period no beginning, as ICU has it: New York in 1965 is "GMT-05:00" and "New York Time", and Los Angeles at its local mean time of 1850 is "GMT-07:52:58" and no longer "Pacific Standard Time". A metazone's name is still read with an earlier date, and `Localize.DateTime.Timezone.metazone_for/2` is `nil` before 1970.
+
 * A pattern that writes a year's name beside its number keeps the name when a skeleton asks for another numbered year. The skeleton `r` wrote a Chinese year as "2026(2026)" in most locales, root's "r(U)" turned to "r(r)", and writes "2026(bing-wu)".
 
 * `Localize.DateTime.parse/2` reads a date and time with the `Localize.DateTime.SemanticSkeleton` given as `:format`, each half with the skeleton's date fields or its time fields; the skeleton was ignored, and text in any of the locale's formats read. A skeleton whose minutes are optional reads a time on the hour written without them, "2 PM", which `Localize.Time.parse/2` refused.

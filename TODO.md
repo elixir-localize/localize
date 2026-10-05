@@ -26,8 +26,6 @@ Outstanding work on Localize. The design detail behind these items lives under [
 
 * [ ] **`G` for a Chinese or Dangi date is an error** — CLDR gives those calendars one era and no name for it, so a pattern with `G` returns `Localize.ItemNotFoundError`, where ICU4C writes the number of the sixty-year cycle, "78". TR35 is silent; decide what it writes.
 
-* [ ] **A metazone's name is written for dates before 1970** — a `usesMetazone` period with no `from` is taken to reach back without end, so Los Angeles in 1850, at -7:52:58, is "Pacific Standard Time"; TR35 does not say where such a period begins, CLDR's zones are told apart only "back to 1970", and ICU4C begins it at 1970, writing "GMT-07:52:58" and "Los Angeles Time" there and "GMT-05:00" for New York in 1965. Decide where a first period begins.
-
 * [ ] **An interval typed without years across the new year is refused** — "Dec 28 – Jan 3" is two dates of the reference date's year, the later first, and so an inverted range, as it was when each side was read alone. The formatter never writes one, adding the years where they differ, and neither TR35 nor ICU reads an interval. A decision: whether the second date is of the year after.
 
 * [ ] **An interval item is written in digits where the date alone takes its format's numbering** — `he`'s Hebrew medium interval is "1–5 בתמוז 5786" beside the date "א׳ בתמוז ה׳תשפ״ו", and `zh`'s Chinese "2026年五月2至6" beside "2026年五月初二", as ICU4C writes them: CLDR's interval items carry no numbering and TR35 says nothing of one for them. Decide whether an interval at a standard format takes the format's numbering, as it takes its fields.
@@ -79,6 +77,8 @@ Outstanding work on Localize. The design detail behind these items lives under [
 * [ ] **`localize_emoji` sibling library** — plan item 11, a separate package on its own schedule. A Phoenix LiveView picker (`localize_emoji_live`) is out of scope for its 0.1.0.
 
 ## Done
+
+* [x] **A zone keeps its metazone from 1970 on** — a first metazone period CLDR gives no beginning begins at 00:00 on 1 January 1970 in UTC, as ICU begins it (user, 2026-10-06), so New York in 1965 is "GMT-05:00" and "New York Time"; a metazone's name is still read with an earlier date. Against ICU4C in 656 locales, 551 zones and six moments (8,674,944 texts): agreement before 1970 rose from 3,659,852 to 5,579,306 of 5,762,304, nothing from 1970 on changed, and every one of 5,402,160 names written at three moments before 1970 reads back. 2026-10-06, v1.4.0.
 
 * [x] **A skeleton is matched against the locale's available formats alone** — decided (user, 2026-10-06): the standard formats' patterns are not added to the patterns a skeleton is matched against, though TR35 names "the predefined patterns" and ICU4C adds them, since CLDR's own conformance data is made without them and 43 of its 279 locales fail with them. Nothing changes in the library; the difference from ICU4C is recorded in `guides/icu_divergences.md` and held by `test/localize/datetime/skeleton_conformance_test.exs`. 2026-10-06, v1.4.0.
 
