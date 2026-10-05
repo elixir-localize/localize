@@ -59,6 +59,7 @@ test_locales = [
   "fa",
   "ff-Adlm",
   "fi",
+  "fo",
   "fr",
   "fr-CA",
   "fr-CH",

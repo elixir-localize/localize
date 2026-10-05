@@ -240,13 +240,20 @@ defmodule Localize.DateTime.SpecificZoneFormatTest do
       assert read("Europe/Berlin", @summer, :ko, "zzzz") == {"Europe/Berlin", :eq}
     end
 
+    # The last three are read by the order of TR35's parse: `ko` and `pl`
+    # name American Samoa's standard time in the shape of a standard region
+    # format with the country Samoa in it, and `fo` qualifies the Canary
+    # Islands' zone by Spain, whose primary zone is Madrid.
     @zones [
       "America/Vancouver",
       "America/Phoenix",
       "Europe/Berlin",
       "Europe/London",
       "Asia/Kolkata",
-      "Africa/Abidjan"
+      "Africa/Abidjan",
+      "Pacific/Pago_Pago",
+      "Pacific/Midway",
+      "Atlantic/Canary"
     ]
 
     # Every test locale: the locales `test/test_helper.exs` lists, the same
@@ -283,11 +290,13 @@ defmodule Localize.DateTime.SpecificZoneFormatTest do
       {"Europe/Dublin", @summer}
     ]
 
+    # The generic name too: Punta Arenas's "Chile Time (Punta Arenas)" names
+    # its city, and is not Santiago, an hour behind it in July.
     test "is the same instant where the zone's offset is not its usual one" do
       failures =
         for locale <- Localize.Test.InstalledLocales.all(),
             {zone, naive} <- @changes,
-            format <- ["zzzz", "z", "v", "VVVV"],
+            format <- ["zzzz", "z", "vvvv", "v", "VVVV"],
             {_zone, result} = read(zone, naive, locale, format),
             result != :eq do
           {locale, zone, naive, format, specific(zone, naive, locale, format), result}

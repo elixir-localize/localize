@@ -100,6 +100,47 @@ defmodule Localize.ZoneParseTest do
       end
     end
 
+    # ICU4C reads each of these so. A country with several zones stands for
+    # its primary zone, as its location is written, only where the string
+    # names no other zone: a city in the qualifier comes first, and a name
+    # qualified by a country is the metazone's zone for that country, which
+    # for Western European time and Spain is the Canary Islands' (`fo`
+    # writes that zone so, the Faroe Islands having their own).
+    test "a country with several zones" do
+      for {locale, text, time_zone} <- [
+            {:en, "Germany Time", "Europe/Berlin"},
+            {:en, "Spain Time", "Europe/Madrid"},
+            {:de, "Spanien (Ortszeit)", "Europe/Madrid"},
+            {:en, "Chile Time", "America/Santiago"},
+            {:en, "Chile Time (Punta Arenas)", "America/Punta_Arenas"},
+            {:en, "Chile Time (Coyhaique)", "America/Coyhaique"},
+            {:en, "Central European Time (Spain)", "Europe/Madrid"},
+            {:fo, "Vesturevropa tíð (Spania)", "Atlantic/Canary"}
+          ] do
+        assert Timezone.parse_zone(text, locale: locale) == {:ok, {:zone, time_zone, :generic}},
+               "#{locale} #{text}"
+      end
+    end
+
+    # `ko.xml` names American Samoa's metazone "사모아 표준시", which has the
+    # shape of its standard region format, "{0} 표준시", with the country
+    # Samoa in it, and `pl.xml` names it "Samoa (czas standardowy)" likewise.
+    # No pattern writes a standard region format, so each is the metazone's
+    # name, as ICU4C reads them; Samoa's own location is "사모아 시간". With a
+    # city, as the formatter qualifies the name for Midway, it is that city.
+    test "a metazone's name in the shape of a region format" do
+      pago_pago = {:ok, {:zone, "Pacific/Pago_Pago", :standard}}
+
+      assert Timezone.parse_zone("사모아 표준시", locale: :ko) == pago_pago
+      assert Timezone.parse_zone("Samoa (czas standardowy)", locale: :pl) == pago_pago
+
+      assert Timezone.parse_zone("사모아 시간", locale: :ko) ==
+               {:ok, {:zone, "Pacific/Apia", :generic}}
+
+      assert Timezone.parse_zone("사모아 표준시(미드웨이)", locale: :ko) ==
+               {:ok, {:zone, "Pacific/Midway", :standard}}
+    end
+
     # `en`'s short names "ET", "MT" and "PT" are also the codes of Ethiopia,
     # Malta and Portugal; a code is read only in a qualifier, where TR35's
     # composition writes one for a country the locale does not name.

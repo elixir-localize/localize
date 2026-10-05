@@ -32,9 +32,7 @@ Outstanding work on Localize. The design detail behind these items lives under [
 
 * [ ] **`G` for a Chinese or Dangi date is an error** — CLDR gives those calendars one era and no name for it, so a pattern with `G` returns `Localize.ItemNotFoundError`, where ICU4C writes the number of the sixty-year cycle, "78". TR35 is silent; decide what it writes.
 
-* [ ] **A metazone's name in the shape of a region format is read as the country in it** — `af`'s "Samoa-standaardtyd", American Samoa's standard time, is also the standard region format of the country Samoa and is read as Apia, with or without its "(Midway)", in nine locales (`af`, `ast`, `fil`, `ko`, `pl`, `se-FI` and their regions); and `en`'s "Chile Time (Punta Arenas)" is read as Santiago, Chile's primary zone, though it names its city, in 289 locales. The formatter writes those strings only as the metazone's name.
-
-* [ ] **A name qualified by a country that has a primary zone is read as the primary zone** — `fo` writes the Canary Islands' zone "Vesturevropa tíð (Spania)", the Western European metazone's zone for Spain, and it is read as Madrid.
+* [ ] **A string two readings share is not told apart by the date** — `it` names the Further-eastern European metazone "Ora dell’Europa orientale (Kaliningrad)", which is also Eastern European time qualified by Kaliningrad, as that zone's `vvvv` is written today; it is read as Minsk, the metazone's zone, though no zone has kept that metazone since 2014, where ICU4C reads Kaliningrad in a `vvvv` field. `resolve/3` has the date, and could take the reading whose metazone the zone keeps then.
 
 * [ ] **`Localize.DateTime.Timezone.resolve/3` does not read the GMT format in a locale's own digits** — "غرينتش-٨" and "GMT-۸", which the formatter writes in `ar-BH`, `lrc-IQ`, `dz` and other locales with digits of their own, are an unknown zone to it, though `Localize.DateTime.parse/2` reads them.
 
@@ -69,6 +67,8 @@ Outstanding work on Localize. The design detail behind these items lives under [
 * [ ] **`localize_emoji` sibling library** — plan item 11, a separate package on its own schedule. A Phoenix LiveView picker (`localize_emoji_live`) is out of scope for its 0.1.0.
 
 ## Done
+
+* [x] **A zone's name is read before a country in its shape, and its qualifier before a country's primary zone** — "Chile Time (Punta Arenas)" is Punta Arenas (Santiago in 289 locales), `ko`'s "사모아 표준시" American Samoa (Apia in nine) and `fo`'s "Vesturevropa tíð (Spania)" the Canary Islands (Madrid), as ICU4C reads each; a country with several zones stands for its primary zone last, after TR35's own steps. 2026-10-05, v1.4.0.
 
 * [x] **A name of standard or daylight time is read with the time its zone keeps at the date** — the reading the formatter names so, by CLDR's `stdOffset` and `dstOffset` where a metazone period gives them, in place of the least and greatest offset within nine months: "Chile Summer Time (Punta Arenas)" in 488 locales, and any name near a change of its zone's offset, 3,366 strings in `en` from 1990 to 2027. 2026-10-05, v1.4.0.
 

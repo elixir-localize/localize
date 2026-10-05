@@ -104,15 +104,16 @@ defmodule Localize.DateTime.Timezone do
                          into: %{},
                          do: {short_id, canonical}
 
+  # The zone of each territory that has one zone, the only countries whose
+  # zone TR35's parse returns for the country alone.
+  @sole_zones for {territory, [%{aliases: [canonical | _aliases]}]} <- @timezones_by_territory,
+                  into: %{},
+                  do: {territory, canonical}
+
   # The zone a location format names by its territory, the reverse of
   # `naming_territory/1`: the territory's primary zone, else its only one.
   @territory_zones Map.merge(
-                     for(
-                       {territory, [%{aliases: [canonical | _aliases]}]} <-
-                         @timezones_by_territory,
-                       into: %{},
-                       do: {territory, canonical}
-                     ),
+                     @sole_zones,
                      for({zone, territory} <- @primary_zones, into: %{}, do: {territory, zone})
                    )
 
@@ -1347,13 +1348,17 @@ defmodule Localize.DateTime.Timezone do
   nord-américain"), alone or with a city or country in the locale's
   fallback format ("Pacific Time (Canada)").
 
-  A city or a zone's own name is read before a metazone's, as TR35 orders
-  them. A metazone name stands for the metazone's zone in the country the
-  string names, else in the locale's country, else its golden zone, so
-  "Mitteleuropäische Zeit" is `Europe/Berlin` in `de` and `Europe/Vienna` in
-  `de-AT`, as ICU reads it. Where several metazones share a name ("Greenwich
-  Mean Time") the one with a zone in that country is read, else the one
-  with zones in the most countries.
+  A country with one zone stands for that zone, and a city or a zone's own
+  name is read before a metazone's, as TR35 orders them: "Chile Time (Punta
+  Arenas)" is `America/Punta_Arenas`. A metazone name stands for the
+  metazone's zone in the country the string names, else in the locale's
+  country, else its golden zone, so "Mitteleuropäische Zeit" is
+  `Europe/Berlin` in `de` and `Europe/Vienna` in `de-AT`, as ICU reads it.
+  Where several metazones share a name ("Greenwich Mean Time") the one with
+  a zone in that country is read, else the one with zones in the most
+  countries. A country with several zones stands for its primary zone, as
+  its location is written ("Germany Time"), where the string names no other
+  zone.
 
   ### Arguments
 
@@ -1590,17 +1595,25 @@ defmodule Localize.DateTime.Timezone do
     do: Map.has_key?(index.countries, place) or Map.has_key?(index.cities, place)
 
   # One reading: N may be a place in a region format ("Italy Time"), M,
-  # and a country among P, N and M is C. In TR35's order: C when it has
-  # one zone to name; P as a city; N or M as a zone's own name, or a city;
-  # then N or M as a metazone's name, whose zone is C's, else the locale's
-  # country's.
+  # and a country among P, N and M is C. In TR35's order: C's zone where C
+  # has one zone; P as a city; N or M as a zone's own name, or a city; then
+  # N or M as a metazone's name, whose zone is C's, else the locale's
+  # country's. So "Chile Time (Punta Arenas)" is Punta Arenas, a city of a
+  # country with several zones, as ICU reads it.
+  #
+  # After them comes what TR35's sample leaves out, the primary zone of a
+  # country with several: its location format writes Berlin "Germany Time".
+  # It is last, since a name qualified by a country is the metazone's zone
+  # for that country, which need not be the primary one: `fo` writes the
+  # Canary Islands' zone "Vesturevropa tíð (Spania)". Last of all a
+  # metazone's name stands for its zone whatever country is named with it.
   #
   # The type of time is the name's own where the locale has the name, and
   # else the region format's it is written in: `ko` names Central European
   # Summer Time "중부유럽 하계 표준시", which is also the shape of its
   # standard region format, "{0} 표준시".
   defp reading_zone(name, place, index, language_tag) do
-    {located, region_type} = region_place(name, index)
+    {located, region_type} = named_region_place(name, index)
     type = name_type(name, index) || region_type || :generic
 
     country =
@@ -1609,16 +1622,31 @@ defmodule Localize.DateTime.Timezone do
         unnamed_country(located, index)
 
     [
-      fn -> country_zone(country, type) end,
+      fn -> sole_zone(country, type) end,
       fn -> city_zone(place, type, index) end,
       fn -> own_name_zone(name, index) end,
       fn -> own_name_zone(located, index) end,
       fn -> city_zone(located, type, index) end,
       fn -> city_zone(name, type, index) end,
       fn -> metazone_name_zone(name, country, index, language_tag) end,
-      fn -> metazone_name_zone(located, country, index, language_tag) end
+      fn -> metazone_name_zone(located, country, index, language_tag) end,
+      fn -> country_zone(country, type) end,
+      fn -> country && metazone_name_zone(name, nil, index, language_tag) end,
+      fn -> country && metazone_name_zone(located, nil, index, language_tag) end
     ]
     |> Enum.find_value(fn step -> step.() end)
+  end
+
+  # The place a string names in a region format, and that format's type of
+  # time. A string the locale has as a name is no standard or daylight
+  # region format, which no pattern writes: `af`'s "Samoa-standaardtyd" is
+  # American Samoa's standard time, as ICU reads it, not the standard time
+  # of the country Samoa.
+  defp named_region_place(name, index) do
+    case region_place(name, index) do
+      {_place, type} when type != :generic and is_map_key(index.names, name) -> {nil, nil}
+      located -> located
+    end
   end
 
   # The country a region format's place names by its code. The location
@@ -1655,6 +1683,15 @@ defmodule Localize.DateTime.Timezone do
     end
   end
 
+  defp sole_zone(nil, _type), do: nil
+
+  defp sole_zone(country, type) do
+    case Map.get(@sole_zones, country) do
+      nil -> nil
+      time_zone -> {time_zone, type}
+    end
+  end
+
   defp country_zone(nil, _type), do: nil
 
   defp country_zone(country, type) do
@@ -1682,10 +1719,13 @@ defmodule Localize.DateTime.Timezone do
     end
   end
 
-  # The metazone's zone in the country the string names, else in the
-  # locale's country, else its golden zone, which stands for every country
-  # CLDR maps no zone of its own to: "Eastern Time (United States)" is New
-  # York in `en-JM`, as ICU reads it, though Jamaica keeps Eastern time too.
+  # The metazone's zone in the country the string names: the zone CLDR maps
+  # to that country, or the metazone's golden zone where that is in the
+  # country, the two zones the formatter qualifies by a country. "Eastern
+  # Time (United States)" is New York in `en-JM`, as ICU reads it, though
+  # Jamaica keeps Eastern time too. With no country named, the zone is the
+  # locale's country's, else the golden zone, which stands for every country
+  # CLDR maps no zone of its own to.
   defp metazone_name_zone(nil, _country, _index, _language_tag), do: nil
 
   defp metazone_name_zone(name, country, index, language_tag) do
@@ -1693,11 +1733,15 @@ defmodule Localize.DateTime.Timezone do
       %{metazones: [_first | _rest] = metazones} ->
         territory = country || locale_territory(language_tag)
         {metazone, type} = preferred_metazone(metazones, territory)
-        territories = Map.get(@metazone_mapzones, metazone, %{})
+        zones = Map.get(@metazone_mapzones, metazone, %{})
+        golden_zone = Map.get(zones, :"001")
 
-        case Map.get(territories, territory) || Map.get(territories, :"001") do
-          nil -> nil
-          time_zone -> {time_zone, type}
+        cond do
+          time_zone = Map.get(zones, territory) -> {time_zone, type}
+          is_nil(golden_zone) -> nil
+          is_nil(country) -> {golden_zone, type}
+          Map.get(@territories_by_timezone, golden_zone) == country -> {golden_zone, type}
+          true -> nil
         end
 
       _no_metazone_name ->
