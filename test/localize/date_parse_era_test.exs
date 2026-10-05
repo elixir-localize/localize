@@ -476,6 +476,63 @@ defmodule Localize.DateParseEraTest do
     end
   end
 
+  # ja.xml's Japanese full, long and medium dates are written with
+  # `numbers="y=jpanyear"`, whose rule (`rbnf/ja.xml`,
+  # `%spellout-numbering-year-latn`) writes 1 as 元 and every other year in
+  # digits, so the first year of an era is "令和元年5月1日", as ICU writes
+  # it. A day in `hanidays` and a month in `romanlow` were read as written,
+  # and this year was not.
+  describe "the first year of an era" do
+    defp japanese(text, locale, options \\ []) do
+      Localize.Date.parse(
+        text,
+        [locale: locale, calendar: Japanese, reference_date: @reiwa_8] ++ options
+      )
+    end
+
+    test "is read as ja writes it" do
+      for {date, medium, full} <- [
+            {Date.new!(2019, 5, 1, Japanese), "令和元年5月1日", "令和元年5月1日水曜日"},
+            {Date.new!(1989, 1, 8, Japanese), "平成元年1月8日", "平成元年1月8日日曜日"},
+            {Date.new!(1926, 12, 25, Japanese), "昭和元年12月25日", "昭和元年12月25日土曜日"}
+          ] do
+        assert Localize.Date.to_string(date, locale: :ja, format: :medium) == {:ok, medium}
+        assert Localize.Date.to_string(date, locale: :ja, format: :long) == {:ok, medium}
+        assert Localize.Date.to_string(date, locale: :ja, format: :full) == {:ok, full}
+
+        assert japanese(medium, :ja) == {:ok, date}
+        assert japanese(full, :ja) == {:ok, date}
+        assert japanese(medium, :ja, format: :medium) == {:ok, date}
+        assert japanese(full, :ja, format: :full) == {:ok, date}
+      end
+    end
+
+    test "is read in digits too, and other years as they were" do
+      assert japanese("令和1年5月1日", :ja) == {:ok, Date.new!(2019, 5, 1, Japanese)}
+      assert japanese("令和8年6月16日", :ja) == {:ok, Date.new!(2026, 6, 16, Japanese)}
+      assert japanese("平成31年4月30日", :ja) == {:ok, Date.new!(2019, 4, 30, Japanese)}
+    end
+
+    test "reads back in an interval" do
+      from = Date.new!(2019, 5, 1, Japanese)
+
+      failures =
+        for format <- [:short, :medium, :long, :full],
+            to <- [
+              Date.new!(2019, 5, 5, Japanese),
+              Date.new!(2019, 8, 20, Japanese),
+              Date.new!(2020, 8, 20, Japanese)
+            ],
+            {:ok, text} = Localize.Interval.to_string(from, to, locale: :ja, format: format),
+            parsed = japanese_interval(text, :ja),
+            parsed != {:ok, Date.range(from, to)} do
+          {format, text, parsed}
+        end
+
+      assert failures == [], inspect(failures, pretty: true)
+    end
+  end
+
   # A calendar may number its years one way when an era begins and another
   # before it ends: Calendrical's Japanese reform calendar counts its
   # lunisolar years from 645 and its years from 1873 as the Gregorian

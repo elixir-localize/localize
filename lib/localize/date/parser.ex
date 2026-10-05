@@ -1280,13 +1280,22 @@ defmodule Localize.Date.Parser do
   defp written_year(caps, prefix, era_index, ctx, month_day) do
     case year_capture(caps, prefix) do
       nil ->
-        {:ok, nil, nil}
+        numeral_year(caps, prefix, era_index, ctx, month_day)
 
       raw ->
         case parse_year(raw) do
           {year, ""} -> numbered_year(year, raw, era_index, ctx, month_day)
           _other -> :error
         end
+    end
+  end
+
+  # A year written as a numeral of an algorithmic numbering, `ja`'s 元 for
+  # the first year of an era (`year_numerals/2`), or no year at all.
+  defp numeral_year(caps, prefix, era_index, ctx, month_day) do
+    case named_capture_index(caps, prefix <> "__y") do
+      nil -> {:ok, nil, nil}
+      year -> numbered_year(year, Integer.to_string(year), era_index, ctx, month_day)
     end
   end
 
@@ -2701,7 +2710,7 @@ defmodule Localize.Date.Parser do
           "(?P<year>#{digit}{2})"
 
         true ->
-          "(?P<year>[-−]?#{digit}{1,4})"
+          year_numerals(ctx, "(?P<year>[-−]?#{digit}{1,4})")
       end
 
     {:capture, :year, regex}
@@ -2909,6 +2918,25 @@ defmodule Localize.Date.Parser do
       end)
 
     "(?:" <> branches <> ")"
+  end
+
+  # The years an algorithmic numbering writes otherwise than in digits, each
+  # read before the digits of `digits`: `ja`'s Japanese dates are written
+  # with `y=jpanyear`, whose first year of an era is 元, "令和元年5月1日". The
+  # years asked about are those of an era, none of which has reached a
+  # hundred.
+  @numeral_years 1..100
+
+  defp year_numerals(ctx, digits) do
+    numerals =
+      for {year, numeral} <- numeral_names(ctx, "y", @numeral_years),
+          numeral != Integer.to_string(year),
+          do: {year, numeral}
+
+    case numerals do
+      [] -> digits
+      numerals -> "(?:" <> numeral_regex(numerals, "__y") <> "|" <> digits <> ")"
+    end
   end
 
   # The text before and after a month's number in the locale's numeric
@@ -3432,7 +3460,8 @@ defmodule Localize.Date.Parser do
 
   defp year_captured?(caps) do
     non_empty?(caps, "year") or non_empty?(caps, "week_based_year") or
-      non_empty?(caps, "related_year") or not is_nil(named_capture_index(caps, "__u"))
+      non_empty?(caps, "related_year") or not is_nil(named_capture_index(caps, "__u")) or
+      not is_nil(named_capture_index(caps, "__y"))
   end
 
   defp non_empty?(caps, key) do
