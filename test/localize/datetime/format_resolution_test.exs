@@ -195,6 +195,45 @@ defmodule Localize.DateTime.FormatResolutionTest do
       assert {:error, %Localize.DateTimeUnresolvedFormatError{format: "XYZPDQ", locale: :en}} =
                Match.best_match("XYZPDQ", :en)
     end
+
+    # TR35's Matching Skeletons: "Numeric and text fields are given a larger
+    # distance from each other" than widths of one kind. A year is a number
+    # at every width of `y` and `r`, and `U` is the cyclic year's name at
+    # every width, so a year's number takes en.xml's Chinese `yyyyMd`,
+    # "M/d/r", before its `UMd`, "M/d/U".
+    test "a year's number takes a numbered year's format before the year's name" do
+      assert Match.best_match(:yMd, :en, :chinese) == {:ok, :yyyyMd}
+      assert Match.best_match(:rMd, :en, :chinese) == {:ok, :yyyyMd}
+      assert Match.best_match(:yMMMd, :en, :chinese) == {:ok, :yyyyMMMd}
+      assert Match.best_match(:UMd, :en, :chinese) == {:ok, :UMd}
+      assert Match.best_match(:UMMMd, :en, :chinese) == {:ok, :UMMMd}
+    end
+
+    # en.xml's generic calendar keys its formats by the year in four digits:
+    # `yyyyMd` "M/d/y G" and `yyyyMMMd` "MMM d, y G". A request with a named
+    # month takes the format that names it, where the four-letter year was
+    # once taken for text and the numbered month's format won.
+    test "a year in four digits is as near a year as a named month is far from a numbered one" do
+      assert Match.best_match(:yMMMd, :en, :buddhist) == {:ok, :yyyyMMMd}
+      assert Match.best_match(:yMd, :en, :buddhist) == {:ok, :yyyyMd}
+      assert Match.best_match(:yMMM, :en, :buddhist) == {:ok, :yyyyMMM}
+    end
+
+    # TR35's symbol table: a year's length is "the minimum number of digits
+    # to display … However, "yy" requests just the two low-order digits of
+    # the year". en.xml has `y` and `yMMM` beside `yy`, "’yy", and `yyMMM`,
+    # "MMM ’yy".
+    test "a whole year takes a whole year's format, and two digits the two-digit format" do
+      assert Match.best_match(:yyyy, :en) == {:ok, :y}
+      assert Match.best_match(:yyy, :en) == {:ok, :y}
+      assert Match.best_match(:yyyyy, :en) == {:ok, :y}
+      assert Match.best_match(:yy, :en) == {:ok, :yy}
+      assert Match.best_match(:yyyyMMM, :en) == {:ok, :yMMM}
+      assert Match.best_match(:yyMMM, :en) == {:ok, :yyMMM}
+
+      assert Localize.Date.to_string(~D[2024-07-06], format: :yyyy, locale: :en) == {:ok, "2024"}
+      assert Localize.Date.to_string(~D[2024-07-06], format: :yy, locale: :en) == {:ok, "’24"}
+    end
   end
 
   describe "Match.adjust_field_lengths/2" do

@@ -134,6 +134,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+* A skeleton's year is a number at every width and the cyclic year `U` a name at every width, so TR35's larger distance between a numeric and a text field keeps a `y` request from the format of the year's name: `yMd` for a Chinese date in `en` is `yyyyMd`'s "5/2/2026" where it was `UMd`'s "5/2/bing-wu", and `yMMMd` for a Buddhist date in `en-AU` is "19 Apr 2566 BE" where it was "19/04/2566". A whole year and TR35's "two low-order digits", `yy`, stay apart, so `yyyy` in `en` is "2024" and not its `yy` format widened.
+
 * A 24-hour hour beside a day period is read only where the two agree, as TR35's parsing checks a day period against its hour. `ksh`'s `Hmsv`, "H:mm:ss a v" in CLDR 49, read "4:00:00 n.M. GMT+5:30", four in the afternoon, as 04:00.
 
 * `Localize.DateTime.Timezone.resolve/3` takes, of a string's readings, the one whose zone is written so at the date: `it`'s "Ora dell’Europa orientale (Kaliningrad)" is Kaliningrad in 2026 where it was Minsk, "Malaysia Time" in 1975 is Kuala Lumpur at +07:30, and `sv`'s "Kaliningradtid" in a summer follows Kaliningrad's clock. A name qualified by a city is that city's zone, so "Israel Time (Gaza)" is Gaza and not Jerusalem.

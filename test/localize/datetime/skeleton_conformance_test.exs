@@ -109,9 +109,12 @@ defmodule Localize.DateTime.SkeletonConformanceTest do
     "Cms" => ~w(gu hi hi-Latn kn ml mr pa pa-Guru ta te)
   }
 
-  # en's `yy` is "’yy", a two-digit year with an elision mark. The generator
-  # matches `yyyy` to it as the nearer numeric width and widens it to
-  # "’2024"; this library matches `y`.
+  # TR35's symbol table: a year's length is "the minimum number of digits to
+  # display … However, "yy" requests just the two low-order digits of the
+  # year". en's `yy` is "’yy", its apostrophe standing for the digits left
+  # out, and so another thing than the whole year. The generator takes it as
+  # the nearer width for `yyyy` and widens it to "’2024"; this library takes
+  # the whole year's format, `y`, and writes "2024".
   @two_digit_year %{"yyyy" => ~w(en-US)}
 
   @deviations for group <- [@hour_width, @capital_j, @locale_time_data, @two_digit_year],

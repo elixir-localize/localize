@@ -24,9 +24,13 @@ Outstanding work on Localize. The design detail behind these items lives under [
 
 * [ ] **Standard-format intervals in other calendars do not all read back** — of 130,118 intervals at `:short`, `:medium` and `:long` in 33 calendars and 657 locales, 3,826 are an error or, 139 of them, another range: the Japanese calendar's short interval in 505 locales ("R 8-06-16 – 8-06-20"), the Buddhist and Islamic ones in 90 (`fr`'s "16–20/06/2569 EB"), a calendar of weeks' in 32 ("2026-W20-3-2026-W20-7"), and in the Gregorian `mn`'s Roman-numeral months and `ha`'s year first in two digits ("26-06-16 – 27-08-20"). All were so before intervals took their pattern's widths; the lunisolar `:medium` ones are the item above.
 
-* [ ] **An interval asked for with the cyclic year's name writes its number** — a format whose pattern names the year (`de`'s Chinese medium "dd.MM U") takes the `yMd` interval item and keeps its `y`, "43-05-02 – 43-05-06" beside "02.05 bing-wu": the matcher replaces an item's year with `Y`, `u` or `r` when asked for, and not with `U`. 25 locales, in each of the three cyclic calendars.
+* [ ] **An interval item's year is of another kind than the year asked for** — a format that names the year (`de`'s Chinese medium "dd.MM U") takes CLDR's `yMd` item and keeps its number, "43-05-02 – 43-05-06" beside "02.05 bing-wu" (25 locales), and one that writes the related year (`en`'s "MMM d, r") has it put in place of the name in the item "MMM d – d, U", "Mo5 2 – 6, 2026" (488 locales), a change TR35 forbids: "adjustments should never convert a numeric element in the pattern to an alphabetic element, or the opposite". Decide between the item's own year, as TR35's matching leaves it ("Mo5 2 – 6, bing-wu"), both dates in full, as ICU4C writes them ("Mo5 2, 2026 – Mo5 6, 2026" and "02.05 bing-wu – 06.05 bing-wu"), and the year asked for in the item's place.
 
-* [ ] **A `y` skeleton takes the cyclic name's format in a lunisolar calendar** — `yMd` for a Chinese date in `en` matches `UMd`, "5/2/bing-wu", where TR35's larger distance between a numeric and a text field, and ICU4C 78.3, take `yyyyMd`'s "M/d/r", "5/2/2026"; `yM`, `yMMM` and `yMMMd` likewise, 22 of 56 single dates over eight locales.
+* [ ] **A calendar of weeks' date written at a skeleton does not read back** — `yMMMd` writes `Calendrical.NRF`'s own year, period and day in CLDR's generic format, "CE 2023 M03 4", and the text is read as a Gregorian date, as text for a calendar of weeks is: none of the 28,908 dates written at eleven skeletons in the two calendars of weeks and 657 locales reads back with its skeleton. Decide what a skeleton writes for a calendar of weeks: its own fields, read back in the calendar, or the Gregorian day.
+
+* [ ] **A skeleton is not matched against the standard formats' patterns** — TR35 has the list a skeleton is matched against hold "`dateFormatItem` elements as well as the predefined patterns", the standard date and time formats, and ICU4C adds them: `pl`'s Chinese `yMd` is root's `yyyyMd`, "2026-05-02", where its short date "dd.MM.y" is nearer and ICU writes "2.5.43", and `gsw`'s Buddhist `yyMd` is "BE 69-06-16" beside its short date "d.M.y".
+
+* [ ] **A narrow month name is not read** — `mn`'s `yM` is "y MMMMM" and its narrow months are Roman numerals, so the "2026 VI" it writes is an error to read with that skeleton, as "AH 1444 9" is in the Islamic calendar: 58 of the 448,074 dates written at eleven skeletons in 31 calendars and 657 locales, the other 16 that are not read back being CLDR's week-based years (`te`, `my` and `ksh`, in the report below).
 
 * [ ] **An interval across sixty-year cycles writes its two dates alike** — two Chinese or Dangi dates sixty years apart take the interval's pattern for a year, "5/2/43 – 5/2/43" for `en`'s `yMd`, where ICU4C holds the cycle as an era and writes both in the skeleton's own format, "5/2/2026 – 5/2/2086". Decide whether a year of another cycle is written in full, as a year of another era is.
 
@@ -44,7 +48,7 @@ Outstanding work on Localize. The design detail behind these items lives under [
 
 * [ ] **Interval patterns inherited from a different locale level than the single date** — plan item 35: whether to glue or keep the inherited pattern. Blocked on CLDR-14207.
 
-* [ ] **Report `pt`'s `GyMMMM`, `gd`'s `yMMM` and `my`'s generic `yyyyMd` to CLDR** — each writes the week-based year `Y` where every sibling format has `y`, so 2025-12-29 renders "dezembro de 2026 d.C.", and `my` writes the Japanese calendar's 22 November 2023 "R 22/11/2023", which reads back as no date it was written from. Blocked on the user filing `tmp/cldr-reports/01-week-based-year-in-month-year-formats.md`.
+* [ ] **Report the date formats that write the week-based year to CLDR** — thirteen `availableFormats` entries and two standard date formats, in `de`, `de_CH`, `gd`, `gl`, `kek`, `ki`, `ksh`, `my`, `oc`, `pt`, `sc` and `te`, write `Y` where the skeleton names `y`, so 2025-12-29 is "29 Dezember 2026 n. Chr., Mo." at `de`'s `GyMMMMEd` and "dezembro de 2026 d.C." at `pt`'s `GyMMMM`, and `my` writes the Japanese calendar's 22 November 2023 "R 22/11/2023", which reads back as no date it was written from. Blocked on the user filing `tmp/cldr-reports/01-week-based-year-in-month-year-formats.md`.
 
 * [ ] **Report 12-hour patterns without a day period to CLDR** — `fr-CM`'s `h`, `hm` and `hms`, `bal-Latn`'s `hm` and `es-AR`'s `hms` are 12-hour patterns with no day period, which TR35 forbids, so the "12:30" and "1:45" they write each name two times. Blocked on the user filing `tmp/cldr-reports/02-twelve-hour-patterns-without-a-day-period.md`.
 
@@ -67,6 +71,8 @@ Outstanding work on Localize. The design detail behind these items lives under [
 * [ ] **`localize_emoji` sibling library** — plan item 11, a separate package on its own schedule. A Phoenix LiveView picker (`localize_emoji_live`) is out of scope for its 0.1.0.
 
 ## Done
+
+* [x] **A skeleton's year is a number at every width** — a `y`, `r` or `u` request takes a numbered year's format before the cyclic year's name, `U` being a name at every width, by TR35's larger distance between a numeric and a text field: `en`'s Chinese `yMd` is `yyyyMd`'s "5/2/2026", not `UMd`'s "5/2/bing-wu", and `en-AU`'s Buddhist `yMMMd` "19 Apr 2566 BE", not "19/04/2566"; 21,968 of 1,127,700 dates in 33 calendars and 657 locales changed, none away from ICU4C. 2026-10-05, v1.4.0.
 
 * [x] **A 24-hour hour agrees with a day period beside it** — TR35's parsing checks "the dayperiod … for consistency with the hour", so an `H` or `k` hour its day period does not hold is no reading: `ksh`'s `Hmsv`, "H:mm:ss a v", read "4:00:00 n.M. GMT+5:30", which `hmsz` writes for 16:00, as 04:00. 2026-10-05, v1.4.0.
 

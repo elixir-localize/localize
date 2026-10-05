@@ -498,8 +498,12 @@ defmodule Localize.DateParseLunisolarTest do
       assert Localize.Interval.to_string(from, to, format: :yMMMd, locale: :en) ==
                {:ok, "Mo5 2, bing-wu – Mo5 2, bing-wu"}
 
+      # One date is written with the skeleton's own format, which for
+      # `yMMMd` is `yyyyMMMd`'s "MMM d, r" and not `UMMMd`'s "MMM d, U": TR35
+      # puts a numeric and a text field further apart than two widths of a
+      # number, and ICU4C 78.3 writes it so.
       assert Localize.Interval.to_string(from, from, format: :yMMMd, locale: :en) ==
-               {:ok, "Mo5 2, bing-wu"}
+               {:ok, "Mo5 2, 2026"}
     end
 
     # A calendar may answer the place itself, from its `calendar_year/3`: it
@@ -543,6 +547,94 @@ defmodule Localize.DateParseLunisolarTest do
 
       assert Localize.Date.to_string(Date.new!(2569, 6, 16, Offset), format: "y", locale: :en) ==
                {:ok, "2569"}
+    end
+  end
+
+  # TR35's Matching Skeletons gives a numeric and a text field "a larger
+  # distance from each other" than two widths of one kind, and a year is a
+  # number at every width of `y` where `U` is the year's name at every width
+  # of its own. So a skeleton's `y` is nearer `yyyyMd`, the year in four
+  # digits, than `UMd`, the cyclic year's name. The texts are ICU4C 78.3's
+  # for the second day of the fifth month of the Chinese year that began in
+  # 2026: a locale's `yyyy` format writes the related year (`en`'s "M/d/r"),
+  # the year's place in its cycle (`de`'s "d.M.y") or its name (`ja`).
+  describe "a skeleton with a year" do
+    @skeleton_texts [
+      {:en, :yM, "5/2026"},
+      {:en, :yMd, "5/2/2026"},
+      {:en, :yMMM, "Mo5 2026"},
+      {:en, :yMMMd, "Mo5 2, 2026"},
+      {:de, :yM, "5.43"},
+      {:de, :yMd, "2.5.43"},
+      {:de, :yMMM, "M05 bing-wu"},
+      {:de, :yMMMd, "2. M05 bing-wu"},
+      {:fr, :yM, "5/43"},
+      {:fr, :yMd, "2/5/43"},
+      {:fr, :yMMM, "5yuè bing-wu"},
+      {:fr, :yMMMd, "2 5yuè bing-wu"},
+      {:ko, :yM, "2026. 5."},
+      {:ko, :yMd, "2026. 5. 2."},
+      {:ko, :yMMM, "2026년(병오년) 5월"},
+      {:ko, :yMMMd, "2026년 5월 2일"},
+      {:vi, :yM, "5/2026"},
+      {:vi, :yMd, "02-05-2026"},
+      {:vi, :yMMM, "tháng 5 năm 2026"},
+      {:vi, :yMMMd, "ngày 2 tháng 5 năm 2026"},
+      {:zh, :yM, "2026丙午年五月"},
+      {:zh, :yMd, "2026年五月2"},
+      {:zh, :yMMM, "2026丙午年五月"},
+      {:zh, :yMMMd, "2026年五月2"},
+      {:ja, :yM, "丙午年5月"},
+      {:ja, :yMd, "丙午-5-2"},
+      {:ja, :yMMM, "丙午年五月"},
+      {:ja, :yMMMd, "丙午年五月2日"}
+    ]
+
+    test "takes the format of a numbered year before the format of the year's name" do
+      for {locale, skeleton, expected} <- @skeleton_texts do
+        assert Localize.Date.to_string(date(4663, 5, 2), format: skeleton, locale: locale) ==
+                 {:ok, expected},
+               "#{locale} #{skeleton}"
+      end
+    end
+
+    # The year's name is still what `U` asks for: `en.xml`'s `UMd` is
+    # "M/d/U", root's "U MM-d" and `ko.xml`'s "U년 M. d.".
+    test "takes the format of the year's name where the name is asked for" do
+      for {locale, expected} <- [
+            en: "5/2/bing-wu",
+            de: "bing-wu 05-2",
+            ko: "병오년 5. 2.",
+            vi: "2/5 năm Bính Ngọ"
+          ] do
+        assert Localize.Date.to_string(date(4663, 5, 2), format: :UMd, locale: locale) ==
+                 {:ok, expected},
+               "#{locale}"
+      end
+    end
+
+    test "is read back with that skeleton" do
+      for {locale, skeleton, text} <- @skeleton_texts do
+        if skeleton in [:yMd, :yMMMd] do
+          assert parse(text, locale, format: skeleton) == {:ok, date(4663, 5, 2)},
+                 "#{locale} #{skeleton} #{text}"
+        else
+          assert parse(text, locale, format: skeleton, as: :map) ==
+                   {:ok, %{calendar: Lunisolar, year: 4663, month: 5}},
+                 "#{locale} #{skeleton} #{text}"
+        end
+      end
+    end
+
+    # A calendar whose years have no names has no format of a year's name
+    # to take, and `yyyy` is a number of four digits beside `y`'s: `en.xml`'s
+    # Gregorian `yMd` is "M/d/y".
+    test "is as it was in a calendar with no cycle of years" do
+      assert Localize.Date.to_string(~D[2026-06-16], format: :yMd, locale: :en) ==
+               {:ok, "6/16/2026"}
+
+      assert Localize.Date.to_string(~D[0926-06-16], format: :yyyyMd, locale: :en) ==
+               {:ok, "6/16/0926"}
     end
   end
 

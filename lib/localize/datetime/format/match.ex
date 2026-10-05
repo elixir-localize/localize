@@ -53,8 +53,14 @@ defmodule Localize.DateTime.Format.Match do
   @year ["y", "Y", "u", "U", "r"]
 
   # Symbols with no numeric form (TR35): every width is text, so a
-  # width difference is never a numeric-vs-alpha type mismatch.
-  @always_alpha ["E", "a", "b", "B", "G", "x", "X", "v", "V", "z", "Z", "O"]
+  # width difference is never a numeric-vs-alpha type mismatch. `U` is the
+  # cyclic year's name at every width.
+  @always_alpha ["E", "a", "b", "B", "G", "U", "x", "X", "v", "V", "z", "Z", "O"]
+
+  # Symbols with no text form: a longer field is a wider number, so `yyyy`
+  # is as numeric as `y`, and three letters of `D` or `S` are digits.
+  @always_numeric ["y", "Y", "u", "r", "d", "D", "F", "g", "w", "W", "h", "H", "K", "k", "m", "s"] ++
+                    ["S", "A"]
 
   # TR35 §Missing Skeleton Fields ranks fields in this order when two
   # formats with missing fields are otherwise equally close: year, month,
@@ -697,10 +703,18 @@ defmodule Localize.DateTime.Format.Match do
     {token_id, distance}
   end
 
-  # A field is text at three letters or more, and at every width for the
-  # symbols with no numeric form: `E` is the abbreviated weekday at one to
-  # three letters, where `e` and `c` are the weekday's number.
-  defp text_field?(symbol, count), do: symbol in @always_alpha or count > 2
+  # A field is text at three letters or more, at every width for the
+  # symbols with no numeric form, and at none for those with no text form:
+  # `E` is the abbreviated weekday at one to three letters, where `e` and
+  # `c` are the weekday's number, and `yyyy` is a year of four digits.
+  #
+  # TR35 gives numeric and text fields "a larger distance from each other"
+  # than widths of one kind, so a `y` request is nearer `yyyyMd` than `UMd`,
+  # the cyclic year's name: `yMd` for a Chinese date in `en` is "M/d/r",
+  # "5/2/2026", as ICU writes it, where it was "5/2/bing-wu".
+  defp text_field?(symbol, _count) when symbol in @always_alpha, do: true
+  defp text_field?(symbol, _count) when symbol in @always_numeric, do: false
+  defp text_field?(_symbol, count), do: count > 2
 
   # Numeric widths differ by digit count. Text widths do not run in letter
   # order: CLDR's reference pattern generator places narrow (five letters)
@@ -708,11 +722,32 @@ defmodule Localize.DateTime.Format.Match do
   # beside wide (four), so a narrow request prefers an abbreviated format to
   # a wide one. `ja` answers `EEEEEd` from `Ed`'s "d日(E)", not `EEEEd`'s
   # "d日EEEE".
+  #
+  # TR35: the length of a year is "the minimum number of digits to display
+  # … However, "yy" requests just the two low-order digits of the year". A
+  # year of two letters is another thing than the whole year at any width,
+  # so the two are further apart than two widths of the whole year: `yyyy`
+  # takes `en`'s `y` and not its `yy`, "’yy", whose apostrophe stands for
+  # the digits left out and which CLDR's reference generator widens to
+  # "’2024". The week-based year `Y` is cut to two digits the same way; the
+  # extended and the related year are not.
+  @two_digit_year_distance 4
+
   defp width_distance(sym_a, count_a, sym_b, count_b) do
-    if text_field?(sym_a, count_a) and text_field?(sym_b, count_b),
-      do: abs(text_width_rank(count_a) - text_width_rank(count_b)),
-      else: abs(count_a - count_b)
+    cond do
+      text_field?(sym_a, count_a) and text_field?(sym_b, count_b) ->
+        abs(text_width_rank(count_a) - text_width_rank(count_b))
+
+      two_digit_year?(sym_a, count_a) != two_digit_year?(sym_b, count_b) ->
+        abs(count_a - count_b) + @two_digit_year_distance
+
+      true ->
+        abs(count_a - count_b)
+    end
   end
+
+  defp two_digit_year?(symbol, 2) when symbol in ["y", "Y"], do: true
+  defp two_digit_year?(_symbol, _count), do: false
 
   defp text_width_rank(count) when count <= 3, do: 3
   defp text_width_rank(4), do: 4

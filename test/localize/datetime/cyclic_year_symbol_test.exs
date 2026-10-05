@@ -78,6 +78,22 @@ defmodule Localize.DateTime.CyclicYearSymbolTest do
       assert Localize.DateTime.to_string(~D[2026-07-05], format: "r", locale: :en) ==
                {:ok, "2026"}
     end
+
+    # TR35: "The related Gregorian year is usually displayed using the
+    # "latn" numbering system, regardless of what numbering systems may be
+    # used for other parts of the formatted date." `ar-EG` writes its dates
+    # in Arabic-Indic digits, and root's `yyyyM` for the Chinese calendar is
+    # "r-MM".
+    test "keeps Latin digits beside a locale's own" do
+      assert Localize.DateTime.to_string(@chinese_date, format: "r", locale: :"ar-EG") ==
+               {:ok, "2026"}
+
+      assert Localize.DateTime.to_string(@chinese_date, format: "r-MM", locale: :"ar-EG") ==
+               {:ok, "2026-٠٥"}
+
+      assert Localize.DateTime.to_string(@chinese_date, format: "MM", locale: :"ar-EG") ==
+               {:ok, "٠٥"}
+    end
   end
 
   describe "combined patterns" do
