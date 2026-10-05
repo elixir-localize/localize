@@ -36,7 +36,7 @@ Outstanding work on Localize. The design detail behind these items lives under [
 
 * [ ] **A string two readings share is not told apart by the date** — `it` names the Further-eastern European metazone "Ora dell’Europa orientale (Kaliningrad)", which is also Eastern European time qualified by Kaliningrad, as that zone's `vvvv` is written today; it is read as Minsk, the metazone's zone, though no zone has kept that metazone since 2014, where ICU4C reads Kaliningrad in a `vvvv` field. `resolve/3` has the date, and could take the reading whose metazone the zone keeps then. The same choice is wrong wherever the zone a string is read as kept another time than the zone it was written for: "Malaysia Time", Kuala Lumpur's location format, is read as Kuching, half an hour ahead until 1982, and "Israel Time (Gaza)", Gaza's name until 1996, as Jerusalem.
 
-* [ ] **An offset with no sign is not read** — TR35's parsing reads the GMT format with "+, -, or nothing", and "GMT 3" and "UTC3" are an unknown zone, to ICU4C as well. A leniency of TR35's sample process, not text any format writes.
+* [ ] **Any text before a country in the fallback format's shape is read as a zone** — TR35's sample parse returns the zone of a country with one zone for "xxx (Italy)" whatever xxx is, and the reader does, so a date and time read without its format can take its zone from too much text: `et`'s "4:00:00 PM (India)" is 04:00 in India, the 24-hour pattern reading "PM (India)" as its zone (also `ksh`, `ta-LK`), and `qu`'s "…2026 10:30:00 a.m. Hora del Meridiano de Greenwich (Côte d’Ivoire)" is 20:00, its hour taken from the year (also `az`, `ur`). The text before the country should be a name the locale writes.
 
 * [ ] **A locale's GMT literal alone is not read as GMT** — TR35's parsing reads the absence of an offset as offset 0 "whether in localized or global formats" ("HPG" is `Etc/GMT`), and ICU4C reads "غرينتش" so in `ar-EG`; Localize reads "GMT", "UTC" and "UT" alone, and of the 74 locales with a literal of their own only the four whose literal is also their name for Greenwich Mean Time (`ga`'s "MAG", `blo`, `ii`). No format has written one since CLDR dropped `gmtZeroFormat`.
 
@@ -71,6 +71,8 @@ Outstanding work on Localize. The design detail behind these items lives under [
 * [ ] **`localize_emoji` sibling library** — plan item 11, a separate package on its own schedule. A Phoenix LiveView picker (`localize_emoji_live`) is out of scope for its 0.1.0.
 
 ## Done
+
+* [x] **An offset with no sign is read after the GMT literal** — "GMT 3", "UTC5:30" and "غرينتش ٣" are offsets east to `parse_zone/2`, `parse_offset/2` and `resolve/3`, as TR35's parsing allows "+, -, or nothing"; a zone that is a field of a date or time keeps needing the sign ("12:00:00 UTC 2026" is no offset of 20:26), and so does a number before a literal that follows it ("10:30 GMT"). 2026-10-05, v1.4.0.
 
 * [x] **An offset before standard time is written whole and read back** — the localized GMT format and `Z` write the seconds TR35 gives them an optional field for ("GMT-07:52:58" and "-075258" for Los Angeles' -7:52:58, as ICU4C writes them), and the reader takes seconds after a one-digit hour ("GMT+3:30:45", "33045") and an hour to 23, Juneau's +15:02:19 before 1867. 2026-10-05, v1.4.0.
 

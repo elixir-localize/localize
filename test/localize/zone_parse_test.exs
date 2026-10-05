@@ -247,6 +247,89 @@ defmodule Localize.ZoneParseTest do
       assert whole_minutes.zone_abbr == "+05:30"
     end
 
+    # TR35's parsing: "Allow +, -, or nothing. Allow spaces after GMT, +/-,
+    # and before number." A number with no sign after the literal, the
+    # global one or the locale's, is an offset east of it. ICU4C 78.3 reads
+    # none of these: it wants the sign.
+    test "an offset with no sign after the GMT literal" do
+      for {locale, text, offset} <- [
+            {:en, "GMT 3", 10_800},
+            {:en, "GMT3", 10_800},
+            {:en, "UTC 0530", 19_800},
+            {:en, "UT 5:30", 19_800},
+            {:en, "gmt 03:30:45", 12_645},
+            {:en, "GMT 0", 0},
+            {:fr, "UTC 3", 10_800},
+            {:fr, "UTC3:30", 12_600},
+            {:"ar-EG", "غرينتش٣", 10_800},
+            {:"ar-EG", "غرينتش ٣", 10_800},
+            {:mr, "[GMT]5:30", 19_800},
+            {:pt, "GMT 3", 10_800}
+          ] do
+        assert Timezone.parse_zone(text, locale: locale) == {:ok, {:offset, offset}},
+               "#{locale} #{text}"
+
+        assert Timezone.parse_offset(text, locale: locale) == {:ok, offset}, "#{locale} #{text}"
+      end
+
+      for text <- ["GMT 24", "GMT 3:60", "GMT abc", "GMT 1234567"] do
+        assert {:error, %Localize.UnknownTimezoneError{}} =
+                 Timezone.parse_zone(text, locale: :en),
+               text
+      end
+    end
+
+    # A number before a literal that follows it is as much a time of day in
+    # that zone as an offset from it, so it keeps needing its sign: "10:30
+    # GMT" is no zone, in `en` or in `pt`, whose GMT format, "{0} GMT", has
+    # the literal after the offset.
+    test "a number with no sign before the GMT literal is no offset" do
+      for {locale, text} <- [
+            {:en, "3 GMT"},
+            {:en, "10:30 GMT"},
+            {:pt, "3 GMT"},
+            {:pt, "10:30 GMT"}
+          ] do
+        assert {:error, %Localize.UnknownTimezoneError{}} =
+                 Timezone.parse_zone(text, locale: locale),
+               "#{locale} #{text}"
+      end
+
+      assert Timezone.parse_zone("+3 GMT", locale: :pt) == {:ok, {:offset, 10_800}}
+      assert Timezone.parse_zone("+3 GMT", locale: :en) == {:ok, {:offset, 10_800}}
+    end
+
+    # TR35 describes a zone read "as if it were an isolated string", and has
+    # a zone "mixed in with other data" adapt that. Among the fields of a
+    # date or time a number after the literal can be the next field's, so
+    # there it needs its sign: `date` writes "Mon Oct 5 12:00:00 UTC 2026",
+    # which is no time at an offset of 20:26, and `zh` and `my` write a zone
+    # before the time ("z HH:mm:ss"), where "GMT 12:00:00" is noon in GMT.
+    test "a zone among the fields of a date or time needs its offset's sign" do
+      assert {:error, %Localize.TimeParseError{}} =
+               Localize.Time.Parser.parse_with_zone("12:00:00 UTC 2026", locale: :en)
+
+      assert {:error, %Localize.DateTimeParseError{}} =
+               Localize.DateTime.parse("Mon Oct 5 12:00:00 UTC 2026", locale: :en)
+
+      assert {:error, %Localize.DateTimeParseError{}} =
+               Localize.DateTime.parse("June 5, 2026 12:00 GMT 3", locale: :en)
+
+      assert {:error, %Localize.UnknownTimezoneError{}} =
+               Timezone.parse_zone_field("GMT 3", locale: :en)
+
+      assert Timezone.parse_zone_field("GMT+3", locale: :en) == {:ok, {:offset, 10_800}}
+      assert Timezone.parse_zone_field("GMT", locale: :en) == {:ok, {:offset, 0}}
+
+      for locale <- [:zh, :my] do
+        assert {:ok, ~T[12:00:00], "GMT"} =
+                 Localize.Time.Parser.parse_with_zone("GMT 12:00:00", locale: locale)
+      end
+
+      assert {:ok, datetime} = Localize.DateTime.parse("2026年6月5日 GMT 12:00:00", locale: :zh)
+      assert {datetime.utc_offset, DateTime.to_naive(datetime)} == {0, ~N[2026-06-05 12:00:00]}
+    end
+
     # An hour no offset has, and digits with no sign, are no offset in any
     # digits.
     test "digits that are no offset" do

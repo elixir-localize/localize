@@ -1099,6 +1099,12 @@ defmodule Localize.DateTime.Timezone do
   locale, as TR35's parsing reads the localized GMT format with "non-Latin
   numbers": `gmt_format/3` writes it in the locale's digits.
 
+  TR35 has that format's number read leniently: as "03, 3, 330, 3:30,
+  33045 or 3:30:45", with spaces around its sign, and with "+, -, or
+  nothing" before it, so a number with no sign after the GMT literal is an
+  offset east of it. A number before a literal that follows it needs its
+  sign, being as much a time of day in that zone (`"10:30 GMT"`).
+
   ### Arguments
 
   * `zone_string` is the zone portion of a parsed time, such as `"Z"`,
@@ -1134,6 +1140,9 @@ defmodule Localize.DateTime.Timezone do
       iex> Localize.DateTime.Timezone.parse_offset("GMT+५:३०", locale: :ne)
       {:ok, 19800}
 
+      iex> Localize.DateTime.Timezone.parse_offset("GMT 3")
+      {:ok, 10800}
+
       iex> Localize.DateTime.Timezone.parse_offset("Asia/Tokyo")
       {:error, %Localize.UnknownTimezoneError{timezone: "Asia/Tokyo"}}
 
@@ -1142,13 +1151,27 @@ defmodule Localize.DateTime.Timezone do
   def parse_offset(zone_string, options \\ [])
 
   def parse_offset(zone_string, options)
-      when is_binary(zone_string) and is_keyword_list(options) do
+      when is_binary(zone_string) and is_keyword_list(options),
+      do: read_offset(zone_string, options, :optional)
+
+  def parse_offset(_zone_string, options) when not is_keyword_list(options),
+    do: {:error, Localize.Utils.Helpers.invalid_options(options)}
+
+  def parse_offset(zone_string, _options) do
+    {:error, Localize.UnknownTimezoneError.exception(timezone: zone_string)}
+  end
+
+  # `sign` is whether a number after the GMT literal may come without one:
+  # `:optional` for a zone on its own, as TR35's parsing reads it, and
+  # `:required` for a zone that is a field of a date or time
+  # (`parse_zone_field/2`).
+  defp read_offset(zone_string, options, sign) do
     normalized = zone_string |> strip_bidi_marks() |> ascii_digits()
 
     attempts = [
       fn -> parse_iso_offset(normalized) end,
-      fn -> parse_ascii_gmt_offset(normalized) end,
-      fn -> parse_localized_gmt_offset(normalized, options) end
+      fn -> parse_ascii_gmt_offset(normalized, sign) end,
+      fn -> parse_localized_gmt_offset(normalized, options, sign) end
     ]
 
     Enum.reduce_while(attempts, :error, fn attempt, _no_match ->
@@ -1161,13 +1184,6 @@ defmodule Localize.DateTime.Timezone do
       {:ok, _offset} = ok -> ok
       :error -> {:error, Localize.UnknownTimezoneError.exception(timezone: zone_string)}
     end
-  end
-
-  def parse_offset(_zone_string, options) when not is_keyword_list(options),
-    do: {:error, Localize.Utils.Helpers.invalid_options(options)}
-
-  def parse_offset(zone_string, _options) do
-    {:error, Localize.UnknownTimezoneError.exception(timezone: zone_string)}
   end
 
   defp strip_bidi_marks(zone_string) do
@@ -1198,19 +1214,51 @@ defmodule Localize.DateTime.Timezone do
 
   # ── Localized GMT format, ASCII spellings ────────────────────
 
-  defp parse_ascii_gmt_offset(zone) do
+  defp parse_ascii_gmt_offset(zone, sign) do
     case strip_gmt_literal(zone) do
       :error -> :error
-      "" -> {:ok, 0}
-      remainder -> parse_signed_offset(remainder, :short_hour)
+      {_place, ""} -> {:ok, 0}
+      {:leading, remainder} -> parse_offset_after_literal(remainder, sign)
+      {:trailing, remainder} -> parse_signed_offset(remainder, :short_hour)
     end
   end
 
+  # The text beside the literal, and whether the literal leads it or
+  # follows it.
   defp strip_gmt_literal(zone) do
-    Enum.find_value(@gmt_literals, &strip_leading_literal(zone, &1)) ||
-      Enum.find_value(@gmt_literals, &strip_trailing_literal(zone, &1)) ||
-      :error
+    cond do
+      rest = Enum.find_value(@gmt_literals, &strip_leading_literal(zone, &1)) ->
+        {:leading, rest}
+
+      head = Enum.find_value(@gmt_literals, &strip_trailing_literal(zone, &1)) ->
+        {:trailing, head}
+
+      true ->
+        :error
+    end
   end
+
+  # TR35's parsing reads the GMT format's number with "+, -, or nothing"
+  # before it: after the literal, a number with no sign is an offset east,
+  # "GMT 3" and "UTC5:30". A number before a literal that follows it keeps
+  # needing its sign, being as much a time of day in that zone ("10:30 GMT").
+  #
+  # TR35 describes a zone read "as if it were an isolated string", and has
+  # a zone "mixed in with other data" adapt it. Beside other fields a number
+  # after the literal can be the year or the hour that follows ("12:00:00
+  # UTC 2026", `zh`'s "GMT 12:00:00"), so there the sign stays required.
+  defp parse_offset_after_literal(remainder, sign) do
+    case parse_signed_offset(remainder, :short_hour) do
+      {:ok, _offset} = signed -> signed
+      :error when sign == :optional -> parse_unsigned_offset(remainder)
+      :error -> :error
+    end
+  end
+
+  defp parse_unsigned_offset(<<digit, _rest::binary>> = digits) when digit in ?0..?9,
+    do: offset_seconds(digits, :short_hour)
+
+  defp parse_unsigned_offset(_remainder), do: :error
 
   defp strip_leading_literal(zone, literal) do
     size = byte_size(literal)
@@ -1242,17 +1290,20 @@ defmodule Localize.DateTime.Timezone do
 
   # ── Localized GMT format, the locale's own spelling ──────────
 
-  defp parse_localized_gmt_offset(zone, options) do
+  defp parse_localized_gmt_offset(zone, options, sign) do
     with {:ok, locale_id} <- offset_locale(options),
          {:ok, tz_data} <- Localize.Locale.get(locale_id, [:dates, :time_zone_names]),
-         {:ok, remainder} <-
+         {:ok, place, remainder} <-
            strip_gmt_pattern(zone, tz_data[:gmt_format] || @default_gmt_format) do
       # A bare localized literal is deliberately not read as a zero
       # offset. Several locales spell the GMT format with a string that
       # is also a real zone abbreviation — `yo` uses "WAT", `ga` uses
       # "MAG" — and resolving those to UTC would be wrong, so only a
       # literal carrying an actual offset resolves here.
-      parse_signed_offset(remainder, :short_hour)
+      case place do
+        :leading -> parse_offset_after_literal(remainder, sign)
+        :trailing -> parse_signed_offset(remainder, :short_hour)
+      end
     else
       _no_offset -> :error
     end
@@ -1271,11 +1322,16 @@ defmodule Localize.DateTime.Timezone do
 
     with {:ok, without_prefix} <- strip_leading(zone, prefix),
          {:ok, remainder} <- strip_trailing(without_prefix, suffix) do
-      {:ok, String.trim(remainder)}
+      {:ok, literal_place(prefix, suffix), String.trim(remainder)}
     end
   end
 
   defp strip_gmt_pattern(_zone, _pattern), do: :error
+
+  # Whether the pattern's literal leads the offset ("GMT{0}", `mr`'s
+  # "[GMT]{0}") or follows it (`pt`'s "{0} GMT", `fa`'s "{0} گرینویچ").
+  defp literal_place(prefix, "") when prefix != "", do: :leading
+  defp literal_place(_prefix, _suffix), do: :trailing
 
   defp pattern_literal(parts) do
     parts
@@ -1456,21 +1512,41 @@ defmodule Localize.DateTime.Timezone do
   def parse_zone(zone_string, options \\ [])
 
   def parse_zone(zone_string, options)
-      when is_binary(zone_string) and is_keyword_list(options) do
-    with {:ok, language_tag} <-
-           Localize.validate_locale(Keyword.get(options, :locale) || Localize.get_locale()) do
-      case parse_offset(zone_string, locale: language_tag) do
-        {:ok, offset} -> {:ok, {:offset, offset}}
-        {:error, _not_an_offset} -> parse_named_zone(zone_string, language_tag)
-      end
-    end
-  end
+      when is_binary(zone_string) and is_keyword_list(options),
+      do: read_zone(zone_string, options, :optional)
 
   def parse_zone(_zone_string, options) when not is_keyword_list(options),
     do: {:error, Localize.Utils.Helpers.invalid_options(options)}
 
   def parse_zone(zone_string, _options),
     do: {:error, Localize.UnknownTimezoneError.exception(timezone: zone_string)}
+
+  @doc false
+  # A zone that is a field of a date or time, as the parsers take one from
+  # the text around it: `parse_zone/2`, but that a number after the GMT
+  # literal needs its sign. TR35 reads "GMT 3" as an offset in a zone "as if
+  # it were an isolated string"; beside other fields that number can be the
+  # year or the hour that follows, and "12:00:00 UTC 2026", as `date` writes
+  # it, is no time at an offset of 20:26.
+  @spec parse_zone_field(String.t(), Keyword.t()) ::
+          {:ok, {:offset, integer()} | {:zone, String.t(), :generic | :standard | :daylight}}
+          | {:error, Exception.t()}
+  def parse_zone_field(zone_string, options)
+      when is_binary(zone_string) and is_keyword_list(options),
+      do: read_zone(zone_string, options, :required)
+
+  def parse_zone_field(zone_string, _options),
+    do: {:error, Localize.UnknownTimezoneError.exception(timezone: zone_string)}
+
+  defp read_zone(zone_string, options, sign) do
+    with {:ok, language_tag} <-
+           Localize.validate_locale(Keyword.get(options, :locale) || Localize.get_locale()) do
+      case read_offset(zone_string, [locale: language_tag], sign) do
+        {:ok, offset} -> {:ok, {:offset, offset}}
+        {:error, _not_an_offset} -> parse_named_zone(zone_string, language_tag)
+      end
+    end
+  end
 
   @doc """
   Resolves a time zone written in any form `parse_zone/2` reads, at a date

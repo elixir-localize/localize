@@ -536,14 +536,16 @@ defmodule Localize.Time.Parser do
   end
 
   # A zone field reads any text, so the pattern matches only where that
-  # text is a zone the locale writes, in any of TR35's forms.
+  # text is a zone the locale writes, in any of TR35's forms. A number
+  # after the GMT literal needs its sign here, since the text around the
+  # field has numbers of its own (`parse_zone_field/2`).
   defp zone_capture(caps, locale) do
     case extract_zone(caps) do
       nil ->
         {:ok, nil}
 
       zone ->
-        case Localize.DateTime.Timezone.parse_zone(zone, locale: locale) do
+        case Localize.DateTime.Timezone.parse_zone_field(zone, locale: locale) do
           {:ok, _parsed_zone} -> {:ok, zone}
           {:error, _not_a_zone} -> :error
         end
