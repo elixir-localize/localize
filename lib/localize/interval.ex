@@ -1395,8 +1395,9 @@ defmodule Localize.Interval do
   # the skeleton's own hour symbol. An AM/PM difference takes the `a` entry,
   # or the `B` entry of a flexible-day-period item, and otherwise the hour
   # entry. A 24-hour pattern has no day period, by TR35, and its item no
-  # entry for one; TR35 does not say what two times across noon take then
-  # (`plans/tr35-audit.md`).
+  # entry for one, so of "the fields in the pattern" the hour is the
+  # greatest two times across noon differ in (user, 2026-10-06,
+  # `plans/tr35-audit.md`).
   defp difference_key(:era, _skeleton, _item), do: :G
   defp difference_key(:year, _skeleton, _item), do: :y
   defp difference_key(:month, _skeleton, _item), do: :M

@@ -1475,8 +1475,9 @@ defmodule Localize.DateTime.Formatter do
   # from the locale's day-period rule set select noon/midnight; any
   # other time renders as AM/PM. A time is judged at the precision its
   # pattern shows: "h b" renders 12:05 as "12 noon", and "h:mm b" renders
-  # it as "12:05 PM". TR35 has noon "= 12:00" and does not speak of a
-  # pattern that shows no minutes; ICU judges it so (`plans/tr35-audit.md`).
+  # it as "12:05 PM". TR35: "If rounding is done—including the rounding
+  # done by the time format—then it needs to be done before the dayperiod
+  # is computed, so that the correct format is shown."
   def period_noon_midnight(time, count, locale_id, options) when is_time(time) do
     minutes = displayed_minutes_of_day(time, options)
 

@@ -1609,8 +1609,10 @@ defmodule Localize.DateTime.Timezone do
   TR35's type fallback has it, and follows the zone's clock.
 
   Any other form follows the zone's clock, and a wall time its clocks pass
-  twice is read in standard time, one they skip at the offset before the
-  change. TR35 does not say how either is read.
+  twice is read in standard time, TR35's example for a generic format
+  "when the local time maps to two possible GMT times" being one "favoring
+  standard time". A time they skip is read at the offset before the change;
+  of that TR35 says only that "there can also be a gap".
 
   Some strings have more than one reading: `it`'s "Ora dell’Europa
   orientale (Kaliningrad)" names a metazone no zone has kept since 2014 and
@@ -2086,9 +2088,10 @@ defmodule Localize.DateTime.Timezone do
   # the one with zones in the most territories, else the first by name: ICU
   # reads "Greenwich Mean Time", which names the GMT, British and Irish
   # metazones, as `Atlantic/Reykjavik` in `en`, `Europe/London` in `en-GB`
-  # and `Europe/Dublin` in `en-IE`. TR35 does not speak of metazones that
-  # share a name: the order is made to give ICU's results, and is no rule of
-  # TR35's (`plans/tr35-audit.md`).
+  # and `Europe/Dublin` in `en-IE`. The first of those is TR35's own step,
+  # "look up the Metazone + Country => TZID mapping", put to each metazone
+  # of the name; TR35 does not speak of metazones that share a name, and
+  # the rest breaks the tie (user, 2026-10-06, `plans/tr35-audit.md`).
   defp preferred_metazone(metazones, territory) do
     Enum.min_by(metazones, fn {metazone, type} ->
       zones = Map.get(@metazone_mapzones, metazone, %{})
@@ -2409,10 +2412,10 @@ defmodule Localize.DateTime.Timezone do
 
   defp daylight_name?(_no_names), do: false
 
-  # A wall time the clocks skip is read at the offset before the change,
-  # which TR35 does not speak of and ICU does (`plans/tr35-audit.md`): New
-  # York's 02:30 on the day it springs forward is 03:30
-  # daylight time.
+  # A wall time the clocks skip is read at the offset before the change, as
+  # `Localize.DateTime.WallClock` reads one (user, 2026-10-06,
+  # `plans/tr35-audit.md`; TR35 says only that "there can also be a gap"):
+  # New York's 02:30 on the day it springs forward is 03:30 daylight time.
   defp across_gap(naive_datetime, time_zone, offset, database) do
     with {:ok, utc} <- DateTime.from_naive(NaiveDateTime.add(naive_datetime, -offset), "Etc/UTC"),
          {:ok, datetime} <- DateTime.shift_zone(utc, time_zone, database) do
@@ -2455,8 +2458,9 @@ defmodule Localize.DateTime.Timezone do
   # keeping another time: the one its metazone period names (TR35's
   # `stdOffset` and `dstOffset`), and else the zone's standard offset then,
   # with, for daylight time, the most the zone saves within nine months
-  # either side, or an hour where it saves none, which TR35 does not speak
-  # of and ICU does (`plans/tr35-audit.md`).
+  # either side, or an hour where it saves none. TR35 has such a name read
+  # back "to just an offset" and does not say which where the data names
+  # none (user, 2026-10-06, `plans/tr35-audit.md`).
   defp named_offset(type, time_zone, reference, nearby) do
     case metazone_period(time_zone, reference, :as_read) do
       %{std_offset: std, dst_offset: dst} when is_integer(std) and is_integer(dst) ->
@@ -2642,9 +2646,9 @@ defmodule Localize.DateTime.Timezone do
 
   # The short format of a whole hour is the pattern up to its hour field.
   # TR35 has the short format use "hour fields without leading zero, with
-  # optional 2-digit minutes" and does not say how the pattern is cut; it is
-  # cut as ICU's `truncateOffsetPattern` cuts it (`plans/tr35-audit.md`): the
-  # minutes, their separator and anything after them go. That drops the left-to-right mark `he` ends its
+  # optional 2-digit minutes" and does not say how the pattern is cut: the
+  # minutes, their separator and anything after them go (user, 2026-10-06,
+  # `plans/tr35-audit.md`). That drops the left-to-right mark `he` ends its
   # negative pattern with, which its GMT format then repeated after the
   # offset. A pattern without minutes or hours is kept as it is.
   defp hour_field_pattern(sign_format) do
@@ -2659,8 +2663,8 @@ defmodule Localize.DateTime.Timezone do
 
   # CLDR's `hourFormat` has hours and minutes, and TR35 does not say where
   # the seconds of an offset go. They follow the minutes behind the text the
-  # pattern has between its hours and its minutes, as ICU's
-  # `expandOffsetPattern` places them (`plans/tr35-audit.md`): "+HH:mm:ss", `fi`'s "+H.mm.ss" and
+  # pattern has between its hours and its minutes (user, 2026-10-06,
+  # `plans/tr35-audit.md`): "+HH:mm:ss", `fi`'s "+H.mm.ss" and
   # `am`'s "+HHmmss", with what follows the minutes (`he`'s left-to-right
   # mark) after them. An offset of whole minutes, and a pattern without
   # minutes or hours, has none.

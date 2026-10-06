@@ -266,7 +266,7 @@ defmodule Localize.DateTime.Relative do
   # plural category of the number as displayed: "in 1.5 days" is `:other` in
   # English and "dans 1,5 jour" `:one` in French. Zero takes the future
   # pattern ("in 0 days"), as ECMA-402 has it; TR35 does not say which
-  # pattern zero takes (`plans/tr35-audit.md`).
+  # pattern zero takes (user, 2026-10-06, `plans/tr35-audit.md`).
   defp pattern_parts(relative, unit, unit_data, locale, locale_id) do
     direction = if relative < 0, do: :relative_past, else: :relative_future
     magnitude = abs(relative)

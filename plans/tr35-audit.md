@@ -10,7 +10,7 @@ Localize follows TR35, and follows ICU only where ICU clearly follows TR35 (user
 
 * **TR35 is silent, decided** — by the user, with the date, or by me and told to the user at the time.
 
-* **TR35 is silent, undecided** — the choice followed ICU, or was mine, and was never put to the user. These are `Open`, and are the user's to decide.
+* **TR35 is silent, decided on recommendation** — fourteen choices that followed ICU, or were mine, and had never been put to the user, who settled them on 2026-10-06.
 
 * **Departs from TR35 by the user's decision** — two behaviours the user decided with TR35's text in the question. They are listed so that every place Localize does not do as TR35 says is in one document.
 
@@ -55,8 +55,13 @@ The date, time, time zone, interval and calendar modules are checked in full: th
 | A standard name with no daylight name stands for every type | `Localize.DateTime.Timezone` | Type fallback | Done |
 | A name of another season reads back as its own offset | `Localize.DateTime.Timezone` | Time Zone Parsing: "or to just an offset" | Done |
 | A metazone's name is qualified in both non-location formats | `Localize.DateTime.Timezone` | Non-location formats, step 4.3 | Done |
+| Noon and midnight are judged at the precision the pattern shows | `Localize.DateTime.Formatter.period_noon_midnight/4` | Parsing Day Periods: "the rounding done by the time format" | Done |
+| `b` is nearer `a` than `B` in a skeleton | `Localize.DateTime.Format.Match` | availableFormats: "matches an explicit or implicit 'a'" | Done |
+| A wall time the clocks pass twice is read in standard time | `Localize.DateTime.Timezone` | Time zone goals: "favoring standard time" | Done |
 | Decimal rounding is half-even | `Localize.Number.Formatter.Decimal` | Rounding | Done |
 | A currency's digits override a currency pattern's | `Localize.Number.Format.Options` | Currencies | Done |
+
+The last three rows before the two of numbers were first listed as undecided: I had read the row of the symbol and not the section. TR35's day period rules end "If rounding is done—including the rounding done by the time format—then it needs to be done before the dayperiod is computed, so that the correct format is shown"; its text on day periods in skeletons has `bh` take "h b" where the data has `Bh` too; and its goals for time zones give, for a generic format "when the local time maps to two possible GMT times", the example "favoring standard time". `Localize.DateTime.WallClock`, which takes the first occurrence, is calendar arithmetic as ECMA-262 Temporal has it (user, 2026-10-02), not the reading of a zone's name.
 
 In these the comment that named only ICU now names the clause, or names ICU after it as agreeing or as differing. A sentence that records what ICU writes beside a rule of TR35's is kept: the difference is a fact the divergence guide needs.
 
@@ -75,7 +80,7 @@ In these the comment that named only ICU now names the clause, or names ICU afte
 | The order a zone's string is read in, where it leaves TR35's sample | Mine, told 2026-10-05 | Done |
 | A numbered month beside a word stays a name in an interval's skeleton | Mine, told 2026-10-04 | Done |
 
-**A fixed offset.** TR35's text was not read before this was recommended, and should have been. It says "an implementation will be able to either determine the zone id, or a simple offset from GMT", and that what follows "is only a sample; implementations may use different methods". The sample gives a zone id: `"-08:00" (ISO 8601) => Etc/GMT+8` and `"GMT+3" => Etc/GMT-3`. Localize returns the simple offset, as a `t:DateTime.t/0` whose time zone is `"-08:00"`, which TR35 allows and does not describe, the representation being Elixir's and not TR35's subject. The sample's `Etc/GMT+8` is a zone every IANA database knows, so `DateTime.add/4` would need no `Localize.TimeZoneDatabase` for an offset of whole hours, and it has no id for one of 5 hours and 30 minutes.
+**A fixed offset.** TR35's text was not read before this was recommended, and should have been. It says "an implementation will be able to either determine the zone id, or a simple offset from GMT", and that what follows "is only a sample; implementations may use different methods". The sample gives a zone id: `"-08:00" (ISO 8601) => Etc/GMT+8` and `"GMT+3" => Etc/GMT-3`. Localize returns the simple offset, as a `t:DateTime.t/0` whose time zone is `"-08:00"`, which TR35 allows and does not describe, the representation being Elixir's and not TR35's subject. The sample's `Etc/GMT+8` is a zone every IANA database knows, so `DateTime.add/4` would need no `Localize.TimeZoneDatabase` for an offset of whole hours, and it has no id for one of 5 hours and 30 minutes. It stays the simple offset (user, 2026-10-06, on recommendation): one form for every offset, its sign as it is written.
 
 **The order a zone's string is read in.** TR35's sample is "only a sample", and its own measure is that "a correct parse will roundtrip the location format (VVVV) back to the canonical zoneid". Localize departs from the sample's order in three places so that what the formatter writes reads back: the qualifier as a city first, a name the locale has before a region format, and the primary zone of a country with several.
 
@@ -90,52 +95,43 @@ In these the comment that named only ICU now names the clause, or names ICU afte
 
 **`availableFormats` alone.** TR35 names "the predefined patterns" among those a skeleton is matched against, and ICU adds the standard formats' patterns. CLDR's own conformance data is made without them, and adding them fails 43 of its locales, so Localize matches `availableFormats` alone (user, 2026-10-06).
 
-## TR35 is silent, undecided
+## TR35 is silent, decided on recommendation
 
-Each of these was decided without the user. Most follow ICU; none contradicts a clause of TR35's.
+These fourteen were found undecided: each had been settled without the user, most as ICU has them. The user settled them on 2026-10-06 ("Follow your recommendations"). Reading TR35's sections whole for the recommendation found its rule for three of them, which are rows of "TR35 is the rule" above; one changed; ten stand, each for the reason given, which is not that ICU does it.
 
-| Behaviour | Where | Status |
-|---|---|---|
-| A year written without an era | `Localize.Date.Parser.implied_era/2` | Open |
-| Metazones that share a name | `Localize.DateTime.Timezone.preferred_metazone/2` | Open |
-| A wall time the clocks pass twice | `Localize.DateTime.Timezone`, `Localize.DateTime.WallClock` | Open |
-| A wall time the clocks skip | `Localize.DateTime.Timezone.across_gap/4` | Open |
-| The offset of a seasonal name CLDR gives no offset | `Localize.DateTime.Timezone.named_offset/4` | Open |
-| Where an offset's seconds go in the GMT format | `Localize.DateTime.Timezone.seconds_pattern/2` | Open |
-| How the short GMT pattern is cut | `Localize.DateTime.Timezone.hour_field_pattern/1` | Open |
-| Two times across noon at a 24-hour interval | `Localize.Interval.difference_key/3` | Open |
-| Noon and midnight where the pattern shows no minutes | `Localize.DateTime.Formatter.period_noon_midnight/4` | Open |
-| The distances between `a`, `b` and `B` | `Localize.DateTime.Format.Match` | Open |
-| `C` beside a day period of its own | `Localize.DateTime.Format.Match.allowed_hour/2` | Open |
-| The fields `:column` alignment pads | `Localize.DateTime.SemanticSkeleton` | Open |
-| A relative offset a hundredth from a whole number | `Localize.DateTime.Relative.named_form/3` | Open |
-| Zero takes the future pattern | `Localize.DateTime.Relative` | Open |
+| Behaviour | Where | Decided | Status |
+|---|---|---|---|
+| A relative offset that is no whole number is the number | `Localize.DateTime.Relative.named_form/3` | Changed | Done |
+| A year written without an era is of the reference date's era | `Localize.Date.Parser.implied_era/2` | Kept | Done |
+| Of metazones that share a name, the locale's country's is read | `Localize.DateTime.Timezone.preferred_metazone/2` | Kept | Done |
+| A wall time the clocks skip is read at the offset before the change | `Localize.DateTime.Timezone.across_gap/4` | Kept | Done |
+| A seasonal name CLDR gives no offset takes the zone's own saving | `Localize.DateTime.Timezone.named_offset/4` | Kept | Done |
+| An offset's seconds follow its minutes in the GMT format | `Localize.DateTime.Timezone.seconds_pattern/2` | Kept | Done |
+| The short GMT pattern is the pattern up to its hour field | `Localize.DateTime.Timezone.hour_field_pattern/1` | Kept | Done |
+| Two times across noon at a 24-hour interval take its hour pattern | `Localize.Interval.difference_key/3` | Kept | Done |
+| `C` beside a day period of its own writes that day period | `Localize.DateTime.Format.Match.allowed_hour/2` | Kept | Done |
+| `:column` alignment pads a month, a day and an hour | `Localize.DateTime.SemanticSkeleton` | Kept | Done |
+| Zero takes the future pattern | `Localize.DateTime.Relative` | Kept | Done |
 
-**A year written without an era.** In a calendar that writes its years as years of an era, the Japanese calendars, "5年4月1日" is read as a year of the reference date's era, as ICU takes the current era. TR35's parsing section names no default for a field the text lacks. The alternative is an error.
+**A relative offset that is no whole number** (`b65c0635`, its fixture test in `5b3e15fc`). With `numeric: :auto`, 0.9999 days was "tomorrow": an offset within half a hundredth of a whole number took the named form, as ICU4C matches it. TR35's `relative` is a name "for the current instance of the field, and one or two past and future instances", "the day with relative value -1" being "Yesterday", so an instance is a whole number of the field away, and ECMA-402, whose option `numeric` is, takes the name for the exact number. Calendar arithmetic gives whole numbers, so there is no error of division to allow for. Only a whole offset is named; 0.9999 days is "in 1 day".
 
-**Metazones that share a name.** "Greenwich Mean Time" names the GMT, British and Irish metazones in `en`. The one with a zone in the locale's territory is read, else the one with zones in the most territories, else the first by name: Reykjavik in `en`, London in `en-GB`, Dublin in `en-IE`. TR35's sample takes a name for one metazone; the order was made to give ICU's results.
+**A year written without an era.** In a calendar that writes its years as years of an era, the Japanese calendars, "5年4月1日" is a year of the reference date's era. TR35's parsing section names no default for a field a text lacks. Kept, because the reference date supplies every other field a text lacks: a date written without its year is of the reference date's year.
 
-**A wall time the clocks pass twice.** Read with a zone's name, "1:30 AM Eastern Time" on the day the clocks go back is standard time, the later moment, as ICU reads it. `Localize.DateTime.WallClock.offset_at/3`, which relative time and durations use, takes the first occurrence, as RFC 5545 and ECMA-262 Temporal do. TR35 says nothing of either, and the library has both rules.
+**Metazones that share a name.** "Greenwich Mean Time" names the GMT, British and Irish metazones in `en`. TR35's sample takes a name for one metazone and then looks up "the Metazone + Country => TZID mapping"; put to each metazone of the name, that is the first test here, the metazone with a zone in the locale's country (London in `en-GB`, Dublin in `en-IE`). Where none has one, the metazone with zones in the most countries is read, and then the first by name, so that the reading does not turn on the order of a map (Reykjavik, the GMT metazone's golden zone, in `en`). Kept.
 
-**A wall time the clocks skip.** It is read at the offset before the change in both places: New York's 02:30 on the day it springs forward is 03:30 daylight time.
+**A wall time the clocks skip.** New York's 02:30 on the day it springs forward is read at the offset before the change, 03:30 daylight time. TR35 says of it only that "there can also be a gap". Kept, because it is the one rule the library has: `Localize.DateTime.WallClock` reads a skipped time so for relative time and durations, as RFC 5545 and ECMA-262 Temporal do.
 
-**The offset of a seasonal name CLDR gives no offset.** "EST" read in July keeps its own offset, which TR35 allows ("or to just an offset"). Where the zone's metazone period has no `stdOffset` and `dstOffset`, the offset is the zone's standard offset then, with, for a daylight name, the most the zone saves within nine months either side, or an hour where it saves none. The nine months and the hour are ICU's.
+**A seasonal name CLDR gives no offset.** "EST" read in July keeps its own offset, which TR35 allows ("or to just an offset"). Where the zone's metazone period has no `stdOffset` and `dstOffset`, the offset is the zone's standard offset then, with, for a daylight name, the most the zone saves within nine months either side, or an hour where it saves none. Kept: the saving is the zone's own wherever it has one near the date, Lord Howe's half hour among them, and an hour is what daylight time saves everywhere else.
 
-**The GMT format's seconds and its short pattern.** TR35 gives the long format an "optional 2-digit seconds field" and the short one "hour fields without leading zero, with optional 2-digit minutes and seconds fields", and CLDR's `hourFormat` has hours and minutes alone. The seconds follow the minutes behind the text between the hours and the minutes ("+HH:mm:ss", `fi`'s "+H.mm.ss"), and the short pattern is the pattern up to its hour field, as ICU's `expandOffsetPattern` and `truncateOffsetPattern` have them.
+**The GMT format's seconds and its short pattern.** TR35 gives the long format an "optional 2-digit seconds field" and the short one "hour fields without leading zero, with optional 2-digit minutes and seconds fields", and CLDR's `hourFormat` has hours and minutes alone. The seconds follow the minutes behind the text the pattern has between its hours and its minutes ("+HH:mm:ss", `fi`'s "+H.mm.ss"), and the short pattern is the pattern up to its hour field. Kept: both write what TR35 describes with the locale's own separator.
 
-**Two times across noon at a 24-hour interval.** `Hm` from 10:00 to 14:30 takes the item's `H` pattern. TR35 has "the calendar field with the greatest difference" choose the pattern and does not say whether the day period is a field of a pattern that does not write one; CLDR gives a 24-hour item no `a` entry, so the other reading would write every such interval around the fallback pattern.
+**Two times across noon at a 24-hour interval.** `Hm` from 10:00 to 14:30 takes the item's `H` pattern. TR35 compares "the fields in the pattern", has a 24-hour pattern hold no day period ("should not include fields with day period characters"), and CLDR gives a 24-hour item no `a` entry. Kept: the hour is the greatest difference among the fields such a pattern has, and the other reading would write every such interval around the fallback pattern.
 
-**Noon and midnight where the pattern shows no minutes.** "h b" writes 12:05 as "12 noon" and "h:mm b" as "12:05 PM": the time is judged at the precision its pattern shows, as ICU judges it. TR35 has noon "= 12:00" and does not speak of a pattern without minutes. The other reading writes "12 PM".
+**`C` beside a day period of its own.** `C` takes the first of the locale's allowed hour formats with its day period. TR35 does not speak of a skeleton that names a day period beside `C` (`Ca`). Kept: a skeleton states the fields its caller wants, so its own day period is the one written, and zh-Hant's `Ca` is "ah時", never a pattern of two day periods.
 
-**The distances between `a`, `b` and `B`.** TR35 has the three "a small distance from each other" and gives no numbers. `b` is nearer `a` than `B` (10, 15 and 20), as ICU's pattern generator has them, so `hb` takes the `h` format over `Bh`.
+**The fields `:column` alignment pads.** TR35's alignment has "Required Fields: Year, Month, Day, or Hour" and the note that implementations "render a minimum of two digits on impacted fields", "01/01/2000" for "1/1/2000". Kept: a month, a day and an hour are padded, and the year is not, two letters of a year being a pattern's year of two digits.
 
-**`C` beside a day period of its own.** `C` takes the first of the locale's allowed hour formats with its day period. Where the skeleton names a day period too (`Ca`), the allowed format's is dropped, as ICU's generator does for zh-Hant's "ah時". TR35 does not speak of `Ca`.
-
-**The fields `:column` alignment pads.** TR35's note is that "the most common behavior ... is for implementations to render a minimum of two digits on impacted fields", and it does not name them. A month, a day and an hour are padded and a year is not, as ICU4X does.
-
-**A relative offset a hundredth from a whole number.** With `numeric: :auto`, 0.9999 days is "tomorrow": an offset within one percent of -2 to 2 takes the named form, as ICU matches it. ECMA-402 takes the named form for the exact number alone, and TR35 does not speak of an offset that is no whole number.
-
-**Zero takes the future pattern.** "in 0 days", as ECMA-402 has it. TR35 does not say which pattern zero takes.
+**Zero takes the future pattern.** "in 0 days". TR35 has a `relativeTime` for "a counted number of units in the past or the future" and does not say which zero is. Kept, as ECMA-402, whose shape this API has, takes the future pattern for a value that is not negative.
 
 ## Not yet checked
 

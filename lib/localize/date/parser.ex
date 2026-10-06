@@ -102,8 +102,9 @@ defmodule Localize.Date.Parser do
   # Era names come from the calendar's `era_calendar_type/0`
   # where it has one, and in a calendar that writes its
   # years as years of an era, a year written without one is
-  # of the reference date's era, which TR35 does not speak of
-  # (`plans/tr35-audit.md`).
+  # of the reference date's era, as a date written without a year is of
+  # the reference date's year (user, 2026-10-06, `plans/tr35-audit.md`;
+  # TR35 names no default for a field a text lacks).
   #
 
   alias Localize.Calendar, as: LCalendar
@@ -3415,8 +3416,9 @@ defmodule Localize.Date.Parser do
 
   # The era a year written without one is of, in a calendar that writes
   # its years as years of an era (the Japanese calendars): the reference
-  # date's, which TR35 does not speak of (`plans/tr35-audit.md`). `nil`
-  # where the calendar's years
+  # date's, as a date written without a year is of the reference date's
+  # year (user, 2026-10-06, `plans/tr35-audit.md`). `nil` where the
+  # calendar's years
   # are written as they are numbered.
   defp implied_era(%{calendar: calendar_module} = reference, calendar_module) do
     with {:ok, shown} when shown != reference.year <- LCalendar.displayed_year(reference),

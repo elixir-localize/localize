@@ -673,9 +673,11 @@ defmodule Localize.DateTime.Format.Match do
             else: distance + mixed_width_distance(symbol, count_a, count_b) + 10
 
         # a, b and B are one field to TR35, "a small distance from each
-        # other", and it gives no distances. `b` is kept nearer `a` than `B`,
-        # as ICU's pattern generator keeps it, so `hb` takes `h a` (rendered
-        # "h b") over `Bh` (`plans/tr35-audit.md`).
+        # other", and `b` is nearer `a` than `B`: "if there is no skeleton
+        # matching the specified day period field, then find a match in which
+        # the b or B matches an explicit or implicit 'a' in the skeleton", and
+        # its table has `bh` take "h b" where the data has `Bh` too. So `hb`
+        # takes `h a` (rendered "h b") over `Bh`.
         {sym_a, count_a}, {sym_b, count_b}, distance
         when sym_a in @day_period and sym_b in @day_period ->
           pair = Enum.sort([sym_a, sym_b])
@@ -1076,8 +1078,9 @@ defmodule Localize.DateTime.Format.Match do
 
   # `C` takes the first allowed hour format with its day period ("hB"),
   # unless the skeleton asks for a day period itself, which TR35 does not
-  # speak of: zh-Hant's `Ca` is "ah時", as ICU's pattern generator renders
-  # it, and not a pattern of two day periods (`plans/tr35-audit.md`).
+  # speak of: the skeleton's own day period is the one written (user,
+  # 2026-10-06, `plans/tr35-audit.md`), so zh-Hant's `Ca` is "ah時" and not
+  # a pattern of two day periods.
   defp allowed_hour(prefs, skeleton) do
     allowed = hd(prefs.allowed)
 
