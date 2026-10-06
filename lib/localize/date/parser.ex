@@ -1610,6 +1610,7 @@ defmodule Localize.Date.Parser do
     with {:ok, year, place} <- written_year(caps, prefix, era_index, ctx, month_day),
          {:ok, year} <- with_cycle(year, cycle, place || name, ctx),
          {:ok, year} <- with_related_year(year, capture(caps, prefix <> "related_year"), ctx),
+         {:ok, year} <- cyclic_year_of_era(year, place || name, era_index, ctx, month_day),
          {:ok, year} <- with_cyclic_year(year, place, ctx),
          {:ok, year} <- with_cyclic_year(year, name, ctx),
          {:ok, year} <- in_cycle(year, cycle, ctx) do
@@ -1812,6 +1813,58 @@ defmodule Localize.Date.Parser do
 
   defp with_cyclic_year(year, position, ctx) do
     if cyclic_position(year, ctx.calendar_module) == position, do: {:ok, year}, else: :error
+  end
+
+  # A year named by its place in the cycle beside an era is the year of
+  # that place in the era, where the place alone is the year of it nearest
+  # the reference date: `Calendrical.LunarJapanese`'s "Genroku geng-chen"
+  # is 1700, the one geng-chen year of Genroku (1688 to 1704), in whatever
+  # year it is read, and was 2000, the geng-chen year nearest 2026. An era
+  # of more than sixty years has two years of a place, and the one nearer
+  # the reference date is meant; a place the era has no year of names no
+  # year. A year known already, by its number, its related year or its
+  # cycle, is held to its place by `with_cyclic_year/3`.
+  defp cyclic_year_of_era(year, position, era_index, _ctx, _month_day)
+       when not is_nil(year) or is_nil(position) or is_nil(era_index),
+       do: {:ok, year}
+
+  defp cyclic_year_of_era(nil, position, era_index, ctx, month_day) do
+    with {:ok, nearest} <- with_cyclic_year(nil, position, ctx) do
+      [nearest | years_of_place_from(era_index, position, ctx)]
+      |> Enum.uniq()
+      |> Enum.filter(&in_era?(&1, era_index, ctx.calendar_module, month_day))
+      |> Enum.min_by(&abs(&1 - ctx.reference_year), fn -> nil end)
+      |> case do
+        nil -> :error
+        year -> {:ok, year}
+      end
+    end
+  end
+
+  # The years of a place in the cycle from the year an era begins in, three
+  # of them, no era having run for 180 years. The era's first year is the
+  # calendar's year of the Gregorian year the era begins in, and the year
+  # before it is counted from, a lunisolar year beginning after January.
+  defp years_of_place_from(era_index, position, ctx) do
+    with {:ok, [start_year | _month_and_day]} <-
+           Map.fetch(era_starts(ctx.calendar_module), era_index),
+         {:ok, first} <- year_with_related(nil, start_year, ctx),
+         first_place when is_integer(first_place) <-
+           cyclic_position(first, ctx.calendar_module) do
+      from = first - 1 + Integer.mod(position - first_place + 1, 60)
+      [from, from + 60, from + 120]
+    else
+      _no_beginning -> []
+    end
+  end
+
+  # Whether the calendar writes a year, on the month and day the text has,
+  # as a year of an era.
+  defp in_era?(year, era_index, calendar_module, {month, day}) do
+    probe = era_probe(calendar_module, year, month, day)
+
+    calendar_holds?(probe) and
+      match?({:ok, {_year_of_era, ^era_index}}, Localize.Calendar.year_of_era(probe))
   end
 
   # A calendar year's place in the sexagenary cycle, as the formatter

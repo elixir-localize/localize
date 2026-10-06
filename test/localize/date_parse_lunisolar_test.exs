@@ -108,6 +108,62 @@ defmodule Localize.DateParseLunisolarTest do
     def calendar_year(year, _month, _day), do: year - 4655
   end
 
+  # The Chinese calendar's years and cycle under three of the Japanese
+  # calendar's eras, as Calendrical's lunisolar Japanese calendar has them:
+  # Shōwa (era 234) from the year that began in 1926, Heisei (235) from 1989
+  # and Reiwa (236) from 2019, each of whole years here. A year is its
+  # Gregorian year and 2637, so 2026 is 4663, the forty-third of its cycle,
+  # and its months and days are the Gregorian calendar's.
+  defmodule ImperialLunisolar do
+    @moduledoc false
+    use Localize.Test.StandInCalendar
+
+    @offset 2637
+    @eras [{4656, 236}, {4626, 235}, {4563, 234}]
+
+    def cldr_calendar_type, do: :chinese
+    def era_calendar_type, do: :japanese
+    def cardinal_month(month), do: month
+    def month_of_year(_year, month, _day), do: month
+    def related_gregorian_year(year, _month, _day), do: year - @offset
+    def cyclic_year(year, _month, _day), do: Localize.Utils.Math.amod(year, 60)
+
+    def year_of_era(year, _month, _day) do
+      {first, era} = Enum.find(@eras, List.last(@eras), fn {first, _era} -> year >= first end)
+      {year - first + 1, era}
+    end
+
+    def calendar_year(year, month, day), do: elem(year_of_era(year, month, day), 0)
+
+    def valid_date?(year, month, day),
+      do: year >= 4563 and Calendar.ISO.valid_date?(year - @offset, month, day)
+
+    def days_in_month(year, month), do: Calendar.ISO.days_in_month(year - @offset, month)
+    def months_in_year(year), do: Calendar.ISO.months_in_year(year - @offset)
+
+    defdelegate date_to_string(year, month, day), to: Calendar.ISO
+    defdelegate day_rollover_relative_to_midnight_utc, to: Calendar.ISO
+
+    def naive_datetime_to_iso_days(year, month, day, hour, minute, second, microsecond) do
+      Calendar.ISO.naive_datetime_to_iso_days(
+        year - @offset,
+        month,
+        day,
+        hour,
+        minute,
+        second,
+        microsecond
+      )
+    end
+
+    def naive_datetime_from_iso_days(iso_days) do
+      {year, month, day, hour, minute, second, microsecond} =
+        Calendar.ISO.naive_datetime_from_iso_days(iso_days)
+
+      {year + @offset, month, day, hour, minute, second, microsecond}
+    end
+  end
+
   # A calendar numbering its years 543 ahead of the Gregorian, as the
   # Buddhist calendar does, with no era before its first.
   defmodule Offset do
@@ -1212,6 +1268,74 @@ defmodule Localize.DateParseLunisolarTest do
 
       assert Localize.Date.parse("Hedar 15, 5495 AA", locale: :en, calendar: Ethiopic) ==
                {:ok, date}
+    end
+  end
+
+  # A year named by its place in the sixty-year cycle beside an era is the
+  # year of that place in the era. 2000 and 1940 are both geng-chen years
+  # (庚辰, the seventeenth of the cycle), the first in Heisei and the second in
+  # Shōwa; Shōwa ran for 63 years, so it has two bing-yin years (丙寅, the
+  # third), 1926 and 1986, and Heisei, 1989 to 2018, has no bing-wu year (丙午,
+  # the forty-third: 1966 and 2026). en.xml names the eras "Shōwa", "Heisei"
+  # and "Reiwa" and the years "geng-chen", "bing-yin" and "bing-wu". The era
+  # was not asked: the year was the one of its name nearest the reference
+  # date, 2000 for every geng-chen read in 2026.
+  describe "a cyclic year's name beside an era" do
+    defp imperial(text, reference_year, options \\ []) do
+      defaults = [
+        locale: :en,
+        calendar: ImperialLunisolar,
+        format: "G U M d",
+        reference_date: Date.new!(reference_year + 2637, 5, 2, ImperialLunisolar)
+      ]
+
+      Localize.Date.parse(text, Keyword.merge(defaults, options))
+    end
+
+    test "is the year of that name in the era" do
+      for {gregorian, text} <- [
+            {2000, "Heisei geng-chen 4 29"},
+            {1940, "Shōwa geng-chen 4 29"},
+            {2060, "Reiwa geng-chen 4 29"}
+          ] do
+        date = Date.new!(gregorian + 2637, 4, 29, ImperialLunisolar)
+
+        assert Localize.Date.to_string(date, locale: :en, format: "G U M d") == {:ok, text}
+
+        for reference <- [2026, 1950, 2090] do
+          assert imperial(text, reference) == {:ok, date}, "#{text} read in #{reference}"
+        end
+      end
+    end
+
+    test "is the nearer of an era's two years of the name" do
+      assert imperial("Shōwa bing-yin 4 29", 2026) ==
+               {:ok, Date.new!(1986 + 2637, 4, 29, ImperialLunisolar)}
+
+      assert imperial("Shōwa bing-yin 4 29", 1930) ==
+               {:ok, Date.new!(1926 + 2637, 4, 29, ImperialLunisolar)}
+    end
+
+    test "is no year where the era has none of the name" do
+      assert {:error, %Localize.DateParseError{}} = imperial("Heisei bing-wu 4 29", 2026)
+    end
+
+    test "without an era is the year of the name nearest the reference date" do
+      options = [format: "U M d"]
+
+      assert imperial("geng-chen 4 29", 2026, options) ==
+               {:ok, Date.new!(2000 + 2637, 4, 29, ImperialLunisolar)}
+
+      assert imperial("geng-chen 4 29", 1950, options) ==
+               {:ok, Date.new!(1940 + 2637, 4, 29, ImperialLunisolar)}
+    end
+
+    test "agrees with a year of the era written beside it" do
+      assert imperial("Heisei 12 geng-chen 4 29", 2026, format: "G y U M d") ==
+               {:ok, Date.new!(2000 + 2637, 4, 29, ImperialLunisolar)}
+
+      assert {:error, %Localize.DateParseError{}} =
+               imperial("Heisei 13 geng-chen 4 29", 2026, format: "G y U M d")
     end
   end
 

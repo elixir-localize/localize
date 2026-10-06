@@ -140,6 +140,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+* A year named by its place in the sixty-year cycle beside an era is the year of that name in the era: `Calendrical.LunarJapanese`'s "Genroku (1688–1704) geng-chen 4 29" is read as 1700, where it was the geng-chen year nearest the reference date, 2000, whatever era was written. An era of more than sixty years takes the nearer of its two, and a name the era has no year of is an error.
+
 * An inverted range read for a calendar whose dates are read in another names its two dates in the calendar asked for: `Localize.Interval.parse/2` of "Feb 5, 2024 – Feb 1, 2024" for a calendar of weeks returned a `Localize.DateRangeParseError` holding the Gregorian dates the text was read as.
 
 * A year below 1 is read where its numbering spells its sign: `ja` writes a Japanese date before the first era with the `jpanyear` numbering, "大化マイナス688年3月15日", and it was read as no date, alone and in an interval.
