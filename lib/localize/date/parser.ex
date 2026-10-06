@@ -136,7 +136,7 @@ defmodule Localize.Date.Parser do
   @spec parse(String.t(), Keyword.t()) ::
           {:ok, Date.t() | map()} | {:error, Exception.t()}
   def parse(input, options \\ []) when is_binary(input) do
-    read_for_calendar(options, &do_parse(input, &1, &2), &finalise_date/2)
+    read_for_calendar(options, &do_parse(input, &1, &2), &finalise_date/2, input)
   end
 
   defp do_parse(input, options, calendar_module) do
@@ -661,7 +661,7 @@ defmodule Localize.Date.Parser do
   @spec parse_range(String.t(), Keyword.t()) ::
           {:ok, Date.Range.t() | {map(), map()}} | {:error, Exception.t()}
   def parse_range(input, options \\ []) when is_binary(input) do
-    read_for_calendar(options, &do_parse_range(input, &1, &2), &finalise_range_value/2)
+    read_for_calendar(options, &do_parse_range(input, &1, &2), &finalise_range_value/2, input)
   end
 
   defp do_parse_range(input, options, calendar_module) do
@@ -1959,7 +1959,8 @@ defmodule Localize.Date.Parser do
     read_for_calendar(
       options,
       fn options, _calendar_module -> read_range_pair(from_string, to_string, options) end,
-      &finalise_range_value/2
+      &finalise_range_value/2,
+      from_string
     )
   end
 
@@ -2692,14 +2693,89 @@ defmodule Localize.Date.Parser do
   # date read in another calendar is read whole and comes back whole, as a
   # partial date of one calendar has no fields in the other. `parse` reads
   # the input in a calendar with the options given, and `finalise` gives a
-  # converted value the shape `:as` asks for.
-  @spec read_for_calendar(Keyword.t(), (Keyword.t(), module() -> term()), (term(), atom() ->
-                                                                             term())) ::
-          term()
-  def read_for_calendar(options, parse, finalise) do
+  # converted value the shape `:as` asks for. `input` is the text read, for
+  # the error of a reading that is refused.
+  @spec read_for_calendar(
+          Keyword.t(),
+          (Keyword.t(), module() -> term()),
+          (term(), atom() -> term()),
+          String.t()
+        ) :: term()
+  def read_for_calendar(options, parse, finalise, input) do
     with {:ok, calendar_module} <- calendar_option(options),
-         {:ok, parsing} <- Localize.Calendar.parsing_calendar(calendar_module) do
-      read_in(parsing, calendar_module, options, parse, finalise)
+         {:ok, [parsing | others]} <- Localize.Calendar.parsing_calendars(calendar_module) do
+      read = &read_in(&1, calendar_module, options, parse, finalise)
+
+      refused =
+        {:error,
+         DateParseError.exception(
+           input: input,
+           locale: Keyword.get(options, :locale) || Localize.get_locale(),
+           calendar: calendar_module,
+           format: Keyword.get(options, :format)
+         )}
+
+      read_in_each(read.(parsing), {parsing, others}, calendar_module, read, refused)
+    end
+  end
+
+  @doc false
+  # A calendar may name more calendars than one for its dates to be read in
+  # (`Localize.Calendar.parsing_calendars/1`): a composite calendar writes
+  # the dates of each of its calendars with that calendar's formats, so
+  # `Calendrical.Reform.Japan`'s "Mo5 11, 1872" is read in its lunisolar
+  # calendar and converted. Each reading is held to the calendar its date is
+  # written in: a date the composite gives another CLDR type than the
+  # calendar it was read in has is one the formatter writes otherwise, and
+  # is no reading. So text of the Japanese calendar's formats that names a
+  # day of the lunisolar years is refused, where the month and the day were
+  # taken for the lunisolar ones. `read` reads in one calendar and gives the
+  # value in the calendar asked for; the first reading stands where the
+  # calendar names no other, and where none reads the text the error is the
+  # first reading's, or `refused` where that read a date it is held from.
+  @spec read_in_each(term(), {module(), [module()]}, module(), (module() -> term()), term()) ::
+          term()
+  def read_in_each(first, {_parsing, []}, _calendar_module, _read, _refused), do: first
+
+  def read_in_each(first, {parsing, others}, calendar_module, read, refused) do
+    readings = Stream.concat([{parsing, first}], Stream.map(others, &{&1, read.(&1)}))
+    unread = if match?({:ok, _value}, first), do: refused, else: first
+
+    Enum.find_value(readings, unread, fn
+      # A calendar read in another, as a calendar of weeks is, is not
+      # written in the formats of its own CLDR type at all.
+      {^parsing, reading} when parsing != calendar_module -> reading
+      {read_in, reading} -> if written_in?(reading, read_in, calendar_module), do: reading
+    end)
+  end
+
+  # Whether a reading is of a date the calendar asked for writes with the
+  # formats of the calendar it was read in. A value with no whole date, a
+  # map of the fields read, is not held.
+  defp written_in?({:ok, value}, read_in, calendar_module) do
+    type = cldr_calendar_type(read_in)
+
+    value
+    |> whole_dates()
+    |> Enum.all?(
+      &(Localize.Calendar.date_calendar_type(in_its_calendar(&1, calendar_module)) == type)
+    )
+  end
+
+  defp written_in?(_no_reading, _read_in, _calendar_module), do: false
+
+  defp whole_dates(%Date{} = date), do: [date]
+  defp whole_dates(%Date.Range{first: first, last: last}), do: [first, last]
+  defp whole_dates(%NaiveDateTime{} = naive), do: [NaiveDateTime.to_date(naive)]
+  defp whole_dates(%DateTime{} = datetime), do: [DateTime.to_date(datetime)]
+  defp whole_dates(_value), do: []
+
+  defp in_its_calendar(%Date{calendar: calendar_module} = date, calendar_module), do: date
+
+  defp in_its_calendar(%Date{} = date, calendar_module) do
+    case Date.convert(date, calendar_module) do
+      {:ok, converted} -> converted
+      {:error, _incompatible} -> date
     end
   end
 

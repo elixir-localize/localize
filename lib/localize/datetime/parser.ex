@@ -114,8 +114,36 @@ defmodule Localize.DateTime.Parser do
   # separator is the one of the calendar its dates are read in.
   defp parse_valid(input, options) do
     with {:ok, calendar_module} <- Localize.Date.Parser.calendar_option(options),
-         {:ok, parsing} <- Localize.Calendar.parsing_calendar(calendar_module) do
-      parse_with_calendar(input, options, parsing)
+         {:ok, [parsing | others]} <- Localize.Calendar.parsing_calendars(calendar_module) do
+      read = fn
+        ^parsing -> parse_with_calendar(input, options, parsing)
+        named -> parse_in_named(input, options, named, calendar_module)
+      end
+
+      locale = Keyword.get(options, :locale) || Localize.get_locale()
+      refused = {:error, DateTimeParseError.exception(input: input, locale: locale)}
+
+      Localize.Date.Parser.read_in_each(
+        read.(parsing),
+        {parsing, others},
+        calendar_module,
+        read,
+        refused
+      )
+    end
+  end
+
+  # A value read in another calendar the calendar asked for names for its
+  # dates (`Localize.Calendar.parsing_calendars/1`), converted into the
+  # calendar asked for. A value with no date of its own, a time, is the
+  # first calendar's to read.
+  defp parse_in_named(input, options, named, calendar_module) do
+    case parse_with_calendar(input, Keyword.put(options, :calendar, named), named) do
+      {:ok, %struct{} = value} when struct in [Date, Date.Range, NaiveDateTime, DateTime] ->
+        Localize.Date.Parser.convert_value(value, calendar_module)
+
+      _no_date_read ->
+        :unread
     end
   end
 

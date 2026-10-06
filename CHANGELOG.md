@@ -8,6 +8,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
+* A calendar may name further calendars for its dates to be read in, with an optional `parsing_calendars/0` callback that returns calendar modules: a composite calendar writes the dates of each of its calendars with that calendar's formats, which the formats of its own CLDR type do not all read. `Localize.Date.parse/2`, `Localize.DateTime.parse/2` and `Localize.Interval.parse/2` read a date in each calendar named and convert it, keeping a reading only where the composite writes that day with the formats of the calendar it was read in.
+
 * `Localize.Date.parse/2` takes `:format`, the standard format, skeleton or pattern the text was written with, and reads the text with that format alone, so a date written by a skeleton whose fields stand in another order than the standard formats' reads back: `mt`'s `:yMd` "4/3/2024" is 3 April. `Localize.Interval.parse/2` reads each end with `:format`.
 
 * `Localize.DateTime.parse/2` reads each half of a date and time with its part of `:format`, a standard format, a skeleton or a pattern, which is split at the text between its date fields and its time fields: "3/4/2024 22:05" with `format: "d/M/y HH:mm"`. `:date_format` and `:time_format` name a half's format on its own.

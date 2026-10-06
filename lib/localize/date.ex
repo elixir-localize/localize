@@ -739,7 +739,11 @@ defmodule Localize.Date do
     `"2024-W05-4"`, and any other input as a Gregorian date, as its
     `parsing_calendar/0` says, since a written month and day name no
     single week; the date is converted into it, so `"Feb 1, 2024"` is
-    2024-W05-4. A calendar's own formats come before ISO 8601: a year, a
+    2024-W05-4. A composite calendar, whose dates are written with the
+    formats of whichever of its calendars was in effect, may name those
+    calendars with an optional `parsing_calendars/0`, and a date is then
+    read in each and converted, held to the calendar its day is written
+    in. A calendar's own formats come before ISO 8601: a year, a
     month and a day between hyphens that any of them reads, as CLDR's
     root short date of the Chinese calendar does (`r-MM-dd`), is the
     calendar's own date, and where none does it is an ISO 8601 date,

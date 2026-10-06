@@ -1652,6 +1652,46 @@ defmodule Localize.Calendar do
   end
 
   @doc false
+  # The calendars a date written for `calendar` is read in, in turn: the one
+  # its `parsing_calendar/0` names, and then any it names besides with the
+  # optional `parsing_calendars/0`. A composite calendar writes the dates of
+  # each of its calendars with that calendar's formats, its
+  # `cldr_calendar_type/3` answering for a date: `Calendrical.Reform.Japan`
+  # writes a date before 1873 as its lunisolar calendar does, "Mo5 11,
+  # 1872", which the formats of its own CLDR type, the Japanese calendar's,
+  # do not read. A calendar is a module, so the composite names the
+  # calendars themselves, and each is read as any calendar is and its date
+  # converted, as a calendar of weeks' is from `Calendar.ISO`; a CLDR type
+  # is never mapped back to a calendar. Every calendar named must answer
+  # Localize, and a calendar that names none is read as it was.
+  @spec parsing_calendars(module()) :: {:ok, [module(), ...]} | {:error, Exception.t()}
+  def parsing_calendars(calendar) do
+    with {:ok, parsing} <- parsing_calendar(calendar),
+         {:ok, others} <- further_parsing_calendars(answering(calendar), calendar) do
+      {:ok, Enum.uniq([parsing | others])}
+    end
+  end
+
+  defp further_parsing_calendars(answers, calendar) do
+    if Code.ensure_loaded?(answers) and function_exported?(answers, :parsing_calendars, 0) do
+      with {:ok, others} <-
+             ask(calendar, :parsing_calendars, [], "a list of calendars", &is_list/1),
+           nil <- Enum.find_value(others, &calendar_error/1) do
+        {:ok, others}
+      end
+    else
+      {:ok, []}
+    end
+  end
+
+  defp calendar_error(calendar) do
+    case validate_calendar(%{calendar: calendar}) do
+      :ok -> nil
+      {:error, _exception} = error -> error
+    end
+  end
+
+  @doc false
   # A date in its calendar's own notation, as the calendar writes it with its
   # `date_to_string/3`, when the calendar writes its dates in one rather than
   # in the locale's formats: "2026-W25-2" for a calendar of weeks. A calendar
