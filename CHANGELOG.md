@@ -264,7 +264,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 * `Localize.Date.parse/2` reads the rest of ISO 8601's date forms: a week without a day ("2026-W25", "2026W25"), which is the Monday of ISO 8601's week whatever the locale's weeks are, and the week date and the day of the year without separators ("2026W252", "2026166"). A year and a month, or a year, is read `as: :map` in every locale.
 
-* A date interval whose dates differ in a month or a year its skeleton does not write takes the interval of the skeleton widened with it, as ICU widens one: `format: :d` from 15 June to 20 July is "6/15 – 7/20", where "15 – 20" was written, and across years "6/15/2026 – 7/20/2027". A widened pattern keeps the widths asked for, so `:MMMMd` across years is "June 15, 2026 – June 15, 2027".
+* An interval writes the fields its format names and no others, as TR35's interval algorithm has it: two values that differ in a field the skeleton does not write are each written with it around the locale's fallback pattern, `:MMMd` from 28 December to 3 January being "Dec 28 – Jan 3", and two alike in every field it writes are one, a date and a time as a date is, so `:yMMMHm` on two days of June at 10:00 is "Jun 2026, 10:00". The year, the month or the era two values differ in is written where the format asks for it (`:yMMMd`, `:GyMMMd`).
 
 * `Localize.Time.to_string/2` writes a `Time` and a `NaiveDateTime` at a standard format with the locale's standard time pattern, where it took the pattern CLDR's skeleton for the format resolves to: another in 44 locales at `:short` and 47 at `:medium`. `bg`'s short time is "10:30", not "10:30 ч.", and `cop`, `syr` and `kxv` keep their 12-hour clock.
 
@@ -348,7 +348,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 * `Localize.Interval.to_string/3` and `to_parts/3` format with the formats of the endpoints' calendar — its interval patterns, date and time formats and date-time pattern — where they used the Gregorian calendar's, and return an error for endpoints in two calendars.
 
-* An interval across a change of era shows each endpoint's era, as ICU does: "Dec 31, 1 BC – Jan 1, 1 AD", and "Apr 30, 31 Heisei – May 1, 1 Reiwa" across the Japanese era change within 2019.
+* An interval across a change of era writes each date's era where its format has one: `format: :GyMMMd` is "Dec 31, 1 BC – Jan 1, 1 AD", and the Japanese calendar's formats, which write the era with the year, "Apr 30, 31 Heisei – May 1, 1 Reiwa" across the change within 2019.
 
 * An interval whose endpoints differ in no field it shows is the date in the requested standard format, as `Localize.Date.to_string/2` and ECMA-402 write it (`ko` "2023. 4. 1." where it was "2023/4/1"), and a date-time interval formatted whole honours `:style`.
 
@@ -506,7 +506,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 * Date intervals use the locale's interval pattern where CLDR ships a matching one, adjusted to the requested widths, rather than gluing two full endpoints — `de` at `:medium` renders "03.–05.05.2026". TR35's closest-match step was skipped.
 
-* `Localize.Interval` keeps both years when the endpoints fall in different years though the fields show none, as ICU does, so `fields: :month_and_day` gives "Dec 30, 2025 – Jan 2, 2026". Endpoints differing in no field shown format as one value, where `:year_and_month` gave "Jul – Jul 2024".
+* An interval whose endpoints differ in no field it shows is one value, as TR35's interval algorithm has it, where `fields: :year_and_month` gave "Jul – Jul 2024". A selection of fields without a year writes none for dates of two years, so `fields: :month_and_day` across the new year is "Dec 30 – Jan 2".
 
 * Time intervals across noon take CLDR's day-period pattern, "10:00 AM – 2:00 PM" rather than "10:00 – 2:00 PM", and an `:h` interval within one hour formats a single time. A skeleton the interval table lacks, such as `:hms`, joins both times through the fallback pattern.
 

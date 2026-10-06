@@ -7,7 +7,9 @@ defmodule Localize.Interval do
   The format is selected based on the greatest calendar field
   difference between the start and end values.
 
-  An interval is formatted with the formats of its endpoints' calendar: its interval patterns, its date and time formats, and the date-time pattern joining a date to a time range. Both endpoints must therefore be in the same calendar. An era is a calendar field like any other, so endpoints in different eras show their eras where the locale has a pattern for them, as ICU does: "Dec 31, 1 BC – Jan 1, 1 AD".
+  An interval is formatted with the formats of its endpoints' calendar: its interval patterns, its date and time formats, and the date-time pattern joining a date to a time range. Both endpoints must therefore be in the same calendar.
+
+  An interval writes the fields its format names and no others, as TR35's interval algorithm has it. Two values alike in every field the format writes are written once; two that differ in a field it writes take CLDR's interval pattern for their greatest difference; and where there is no such pattern, as where they differ in a year, a month or an era the format does not write, each is written with the format around the locale's fallback pattern. An era is a field like any other: `format: :GyMMMd` writes "Dec 31, 1 BC – Jan 1, 1 AD", and a format without an era writes none.
 
   The two values are written in the order the locale's interval fallback pattern states, which TR35 makes the order of every interval pattern: the earlier first in every locale but one of CLDR 49. `kek`'s Gregorian pattern is "{1} – {0}", so it writes the later value first.
 
@@ -33,6 +35,12 @@ defmodule Localize.Interval do
   # The fields of a date, largest first. A date holds any of them, and a
   # whole date all three.
   @date_fields [:year, :month, :day]
+
+  # The units two values can differ in, a date's and a time's, largest
+  # first, and the pattern symbols that write a time zone.
+  @date_units [:era, :year, :month, :day]
+  @time_units [:am_pm, :hour, :minute, :second]
+  @zone_symbols ~w(z Z O v V x X)
 
   # TR35 joins an interval's date and time with the standard date-time
   # pattern ("March 15, 3:00 – 5:00 PM"), where a single date and time takes
@@ -74,7 +82,7 @@ defmodule Localize.Interval do
 
   At a standard format an interval's dates and times have the fields of the pattern the single value is written with, at the pattern's widths, so they read as `Localize.Date.to_string/2` and `Localize.Time.to_string/2` write one alone: `vi`'s short date is "1/4/23" and its interval "1/4/23 – 10/4/23", and a locale whose short time is 24-hour writes a 24-hour range. The order and the text between the fields are those of CLDR's interval format for those fields.
 
-  Endpoints that differ in no field the interval shows are formatted once: whole dates in the requested standard format, exactly as `Localize.Date.to_string/2` renders them. A date interval's fields are compared as its format writes them, so a week (`:yw`) or a quarter (`:yQQQ`) is one field whatever months and days it spans: 15 June to 20 July 2026 is "week 25 of 2026 – week 30 of 2026", and 15 to 17 June "week 25 of 2026". Two dates that differ in a month or a year the skeleton does not write take the interval of the skeleton widened with it: `format: :d` from 15 June to 20 July is "6/15 – 7/20", and to a day of the next year "6/15/2026 – 7/20/2027".
+  Endpoints that differ in no field the interval shows are formatted once: whole dates in the requested standard format, exactly as `Localize.Date.to_string/2` renders them. A date interval's fields are compared as its format writes them, so a week (`:yw`) or a quarter (`:yQQQ`) is one field whatever months and days it spans: 15 June to 20 July 2026 is "week 25 of 2026 – week 30 of 2026", and 15 to 17 June "week 25 of 2026". Nothing is added to a skeleton: two dates that differ in a month or a year it does not write are each written with it around the fallback pattern, `format: :MMMd` from 28 December to 3 January being "Dec 28 – Jan 3", and the same day of two years is that day once, "Jun 15". A date and a time are compared the same way: two days of June at 10:00 are "Jun 2026, 10:00" at `:yMMMHm`, and at two times of day both are written in full.
 
   Dates that hold only some of their fields, two months or a month and a day each, take at a standard format CLDR's interval format for the fields they hold, as `Localize.Date.to_string/2` writes each alone: `%{month: 6}` to `%{month: 8}` is "Jun – Aug". One format writes both endpoints, so they must hold the same fields. A skeleton, a `:fields` selection or a pattern is used as it is given.
 
@@ -546,15 +554,20 @@ defmodule Localize.Interval do
   defp over_format(given, numbers) when is_map(given), do: Map.merge(numbers, given)
   defp over_format(given, _numbers), do: given
 
-  # TR35 §Interval Formats steps 4 to 7, as ICU implements them. Values that
-  # differ in no field the skeleton writes format as one. A year or a month
-  # difference for a skeleton without one takes the pattern of the skeleton
-  # widened with it, so an interval across a year or a month boundary keeps
-  # both, and an era difference for a skeleton without an era takes the
-  # closest item's pattern for the skeleton widened with one, so each value
-  # shows its era: "Apr 30, 31 Heisei – May 1, 1 Reiwa". Any other
-  # difference takes the item's pattern for it, or failing that the fallback
-  # pattern around both values in full.
+  # TR35 §Interval Formats, steps 4 to 8. Two dates that differ in no field
+  # the skeleton writes are written as one: "If there is no difference among
+  # any of the fields in the pattern, format as a single date". Any other two
+  # take the item's pattern for their greatest difference, and where the item
+  # has none are written in full around the fallback pattern, each with the
+  # skeleton asked for: "Otherwise, format the start and end datetime using
+  # the fallback pattern".
+  #
+  # Nothing is added to the skeleton (user, 2026-10-06). A skeleton states
+  # the fields a caller wants written, so `MMMd` from 28 December to 3
+  # January is "Dec 28 – Jan 3", the same day of two years is that day
+  # once, "Jun 15", and two dates of different eras at a skeleton with no
+  # era are written without one. The month, the year or the era the dates
+  # differ in was added, as ICU adds them: "Dec 28, 2026 – Jan 3, 2027".
   defp date_interval_plan(formats, {format_key, requested_skeleton}, {from, to}, lookup, options) do
     skeleton = requested_skeleton || format_key
     difference = calendar_difference(from, to)
@@ -565,17 +578,11 @@ defmodule Localize.Interval do
         :single
 
       across_cycles?(from, to, locale_id) ->
-        in_full_with_year(skeleton, from, locale_id, options)
-
-      difference == :era and is_nil(item_pattern(Map.get(formats, format_key), :G)) and
-          not String.contains?(Kernel.to_string(skeleton), "G") ->
-        era_widened_split(formats, {format_key, requested_skeleton}, lookup, options)
+        {:fallback, skeleton}
 
       true ->
-        with nil <- widened_split(formats, skeleton, difference, {from, to}, lookup, options) do
-          key = difference_key(difference, skeleton, Map.get(formats, format_key))
-          interval_split(formats, format_key, requested_skeleton, key, options, skeleton)
-        end
+        key = difference_key(difference, skeleton, Map.get(formats, format_key))
+        interval_split(formats, format_key, requested_skeleton, key, options, skeleton)
     end
   end
 
@@ -586,8 +593,7 @@ defmodule Localize.Interval do
   # item wrote 16 June 2026 to 12 June 2086 as "5/2/43 – 5/2/43". So the
   # two are written in full, each as the format writes a date alone (user,
   # 2026-10-06), as ICU, which holds the cycle as an era, writes them:
-  # "5/2/2026 – 5/2/2086". A format that writes no year is widened with one
-  # first, as it is for any two years.
+  # "5/2/2026 – 5/2/2086". TR35 does not say whether the cycle is a field.
   defp across_cycles?(from, to, locale_id) do
     with {:ok, from_cycle} <- Localize.Calendar.cycle(from, locale_id),
          {:ok, to_cycle} <- Localize.Calendar.cycle(to, locale_id) do
@@ -597,191 +603,21 @@ defmodule Localize.Interval do
     end
   end
 
-  # The widened skeleton is one a date is written with, whether or not the
-  # locale's data holds a format under its name: no atom is made of it.
-  defp in_full_with_year(skeleton, date, locale_id, options) do
-    with true <- is_atom(skeleton) and skeleton not in [:short, :medium, :long, :full],
-         widened when is_binary(widened) <- widened_skeleton(skeleton, :year),
-         format when is_atom(format) and not is_nil(format) <-
-           Localize.Utils.Helpers.existing_atom(widened),
-         {:ok, _pattern} <- Localize.Date.resolve_pattern(date, format, locale_id, options) do
-      {:fallback, format}
-    else
-      _as_it_is -> {:fallback, skeleton}
-    end
-  end
-
-  # The pattern of the skeleton widened with the month, or the year, the two
-  # dates differ in and it does not write, as ICU widens one: a day alone
-  # takes its month across months, "6/15 – 7/15" where two bare days would
-  # read as days of one month, and its month and year across years; a month
-  # and a day take their year. The widened skeleton takes the closest item's
-  # pattern at its own widths, or is written in full for both dates where the
-  # locale has it as a format but no interval of it ("Q2 2026 – Q2 2027").
-  # Two dates the widened skeleton writes alike are one, as two days of one
-  # week either side of the new year are to a week and its year. `nil` where
-  # the skeleton writes the field, or cannot be widened.
-  defp widened_split(
-         formats,
-         skeleton,
-         difference,
-         dates,
-         {locale_id, _calendar} = lookup,
-         options
-       ) do
-    with widened when is_binary(widened) <- widened_skeleton(skeleton, difference),
-         {:ok, plan, format} <- widened_plan(formats, widened, difference, lookup, options) do
-      if date_difference_visible?(format, difference, dates, locale_id, options),
-        do: plan,
-        else: :single
-    else
-      _not_widened -> nil
-    end
-  end
-
-  defp widened_plan(formats, widened, difference, {locale_id, calendar}, options) do
-    case Localize.DateTime.Format.Match.best_interval_match(widened, locale_id, calendar) do
-      {:ok, matched} ->
-        requested = if Atom.to_string(matched) == widened, do: nil, else: widened
-        key = difference_key(difference, matched, nil)
-        {:ok, interval_split(formats, matched, requested, key, options, matched), matched}
-
-      :error ->
-        with {:fallback, format} = plan <- widened_in_full(widened, locale_id, calendar) do
-          {:ok, plan, format}
-        end
-    end
-  end
-
-  defp widened_skeleton(skeleton, :month) do
-    if day_without_month?(format_letters(skeleton)), do: "M" <> Kernel.to_string(skeleton)
-  end
-
-  defp widened_skeleton(skeleton, :year) do
-    letters = format_letters(skeleton)
-
-    cond do
-      Enum.any?(letters, &(&1 in ~w(G y Y u U r))) -> nil
-      day_without_month?(letters) -> "yM" <> Kernel.to_string(skeleton)
-      true -> "y" <> Kernel.to_string(skeleton)
-    end
-  end
-
-  defp widened_skeleton(_skeleton, _difference), do: nil
-
-  defp day_without_month?(letters),
-    do: "d" in letters and not Enum.any?(letters, &(&1 in ~w(M L)))
-
-  # A widened skeleton with no interval of its own is written for both dates
-  # where it is one of the locale's formats, by the name the locale data
-  # holds it under: no atom is made of it.
-  defp widened_in_full(widened, locale_id, calendar) do
-    with {:ok, available} <- Localize.DateTime.Format.available_formats(locale_id, calendar),
-         format when is_atom(format) and not is_nil(format) <-
-           Localize.Utils.Helpers.existing_atom(widened),
-         true <- Map.has_key?(available, format) do
-      {:fallback, format}
-    else
-      _not_a_format -> nil
-    end
-  end
-
-  # The era pattern of the matched item widened with `G`, found as ICU finds
-  # it: the item keyed by `G` and the matched skeleton, or, when the skeleton
-  # matched its item exactly, the item closest to that. The pattern takes the
-  # requested widths, so `yMMMM` takes `GyMMM`'s with the month spelled out.
-  # Without one, both values are formatted in full.
-  defp era_widened_split(formats, {format_key, requested_skeleton}, lookup, options) do
-    {locale_id, calendar} = lookup
-    skeleton = requested_skeleton || format_key
-    widened = "G" <> Kernel.to_string(format_key)
-
-    with {:ok, widened_key} <-
-           Localize.DateTime.Format.Match.best_interval_match(widened, locale_id, calendar),
-         true <- is_nil(requested_skeleton) or Kernel.to_string(widened_key) == widened do
-      requested = "G" <> Kernel.to_string(skeleton)
-      interval_split(formats, widened_key, requested, :G, options, skeleton)
-    else
-      _no_era_pattern -> {:fallback, skeleton}
-    end
-  end
-
   # A format with no interval of its own: both dates in full around the
   # fallback pattern, or one where they differ in no field it writes. A
-  # skeleton that does not write the month or the year they differ in is
-  # widened with it first, as one with an interval is, so a weekday and a day
-  # across months take the interval of `MEd`.
+  # calendar of weeks' skeleton, whose month is the week, is among them, no
+  # interval format being keyed by a week and a weekday.
   defp format_date_interval_fallback(from, to, format, locale, options, output) do
     with {:ok, locale_id} <- resolve_locale_id(locale),
          {:ok, formats} <- interval_formats(locale_id, from) do
       field_options = Keyword.put_new(options, :locale, locale)
+      difference = calendar_difference(from, to)
 
-      case fallback_plan(formats, format, {from, to}, locale_id, field_options) do
-        :single ->
-          format_single(output, Localize.Date, from, Keyword.put(options, :format, format))
-
-        {:split, left, right} ->
-          format_split(output, from, to, left, right, locale_id, Map.new(field_options))
-
-        {:fallback, in_full} ->
-          format_in_full(output, Localize.Date, {from, to}, in_full, formats, options)
-
-        {:error, _} = error ->
-          error
-      end
+      if date_difference_visible?(format, difference, {from, to}, locale_id, field_options),
+        do: format_in_full(output, Localize.Date, {from, to}, format, formats, options),
+        else: format_single(output, Localize.Date, from, Keyword.put(options, :format, format))
     end
   end
-
-  defp fallback_plan(formats, format, {from, to} = dates, locale_id, options) do
-    difference = calendar_difference(from, to)
-    lookup = {locale_id, cldr_calendar_for(from)}
-
-    cond do
-      not date_difference_visible?(format, difference, dates, locale_id, options) ->
-        :single
-
-      across_cycles?(from, to, locale_id) ->
-        in_full_with_year(format, from, locale_id, options)
-
-      own_fields?(from, format) ->
-        own_fields_in_full(format, difference, from, locale_id, options)
-
-      true ->
-        widened_fallback(formats, format, difference, dates, lookup, options) ||
-          {:fallback, format}
-    end
-  end
-
-  # A skeleton for a calendar that writes its dates in a notation of its
-  # own, a calendar of weeks, whose month is the week.
-  defp own_fields?(from, format) do
-    is_atom(format) and not is_nil(format) and format not in [:short, :medium, :long, :full] and
-      match?({:ok, true}, Localize.Calendar.own_notation?(calendar_of(from)))
-  end
-
-  # Both dates in full with the skeleton, widened with the week or the year
-  # they differ in where it writes neither, as a skeleton of months and days
-  # is: no interval format is keyed by a week and a weekday, so none is
-  # looked for.
-  defp own_fields_in_full(format, difference, from, locale_id, options) do
-    with widened when is_binary(widened) <- widened_skeleton(format, difference),
-         skeleton when is_atom(skeleton) and not is_nil(skeleton) <-
-           Localize.Utils.Helpers.existing_atom(widened),
-         {:ok, _pattern} <- Localize.Date.resolve_pattern(from, skeleton, locale_id, options) do
-      {:fallback, skeleton}
-    else
-      _as_it_is -> {:fallback, format}
-    end
-  end
-
-  # Only a skeleton is widened: a pattern is written as it is given, and a
-  # standard format writes a whole date.
-  defp widened_fallback(formats, format, difference, dates, lookup, options)
-       when is_atom(format) and not is_nil(format) and
-              format not in [:short, :medium, :long, :full],
-       do: widened_split(formats, format, difference, dates, lookup, options)
-
-  defp widened_fallback(_formats, _format, _difference, _dates, _lookup, _options), do: nil
 
   # TR35's final step: both values formatted in full with `format` and joined
   # by the locale's interval fallback pattern.
@@ -841,7 +677,7 @@ defmodule Localize.Interval do
       difference = calendar_difference(from, to)
       formats_asked = {format_key, standard}
 
-      if difference_visible?(format_key, difference) do
+      if time_fields_differ?(format_key, {from, to}) do
         locale_data = {locale, locale_id, cldr_calendar_for(from), formats}
 
         format_time_difference(
@@ -933,7 +769,7 @@ defmodule Localize.Interval do
   defp format_time_interval_literal(from, to, time_format, locale, options, output) do
     with {:ok, locale_id} <- resolve_locale_id(locale),
          {:ok, formats} <- interval_formats(locale_id, from) do
-      if difference_visible?(time_format, calendar_difference(from, to)) do
+      if time_fields_differ?(time_format, {from, to}) do
         format_in_full(output, Localize.Time, {from, to}, time_format, formats, options)
       else
         format_single(output, Localize.Time, from, Keyword.put(options, :format, time_format))
@@ -949,8 +785,9 @@ defmodule Localize.Interval do
   # joins it, through the locale's date-time pattern, to the time interval
   # CLDR ships for the time fields: "7/6/24, 10:00 – 10:30 AM". Where CLDR
   # ships none, as for a format with seconds, the date is still shown once,
-  # with both times around the fallback pattern. A difference in a unit
-  # neither half displays formats a single datetime.
+  # with both times around the fallback pattern. Two values that differ in
+  # no field either half writes are a single datetime, as two dates are
+  # (`datetime_fields_differ?/4`).
 
   defp format_datetime_interval(from, to, options, output) do
     locale = Keyword.get(options, :locale, Localize.get_locale())
@@ -999,7 +836,8 @@ defmodule Localize.Interval do
          {:ok, date_skeleton} <- format_skeleton(:date, date_format, {from, lookup}, options),
          {:ok, time_skeleton} <- format_skeleton(:time, time_format, {from, lookup}, options) do
       difference = calendar_difference(from, to)
-      units = displayed_units(date_skeleton) ++ displayed_units(time_skeleton)
+      skeletons = {date_skeleton, time_skeleton}
+      field_options = Keyword.put_new(options, :locale, locale)
       in_full = {Localize.DateTime, to, datetime_options}
       order = Localize.DateTime.Format.interval_order(formats)
 
@@ -1012,10 +850,14 @@ defmodule Localize.Interval do
         date_once(order, date_format, {from, to}, {datetime_options, time_options})
 
       cond do
-        not units_show?(units, difference) ->
+        not datetime_fields_differ?(skeletons, {from, to}, locale_id, field_options) ->
           format_single(output, Localize.DateTime, from, datetime_options)
 
-        difference in [:era, :year, :month, :day] ->
+        # A difference of a day or longer, which TR35 writes as both values
+        # in full whatever date fields the skeleton has ("the result will be
+        # the same for each `greatestDifference` of a day or longer"), and
+        # two values alike in all but their zones, which no item is keyed by.
+        is_nil(difference) or difference in @date_units ->
           format_fallback(output, {Localize.DateTime, from, datetime_options}, in_full, fallback)
 
         true ->
@@ -1418,11 +1260,10 @@ defmodule Localize.Interval do
   # pattern", so the fields are compared as the formatter writes them: a
   # week (`w`, `W`), a quarter (`Q`) and a calendar of weeks' period (`M`)
   # by their own values, not by the month and day fields that hold them.
-  # Two dates alike in every field written still show as two where they
-  # differ in a unit larger than any written, as a month and day a year
-  # apart do, which the pattern widened with a year then tells apart. A
-  # standard format writes every unit of a date, and a format whose fields
-  # cannot be compared is judged by its units.
+  # Two dates alike in every field written are one, whatever unit they
+  # differ in: the same month and day of two years is one date to a format
+  # of a month and a day. A standard format writes every unit of a date,
+  # and a format whose fields cannot be compared is judged by its units.
   defp date_difference_visible?(_format, nil, _dates, _locale_id, _options), do: false
 
   defp date_difference_visible?(format, difference, _dates, _locale_id, _options)
@@ -1432,7 +1273,7 @@ defmodule Localize.Interval do
   defp date_difference_visible?(format, difference, {from, to}, locale_id, options) do
     with {:ok, pattern} <- Localize.Date.resolve_pattern(from, format, locale_id, options),
          {:ok, differ?} <- written_fields_differ?(pattern, {from, to}, locale_id, options) do
-      differ? or larger_than_written?(pattern, difference)
+      differ?
     else
       _incomparable -> difference_visible?(format, difference)
     end
@@ -1461,11 +1302,37 @@ defmodule Localize.Interval do
     |> Enum.join("'|'")
   end
 
-  defp larger_than_written?(pattern, difference) do
-    case displayed_units(pattern) do
-      [] -> false
-      units -> unit_rank(difference) < units |> Enum.map(&unit_rank/1) |> Enum.min()
-    end
+  # TR35's step 4 for a date and a time: the two are one value where "there
+  # is no difference among any of the fields in the pattern". The date
+  # half's fields are compared as a date interval's are, and the time
+  # half's one by one, so two days of one month at the same time of day are
+  # one value to a format of the month and the time, "Jun 2026, 10:00",
+  # where both were written. A format that writes a zone tells two zones
+  # apart.
+  defp datetime_fields_differ?({date_skeleton, time_skeleton}, {from, to}, locale_id, options) do
+    date_difference = Enum.find(@date_units, &differs?(from, to, &1))
+
+    date_difference_visible?(date_skeleton, date_difference, {from, to}, locale_id, options) or
+      time_fields_differ?(time_skeleton, {from, to})
+  end
+
+  # Each unit of a time the format writes is compared, so two times an hour
+  # apart are one to a format of the minute alone.
+  defp time_fields_differ?(format, {from, to}) do
+    units = displayed_units(format)
+
+    Enum.any?(@time_units, &(&1 in units and differs?(from, to, &1))) or
+      (zone_written?(format) and zones_differ?(from, to))
+  end
+
+  defp zone_written?({:skeleton, half}), do: zone_written?(half)
+  defp zone_written?(format) when format in [nil, :short, :medium, :long, :full], do: true
+  defp zone_written?(format), do: Enum.any?(format_letters(format), &(&1 in @zone_symbols))
+
+  defp zones_differ?(from, to) do
+    Map.get(from, :time_zone) != Map.get(to, :time_zone) or
+      Map.get(from, :utc_offset) != Map.get(to, :utc_offset) or
+      Map.get(from, :std_offset) != Map.get(to, :std_offset)
   end
 
   # A difference shows only when the format displays its unit or a smaller

@@ -621,24 +621,47 @@ defmodule Localize.IntervalCalendarTest do
   end
 
   describe "an interval across a change of era" do
-    test "shows each value's era where the locale has an era pattern" do
+    # An era is a field of a skeleton that asks for one: `en`'s `GyMMMd`
+    # item has a pattern for an era's difference, "MMM d, y G – MMM d, y G",
+    # and `Gy`'s is "y G – y G".
+    test "writes each value's era where the skeleton asks for an era" do
+      assert Localize.Interval.to_string(~D[0000-12-31], ~D[0001-01-01],
+               locale: :en,
+               format: :GyMMMd
+             ) == {:ok, "Dec 31, 1 BC\u2009–\u2009Jan 1, 1 AD"}
+
+      assert Localize.Interval.to_string(~D[0000-12-31], ~D[0001-01-01],
+               locale: :en,
+               format: :Gy
+             ) == {:ok, "1 BC\u2009–\u20091 AD"}
+    end
+
+    # A format without an era writes none (user, 2026-10-06). The items of
+    # `en`'s medium and full dates and of `yMMM` have no pattern for an
+    # era's difference, so TR35's last step writes both dates in full, each
+    # as the format writes a date alone: 31 December of 1 BC is "Dec 31, 1"
+    # at the medium format. ICU4C adds the era, as an interval here did:
+    # "Dec 31, 1 BC – Jan 1, 1 AD".
+    test "writes no era where the format has none" do
+      assert Localize.Date.to_string(~D[0000-12-31], locale: :en) == {:ok, "Dec 31, 1"}
+
       assert Localize.Interval.to_string(~D[0000-12-31], ~D[0001-01-01], locale: :en) ==
-               {:ok, "Dec 31, 1 BC\u2009–\u2009Jan 1, 1 AD"}
+               {:ok, "Dec 31, 1\u2009–\u2009Jan 1, 1"}
 
       assert Localize.Interval.to_string(~D[0000-12-31], ~D[0001-01-01],
                locale: :en,
                format: :full
-             ) == {:ok, "Sunday, December 31, 1 BC\u2009–\u2009Monday, January 1, 1 AD"}
+             ) == {:ok, "Sunday, December 31, 1\u2009–\u2009Monday, January 1, 1"}
 
       assert Localize.Interval.to_string(~D[0000-12-31], ~D[0001-01-01],
                locale: :en,
                fields: :year_and_month
-             ) == {:ok, "Dec 1 BC\u2009–\u2009Jan 1 AD"}
+             ) == {:ok, "Dec 1\u2009–\u2009Jan 1"}
     end
 
-    # `es`'s full date matches `yMMMMEd` by width alone, and `es` has no
-    # `GyMMMMEd`, so ICU formats both dates in full.
-    test "formats both values in full where it has none" do
+    # `es`'s full date matches `yMMMMEd` by width alone, whose item has no
+    # pattern for an era's difference either.
+    test "formats both values in full in another locale" do
       assert Localize.Interval.to_string(~D[0000-12-31], ~D[0001-01-01],
                locale: :es,
                format: :full

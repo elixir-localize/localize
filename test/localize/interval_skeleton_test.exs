@@ -26,7 +26,7 @@ defmodule Localize.IntervalSkeletonTest do
             {:yMMMd, {~D[2026-06-15], ~D[2026-06-15]}, "Jun 15, 2026"},
             {:MMMd, {~D[2026-06-15], ~D[2026-08-18]}, "Jun 15#{@thin}–#{@thin}Aug 18"},
             {:yMd, {~D[2026-06-15], ~D[2026-08-18]}, "6/15/2026#{@thin}–#{@thin}8/18/2026"},
-            {:MMMd, {~D[2026-12-30], ~D[2027-01-02]}, "Dec 30, 2026#{@thin}–#{@thin}Jan 2, 2027"}
+            {:MMMd, {~D[2026-12-30], ~D[2027-01-02]}, "Dec 30#{@thin}–#{@thin}Jan 2"}
           ] do
         assert interval(from, to, format: skeleton, locale: :en) == {:ok, expected}
         assert interval(from, to, date_format: skeleton, locale: :en) == {:ok, expected}
@@ -121,9 +121,11 @@ defmodule Localize.IntervalSkeletonTest do
 
     # Two Mondays are one weekday, and January and June are two months
     # though each is written "J": a field's value is compared, not its text.
-    # A month and a day a year apart are alike in every field written and
-    # differ in a larger one, which the pattern is widened with. ICU4C 78.3
-    # writes the two Mondays "Mon – Mon", and the others as here.
+    # A month and a day a year apart are alike in every field written, and
+    # are one date, as TR35's step 4 has it: "If there is no difference among
+    # any of the fields in the pattern, format as a single date". ICU4C 78.3
+    # writes the two Mondays "Mon – Mon", and adds a year to the month and
+    # the day, "Jan 5, 2026 – Jan 5, 2027".
     test "compares the value of each field written" do
       assert interval(~D[2026-06-15], ~D[2026-06-22], format: :E, locale: :en) == {:ok, "Mon"}
 
@@ -131,55 +133,58 @@ defmodule Localize.IntervalSkeletonTest do
                {:ok, "J#{@thin}–#{@thin}J"}
 
       assert interval(~D[2026-01-05], ~D[2027-01-05], format: :MMMd, locale: :en) ==
-               {:ok, "Jan 5, 2026#{@thin}–#{@thin}Jan 5, 2027"}
+               {:ok, "Jan 5"}
     end
 
-    # Two dates that differ in a month or a year the skeleton does not write
-    # take the interval of the skeleton widened with it: a day alone takes
-    # `Md`'s across months, where "15 – 20" would read as days of one month,
-    # and `yMd`'s across years, and the widened pattern keeps the widths
-    # asked for.
-    test "widens a skeleton with the month or the year its dates differ in" do
+    # A skeleton names the fields a caller wants written, and nothing is
+    # added to it (user, 2026-10-06). TR35's steps: two dates alike in every
+    # field of the pattern are "a single date"; any other two take the
+    # item's pattern for their greatest difference; and where the item has
+    # none, "format the start and end datetime using the fallback pattern",
+    # each date with the skeleton asked for. `en`'s `d` is "d" and its `d`
+    # item has a pattern for a day's difference alone, "d – d"; its `MEd` is
+    # "E, M/d", with patterns for a day's and a month's; root's fallback
+    # pattern is "{0} – {1}" about thin spaces and `ja`'s "{0}～{1}", and
+    # `ja`'s `d` is "d日".
+    #
+    # The month, the year or both were added where the dates differed in
+    # them, as ICU4C 78.3 adds them: "6/15 – 7/15", "6/15/2026 – 6/15/2027".
+    test "adds nothing to a skeleton whose dates differ in a field it does not write" do
       for {locale, format, {from, to}, expected} <- [
             {:en, :d, {~D[2026-06-15], ~D[2026-06-20]}, "15#{@thin}–#{@thin}20"},
-            {:en, :d, {~D[2026-06-15], ~D[2026-07-15]}, "6/15#{@thin}–#{@thin}7/15"},
-            {:en, :d, {~D[2026-06-15], ~D[2026-07-20]}, "6/15#{@thin}–#{@thin}7/20"},
-            {:en, :d, {~D[2026-06-15], ~D[2027-06-15]}, "6/15/2026#{@thin}–#{@thin}6/15/2027"},
-            {:en, :d, {~D[2026-12-30], ~D[2027-01-02]}, "12/30/2026#{@thin}–#{@thin}1/2/2027"},
-            {:en, :d, {~D[2026-06-15], ~D[2027-07-20]}, "6/15/2026#{@thin}–#{@thin}7/20/2027"},
-            {:en, :MMMMd, {~D[2026-06-15], ~D[2027-06-15]},
-             "June 15, 2026#{@thin}–#{@thin}June 15, 2027"},
-            {:en, :MEd, {~D[2026-06-15], ~D[2027-06-15]},
-             "Mon, 6/15/2026#{@thin}–#{@thin}Tue, 6/15/2027"},
-            {:en, :MMMM, {~D[2026-06-15], ~D[2027-06-15]}, "June 2026#{@thin}–#{@thin}June 2027"},
-            {:de, :d, {~D[2026-06-15], ~D[2026-07-15]}, "15.06.#{@thin}–#{@thin}15.07."},
-            {:de, :d, {~D[2026-06-15], ~D[2027-06-15]}, "15.06.2026#{@thin}–#{@thin}15.06.2027"},
-            {:fr, :d, {~D[2026-06-15], ~D[2026-07-15]}, "15/06#{@thin}–#{@thin}15/07"},
-            {:fr, :d, {~D[2026-06-15], ~D[2027-06-15]}, "15/06/2026#{@thin}–#{@thin}15/06/2027"},
-            {:ja, :d, {~D[2026-06-15], ~D[2026-07-15]}, "06/15～07/15"},
-            {:ja, :d, {~D[2026-06-15], ~D[2027-06-15]}, "2026/06/15～2027/06/15"}
+            {:en, :d, {~D[2026-06-15], ~D[2026-07-15]}, "15"},
+            {:en, :d, {~D[2026-06-15], ~D[2026-07-20]}, "15#{@thin}–#{@thin}20"},
+            {:en, :d, {~D[2026-06-15], ~D[2027-06-15]}, "15"},
+            {:en, :d, {~D[2026-12-30], ~D[2027-01-02]}, "30#{@thin}–#{@thin}2"},
+            {:en, :d, {~D[2026-06-15], ~D[2027-07-20]}, "15#{@thin}–#{@thin}20"},
+            {:en, :MMMd, {~D[2026-12-28], ~D[2027-01-03]}, "Dec 28#{@thin}–#{@thin}Jan 3"},
+            {:en, :MMMMd, {~D[2026-06-15], ~D[2027-06-15]}, "June 15"},
+            {:en, :MEd, {~D[2026-06-15], ~D[2027-06-15]}, "Mon, 6/15#{@thin}–#{@thin}Tue, 6/15"},
+            {:en, :MMMM, {~D[2026-06-15], ~D[2027-06-15]}, "June"},
+            {:de, :d, {~D[2026-06-15], ~D[2026-07-15]}, "15"},
+            {:de, :d, {~D[2026-06-15], ~D[2027-06-16]}, "15#{@thin}–#{@thin}16"},
+            {:fr, :d, {~D[2026-06-15], ~D[2026-07-15]}, "15"},
+            {:fr, :d, {~D[2026-06-15], ~D[2027-06-16]}, "15#{@thin}–#{@thin}16"},
+            {:ja, :d, {~D[2026-06-15], ~D[2026-07-15]}, "15日"},
+            {:ja, :d, {~D[2026-06-15], ~D[2027-06-16]}, "15日～16日"}
           ] do
         assert interval(from, to, format: format, locale: locale) == {:ok, expected},
                inspect({locale, format, from, to})
       end
     end
 
-    # A skeleton CLDR has no interval for is widened the same way, where
-    # ICU4C 78.3 writes both dates with it as it stands: "15 Mon – 15 Wed",
-    # "Q2 – Q2" and "25 – 25". A weekday and a day take `MEd`'s interval, "E,
-    # M/d – E, M/d" in `en`; a quarter and a week take their year, written
-    # in full as `yQQQ` and `yw`. Two days of one week either side of the
-    # new year are one week, whose year is the week's.
-    test "widens a skeleton that has no interval of its own" do
+    # A skeleton CLDR has no interval for is written as it stands too, each
+    # date with it around the fallback pattern, or once: `en`'s `Ed` is "d
+    # E", and a quarter or a week of two years is the one quarter or week
+    # the skeleton writes. ICU4C 78.3 writes "15 Mon – 15 Wed" as here, and
+    # "Q2 – Q2" and "25 – 25" for the two a year apart. Two days of one week
+    # either side of the new year are one week.
+    test "writes a skeleton that has no interval of its own as it stands" do
       assert interval(~D[2026-06-15], ~D[2026-07-15], format: :Ed, locale: :en) ==
-               {:ok, "Mon, 6/15#{@thin}–#{@thin}Wed, 7/15"}
+               {:ok, "15 Mon#{@thin}–#{@thin}15 Wed"}
 
-      assert interval(~D[2026-06-15], ~D[2027-06-15], format: :QQQ, locale: :en) ==
-               {:ok, "Q2 2026#{@thin}–#{@thin}Q2 2027"}
-
-      assert interval(~D[2026-06-15], ~D[2027-06-15], format: :w, locale: :en) ==
-               {:ok, "week 25 of 2026#{@thin}–#{@thin}week 25 of 2027"}
-
+      assert interval(~D[2026-06-15], ~D[2027-06-15], format: :QQQ, locale: :en) == {:ok, "Q2"}
+      assert interval(~D[2026-06-15], ~D[2027-06-15], format: :w, locale: :en) == {:ok, "25"}
       assert interval(~D[2026-12-30], ~D[2027-01-02], format: :w, locale: :en) == {:ok, "1"}
 
       assert interval(~D[2026-06-15], ~D[2026-07-15], format: :E, locale: :en) ==
@@ -228,6 +233,70 @@ defmodule Localize.IntervalSkeletonTest do
     test "with a skeleton of time fields across days writes the times alone" do
       assert interval(~N[2026-06-15 10:00:00], ~N[2026-06-16 14:30:00], format: :Hm, locale: :en) ==
                {:ok, "10:00#{@thin}–#{@thin}14:30"}
+    end
+
+    # TR35's step 4 for a date and a time: "If there is no difference among
+    # any of the fields in the pattern, format as a single date". `yMMMHm`
+    # writes the year, the month, the hour and the minute, "MMM y" joined to
+    # "HH:mm" by `en`'s "{1}, {0}", so two days of June at one time of day
+    # are one value. At two times they differ by a day, and TR35's item for
+    # a date and a time has "the same" result "for each `greatestDifference`
+    # of a day or longer": both in full. On one day the date is written once
+    # beside `Hm`'s interval, "HH:mm – HH:mm".
+    #
+    # Each was two values wherever the days differed, "Jun 2026, 10:00 – Jun
+    # 2026, 10:00". ICU4C 78.3 adds the day, the month or the year the two
+    # differ in: "Jun 15, 2026, 10:00 – Jun 16, 2026, 14:30".
+    test "writes two values alike in every field of the skeleton as one" do
+      from = ~N[2026-06-15 10:00:00]
+
+      for {skeleton, to, expected} <- [
+            {:yMMMHm, ~N[2026-06-16 10:00:00], "Jun 2026, 10:00"},
+            {:yMMMHm, ~N[2026-06-16 14:30:00], "Jun 2026, 10:00#{@thin}–#{@thin}Jun 2026, 14:30"},
+            {:yMMMHm, ~N[2026-06-15 14:30:00], "Jun 2026, 10:00#{@thin}–#{@thin}14:30"},
+            {:yMMMHm, ~N[2026-07-16 14:30:00], "Jun 2026, 10:00#{@thin}–#{@thin}Jul 2026, 14:30"},
+            {:MMMdHm, ~N[2027-06-15 10:00:00], "Jun 15, 10:00"},
+            {:MMMdHm, ~N[2027-06-15 14:30:00], "Jun 15, 10:00#{@thin}–#{@thin}Jun 15, 14:30"},
+            {:Hm, ~N[2026-06-16 10:00:00], "10:00"},
+            {:Hm, ~N[2027-08-20 10:00:30], "10:00"},
+            {:Hm, ~N[2026-06-16 01:00:00], "10:00#{@thin}–#{@thin}01:00"}
+          ] do
+        assert interval(from, to, format: skeleton, locale: :en) == {:ok, expected},
+               "#{skeleton} #{inspect(to)}"
+      end
+    end
+
+    # A time's fields are compared one by one, as a date's are: `en`'s `ms`
+    # is "mm:ss", and two times an hour apart are one to it.
+    test "compares each field of a time that the skeleton writes" do
+      assert interval(~T[10:05:00], ~T[11:05:00], format: :ms, locale: :en) == {:ok, "05:00"}
+
+      assert interval(~T[10:05:00], ~T[11:06:00], format: :ms, locale: :en) ==
+               {:ok, "05:00#{@thin}–#{@thin}06:00"}
+
+      assert interval(~T[10:05:00], ~T[10:05:30], format: :Hm, locale: :en) == {:ok, "10:05"}
+    end
+
+    # A zone is a field of a pattern that writes one, and two values alike
+    # in all but their zones differ in it. No interval item is keyed by a
+    # zone, so both are written in full around the fallback pattern, TR35's
+    # last step, where the first was written alone. A pattern that writes
+    # no zone has no field they differ in.
+    test "tells two zones apart where the skeleton writes a zone" do
+      utc = ~U[2026-06-15 10:00:00Z]
+      {:ok, minus_five} = Localize.DateTime.parse("2026-06-15T10:00:00-05:00", locale: :en)
+
+      {:ok, first} = Localize.DateTime.to_string(utc, format: :Hmv, locale: :en, style: :default)
+
+      {:ok, second} =
+        Localize.DateTime.to_string(minus_five, format: :Hmv, locale: :en, style: :default)
+
+      assert first != second
+
+      assert interval(utc, minus_five, format: :Hmv, locale: :en) ==
+               {:ok, first <> "#{@thin}–#{@thin}" <> second}
+
+      assert interval(utc, minus_five, format: :Hm, locale: :en) == {:ok, "10:00"}
     end
 
     test "with a skeleton of date fields is a date interval" do

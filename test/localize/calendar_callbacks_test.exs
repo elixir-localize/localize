@@ -1127,9 +1127,11 @@ defmodule Localize.CalendarCallbacksTest do
     end
 
     # No interval format is keyed by a week and a weekday, so two dates are
-    # written in full about the locale's fallback pattern, or once where
-    # they are the same day, and a skeleton without a year takes one across
-    # years.
+    # written in full about the locale's fallback pattern, or once where no
+    # field the skeleton writes differs: the same day, and the same weekday
+    # of the same week of two years at a skeleton without a year, TR35's "no
+    # difference among any of the fields in the pattern". A year was added
+    # to that skeleton: "Tue, week 25 of 2026 – Tue, week 25 of 2027".
     test "writes an interval at a skeleton with both dates in full, and reads it back" do
       from = iso_week(2026, 25, 2)
 
@@ -1161,7 +1163,12 @@ defmodule Localize.CalendarCallbacksTest do
       assert Localize.Interval.to_string(from, iso_week(2027, 25, 2),
                locale: :en,
                format: :MMMd
-             ) == {:ok, "Tue, week 25 of 2026#{@thin}–#{@thin}Tue, week 25 of 2027"}
+             ) == {:ok, "Tue (week: 25)"}
+
+      assert Localize.Interval.to_string(from, iso_week(2027, 26, 1),
+               locale: :en,
+               format: :MMMd
+             ) == {:ok, "Tue (week: 25)#{@thin}–#{@thin}Mon (week: 26)"}
 
       assert Localize.Interval.parse("Tue, week 25 of 2026 – Mon, week 26 of 2026",
                locale: :en,

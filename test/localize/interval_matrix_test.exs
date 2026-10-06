@@ -7,10 +7,12 @@ defmodule Localize.IntervalMatrixTest do
 
   Expected values come from ICU4J 73's `DateIntervalFormat` for Gregorian
   dates in UTC (`test/support/data/interval_icu_expected.tsv`), except where
-  CLDR 49 has changed the locale data since ICU 73's CLDR 43; those cases
-  are checked here against the CLDR 49 patterns themselves. Every case goes
-  through `to_string/3` and `to_parts/3`, whose parts must join to the same
-  string and carry a valid `:source`.
+  CLDR 49 has changed the locale data since ICU 73's CLDR 43, and where ICU
+  adds a year to a selection of fields without one, which TR35's algorithm
+  does not; those cases are checked here against the CLDR 49 patterns and
+  TR35's steps themselves. Every case goes through `to_string/3` and
+  `to_parts/3`, whose parts must join to the same string and carry a valid
+  `:source`.
 
   """
 
@@ -19,17 +21,68 @@ defmodule Localize.IntervalMatrixTest do
   @fixture Path.join([__DIR__, "..", "support", "data", "interval_icu_expected.tsv"])
   @sources [:start_range, :end_range, :shared]
 
-  test "date and time intervals match ICU wherever CLDR 49 agrees with its data" do
+  # The locale's interval fallback pattern, about its two dates: CLDR's
+  # root has "{0} – {1}" with a thin space either side of the dash, which
+  # `en`, `de` and `fr` inherit, and `ja` has "{0}～{1}".
+  @fallback_separators %{en: " – ", de: " – ", fr: " – ", ja: "～"}
+
+  defp fixture_rows do
+    for line <- File.stream!(@fixture),
+        line = String.trim_trailing(line, "\n"),
+        line != "" and not String.starts_with?(line, "#"),
+        [_locale, _kind, _format, _from, _to, _expected] = row <- [String.split(line, "\t")],
+        do: row
+  end
+
+  # A selection of the month, or of the month and the day, writes no year,
+  # and two dates of two years differ in it.
+  defp year_not_written?([_locale, kind, _format, from, to, _expected]) do
+    kind in ["month", "month_and_day"] and String.slice(from, 0, 4) != String.slice(to, 0, 4)
+  end
+
+  test "date and time intervals match ICU wherever it does as TR35 says" do
     mismatches =
-      for line <- File.stream!(@fixture),
-          line = String.trim_trailing(line, "\n"),
-          line != "" and not String.starts_with?(line, "#"),
-          [locale, kind, format, from, to, expected] <- [String.split(line, "\t")],
+      for [locale, kind, format, from, to, expected] = row <- fixture_rows(),
+          not year_not_written?(row),
           mismatch <- [check_case(locale, kind, format, from, to, expected)],
           mismatch != nil,
           do: mismatch
 
     assert mismatches == [], report(mismatches)
+  end
+
+  # Where two dates differ in a year the selection does not write, ICU adds
+  # the year: `month_and_day` from 30 December 2025 to 2 January 2026 is
+  # "Dec 30, 2025 – Jan 2, 2026" there. TR35's algorithm adds nothing (user,
+  # 2026-10-06). Two dates alike in every field of the pattern are "a
+  # single date", and any other two, their greatest difference a year the
+  # item has no pattern for, are written with "the fallback pattern": each
+  # date as the same selection writes it alone, which the fixture's rows of
+  # two equal dates hold to ICU, about the locale's separator.
+  test "a selection without a year writes none for dates of two years, where ICU adds one" do
+    rows = Enum.filter(fixture_rows(), &year_not_written?/1)
+    assert Enum.count(rows) == 93
+
+    for [locale, kind, format, from, to, icu] <- rows do
+      locale = String.to_existing_atom(locale)
+      options = [fields: String.to_existing_atom(kind), format: String.to_existing_atom(format)]
+      options = Keyword.put(options, :locale, locale)
+      {from, to} = {Date.from_iso8601!(from), Date.from_iso8601!(to)}
+
+      {:ok, first} = Localize.Interval.to_string(from, from, options)
+      {:ok, second} = Localize.Interval.to_string(to, to, options)
+      separator = Map.fetch!(@fallback_separators, locale)
+      expected = if first == second, do: first, else: first <> separator <> second
+
+      assert Localize.Interval.to_string(from, to, options) == {:ok, expected},
+             "#{locale} #{kind} #{format} #{from}..#{to}"
+
+      assert expected != icu
+      refute String.contains?(expected, Integer.to_string(from.year))
+
+      assert {:ok, parts} = Localize.Interval.to_parts(from, to, options)
+      assert Enum.map_join(parts, & &1.value) == expected
+    end
   end
 
   describe "data CLDR 49 changed since ICU 73" do
@@ -42,11 +95,13 @@ defmodule Localize.IntervalMatrixTest do
                locale: :de
              ) == {:ok, "7/2024 – 8/2024"}
 
+      # A month alone writes no year, and none is added: `de`'s `M` is
+      # root's "L", written for each date around the fallback pattern.
       assert Localize.Interval.to_string(~D[2025-12-30], ~D[2026-01-02],
                fields: :month,
                format: :short,
                locale: :de
-             ) == {:ok, "12/2025 – 1/2026"}
+             ) == {:ok, "12 – 1"}
     end
 
     # de.xml: `h` and its interval item's `a` entry inherit root's "h a" and
@@ -65,13 +120,27 @@ defmodule Localize.IntervalMatrixTest do
   end
 
   describe "the rules TR35 and ICU apply" do
-    # ICU widens a skeleton without a year by one when the endpoints are in
-    # different years, taking `yMMMd`'s pattern for `MMMd`.
-    test "an interval across a year boundary keeps both years" do
+    # TR35's last step: `en`'s `MMMd` item has patterns for a day's and a
+    # month's difference and none for a year's, so "format the start and end
+    # datetime using the fallback pattern", each with the fields asked for,
+    # "MMM d". ICU adds the year, taking `yMMMd`'s pattern for `MMMd`: "Dec
+    # 30, 2025 – Jan 2, 2026". The same day of two years is one date to a
+    # selection of the month and the day (step 4).
+    test "an interval across a year boundary writes no year its fields do not have" do
       assert Localize.Interval.to_string(~D[2025-12-30], ~D[2026-01-02],
                fields: :month_and_day,
                locale: :en
-             ) == {:ok, "Dec 30, 2025 – Jan 2, 2026"}
+             ) == {:ok, "Dec 30 – Jan 2"}
+
+      assert Localize.Interval.to_string(~D[2024-07-06], ~D[2025-07-06],
+               fields: :month_and_day,
+               locale: :en
+             ) == {:ok, "Jul 6"}
+
+      assert Localize.Interval.to_string(~D[2025-12-30], ~D[2026-01-02],
+               fields: :year_and_month,
+               locale: :en
+             ) == {:ok, "Dec 2025 – Jan 2026"}
     end
 
     # TR35 step 4: no difference in any field the pattern displays formats

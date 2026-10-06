@@ -118,17 +118,27 @@ iex> Localize.Interval.to_string(~D[2026-04-15], ~D[2026-05-20], format: :yQQQ, 
 {:ok, "Q2 2026"}
 ```
 
-Two dates that differ in a month or a year the skeleton does not write take the interval of the skeleton widened with it, so a day alone keeps its month across months and its year across years:
+A skeleton names the fields that are written, and nothing is added to it, as TR35's interval algorithm has it. Two dates that differ in a month or a year the skeleton does not write are each written with it around the locale's fallback pattern, and two that are alike in every field it writes are one date. Ask for the year, or the era, to have it written:
 
 ```elixir
-iex> Localize.Interval.to_string(~D[2026-06-15], ~D[2026-06-20], format: :d, locale: :en)
-{:ok, "15 – 20"}
+iex> Localize.Interval.to_string(~D[2026-12-28], ~D[2027-01-03], format: :MMMd, locale: :en)
+{:ok, "Dec 28 – Jan 3"}
 
-iex> Localize.Interval.to_string(~D[2026-06-15], ~D[2026-07-20], format: :d, locale: :en)
-{:ok, "6/15 – 7/20"}
+iex> Localize.Interval.to_string(~D[2026-06-15], ~D[2027-06-15], format: :MMMd, locale: :en)
+{:ok, "Jun 15"}
 
-iex> Localize.Interval.to_string(~D[2026-12-30], ~D[2027-01-02], format: :d, locale: :en)
-{:ok, "12/30/2026 – 1/2/2027"}
+iex> Localize.Interval.to_string(~D[2026-12-28], ~D[2027-01-03], format: :yMMMd, locale: :en)
+{:ok, "Dec 28, 2026 – Jan 3, 2027"}
+```
+
+A date and a time are compared the same way, field by field. Two values a day or more apart are both written in full, whatever date fields the skeleton has, and two alike in every field it writes are one value:
+
+```elixir
+iex> Localize.Interval.to_string(~N[2026-06-15 10:00:00], ~N[2026-06-16 14:30:00], format: :yMMMHm, locale: :en)
+{:ok, "Jun 2026, 10:00 – Jun 2026, 14:30"}
+
+iex> Localize.Interval.to_string(~N[2026-06-15 10:00:00], ~N[2026-06-16 10:00:00], format: :yMMMHm, locale: :en)
+{:ok, "Jun 2026, 10:00"}
 ```
 
 ### Partial dates
@@ -212,14 +222,17 @@ iex> Localize.Interval.to_string(~N[2026-06-15 10:00:00], ~N[2026-06-16 14:30:00
 
 An interval is formatted with the formats of its endpoints' calendar: its interval patterns, its date and time formats, and the date-time pattern that joins a date to a time range. Two dates in Calendrical's Hebrew calendar take the Hebrew calendar's CLDR formats, as a single Hebrew date does in `Localize.Date.to_string/2`. Endpoints in two different calendars are an error, because there is no one calendar to take the formats from.
 
-When the endpoints are in different eras, the era is the greatest difference, and each endpoint shows its era wherever the locale has an era pattern for the interval's fields, as ICU does:
+When the endpoints are in different eras, the era is the greatest difference, and each endpoint is written with its era where the format asks for one. A format without an era writes none, as it writes none for a date alone:
 
 ```elixir
-iex> Localize.Interval.to_string(~D[0000-12-31], ~D[0001-01-01], locale: :en)
+iex> Localize.Interval.to_string(~D[0000-12-31], ~D[0001-01-01], format: :GyMMMd, locale: :en)
 {:ok, "Dec 31, 1 BC\u2009–\u2009Jan 1, 1 AD"}
+
+iex> Localize.Interval.to_string(~D[0000-12-31], ~D[0001-01-01], locale: :en)
+{:ok, "Dec 31, 1\u2009–\u2009Jan 1, 1"}
 ```
 
-The Japanese calendar changes era within a year, so its interval from 30 April to 1 May 2019 reads "Apr 30, 31 Heisei – May 1, 1 Reiwa" although both dates fall in the same Gregorian year.
+The Japanese calendar's formats write the era with the year, and it changes era within a year, so its interval from 30 April to 1 May 2019 reads "Apr 30, 31 Heisei – May 1, 1 Reiwa" although both dates fall in the same Gregorian year.
 
 ### How interval formatting works
 

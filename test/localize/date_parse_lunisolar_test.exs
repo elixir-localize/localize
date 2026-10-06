@@ -649,11 +649,14 @@ defmodule Localize.DateParseLunisolarTest do
              ) == {:ok, "Mo5 2, 2026"}
     end
 
-    # A format that writes no year is widened with one for two dates a year
-    # or more apart, as it is in any calendar, and then written in full
-    # across cycles. ICU4C 78.3 does not widen it for its era, and writes
-    # "5/2 – 5/2" (a recorded divergence).
-    test "is written with its year across cycles where the format has none" do
+    # A format that writes no year writes none (user, 2026-10-06). Two dates
+    # sixty years apart are alike in every field of such a pattern, and are
+    # one date, TR35's step 4; two that differ in a month or a day are both
+    # written with it around the fallback pattern. `en`'s Chinese `Md` is
+    # "M/d" and its `MMMd` "MMM d". ICU4C 78.3, which holds the cycle as an
+    # era, writes "5/2 – 5/2". A year was added and both written in full:
+    # "5/2/2026 – 5/2/2086".
+    test "is written without a year across cycles where the format has none" do
       from = date(4663, 5, 2)
       to = date(4723, 5, 2)
 
@@ -663,11 +666,14 @@ defmodule Localize.DateParseLunisolarTest do
         end
 
       assert written == [
-               Md: {:ok, "5/2/2026 – 5/2/2086"},
-               MMMd: {:ok, "Mo5 2, 2026 – Mo5 2, 2086"},
-               d: {:ok, "5/2/2026 – 5/2/2086"},
-               MMM: {:ok, "Mo5 2026 – Mo5 2086"}
+               Md: {:ok, "5/2"},
+               MMMd: {:ok, "Mo5 2"},
+               d: {:ok, "2"},
+               MMM: {:ok, "Mo5"}
              ]
+
+      assert Localize.Interval.to_string(from, date(4723, 6, 3), format: :Md, locale: :en) ==
+               {:ok, "5/2 – 6/3"}
     end
 
     test "an interval written in full across cycles reads back" do
