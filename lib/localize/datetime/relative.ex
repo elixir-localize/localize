@@ -42,7 +42,7 @@ defmodule Localize.DateTime.Relative do
 
   * `:unit` is the time unit for formatting. One of `:second`, `:minute`, `:hour`, `:day`, `:week`, `:month`, `:quarter`, `:year`, `:mon`, `:tue`, `:wed`, `:thu`, `:fri`, `:sat` or `:sun`. A difference is the number of the unit's calendar periods from the baseline to the value: 1 February is "next month" from 31 January, and 00:01 is "in 1 hour" from 23:59 the day before. A week and a weekday unit count calendar weeks, each starting on the locale's first day of the week, so "next Monday" is the Monday of the week after the baseline's. Two times have no date, so no days or longer periods lie between them. If omitted, the unit is the largest of which a whole one lies between the two, from a year down to a day for dates and to a second for times. A whole day, week, month or year is reckoned as ECMA-262 Temporal reckons it: across a change of UTC offset, a day is whole once the wall clock is at or past its time on the next day and that time has passed, a skipped time being taken at the offset before the gap, and in a lunisolar calendar a year is whole on the month of the same name, a leap month's year on the ordinary month it doubles. A number with no unit is a number of seconds, which has no calendar: it is counted, to the nearest, in the largest of weeks, days, hours, minutes and seconds it reaches, and never in months, quarters or years.
 
-  * `:numeric` is `:auto` or `:always`, mirroring ECMA-402's `numeric` option. With `:auto` (the default), an offset of -2 to 2 takes the unit's named form, such as "yesterday" or "tomorrow", where the locale has one. With `:always`, output is always numeric: "1 day ago" instead of "yesterday".
+  * `:numeric` is `:auto` or `:always`, mirroring ECMA-402's `numeric` option. With `:auto` (the default), a whole offset of -2 to 2 takes the unit's named form, such as "yesterday" or "tomorrow", where the locale has one; an offset that is no whole number, such as 1.5, is always the number. With `:always`, output is always numeric: "1 day ago" instead of "yesterday".
 
   * `:relative_to` is the baseline from which the difference is calculated. A `t:Date.t/0` or `t:Time.t/0` is measured against a value of its own type, a `t:NaiveDateTime.t/0` or a `t:DateTime.t/0`, a `t:NaiveDateTime.t/0` against a `t:NaiveDateTime.t/0` or a `t:DateTime.t/0`, and a `t:DateTime.t/0` against a `t:DateTime.t/0`. The baseline is converted into the value's calendar, and a `t:DateTime.t/0` baseline of a `t:DateTime.t/0` is moved into the value's time zone, so the two are compared on the value's wall clock. Any other pairing, or a baseline that cannot be converted, returns an error. The default is `DateTime.utc_now/0`.
 
@@ -243,17 +243,20 @@ defmodule Localize.DateTime.Relative do
     end
   end
 
-  # With `numeric: :auto` an offset of -2 to 2 takes the unit's named form
-  # ("yesterday", "this hour") where the locale has one. An offset within
-  # one percent of those is taken for it, so 0.9999 days is still
-  # "tomorrow": TR35 does not speak of an offset that is no whole number,
-  # and ICU matches it so (`plans/tr35-audit.md`).
+  # With `numeric: :auto` a whole offset of -2 to 2 takes the unit's named
+  # form ("yesterday", "this hour") where the locale has one. TR35's
+  # `relative` is a name "for the current instance of the field, and one or
+  # two past and future instances", "the day with relative value -1" being
+  # "Yesterday": an instance is a whole number of the field away, so an
+  # offset that is no whole number names none, and 0.9999 days is the
+  # number, "in 1 day". ICU takes an offset within one percent of a whole
+  # number for the instance (user, 2026-10-06, `plans/tr35-audit.md`).
   defp named_form(relative, %{relative_ordinal: %{} = names}, :auto)
-       when relative > -2.1 and relative < 2.1 do
-    hundredths = round(relative * 100)
+       when relative >= -2 and relative <= 2 do
+    whole = trunc(relative)
 
-    if rem(hundredths, 100) == 0 do
-      Map.get(names, div(hundredths, 100))
+    if whole == relative do
+      Map.get(names, whole)
     end
   end
 

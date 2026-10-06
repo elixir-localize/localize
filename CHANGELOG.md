@@ -72,6 +72,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Changed
 
+* A relative time takes its named form for a whole offset alone, as TR35's `relative` names an instance of a field: `Localize.DateTime.Relative.to_string(0.9999, unit: :day)` is "in 1 day", the number as it is displayed, where an offset within half a hundredth of a whole number was "tomorrow".
+
 * A date read with no format is read from patterns kept for its locale and calendar, with their order and what each pass asks of them, where the patterns were tokenized some hundreds of times on every call: `Localize.Date.parse/2` of "Jun 16, 2026" in `en` takes about 0.4 ms where it took 5.
 
 * `Localize.Interval.parse/2` keeps the compiled patterns of a locale's intervals for each calendar, as `Localize.Date.parse/2` keeps a date's, where it compiled them on every call: an `en` interval no early pattern read took about 80 ms and takes about 2. They stay in `:persistent_term`, up to about 300 KB for each locale and calendar a range is read in.

@@ -1035,6 +1035,30 @@ defmodule Localize.DateTime.RelativeTest do
       assert {:ok, "today"} = Relative.to_string(0, unit: :day, locale: :en)
     end
 
+    # TR35's `relative` names "the current instance of the field, and one or
+    # two past and future instances", "the day with relative value -1" being
+    # "Yesterday": an instance is a whole number of the field away. `en.xml`'s
+    # day has "yesterday", "today" and "tomorrow" beside "in {0} day" and "{0}
+    # day ago", and `de.xml`'s "vorgestern" and "übermorgen" beside "in {0}
+    # Tagen". An offset that is no whole number is the number, at the three
+    # fraction digits of the locale's decimal format. ICU takes an offset
+    # within one percent of a whole number for the instance, "tomorrow" for
+    # 0.9999 days.
+    test "numeric: :auto names a whole offset, and no other" do
+      assert {:ok, "tomorrow"} = Relative.to_string(1.0, unit: :day, locale: :en)
+      assert {:ok, "yesterday"} = Relative.to_string(-1.0, unit: :day, locale: :en)
+      assert {:ok, "today"} = Relative.to_string(0.0, unit: :day, locale: :en)
+      assert {:ok, "übermorgen"} = Relative.to_string(2.0, unit: :day, locale: :de)
+      assert {:ok, "vorgestern"} = Relative.to_string(-2, unit: :day, locale: :de)
+
+      assert {:ok, "in 1 day"} = Relative.to_string(0.9999, unit: :day, locale: :en)
+      assert {:ok, "1 day ago"} = Relative.to_string(-0.9999, unit: :day, locale: :en)
+      assert {:ok, "in 1.001 days"} = Relative.to_string(1.001, unit: :day, locale: :en)
+      assert {:ok, "in 0.004 days"} = Relative.to_string(0.004, unit: :day, locale: :en)
+      assert {:ok, "in 2 Tagen"} = Relative.to_string(1.9999, unit: :day, locale: :de)
+      assert {:ok, "in 0.4 seconds"} = Relative.to_string(0.4, unit: :second, locale: :en)
+    end
+
     test "applies in other locales" do
       assert {:ok, "il y a 1 jour"} =
                Relative.to_string(-1, unit: :day, locale: :fr, numeric: :always)

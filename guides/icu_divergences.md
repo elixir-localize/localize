@@ -270,6 +270,8 @@ Without `:unit`, `Localize.DateTime.Relative` takes the largest unit of which a 
 
 * **A leap month.** Temporal takes a leap month that the next year lacks as the ordinary month it doubles (its skip-backward rule for the Chinese and Dangi calendars). ICU takes the next new moon, the month after it.
 
+* **A named form.** TR35's `relative` is a name "for the current instance of the field, and one or two past and future instances", an instance being a whole number of the field away, and ECMA-402's `numeric: "auto"` takes the name for that number alone. So only a whole offset is named: 0.9999 days is "in 1 day", the number as it is displayed. ICU4C 78.3 takes an offset within half a hundredth of a whole number for the instance, so 0.996 days is "tomorrow" there and 0.004 days "today" (user, 2026-10-06).
+
 ### Durations
 
 `Localize.Duration.new/2` measures two date-times in time zones as the same specification does (user, 2026-10-02): the later is moved to the earlier's time zone, whole days are counted on that wall clock, and the hours, minutes and seconds are the time that passes after them. It agrees with a step-by-step implementation of `DifferenceZonedDateTime` on 322,464 of 324,207 pairs about 36 changes of clocks in twelve time zones, and differs in one case, which it keeps. A sample of the pairs is asserted in `test/localize/duration_zoned_matrix_test.exs`.

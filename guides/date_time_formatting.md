@@ -927,5 +927,5 @@ Skeleton atoms can use `j` as a meta-symbol that resolves to the locale's prefer
 | `:locale` | atom, string, or `LanguageTag` | `Localize.get_locale()` | Locale for patterns, pluralization, and the number's digits and grouping. |
 | `:format` | atom | `:standard` | Width: `:standard`, `:short`, or `:narrow`. |
 | `:unit` | atom | (the largest whole unit) | Explicit unit: `:second`, `:minute`, `:hour`, `:day`, `:week`, `:month`, `:quarter`, `:year`, or a weekday from `:mon` to `:sun`. |
-| `:numeric` | atom | `:auto` | `:auto` uses named forms such as "yesterday" for offsets of -2 to 2; `:always` is always numeric. |
+| `:numeric` | atom | `:auto` | `:auto` uses named forms such as "yesterday" for whole offsets of -2 to 2; `:always` is always numeric. |
 | `:relative_to` | `Date`, `Time`, `NaiveDateTime`, or `DateTime` | `DateTime.utc_now()` | Baseline, converted into the value's calendar. |
