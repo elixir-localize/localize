@@ -975,6 +975,44 @@ defmodule Localize.CalendarCallbacksTest do
       end
     end
 
+    # Two dates and times of one day are the date once and an interval of
+    # the times (TR35's interval algorithm, step 3.2), and the date is the
+    # week and the weekday the skeleton's month and day are, in the formats
+    # of the calendar the dates are read in, the times' interval with it.
+    # en.xml's Gregorian `Hm` interval is "HH:mm – HH:mm" about thin spaces
+    # and its short date and time pattern "{1}, {0}"; de.xml's are
+    # "HH:mm–HH:mm 'Uhr'" and "{1}, {0}"; th.xml's "HH:mm น. – HH:mm น." and
+    # root's "{1} {0}". The date was the calendar's period and day number,
+    # "M06 2, 2026 AD, 10:30 – 12:30", which names no week.
+    test "writes the date of two dates and times of one day as the week and the weekday" do
+      from = at(iso_week(2026, 25, 2), 10, 30)
+      to = at(iso_week(2026, 25, 2), 12, 30)
+
+      for {locale, expected} <- [
+            en: "Tue, week 25 of 2026, 10:30#{@thin}–#{@thin}12:30",
+            de: "Di., Woche 25 des Jahres 2026, 10:30–12:30 Uhr",
+            th: "อังคารที่ สัปดาห์ที่ 25 ของปี 2026 10:30 น. – 12:30 น."
+          ] do
+        assert Localize.Interval.to_string(from, to, locale: locale, format: :yMMMdHm) ==
+                 {:ok, expected},
+               "#{locale}"
+      end
+
+      # Two days are both dates and times in full, and one moment is one.
+      assert Localize.Interval.to_string(from, at(iso_week(2026, 25, 5), 10, 30),
+               locale: :en,
+               format: :yMMMdHm
+             ) ==
+               {:ok, "Tue, week 25 of 2026, 10:30#{@thin}–#{@thin}Fri, week 25 of 2026, 10:30"}
+
+      assert Localize.Interval.to_string(from, from, locale: :en, format: :yMMMdHm) ==
+               {:ok, "Tue, week 25 of 2026, 10:30"}
+
+      # A skeleton of a time alone names no week, and is the calendar's own.
+      assert Localize.Interval.to_string(from, to, locale: :en, format: :Hm) ==
+               {:ok, "10:30#{@thin}–#{@thin}12:30"}
+    end
+
     # No interval format is keyed by a week and a weekday, so two dates are
     # written in full about the locale's fallback pattern, or once where
     # they are the same day, and a skeleton without a year takes one across
