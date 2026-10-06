@@ -1489,6 +1489,57 @@ defmodule Localize.CalendarCallbacksTest do
       assert {:error, %Localize.DateRangeParseError{reason: :to_parse_failed}} =
                Localize.Interval.parse({"Feb 1, 2024", "not a date"}, options)
     end
+
+    # An inverted range names its two dates in the calendar asked for, as a
+    # range that is read is in it. 1 and 5 February 2024 are the Thursday of
+    # ISO week 5 and the Monday of week 6 (`:calendar.iso_week_number/1`),
+    # and the Tuesday and the Monday of week 25 of 2026 are 16 and 15 June.
+    # The error named the Gregorian dates the text was read as.
+    test "an inverted range names its dates in the calendar asked for" do
+      assert :calendar.iso_week_number({2024, 2, 1}) == {2024, 5}
+      assert :calendar.iso_week_number({2024, 2, 5}) == {2024, 6}
+
+      from = iso_week(2024, 6, 1)
+      to = iso_week(2024, 5, 4)
+
+      for input <- [{"Feb 5, 2024", "Feb 1, 2024"}, "Feb 5, 2024 – Feb 1, 2024"] do
+        assert Localize.Interval.parse(input, locale: :en, calendar: IsoWeek) ==
+                 {:error,
+                  %Localize.DateRangeParseError{
+                    input: {from, to},
+                    reason: :inverted,
+                    from: from,
+                    to: to
+                  }},
+               inspect(input)
+      end
+
+      tuesday = iso_week(2026, 25, 2)
+      monday = iso_week(2026, 25, 1)
+
+      assert Localize.Interval.parse("Tue (week: 25) – Mon (week: 25)",
+               locale: :en,
+               calendar: IsoWeek,
+               reference_date: tuesday
+             ) ==
+               {:error,
+                %Localize.DateRangeParseError{
+                  input: {tuesday, monday},
+                  reason: :inverted,
+                  from: tuesday,
+                  to: monday
+                }}
+
+      # In the calendar the text is read in, the dates are as they were.
+      assert Localize.Interval.parse("Feb 5, 2024 – Feb 1, 2024", locale: :en) ==
+               {:error,
+                %Localize.DateRangeParseError{
+                  input: {~D[2024-02-05], ~D[2024-02-01]},
+                  reason: :inverted,
+                  from: ~D[2024-02-05],
+                  to: ~D[2024-02-01]
+                }}
+    end
   end
 
   describe "an ISO 8601 date and time" do

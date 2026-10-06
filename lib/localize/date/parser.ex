@@ -2881,8 +2881,29 @@ defmodule Localize.Date.Parser do
          {:ok, converted} <- convert_value(value, calendar_module) do
       weeks = weeks_without_days(as, converted, options, parsing, parse)
       {:ok, converted |> finalise.(as) |> without_days(weeks)}
+    else
+      unread -> inverted_in_its_calendar(unread, calendar_module)
     end
   end
+
+  # An inverted range names its two dates, and they are the caller's in the
+  # calendar asked for, as the range is where it is read: a calendar of
+  # weeks' "Tue (week: 25) – Mon (week: 25)" named 16 and 15 June 2026, the
+  # Gregorian dates it was read as. Any other error is as it was read.
+  defp inverted_in_its_calendar(
+         {:error, %DateRangeParseError{reason: :inverted, from: %Date{}, to: %Date{}} = error},
+         calendar_module
+       ) do
+    with {:ok, from} <- convert_value(error.from, calendar_module),
+         {:ok, to} <- convert_value(error.to, calendar_module) do
+      input = if error.input == {error.from, error.to}, do: {from, to}, else: error.input
+      {:error, %{error | from: from, to: to, input: input}}
+    else
+      _unconvertible -> {:error, error}
+    end
+  end
+
+  defp inverted_in_its_calendar(unread, _calendar_module), do: unread
 
   # A week written for the calendar names no day, so read as a map it is
   # not the whole date of its first day but the fields its days share, as

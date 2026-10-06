@@ -8,8 +8,6 @@ Outstanding work on Localize. The design detail behind these items lives under [
 
 * [ ] **A date read with no format tokenizes every pattern of its locale on every call** — the patterns' regexes are kept for a locale and calendar, but their order, their literals and their two-digit years are worked out again each time, so `Localize.Date.parse/2` takes about 5 ms in `en`, 3 ms in `de` and 1.4 ms in `ja` on this machine, most of it in `Localize.Date.Parser.tokenize/3` (measured 2026-10-06, the same before the batch). Recommended: keep the ordered patterns with what is derived from each, as an interval's are kept.
 
-* [ ] **An inverted range read for a calendar of weeks names its dates in the Gregorian calendar** — `Localize.Interval.parse/2` of "Tue (week: 25) – Mon (week: 25)" for `Calendrical.ISOWeek` returns `Localize.DateRangeParseError` with `from: ~D[2026-06-16]` and `to: ~D[2026-06-15]`, the dates as they were read, where a range that is read comes back in the calendar asked for. Recommended: convert the error's dates as the range is converted.
-
 * [ ] **A pattern's month and day written for a calendar of weeks do not read back** — a pattern writes the calendar's own answers, so `Calendrical.ISOWeek`'s 2026-W25-2 at "y-M-d" is its period and day number, "2026-6-2", and the same pattern reads that as a Gregorian date, 2 June 2026, in week 23, as text for a calendar of weeks is read (user, 2026-10-01); "MMM d, y" writes "M06 2, 2026", which is read as nothing. Found 2026-10-06 by the batch's sweep, the same before it. Decide whether a pattern given as `:format` reads the calendar's own fields; recommended: yes, before the Gregorian reading, as a skeleton's own fields are read.
 
 * [ ] **An era beside a cyclic year's name does not say which year is meant** — `Calendrical.LunarJapanese`'s 16 June 1700 at "G U M d" is "Genroku (1688–1704) geng-chen 4 29", and it is read as the geng-chen year nearest the reference date, 2000, whatever era is written (2,628 of the 4,599 dates written so in 657 locales, the same before the batch). Recommended: a year named by its place in the cycle beside an era is the year of that name in the era, as a cycle's number and a place name one year in the Chinese calendar.
@@ -33,6 +31,8 @@ Outstanding work on Localize. The design detail behind these items lives under [
 * [ ] **`Localize.Calendar.localize/3` names the first value of a part the date lacks** — a map without a month is January, the first quarter and a Monday, and one without a year the current era; characterization tests pin this. Decide whether they should be errors.
 
 ## In progress
+
+* [ ] **An inverted range read for a calendar of weeks names its dates in the Gregorian calendar** — `Localize.Interval.parse/2` of "Tue (week: 25) – Mon (week: 25)" for `Calendrical.ISOWeek` returns `Localize.DateRangeParseError` with `from: ~D[2026-06-16]` and `to: ~D[2026-06-15]`, the dates as they were read, where a range that is read comes back in the calendar asked for. Recommended: convert the error's dates as the range is converted. Landed 2026-10-06 (batch 17): the error's two dates, and its input where that is the pair, are converted into the calendar asked for as a range that is read is; the batch's sweep is still to run.
 
 * [ ] **CLDR 49 upgrade** — the plan's items are closed bar item 11; the data is built from CLDR `main` pending beta3 (below), then the final release. [plans/cldr-49.md](plans/cldr-49.md).
 

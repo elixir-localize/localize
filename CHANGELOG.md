@@ -138,6 +138,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+* An inverted range read for a calendar whose dates are read in another names its two dates in the calendar asked for: `Localize.Interval.parse/2` of "Feb 5, 2024 – Feb 1, 2024" for a calendar of weeks returned a `Localize.DateRangeParseError` holding the Gregorian dates the text was read as.
+
 * A year below 1 is read where its numbering spells its sign: `ja` writes a Japanese date before the first era with the `jpanyear` numbering, "大化マイナス688年3月15日", and it was read as no date, alone and in an interval.
 
 * A week written without its year is a week of the reference date's week-based year, where it was a week of that date's calendar year: "Sun (week: 53)" read on Sunday 3 January 2021, the last day of ISO 8601's 2020, is that day and was no date. Two such weeks are read by their week-based years as an interval, and a week and a weekday without a year, or with an era, are read with no format too.
