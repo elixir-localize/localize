@@ -584,7 +584,7 @@ iex> Localize.Date.parse("4/3/2024", locale: :en, format: "d/M/y")
 {:ok, ~D[2024-03-04]}
 ```
 
-`Localize.Time.parse/2` takes `:format` the same way, and reads a `:long` or a `:full` time with its zone or, as it is written for a time that has none, without it. `Localize.DateTime.parse/2` reads each half with its part of `:format`: a standard format is the date's and the time's alike, a skeleton or a semantic skeleton is split into its date fields and its time fields, and a pattern is split at the text between its date fields and its time fields, where the input is split too. `:date_format` and `:time_format` name a half's format on its own. `Localize.Interval.parse/2` reads each end with `:format`:
+`Localize.Time.parse/2` takes `:format` the same way, and reads a `:long` or a `:full` time with its zone or, as it is written for a time that has none, without it. `Localize.DateTime.parse/2` reads each half with its part of `:format`: a standard format is the date's and the time's alike, a skeleton or a semantic skeleton is split into its date fields and its time fields, and a pattern is split at the text between its date fields and its time fields, where the input is split too. `:date_format` and `:time_format` name a half's format on its own. For `Localize.Interval.parse/2`, `:format` is the interval's own format, and the text is read as `Localize.Interval.to_string/3` writes two dates at it: with the patterns of the format's interval format, as two dates each written whole with it, or as the one date two alike in every field it writes are written as:
 
 ```elixir
 iex> Localize.Time.parse("14h30", locale: :en, format: "HH'h'mm")
@@ -601,6 +601,12 @@ iex> Localize.DateTime.parse("20240403T220509", locale: :en, format: "yyyyMMdd'T
 
 iex> Localize.Interval.parse("4/3/2024 – 10/3/2024", locale: :en, format: "d/M/y")
 {:ok, Date.range(~D[2024-03-04], ~D[2024-03-10])}
+
+iex> Localize.Interval.parse("Jun 16 – 20, 2026", locale: :en, format: :medium)
+{:ok, Date.range(~D[2026-06-16], ~D[2026-06-20])}
+
+iex> Localize.Interval.parse("Jun 16, 2026", locale: :en, format: :medium)
+{:ok, Date.range(~D[2026-06-16], ~D[2026-06-16])}
 ```
 
 ### Intervals

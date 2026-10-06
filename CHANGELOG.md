@@ -18,7 +18,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 * A calendar may name further calendars for its dates to be read in, with an optional `parsing_calendars/0` callback that returns calendar modules: a composite calendar writes the dates of each of its calendars with that calendar's formats, which the formats of its own CLDR type do not all read. `Localize.Date.parse/2`, `Localize.DateTime.parse/2` and `Localize.Interval.parse/2` read a date in each calendar named and convert it, keeping a reading only where the composite writes that day with the formats of the calendar it was read in.
 
-* `Localize.Date.parse/2` takes `:format`, the standard format, skeleton or pattern the text was written with, and reads the text with that format alone, so a date written by a skeleton whose fields stand in another order than the standard formats' reads back: `mt`'s `:yMd` "4/3/2024" is 3 April. `Localize.Interval.parse/2` reads each end with `:format`.
+* `Localize.Date.parse/2` takes `:format`, the standard format, skeleton or pattern the text was written with, and reads the text with that format alone, so a date written by a skeleton whose fields stand in another order than the standard formats' reads back: `mt`'s `:yMd` "4/3/2024" is 3 April. `Localize.Interval.parse/2` takes it as the interval's own format.
 
 * `Localize.DateTime.parse/2` reads each half of a date and time with its part of `:format`, a standard format, a skeleton or a pattern, which is split at the text between its date fields and its time fields: "3/4/2024 22:05" with `format: "d/M/y HH:mm"`. `:date_format` and `:time_format` name a half's format on its own.
 
@@ -71,6 +71,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 * The `g` pattern symbol formats the modified Julian day and the deprecated `l` is ignored, as TR35 specifies, where both returned a tokenize error.
 
 ### Changed
+
+* `Localize.Interval.parse/2` takes `:format` as the interval's own format, and reads the text as `Localize.Interval.to_string/3` writes two dates at it: with the patterns of the format's interval format ("Jun 16 – 20, 2026" at `:medium`, which was an error), as two dates written whole with it, or as one date, read as the range of that date alone. Each end was read with the format, so only two dates written whole were read.
 
 * A relative time takes its named form for a whole offset alone, as TR35's `relative` names an instance of a field: `Localize.DateTime.Relative.to_string(0.9999, unit: :day)` is "in 1 day", the number as it is displayed, where an offset within half a hundredth of a whole number was "tomorrow".
 

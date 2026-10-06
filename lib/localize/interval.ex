@@ -2089,10 +2089,14 @@ defmodule Localize.Interval do
   Same as `Localize.Date.parse/2` — `:locale`, `:calendar`, `:format`,
   `:reference_date`, `:as`. As there, `:calendar` is a calendar module and
   the endpoints are returned in it, a calendar of weeks reading them as
-  Gregorian dates. `:format` is the format each endpoint was written with:
-  each is read with it either side of the locale's separator, and the
-  locale's interval patterns, which share fields between the endpoints,
-  are not tried. Plus:
+  Gregorian dates. `:format` is the interval's own format, as `to_string/3`
+  takes it, and the text is read as two dates are written at it: with the
+  patterns of the format's interval format, in which the two share the
+  fields written once ("Jun 16 – 20, 2026" at `:medium`); as two dates each
+  written whole with the format, either side of the locale's separator; and
+  as one date, which two dates alike in every field the format writes are
+  written as, read as the range of that date alone. No pattern of another
+  format is tried. Plus:
 
   * `:allow_inverted` is a boolean. When `true`, an end-before-start
     interval is returned as-is, since `Date.range/3` builds a descending
@@ -2154,6 +2158,72 @@ defmodule Localize.Interval do
       Localize.Date.Parser.parse_range(input, options)
     end
   end
+
+  @doc false
+  # The patterns an interval of two whole dates is written with at
+  # `format`, for the reader of one: the patterns of the interval item the
+  # formatter takes for the format (`resolve_date_fields/5`), one for each
+  # difference the item has a pattern for, each adjusted to the format's
+  # widths as the formatter adjusts it (`interval_split/6`): the patterns
+  # it writes by default, and the variants an item has beside them, which
+  # it writes only where it is asked to. A format with no item has none, a
+  # pattern among them and every format of a calendar that writes its
+  # dates in a notation of its own: its dates are written in full around
+  # the fallback pattern.
+  @spec written_patterns(atom() | String.t(), Localize.locale(), module(), Keyword.t()) ::
+          {:ok, {defaults :: [String.t()], variants :: [String.t()]}} | {:error, Exception.t()}
+  def written_patterns(format, locale, calendar_module, options \\ [])
+
+  def written_patterns(format, locale, calendar_module, options)
+      when is_atom(format) and not is_nil(format) do
+    calendar = Localize.Calendar.cldr_calendar_type(calendar_module)
+
+    with {:ok, locale_id} <- resolve_locale_id(locale),
+         {:ok, false} <- Localize.Calendar.own_notation?(calendar_module),
+         {:ok, formats} <- Localize.DateTime.Format.interval_formats(locale_id, calendar),
+         {:ok, item} <- written_item(format, {locale_id, calendar}, options) do
+      {:ok, item_patterns(formats, item)}
+    else
+      {:ok, true} -> {:ok, {[], []}}
+      {:error, _exception} = error -> error
+    end
+  end
+
+  def written_patterns(_pattern, _locale, _calendar_module, _options), do: {:ok, {[], []}}
+
+  defp written_item(format, lookup, options) when format in [:short, :medium, :long, :full],
+    do: standard_date_fields(format, lookup, options)
+
+  defp written_item(skeleton, {locale_id, calendar}, _options),
+    do: resolve_fields(:date, skeleton, locale_id, calendar)
+
+  defp item_patterns(_formats, {:fallback_style, _format}), do: {[], []}
+
+  defp item_patterns(formats, {format_key, requested_skeleton}),
+    do: adjusted_patterns(Map.get(formats, format_key), format_key, requested_skeleton)
+
+  defp item_patterns(formats, format_key),
+    do: adjusted_patterns(Map.get(formats, format_key), format_key, nil)
+
+  defp adjusted_patterns(%{} = item, format_key, requested_skeleton) do
+    patterns = Map.values(item)
+    defaults = for pattern <- patterns, text <- default_text(pattern), do: text
+    variants = for %{variant: text} <- patterns, is_binary(text), do: text
+
+    adjusted = fn texts ->
+      for text <- Enum.uniq(texts),
+          {:ok, adjusted} <- [adjust_interval_widths(text, requested_skeleton, format_key)],
+          do: adjusted
+    end
+
+    {adjusted.(defaults), adjusted.(variants -- defaults)}
+  end
+
+  defp adjusted_patterns(_no_item, _format_key, _requested_skeleton), do: {[], []}
+
+  defp default_text(pattern) when is_binary(pattern), do: [pattern]
+  defp default_text(%{default: pattern}) when is_binary(pattern), do: [pattern]
+  defp default_text(_other), do: []
 
   # ── Locale resolution ──────────────────────────────────────
 

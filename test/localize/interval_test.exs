@@ -603,6 +603,164 @@ defmodule Localize.IntervalTest do
     end
   end
 
+  # `:format` is the interval's own format (user, 2026-10-06): the text is
+  # read as `to_string/3` writes two dates at it, by TR35's interval
+  # algorithm. TR35 says nothing of reading an interval; its parsing has
+  # "Always try the format string expected for the input text first", and an
+  # interval's format strings are the patterns of its format's item. Each end
+  # was read with the format about the separator, so only two dates written
+  # whole were read: "Jun 16 – 20, 2026" at `yMMMd` was an error.
+  describe "parse/2 with the interval's own format" do
+    # en.xml's `yMMMd` item is "MMM d – d, y" for a difference of the day,
+    # "MMM d – MMM d, y" for one of the month and "MMM d, y – MMM d, y" for
+    # one of the year, and its medium date is "MMM d, y". Its long date is
+    # "MMMM d, y", whose interval is that item at the long month, and its
+    # full date "EEEE, MMMM d, y", the `yMMMEd` item's "E, MMM d – E, MMM d,
+    # y" at those widths.
+    test "reads the patterns of the format's interval item" do
+      for {text, format, to} <- [
+            {"Jun 16 – 20, 2026", :yMMMd, ~D[2026-06-20]},
+            {"Jun 16 – Aug 20, 2026", :yMMMd, ~D[2026-08-20]},
+            {"Jun 16, 2026 – Aug 20, 2027", :yMMMd, ~D[2027-08-20]},
+            {"Jun 16 – 20, 2026", :medium, ~D[2026-06-20]},
+            {"June 16 – 20, 2026", :long, ~D[2026-06-20]},
+            {"Tuesday, June 16 – Saturday, June 20, 2026", :full, ~D[2026-06-20]},
+            {"6/16/26 – 6/20/26", :short, ~D[2026-06-20]}
+          ] do
+        assert Interval.parse(text, locale: :en, format: format, reference_date: ~D[2026-01-01]) ==
+                 {:ok, Date.range(~D[2026-06-16], to)},
+               inspect({text, format})
+      end
+    end
+
+    # de.xml's medium date is "dd.MM.y" and its `yMd` item "dd.–dd.MM.y" for
+    # a difference of the day; ja.xml's `yMMMd` item is "y年M月d日～d日".
+    # kek.xml's fallback pattern is "{1} – {0}", so its `yMd` item, "d/M/y –
+    # d/M/y", writes the later date first.
+    test "reads them in other locales, in the order the locale writes its dates" do
+      assert Interval.parse("16.–20.06.2026", locale: :de, format: :medium) ==
+               {:ok, Date.range(~D[2026-06-16], ~D[2026-06-20])}
+
+      assert Interval.parse("2026年6月16日～20日", locale: :ja, format: :long) ==
+               {:ok, Date.range(~D[2026-06-16], ~D[2026-06-20])}
+
+      assert Interval.parse("20/8/2027 – 16/6/2026", locale: :kek, format: :yMd) ==
+               {:ok, Date.range(~D[2026-06-16], ~D[2027-08-20])}
+    end
+
+    # en_CA.xml's `yMd` item is "M/d/y–M/d/y", with a variant "d/M/y – d/M/y"
+    # the formatter writes only where it is asked to, so the default is read
+    # first: 6 May, not 5 June.
+    test "reads an item's default pattern before its variant" do
+      assert Interval.parse("5/6/2026–7/8/2026", locale: :"en-CA", format: :yMd) ==
+               {:ok, Date.range(~D[2026-05-06], ~D[2026-07-08])}
+    end
+
+    # A format with no year is of the reference date's year, as a date alone
+    # is: en.xml's `MMMd` item is "MMM d – d" and "MMM d – MMM d".
+    test "reads a format without a year in the reference date's year" do
+      options = [locale: :en, format: :MMMd, reference_date: ~D[2026-01-01]]
+
+      assert Interval.parse("Jun 16 – 20", options) ==
+               {:ok, Date.range(~D[2026-06-16], ~D[2026-06-20])}
+
+      assert Interval.parse("Dec 28 – Jan 3", options) ==
+               {:ok, Date.range(~D[2026-12-28], ~D[2027-01-03])}
+    end
+
+    # TR35: "If there is no difference among any of the fields in the
+    # pattern, format as a single date". So one date at the format is all it
+    # writes of two that are alike in its fields, and is read as the range
+    # of that date alone. With no format a single date is no range.
+    test "reads one date as the range of that date" do
+      options = [locale: :en, reference_date: ~D[2026-01-01]]
+
+      assert Interval.parse("Jun 15", [format: :MMMd] ++ options) ==
+               {:ok, Date.range(~D[2026-06-15], ~D[2026-06-15])}
+
+      assert Interval.parse("Jun 16, 2026", [format: :medium] ++ options) ==
+               {:ok, Date.range(~D[2026-06-16], ~D[2026-06-16])}
+
+      assert Interval.parse("Jun 15", [format: :MMMd, as: :map] ++ options) ==
+               {:ok,
+                {%{calendar: Calendar.ISO, month: 6, day: 15},
+                 %{calendar: Calendar.ISO, month: 6, day: 15}}}
+
+      assert {:error, %Localize.DateRangeParseError{}} = Interval.parse("Jun 16, 2026", options)
+    end
+
+    # The text is read with that format and no other: en.xml's `yMd` item is
+    # "M/d/y – M/d/y", which is not how "Jun 16 – 20, 2026" is written.
+    test "reads no pattern of another format" do
+      options = [locale: :en, reference_date: ~D[2026-01-01]]
+
+      assert {:error, %Localize.DateRangeParseError{}} =
+               Interval.parse("Jun 16 – 20, 2026", [format: :yMd] ++ options)
+
+      assert {:error, %Localize.DateRangeParseError{}} =
+               Interval.parse("6/16/2026 – 6/20/2026", [format: :yMMMd] ++ options)
+
+      assert Interval.parse("6/16/2026 – 6/20/2026", [format: :yMd] ++ options) ==
+               {:ok, Date.range(~D[2026-06-16], ~D[2026-06-20])}
+    end
+
+    # A format whose fields make no date is read as a map of them, as a
+    # date alone at it is: en.xml's `yMMM` item is "MMM – MMM y".
+    test "reads a format without a day as the fields it has" do
+      options = [locale: :en, format: :yMMM, reference_date: ~D[2026-01-01]]
+
+      assert Interval.parse("Jun – Aug 2026", [as: :map] ++ options) ==
+               {:ok,
+                {%{calendar: Calendar.ISO, year: 2026, month: 6},
+                 %{calendar: Calendar.ISO, year: 2026, month: 8}}}
+
+      assert {:error, %Localize.DateRangeParseError{}} = Interval.parse("Jun – Aug 2026", options)
+    end
+
+    test "keeps an inverted range an error, and a format that is none" do
+      options = [locale: :en, reference_date: ~D[2026-01-01]]
+
+      assert {:error, %Localize.DateRangeParseError{reason: :inverted}} =
+               Interval.parse("Jun 20 – 16, 2026", [format: :yMMMd] ++ options)
+
+      assert Interval.parse(
+               "Jun 20 – 16, 2026",
+               [format: :yMMMd, allow_inverted: true] ++ options
+             ) ==
+               {:ok, Date.range(~D[2026-06-20], ~D[2026-06-16], -1)}
+
+      assert {:error, %Localize.DateTimeUnresolvedFormatError{}} =
+               Interval.parse("Jun 16 – 20, 2026", [format: :bogus] ++ options)
+
+      assert {:error, %Localize.DateTimeFormatError{}} =
+               Interval.parse("Jun 16 – 20, 2026", [format: 12] ++ options)
+    end
+
+    # What `to_string/3` writes at a format is read at it: the dates it was
+    # written from, or, where the two are alike in every field the format
+    # writes, the first of them alone.
+    test "reads back what to_string/3 writes at the format" do
+      pairs = [
+        {~D[2026-06-16], ~D[2026-06-16]},
+        {~D[2026-06-16], ~D[2026-06-20]},
+        {~D[2026-06-16], ~D[2026-08-20]},
+        {~D[2026-06-16], ~D[2027-08-20]},
+        {~D[2026-12-28], ~D[2027-01-03]}
+      ]
+
+      for locale <- [:en, :de, :fr, :ja, :ar, :he, :ru, :"pt-BR", :kek, :"en-CA"],
+          format <- [:short, :medium, :long, :full, :yMd, :yMMMd, :yMMMEd, :yMMMMd],
+          {from, to} <- pairs do
+        options = [locale: locale, format: format]
+        {:ok, text} = Interval.to_string(from, to, options)
+
+        assert Interval.parse(text, [reference_date: ~D[2026-01-01]] ++ options) ==
+                 {:ok, Date.range(from, to)},
+               inspect({locale, format, from, to, text})
+      end
+    end
+  end
+
   # TR35's parsing has spaces "ignored (except to delimit the tokens of the
   # input string)", and a dash delimits without them. en.xml's `yMMMd`
   # interval is "MMM d – d, y", de.xml's `yMd` "dd.–dd.MM.y" and fi.xml's

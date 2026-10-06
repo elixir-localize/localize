@@ -785,14 +785,18 @@ defmodule Localize.Date.Parser do
     #    inputs the interval patterns don't cover (e.g. mixed
     #    formats, ISO endpoints).
     #
-    # A `:format` is the format each end was written with, so each is
-    # read with it on its own, about the separator, and the locale's
-    # interval patterns, which write the two in the locale's order, are
-    # not tried.
+    # A `:format` is the interval's own format (user, 2026-10-06), and the
+    # text is read as `Localize.Interval.to_string/3` writes two dates at
+    # it, by TR35's interval algorithm: with the patterns of the format's
+    # interval item, in which the two share the fields written once; as
+    # two dates each written whole with the format, about the separator;
+    # and as one date, which two alike in every field the format writes
+    # are written as. No pattern of another format is tried.
+    reading = {locale, calendar_module, own_calendar, reference}
+
     matched =
-      if Keyword.get(options, :format),
-        do: :error,
-        else:
+      case Keyword.get(options, :format) do
+        nil ->
           match_interval_candidates(
             candidates,
             locale,
@@ -802,12 +806,72 @@ defmodule Localize.Date.Parser do
             as
           )
 
+        format ->
+          match_format_interval(candidates, format, reading, as)
+      end
+
     case matched do
       {:ok, from, to} ->
         finalise_range(from, to, allow_inverted, as)
 
       :error ->
-        read_joined_range(normalised, locale, [own_calendar, calendar_module], options)
+        normalised
+        |> read_joined_range(locale, [own_calendar, calendar_module], options)
+        |> or_one_date(input, options, calendar_module)
+    end
+  end
+
+  # The interval patterns of a format: those the formatter writes two
+  # dates with at it (`Localize.Interval.written_patterns/4`), read as the
+  # locale's are (`match_any_interval_pattern/6`). A format with no
+  # interval item, a pattern among them, has none.
+  defp match_format_interval(inputs, format, reading, as) do
+    {locale, calendar_module, own_calendar, reference} = reading
+    cldr_calendar = cldr_calendar_type(calendar_module)
+
+    with {:ok, {[_pattern | _rest] = defaults, variants}} <-
+           Localize.Interval.written_patterns(format, locale, calendar_module, locale: locale),
+         {:ok, intervals} <- Format.interval_formats(locale, cldr_calendar),
+         {:ok, months_data} <- LCalendar.months(locale, cldr_calendar) do
+      order = Format.interval_order(intervals)
+      ctx = field_context(locale, calendar_module, own_calendar, reference, months_data)
+      ctx = %{ctx | interval_order: order}
+      years = written_years(locale, calendar_module, own_calendar, reference)
+
+      # The formatter writes an item's default unless it is asked for the
+      # variant, so every default is tried before any variant, as it is
+      # with no format.
+      defaults = pattern_entries(defaults, years, ctx)
+      variants = pattern_entries(variants, years, ctx)
+
+      inputs
+      |> Enum.find_value(:error, fn input ->
+        transliterated = transliterate_digits(input, locale)
+        plain_input = plain_spaces(transliterated)
+
+        (written_first_of(defaults, plain_input) ++ written_first_of(variants, plain_input))
+        |> Enum.find_value(&interval_reading(transliterated, &1, ctx, as))
+      end)
+      |> in_range_order(order)
+    else
+      _no_patterns -> :error
+    end
+  end
+
+  # Two dates alike in every field a format writes are written as one
+  # date, TR35's interval algorithm having them "format as a single date",
+  # so text that is one date at the format is the range of that date
+  # alone: "Jun 15" at `MMMd` is 15 June to 15 June, which is all the
+  # format says of the two it was written from. Text read with no format
+  # is two dates, or none.
+  defp or_one_date({:ok, _range} = range, _input, _options, _calendar_module), do: range
+
+  defp or_one_date({:error, _reason} = error, input, options, calendar_module) do
+    with format when not is_nil(format) <- Keyword.get(options, :format),
+         {:ok, date} <- do_parse(input, options, calendar_module) do
+      finalise_range(date, date, true, Keyword.get(options, :as, :struct))
+    else
+      _no_date -> error
     end
   end
 
@@ -958,6 +1022,13 @@ defmodule Localize.Date.Parser do
   defp interval_entries(patterns, years, ctx) do
     patterns
     |> Enum.flat_map(fn pattern -> [pattern | synthesize_day_first_variants(pattern)] end)
+    |> pattern_entries(years, ctx)
+  end
+
+  # The entries of patterns as they stand, with no other order of their
+  # fields beside them: a format's own interval patterns are read so.
+  defp pattern_entries(patterns, years, ctx) do
+    patterns
     |> Enum.uniq()
     |> Enum.sort_by(&pattern_specificity/1)
     |> Enum.map(fn pattern ->
