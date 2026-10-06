@@ -49,7 +49,7 @@ defmodule Localize.Unit.NameIndex do
     case :persistent_term.get(key, nil) do
       nil ->
         index = build_cldr_index(locale_id)
-        :persistent_term.put(key, index)
+        Localize.LiteralMemory.cache(key, index)
         index
 
       index ->

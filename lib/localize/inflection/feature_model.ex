@@ -63,7 +63,7 @@ defmodule Localize.Inflection.FeatureModel do
     case :persistent_term.get(key, nil) do
       nil ->
         built = build(locale)
-        :persistent_term.put(key, built)
+        Localize.LiteralMemory.cache(key, built)
         built
 
       built ->
@@ -83,7 +83,7 @@ defmodule Localize.Inflection.FeatureModel do
     case :persistent_term.get(key, nil) do
       nil ->
         built = build(locale)
-        :persistent_term.put(key, built)
+        Localize.LiteralMemory.cache(key, built)
         built
 
       built ->

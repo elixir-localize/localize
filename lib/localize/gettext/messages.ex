@@ -635,6 +635,16 @@ defmodule Localize.Gettext.Messages do
         "The locale {$locale_id} could not be read from the cache at {$path}: {$reason}."
       ),
 
+      # LiteralMemoryError
+      Gettext.Macros.dpgettext_noop_with_backend(
+        Localize.Gettext,
+        "localize",
+        "locale",
+        "The VM's literal memory cannot hold {$what}: it needs {$needed} bytes and {$free} are free. " <>
+          "Start the VM with a larger literal area, `+MIscs` and its size in megabytes, " <>
+          "of which the default is 1024."
+      ),
+
       # InvalidValueError — atom :expected + :allowed_values
       Gettext.Macros.dpgettext_noop_with_backend(
         Localize.Gettext,

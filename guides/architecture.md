@@ -58,7 +58,7 @@ This means:
 
 ### Localize
 
-Locale data is loaded lazily at runtime on first access and cached in `:persistent_term` for zero-copy concurrent reads. The default provider reads pre-built ETF files from an on-disk cache (`priv/localize/locales/`) and, if a locale is not cached, downloads it from the Localize release CDN:
+Locale data is loaded lazily at runtime on first access and cached in `:persistent_term` for zero-copy concurrent reads. The VM's literal memory, where those terms are kept, is of a fixed size, and a locale it has no room for is not loaded; see [Memory](performance.md#memory). The default provider reads pre-built ETF files from an on-disk cache (`priv/localize/locales/`) and, if a locale is not cached, downloads it from the Localize release CDN:
 
 ```elixir
 # Localize.Locale.Provider.PersistentTerm (simplified)
@@ -208,13 +208,13 @@ Exception messages use `Gettext.dpgettext/5` with domain `"localize"` and contex
 
 ## Compiled artifact caching
 
-Number format metadata and datetime format tokens are parsed from CLDR pattern strings at runtime. To avoid repeated parsing, Localize caches compiled artifacts in `:persistent_term`:
+Number format metadata and datetime format tokens are parsed from CLDR pattern strings at runtime. To avoid repeated parsing, Localize caches compiled artifacts in a bounded ETS table (`Localize.FormatCache`, 2,000 entries unless `config :localize, :format_cache_max_entries` says otherwise):
 
 * **Number formats** — `Localize.Number.Format.Compiler` output (a `Meta` struct) cached by format string.
 
 * **DateTime formats** — `Localize.DateTime.Format.Compiler` output (a token list) cached by format string.
 
-These are effectively compile-once-use-forever within a VM lifetime, similar to `ex_cldr`'s `precompile_number_formats` option but without requiring explicit configuration.
+A format is compiled once and reused for as long as the cache holds it, similar to `ex_cldr`'s `precompile_number_formats` option but without requiring explicit configuration.
 
 ## Plural rules
 

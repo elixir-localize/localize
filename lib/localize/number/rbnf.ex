@@ -146,7 +146,7 @@ defmodule Localize.Number.Rbnf do
     case :persistent_term.get(key, nil) do
       nil ->
         chain = parent_chain(language_tag, [locale_id])
-        :persistent_term.put(key, chain)
+        Localize.LiteralMemory.cache(key, chain)
         chain
 
       chain ->

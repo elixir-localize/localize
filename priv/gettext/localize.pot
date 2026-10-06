@@ -407,7 +407,7 @@ msgctxt "locale"
 msgid "Cannot write locale {$locale_id} to {$path}: {$reason}."
 msgstr ""
 
-#: lib/localize/gettext/messages.ex:653
+#: lib/localize/gettext/messages.ex:663
 #, elixir-autogen, icu-format
 msgctxt "locale"
 msgid "No certificate trust store was found. Tried looking for: {$searched}. Install the `castore` or `certifi` hex package, or configure `config :localize, cacertfile: \"/path/to/cacertfile\"`."
@@ -539,13 +539,13 @@ msgctxt "message"
 msgid "Could not parse {$input}: {$detail}{$tail}"
 msgstr ""
 
-#: lib/localize/gettext/messages.ex:645
+#: lib/localize/gettext/messages.ex:655
 #, elixir-autogen, icu-format
 msgctxt "unit"
 msgid "Expected a valid {$expected}{$context_part}, got: {$value}"
 msgstr ""
 
-#: lib/localize/gettext/messages.ex:639
+#: lib/localize/gettext/messages.ex:649
 #, elixir-autogen, icu-format
 msgctxt "unit"
 msgid "Expected a valid {$expected}{$context_part}, got: {$value} (allowed values: {$allowed})"
@@ -615,4 +615,10 @@ msgstr ""
 #, elixir-autogen, icu-format
 msgctxt "datetime"
 msgid "{$operation} requires the {$package} package, which is not among your dependencies."
+msgstr ""
+
+#: lib/localize/gettext/messages.ex:639
+#, elixir-autogen, icu-format
+msgctxt "locale"
+msgid "The VM's literal memory cannot hold {$what}: it needs {$needed} bytes and {$free} are free. Start the VM with a larger literal area, `+MIscs` and its size in megabytes, of which the default is 1024."
 msgstr ""

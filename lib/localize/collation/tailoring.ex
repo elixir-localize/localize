@@ -67,7 +67,7 @@ defmodule Localize.Collation.Tailoring do
             rules_str -> build_tailoring(rules_str)
           end
 
-        :persistent_term.put(cache_key, result)
+        Localize.LiteralMemory.cache(cache_key, result)
         result
 
       cached ->

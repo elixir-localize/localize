@@ -123,12 +123,20 @@ defmodule Localize.Locale.Provider.PersistentTerm do
 
   * `:ok`.
 
+  * `{:error, %Localize.LiteralMemoryError{}}` where the VM reports that
+    its literal memory, where `:persistent_term` keeps its terms, has no
+    room for the locale: keeping it would stop the VM. A VM started with a
+    larger literal area, `+MIscs` and its size in megabytes, holds more.
+
   """
   @impl Localize.Locale.Provider
-  @spec store(atom(), map()) :: :ok
+  @spec store(atom(), map()) :: :ok | {:error, Exception.t()}
   def store(locale_id, locale_data) do
-    locale_key = locale_key(locale_id)
-    :ok = :persistent_term.put(locale_key, fix_alt_language_key(locale_data))
+    Localize.LiteralMemory.put(
+      locale_key(locale_id),
+      fix_alt_language_key(locale_data),
+      "the locale " <> inspect(locale_id)
+    )
   end
 
   # CLDR 48 locale data stores the "alt" language code (Southern

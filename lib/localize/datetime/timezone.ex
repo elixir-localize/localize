@@ -2089,7 +2089,7 @@ defmodule Localize.DateTime.Timezone do
     case :persistent_term.get(key, nil) do
       nil ->
         index = build_zone_name_index(language_tag)
-        :persistent_term.put(key, index)
+        Localize.LiteralMemory.cache(key, index)
         index
 
       index ->

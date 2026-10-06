@@ -346,6 +346,23 @@ defmodule Localize.ExceptionRenderingTest do
     end
   end
 
+  describe "Localize.LiteralMemoryError" do
+    test "message includes what did not fit, the sizes and the VM's flag" do
+      exception =
+        Localize.LiteralMemoryError.exception(
+          what: "the locale :fr",
+          needed: 1_300_000,
+          free: 40_960
+        )
+
+      message = Exception.message(exception)
+      assert message =~ "the locale :fr"
+      assert message =~ "1300000"
+      assert message =~ "40960"
+      assert message =~ "+MIscs"
+    end
+  end
+
   describe "Localize.LocaleCacheDirError" do
     test "relative_path reason includes the offending value" do
       exception =

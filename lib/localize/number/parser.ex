@@ -508,7 +508,7 @@ defmodule Localize.Number.Parser do
             &elem(&1, 1)
           )
 
-        :persistent_term.put(key, map)
+        Localize.LiteralMemory.cache(key, map)
         map
 
       map ->
@@ -916,7 +916,7 @@ defmodule Localize.Number.Parser do
     case :persistent_term.get(pt_key, :__not_loaded__) do
       :__not_loaded__ ->
         value = build_fn.()
-        :persistent_term.put(pt_key, value)
+        Localize.LiteralMemory.cache(pt_key, value)
         value
 
       value ->

@@ -683,7 +683,7 @@ defmodule Localize.Date.Parser do
     case :persistent_term.get(key, nil) do
       nil ->
         affixes = compute_ordinal_affixes(locale)
-        :persistent_term.put(key, affixes)
+        Localize.LiteralMemory.cache(key, affixes)
         affixes
 
       affixes ->
@@ -899,7 +899,7 @@ defmodule Localize.Date.Parser do
     case :persistent_term.get(key, nil) do
       nil ->
         patterns = build_interval_patterns(intervals, years, ctx)
-        :persistent_term.put(key, patterns)
+        Localize.LiteralMemory.cache(key, patterns)
         patterns
 
       patterns ->
@@ -1093,7 +1093,7 @@ defmodule Localize.Date.Parser do
               %{related: false, truncated: false, numberings: []}
           end
 
-        :persistent_term.put(key, years)
+        Localize.LiteralMemory.cache(key, years)
         years
 
       years ->
@@ -2733,7 +2733,7 @@ defmodule Localize.Date.Parser do
     case :persistent_term.get(key, nil) do
       nil ->
         with {:ok, kept} <- ordered_patterns(locale, calendar_module, cldr_calendar) do
-          :persistent_term.put(key, kept)
+          Localize.LiteralMemory.cache(key, kept)
           {:ok, kept}
         end
 
@@ -3335,7 +3335,7 @@ defmodule Localize.Date.Parser do
             _ -> %{}
           end
 
-        :persistent_term.put(key, map)
+        Localize.LiteralMemory.cache(key, map)
         map
 
       map ->
@@ -4508,7 +4508,7 @@ defmodule Localize.Date.Parser do
             {pattern, build_pattern_regex(pattern, ctx)}
           end)
 
-        :persistent_term.put(key, compiled)
+        Localize.LiteralMemory.cache(key, compiled)
         compiled
 
       compiled ->

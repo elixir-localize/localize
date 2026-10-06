@@ -180,3 +180,27 @@ Localize.put_locale(:de)
 Localize.Number.to_string(1234.5)
 Localize.Date.to_string(~D[2025-07-10])
 ```
+
+## Memory
+
+A loaded locale stays in `:persistent_term`, where every process reads it without copying it. The VM keeps those terms in its literal area, a region whose size is fixed when the VM starts: a gigabyte by default on a 64-bit VM. What Localize keeps there:
+
+* **A locale** — about 1.2 MB each, `en` 1.6 MB, so all 657 of CLDR's take about 814 MB.
+
+* **A parser's patterns** — compiled once for each locale and calendar that text is read in: up to about 80 KB for dates and up to about 300 KB more for intervals.
+
+* **The collation table** — about 15 MB, once, when strings are first collated.
+
+* **The supplemental data** — about 2 MB, and an inflection lexicon for each language that is inflected.
+
+A term the literal area has no room for stops the VM, so Localize asks the VM for the room before it keeps any of these. A locale with no room is not loaded, and the call that needed it returns `{:error, %Localize.LiteralMemoryError{}}`, as does a call that needs an inflection lexicon. A parser's patterns and the supplemental data are worked out again on each call rather than kept, and a collation table with no room is logged as an error and not loaded.
+
+An application that loads most of CLDR's locales should start its VM with a larger literal area, set in megabytes:
+
+```bash
+elixir --erl "+MIscs 2048" -S mix phx.server
+```
+
+In a release the flag goes in `rel/vm.args.eex`, as the line `+MIscs 2048`.
+
+The room is the VM's own report of the area, `:erlang.system_info({:allocator, :erts_mmap})`. A VM that does not give one, as a 32-bit VM does not, refuses nothing, and two processes that ask at the same moment may both be told there is room: the check keeps a VM that is running out from stopping, and is no substitute for a literal area of the size the application needs.

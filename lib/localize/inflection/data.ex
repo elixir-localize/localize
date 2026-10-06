@@ -166,8 +166,10 @@ defmodule Localize.Inflection.Data do
         script_pronouns: Map.get(raw, :script_pronouns, %{})
       }
 
-      :persistent_term.put({__MODULE__, locale}, artifact)
-      :ok
+      # A lexicon is megabytes, and one the VM's literal memory has no room
+      # for is an error, where keeping it would stop the VM.
+      what = "the inflection data of " <> inspect(locale)
+      Localize.LiteralMemory.put({__MODULE__, locale}, artifact, what)
     else
       {:error, _reason} = error ->
         error

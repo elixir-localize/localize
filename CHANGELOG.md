@@ -144,6 +144,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+* A locale the VM's literal memory has no room for is not loaded, and the call that needed it returns a `Localize.LiteralMemoryError` naming the VM's flag, `+MIscs`, where keeping it stopped the VM: `:persistent_term` keeps its terms in an area of a fixed size, a gigabyte by default, and all of CLDR's locales take about 814 MB of it. A parser's compiled patterns and the supplemental data are not kept where there is no room, an inflection lexicon is the same error and the collation table is logged, and the performance guide's "Memory" section gives the sizes.
+
 * A skeleton that asks a date of another calendar for a field its formats lack has the field appended, as TR35's Missing Skeleton Fields has it, where it was an error in every calendar but the Gregorian: a Hebrew date's `:yMMMdw` is "1 Tamuz 5786 (week: 39)" and its `:ywE` "Tue, week 39 of 5786". A skeleton is matched against the calendar's formats and then the Gregorian calendar's, which TR35 has most calendars inherit, in a date and time as in a date, and the Chinese and Dangi calendars, which it excepts, take their own alone: their `:yw` is "2026(bing-wu) (week: 18)" where it was "week 18 of 4663".
 
 * A calendar of weeks reads a week date as its own in every form ISO 8601 writes one in, where only the form it writes was: "2026W252" and a week alone, "2026-W25", were ISO 8601's weeks, so in a calendar whose weeks are not ISO 8601's one text named two days as its hyphens came and went. A week or a day the calendar does not have is an error, where "2026-W53-1" was ISO 8601's week 53 for a calendar whose 2026 has 52 weeks.

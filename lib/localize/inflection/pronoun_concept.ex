@@ -181,7 +181,7 @@ defmodule Localize.Inflection.PronounConcept do
         case :persistent_term.get(key, nil) do
           nil ->
             entries = parse_lines(model_locale, lines)
-            :persistent_term.put(key, entries)
+            Localize.LiteralMemory.cache(key, entries)
             {:ok, table_locale, entries}
 
           entries ->

@@ -55,7 +55,7 @@ defmodule Localize.DataLoader do
         else
           # Compile time or before app start — load directly
           data = load_fn.()
-          :persistent_term.put(key, data)
+          Localize.LiteralMemory.cache(key, data)
           data
         end
 
@@ -82,7 +82,7 @@ defmodule Localize.DataLoader do
       case :persistent_term.get(key, :not_loaded) do
         :not_loaded ->
           data = load_fn.()
-          :persistent_term.put(key, data)
+          Localize.LiteralMemory.cache(key, data)
           data
 
         data ->

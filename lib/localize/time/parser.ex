@@ -436,7 +436,7 @@ defmodule Localize.Time.Parser do
     case :persistent_term.get(key, nil) do
       nil ->
         compiled = Map.new(patterns, &compile_pattern_entry(&1, day_periods, lenient))
-        :persistent_term.put(key, compiled)
+        Localize.LiteralMemory.cache(key, compiled)
         compiled
 
       compiled ->

@@ -355,18 +355,7 @@ defmodule Localize.Collation.Table do
 
     case File.read(etf_path) do
       {:ok, binary} ->
-        data = :erlang.binary_to_term(binary)
-
-        :persistent_term.put(@table_name, data.entries)
-        :persistent_term.put(@contractions_table, data.contractions)
-        :persistent_term.put(@fast_latin_key, data.fast_latin)
-
-        # Store reorder data for Localize.Collation.Reorder
-        :persistent_term.put({:localize, :collation_primary_to_frac}, data.primary_to_frac)
-        :persistent_term.put({:localize, :collation_script_ranges}, data.script_ranges)
-
-        # Store Han radical data for Localize.Collation.Han
-        :persistent_term.put({:localize, :collation_han_radicals}, data.han_radicals)
+        binary |> :erlang.binary_to_term() |> keep_table()
 
       {:error, :enoent} ->
         require Logger
@@ -384,6 +373,38 @@ defmodule Localize.Collation.Table do
           "Collation table ETF at #{etf_path} cannot be read: #{:file.format_error(reason)}.",
           domain: [:localize]
         )
+    end
+  end
+
+  # The table is about 15 MB of the VM's literal memory, where
+  # `:persistent_term` keeps its terms, and a term with no room there stops
+  # the VM (`Localize.LiteralMemory`). So with no room it is not kept, and
+  # that is reported as a table that cannot be read is.
+  defp keep_table(data) do
+    case Localize.LiteralMemory.room_for(data) do
+      :ok ->
+        :persistent_term.put(@table_name, data.entries)
+        :persistent_term.put(@contractions_table, data.contractions)
+        :persistent_term.put(@fast_latin_key, data.fast_latin)
+
+        # Store reorder data for Localize.Collation.Reorder
+        :persistent_term.put({:localize, :collation_primary_to_frac}, data.primary_to_frac)
+        :persistent_term.put({:localize, :collation_script_ranges}, data.script_ranges)
+
+        # Store Han radical data for Localize.Collation.Han
+        :persistent_term.put({:localize, :collation_han_radicals}, data.han_radicals)
+
+      {:lacking, needed, free} ->
+        require Logger
+
+        error =
+          Localize.LiteralMemoryError.exception(
+            what: "the collation table",
+            needed: needed,
+            free: free
+          )
+
+        Logger.error(Exception.message(error), domain: [:localize])
     end
   end
 end
