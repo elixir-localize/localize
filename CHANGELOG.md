@@ -266,6 +266,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 * An interval writes the fields its format names and no others, as TR35's interval algorithm has it: two values that differ in a field the skeleton does not write are each written with it around the locale's fallback pattern, `:MMMd` from 28 December to 3 January being "Dec 28 – Jan 3", and two alike in every field it writes are one, a date and a time as a date is, so `:yMMMHm` on two days of June at 10:00 is "Jun 2026, 10:00". The year, the month or the era two values differ in is written where the format asks for it (`:yMMMd`, `:GyMMMd`).
 
+* `Localize.Time.parse/2` reads an hour only in the range TR35 gives its field, `h` 1 to 12 and `K` 0 to 11: "0:30 AM" at `h:mm a` and "12:30 AM" at `K:mm a` are errors, where they were read as 00:30 and 12:30. `H` and `k` were held to their ranges already.
+
 * `Localize.Time.to_string/2` writes a `Time` and a `NaiveDateTime` at a standard format with the locale's standard time pattern, where it took the pattern CLDR's skeleton for the format resolves to: another in 44 locales at `:short` and 47 at `:medium`. `bg`'s short time is "10:30", not "10:30 ч.", and `cop`, `syr` and `kxv` keep their 12-hour clock.
 
 * A date and time with no zone is written at `:long` and `:full` with the time `Localize.Time.to_string/2` writes for it, a map without a zone as a `NaiveDateTime` is, so it reads back in every locale: `ja`'s full is "2024年4月3日水曜日 10:30:00", where the time was "10時30分00秒". `fa`, `es` and `zh-Hant` no longer leave "()" or "[]" where the zone would be.

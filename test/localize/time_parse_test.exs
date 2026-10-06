@@ -58,18 +58,17 @@ defmodule Localize.TimeParseTest do
     end
   end
 
-  # TR35 gives each hour field its range: `h` 1 to 12, `H` 0 to 23, `K` 0 to
-  # 11 and `k` 1 to 24, and its parsing notes take a number beyond a field's
-  # range for no value of it. The readings are ICU4C 78.3's with the same
-  # pattern when it is not lenient (`setLenient(false)`), but for the two a
-  # test names.
+  # TR35 gives each hour field its hours: `h` "Hour [1-12]", `H` "[0-23]",
+  # `K` "[0-11]" and `k` "[1-24]", and its parsing notes take a number
+  # beyond a field's range for no value of it ("a number larger than the
+  # largest month cannot be a month"). An hour is read where its field has
+  # it, and nowhere else.
   defp read(text, pattern), do: Localize.Time.parse(text, locale: :en, format: pattern)
 
   describe "an hour" do
     test "of a 12-hour field with a day period is one that field has" do
       for {text, expected} <- [
-            {"0:30 AM", ~T[00:30:00]},
-            {"0:30 PM", ~T[12:30:00]},
+            {"1:30 AM", ~T[01:30:00]},
             {"12:30 AM", ~T[00:30:00]},
             {"12:30 PM", ~T[12:30:00]},
             {"11:30 PM", ~T[23:30:00]}
@@ -77,7 +76,18 @@ defmodule Localize.TimeParseTest do
         assert read(text, "h:mm a") == {:ok, expected}, text
       end
 
-      for text <- ["13:30 AM", "13:30 PM", "23:30 PM", "24:00 PM", "45:30 PM", "99:59 AM"] do
+      # `h`'s hours begin at 1: its 0 was read as its 12, ICU's reading when
+      # it is lenient.
+      for text <- [
+            "0:30 AM",
+            "0:30 PM",
+            "13:30 AM",
+            "13:30 PM",
+            "23:30 PM",
+            "24:00 PM",
+            "45:30 PM",
+            "99:59 AM"
+          ] do
         assert {:error, %Localize.TimeParseError{}} = read(text, "h:mm a"), text
       end
     end
@@ -86,35 +96,34 @@ defmodule Localize.TimeParseTest do
     # `bal-Latn`'s `hm` is ("h:mm" in CLDR's `fr_CM.xml`), reads an hour
     # before noon.
     test "of a 12-hour field with no day period is one that field has" do
-      assert read("0:30", "h:mm") == {:ok, ~T[00:30:00]}
       assert read("1:30", "h:mm") == {:ok, ~T[01:30:00]}
       assert read("12:30", "h:mm") == {:ok, ~T[00:30:00]}
 
-      for text <- ["13:30", "24:00", "45:30", "99:59"] do
+      for text <- ["0:30", "13:30", "24:00", "45:30", "99:59"] do
         assert {:error, %Localize.TimeParseError{}} = read(text, "h:mm"), text
       end
     end
 
-    # `K` counts its hours from 0. Its 12 before noon is twelve hours on
-    # from that 0, as ICU reads it when it is lenient and refuses it when
-    # it is not, and its 12 after noon would be the next day.
+    # `K` counts its hours from 0 to 11, so its 12 is no hour of it before
+    # noon or after. Before noon it was read as twelve hours on from that
+    # 0, ICU's reading when it is lenient.
     test "of a field counted from 0 is one that field has" do
       for {text, expected} <- [
             {"0:30 AM", ~T[00:30:00]},
             {"0:30 PM", ~T[12:30:00]},
-            {"11:30 PM", ~T[23:30:00]},
-            {"12:30 AM", ~T[12:30:00]}
+            {"11:30 AM", ~T[11:30:00]},
+            {"11:30 PM", ~T[23:30:00]}
           ] do
         assert read(text, "K:mm a") == {:ok, expected}, text
       end
 
-      for text <- ["12:30 PM", "13:30 AM", "13:30 PM", "45:30 AM"] do
+      for text <- ["12:30 AM", "12:30 PM", "13:30 AM", "13:30 PM", "45:30 AM"] do
         assert {:error, %Localize.TimeParseError{}} = read(text, "K:mm a"), text
       end
     end
 
-    # ICU reads `k`'s 0 as midnight, lenient or not; TR35's range for the
-    # field starts at 1, and its 24 is midnight.
+    # TR35's range for `k` starts at 1, and its 24 is midnight. ICU reads
+    # its 0 as midnight, lenient or not.
     test "of a 24-hour field is one that field has" do
       assert read("0:30", "H:mm") == {:ok, ~T[00:30:00]}
       assert read("23:30", "H:mm") == {:ok, ~T[23:30:00]}
@@ -202,9 +211,8 @@ defmodule Localize.TimeParseTest do
       assert Localize.Time.parse("午前0:30", locale: :ja) == {:ok, ~T[00:30:00]}
       assert Localize.Time.parse("午後0:30", locale: :ja) == {:ok, ~T[12:30:00]}
       assert Localize.Time.parse("午後11:30", locale: :ja) == {:ok, ~T[23:30:00]}
-      assert Localize.Time.parse("午前12:30", locale: :ja) == {:ok, ~T[12:30:00]}
 
-      for text <- ["午前13:30", "午後13:30", "午後12:30", "午後45:30"] do
+      for text <- ["午前12:30", "午前13:30", "午後13:30", "午後12:30", "午後45:30"] do
         assert {:error, %Localize.TimeParseError{}} = Localize.Time.parse(text, locale: :ja), text
       end
 
