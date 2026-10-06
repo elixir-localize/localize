@@ -62,6 +62,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Changed
 
+* `Localize.Interval.parse/2` keeps the compiled patterns of a locale's intervals for each calendar, as `Localize.Date.parse/2` keeps a date's, where it compiled them on every call: an `en` interval no early pattern read took about 80 ms and takes about 2. They stay in `:persistent_term`, up to about 300 KB for each locale and calendar a range is read in.
+
 * **Breaking.** A specific zone name (`z`, `zzzz`) taken from a metazone is qualified by the zone's country or city unless the zone is the metazone's preferred zone for the locale's country, by TR35's steps for the non-location formats and as CLDR's own `TimezoneFormatter` writes it: in `en`, Berlin is "Central European Summer Time (Germany)" and Phoenix "Mountain Standard Time (Phoenix)". Each reads back as its own zone; ICU never qualifies one, which the ICU divergences guide records.
 
 * **Breaking.** `y` in a calendar of cyclic years, the Chinese and Dangi calendars, is the year's place in the sixty-year cycle, the number `U` names, as TR35 has it and ICU4C writes it: the year that began in 2026 is "43" where it was "4663", in `ko`'s Dangi short date "43. 5. 2." and in every locale's `yMd` interval, "5/2/43 – 5/6/43" in `en`. `u` writes the year's number, and a place is read back as the year of that place nearest the reference date.

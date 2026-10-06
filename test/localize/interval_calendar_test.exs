@@ -612,6 +612,56 @@ defmodule Localize.IntervalCalendarTest do
     end
   end
 
+  # An interval's patterns are compiled once for a locale and a calendar and
+  # kept, as a date's are, where they were compiled again for every interval
+  # read. A kept pattern is its own locale's and its own calendar's: each
+  # interval is read back as the dates it was written from, however the
+  # locales and the calendars are interleaved.
+  describe "an interval's patterns are kept for its locale and calendar" do
+    @kept_locales [:en, :de, :ja, :fr, :ar]
+
+    defp written_intervals do
+      for locale <- @kept_locales,
+          {from, to} <- [
+            {~D[2026-06-16], ~D[2026-06-20]},
+            {~D[2026-06-16], ~D[2026-08-20]},
+            {date(Buddhist, 2569, 6, 16), date(Buddhist, 2569, 8, 20)},
+            {date(Japanese, 2026, 6, 16), date(Japanese, 2026, 6, 20)}
+          ],
+          format <- [:medium, :long] do
+        {:ok, text} = Localize.Interval.to_string(from, to, locale: locale, format: format)
+        {text, [locale: locale, calendar: from.calendar], Date.range(from, to)}
+      end
+    end
+
+    test "and each interval is read by its own, in any order" do
+      written = written_intervals()
+
+      for order <- [written, Enum.reverse(written), Enum.sort(written)],
+          {text, options, range} <- order do
+        assert Localize.Interval.parse(text, options) == {:ok, range},
+               "#{inspect(options)} #{text}"
+      end
+    end
+
+    test "and are compiled once" do
+      key = {Localize.Date.Parser, :interval_patterns, :en, Calendar.ISO}
+
+      assert Localize.Interval.parse("Jun 16 – 20, 2026", locale: :en) ==
+               {:ok, Date.range(~D[2026-06-16], ~D[2026-06-20])}
+
+      kept = :persistent_term.get(key)
+
+      assert Localize.Interval.parse("Jun 16 – Aug 20, 2026", locale: :en) ==
+               {:ok, Date.range(~D[2026-06-16], ~D[2026-08-20])}
+
+      assert {:error, %Localize.DateRangeParseError{}} =
+               Localize.Interval.parse("no interval – at all", locale: :en)
+
+      assert :erts_debug.same(:persistent_term.get(key), kept)
+    end
+  end
+
   describe "endpoints in different calendars" do
     test "are an error" do
       assert {:error, %Localize.DateTimeIntervalFormatError{reason: :mixed_calendars} = error} =

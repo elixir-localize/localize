@@ -744,36 +744,63 @@ defmodule Localize.Date.Parser do
     with {:ok, intervals} <- Format.interval_formats(locale, cldr_calendar),
          {:ok, months_data} <- LCalendar.months(locale, cldr_calendar) do
       transliterated = transliterate_digits(input, locale)
+      order = Format.interval_order(intervals)
       ctx = field_context(locale, calendar_module, own_calendar, reference, months_data)
-      ctx = %{ctx | interval_order: Format.interval_order(intervals)}
-
-      item_patterns =
-        for {skeleton, by_field} <- intervals,
-            is_atom(skeleton),
-            is_map(by_field),
-            {_field, pattern} <- by_field,
-            do: pattern
+      ctx = %{ctx | interval_order: order}
+      years = written_years(locale, calendar_module, own_calendar, reference)
 
       # An item is a pattern or, in `en-CA`, a default pattern and a variant
       # of it. The formatter writes the default unless it is asked for the
       # variant, so every default is tried before any variant: `en-CA`'s
       # `yMd` is "M/d/y–M/d/y" beside "d/M/y – d/M/y", and the
       # "5/6/2026–7/8/2026" it writes is from 6 May.
-      defaults = for pattern <- item_patterns, text <- default_pattern(pattern), do: text
-      variants = for %{variant: text} <- item_patterns, is_binary(text), do: text
+      {defaults, variants} = interval_patterns(intervals, years, ctx)
+      plain_input = plain_spaces(transliterated)
 
-      patterns =
-        interval_pattern_order(defaults, transliterated) ++
-          interval_pattern_order(variants -- defaults, transliterated)
-
-      years = written_years(locale, calendar_module, own_calendar, reference)
-
-      patterns
-      |> Enum.find_value(:error, &interval_reading(transliterated, &1, years, ctx, as))
-      |> in_range_order(Format.interval_order(intervals))
+      (written_first_of(defaults, plain_input) ++ written_first_of(variants, plain_input))
+      |> Enum.find_value(:error, &interval_reading(transliterated, &1, ctx, as))
+      |> in_range_order(order)
     else
       _ -> :error
     end
+  end
+
+  # The patterns a locale's intervals are read with in a calendar, the
+  # default of each item and then the variants, each with the regex of every
+  # way its year is read (`year_readings/2`). They are a function of the
+  # locale and the calendar, as a date's patterns are, and are built once
+  # for the two and kept (user, 2026-10-06), as `pattern_regexes/2` keeps a
+  # date's: compiled on every call, an interval no early pattern read took
+  # about 70 ms, and a single date and time paid it wherever the locale's
+  # fallback separator was in its text (`da`'s hyphen). The cost is the
+  # memory of some hundreds of compiled patterns for each locale and
+  # calendar a range is read in.
+  defp interval_patterns(intervals, years, ctx) do
+    key = {__MODULE__, :interval_patterns, ctx.locale, ctx.calendar_module}
+
+    case :persistent_term.get(key, nil) do
+      nil ->
+        patterns = build_interval_patterns(intervals, years, ctx)
+        :persistent_term.put(key, patterns)
+        patterns
+
+      patterns ->
+        patterns
+    end
+  end
+
+  defp build_interval_patterns(intervals, years, ctx) do
+    item_patterns =
+      for {skeleton, by_field} <- intervals,
+          is_atom(skeleton),
+          is_map(by_field),
+          {_field, pattern} <- by_field,
+          do: pattern
+
+    defaults = for pattern <- item_patterns, text <- default_pattern(pattern), do: text
+    variants = for %{variant: text} <- item_patterns, is_binary(text), do: text
+
+    {interval_entries(defaults, years, ctx), interval_entries(variants -- defaults, years, ctx)}
   end
 
   # The two dates an interval pattern read, the earlier first. TR35 has the
@@ -801,6 +828,27 @@ defmodule Localize.Date.Parser do
   # year 5 / year 2010 depending on which pattern happens to be
   # tried first.
   #
+  # Each pattern is one entry: the literal text it must be written with
+  # (`pattern_literals/1`) and its tokens and regex for each reading of its
+  # year. A pattern with no field written twice reads one date and is no
+  # interval's.
+  defp interval_entries(patterns, years, ctx) do
+    patterns
+    |> Enum.flat_map(fn pattern -> [pattern | synthesize_day_first_variants(pattern)] end)
+    |> Enum.uniq()
+    |> Enum.sort_by(&pattern_specificity/1)
+    |> Enum.map(fn pattern ->
+      tokens = tokenize_pattern(pattern)
+
+      readings =
+        for reading <- year_readings(tokens, years),
+            %Regex{} = regex <- [compile_interval_regex(reading, ctx)],
+            do: {reading, regex}
+
+      %{literals: pattern_literals(tokens), readings: readings}
+    end)
+  end
+
   # A pattern whose own text is in the input is tried before one that reads
   # the input only through a lenient separator: the text a pattern writes
   # holds its separators as they are. An item's patterns need not agree,
@@ -808,15 +856,11 @@ defmodule Localize.Date.Parser do
   # "dd/MM/y – dd/MM/y" for a day's or a month's difference and root's
   # "y-MM-dd – y-MM-dd" for a year's, whose "26-06-16 – 27-08-20" the first
   # reads, a hyphen for its slash, as 26 June 2016 to 27 August 2020.
-  defp interval_pattern_order(patterns, input) do
-    plain_input = plain_spaces(input)
-
+  defp written_first_of(entries, plain_input) do
     {written, lenient} =
-      patterns
-      |> Enum.flat_map(fn pattern -> [pattern | synthesize_day_first_variants(pattern)] end)
-      |> Enum.uniq()
-      |> Enum.sort_by(&pattern_specificity/1)
-      |> Enum.split_with(&literals_in?(&1, plain_input))
+      Enum.split_with(entries, fn %{literals: literals} ->
+        Enum.all?(literals, &String.contains?(plain_input, &1))
+      end)
 
     written ++ lenient
   end
@@ -827,14 +871,15 @@ defmodule Localize.Date.Parser do
   defp literals_in?(pattern, plain_input) do
     pattern
     |> tokenize_pattern()
-    |> Enum.all?(fn
-      {:lit, text} ->
-        literal = text |> plain_spaces() |> String.trim()
-        literal == "" or String.contains?(plain_input, literal)
+    |> pattern_literals()
+    |> Enum.all?(&String.contains?(plain_input, &1))
+  end
 
-      _field ->
-        true
-    end)
+  defp pattern_literals(tokens) do
+    for {:lit, text} <- tokens,
+        literal = text |> plain_spaces() |> String.trim(),
+        literal != "",
+        do: literal
   end
 
   defp plain_spaces(text),
@@ -850,11 +895,9 @@ defmodule Localize.Date.Parser do
   # formats write one, and the reading whose years are nearest the reference
   # year is taken, as a single date's is (`run_locale_pass/4`). A year
   # written as its two low-order digits is no related year.
-  defp interval_reading(input, pattern, years, ctx, as) do
-    pattern
-    |> tokenize_pattern()
-    |> year_readings(years)
-    |> Enum.map(&match_interval_tokens(input, &1, ctx, as))
+  defp interval_reading(input, %{readings: readings}, ctx, as) do
+    readings
+    |> Enum.map(fn {tokens, regex} -> match_interval_tokens(input, tokens, regex, ctx, as) end)
     |> Enum.reject(&(&1 == :error))
     |> Enum.min_by(&interval_distance(&1, ctx.reference_year), fn -> nil end)
   end
@@ -933,33 +976,33 @@ defmodule Localize.Date.Parser do
   defp pattern_tokens({_skeleton, pattern}),
     do: pattern |> pattern_text() |> tokenize_pattern()
 
-  defp match_interval_tokens(input, tokens, ctx, as) do
-    {tokens_l, tokens_r} = split_interval_tokens(tokens)
+  defp match_interval_tokens(input, tokens, regex, ctx, as) do
+    ctx = %{ctx | two_digit_year: two_digit_year?(tokens)}
 
-    if tokens_r == [] do
-      # Pattern with no repeating field — not a usable interval
-      # pattern (would parse only a single endpoint).
-      :error
+    with %{} = caps <- Regex.named_captures(regex, input),
+         {left_era, right_era} = interval_eras(caps),
+         {:ok, left_partial} <- extract_partial(caps, {"left_", "right_"}, left_era, ctx),
+         {:ok, right_partial} <- extract_partial(caps, {"right_", "left_"}, right_era, ctx) do
+      interval_endpoints_for(as, left_partial, right_partial, ctx)
     else
-      ctx = %{ctx | two_digit_year: two_digit_year?(tokens_l ++ tokens_r)}
-
-      with {:ok, regex} <- compile_interval_regex(tokens_l, tokens_r, ctx),
-           %{} = caps <- Regex.named_captures(regex, input),
-           {left_era, right_era} = interval_eras(caps),
-           {:ok, left_partial} <- extract_partial(caps, {"left_", "right_"}, left_era, ctx),
-           {:ok, right_partial} <- extract_partial(caps, {"right_", "left_"}, right_era, ctx) do
-        interval_endpoints_for(as, left_partial, right_partial, ctx)
-      else
-        _ -> :error
-      end
+      _ -> :error
     end
   end
 
-  defp compile_interval_regex(tokens_l, tokens_r, ctx) do
-    left_regex = compile_capture_regex(joined(tokens_l), ctx, "left_")
-    right_regex = compile_capture_regex(spaced_dashes(tokens_r), ctx, "right_")
+  # The regex of an interval pattern, its two dates' captures told apart by
+  # their names, or `nil` for a pattern with no field written twice, which
+  # reads one date and is no interval's.
+  defp compile_interval_regex(tokens, ctx) do
+    ctx = %{ctx | two_digit_year: two_digit_year?(tokens)}
 
-    Regex.compile("\\A" <> left_regex <> right_regex <> "\\z", "u")
+    with {tokens_l, [_ | _] = tokens_r} <- split_interval_tokens(tokens),
+         left_regex = compile_capture_regex(joined(tokens_l), ctx, "left_"),
+         right_regex = compile_capture_regex(spaced_dashes(tokens_r), ctx, "right_"),
+         {:ok, regex} <- Regex.compile("\\A" <> left_regex <> right_regex <> "\\z", "u") do
+      regex
+    else
+      _no_interval -> nil
+    end
   end
 
   # The text between an interval's two dates is the last of its first part,
@@ -2392,7 +2435,7 @@ defmodule Localize.Date.Parser do
 
   # The patterns whose own text is in the input, in the order they are
   # tried, before those that read it only through a lenient separator, as
-  # an interval's patterns are taken (`interval_pattern_order/2`): the text
+  # an interval's patterns are taken (`written_first_of/2`): the text
   # a pattern writes holds its separators as they are. `af`'s `GyMd` in the
   # generic calendar is "M-d-y G" beside a `yyyyMd` of "d/M/y GGGGG", and
   # each reads the "1-7-8 Reiwa" the first writes, the second, a hyphen for
