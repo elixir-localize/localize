@@ -737,7 +737,7 @@ Localize.Date.to_string(%{year: 2026, month: 25, calendar: Calendrical.ISOWeek},
 #=> {:ok, "Woche 25 des Jahres 2026"}
 ```
 
-The text names no day, so read `as: :map` it is the year and the week it was written from, the fields the days of that week share, where the struct form gives the week's first day:
+The text names no day, so read `as: :map` it is the year and the week it was written from, the fields the days of that week share, where the struct form gives the week's first day. A year alone and a year and a quarter name no day either, and are read as the fields written, `%{year: 2026}` and `%{year: 2026, quarter: 2}`:
 
 ```elixir
 # With calendrical installed

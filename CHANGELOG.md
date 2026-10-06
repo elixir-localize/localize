@@ -140,6 +140,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+* A year, and a year and a quarter, written for a calendar whose dates are read in another are read as a map of the fields written: a calendar of weeks' "2023 AD" is `%{year: 2023}`, as the Gregorian calendar's "2023" is, where it was an error, and "Q2 2023 AD" is the year and the quarter, where it was the quarter's whole first day.
+
 * A related Gregorian year is read as the calendar's year that begins in it, however far from the reference date: the Islamic calendar's "AH 1699-12-28", 16 June 1700, was an error read in 2026, its year taken as far from the reference date's as 1699 is from 2025, where the two calendars' years are not one length. Of two years that begin in one Gregorian year, as the Islamic years 1429 and 1430 did in 2008, the nearer the reference date is read.
 
 * A year named by its place in the sixty-year cycle beside an era is the year of that name in the era: `Calendrical.LunarJapanese`'s "Genroku (1688–1704) geng-chen 4 29" is read as 1700, where it was the geng-chen year nearest the reference date, 2000, whatever era was written. An era of more than sixty years takes the nearer of its two, and a name the era has no year of is an error.

@@ -1139,6 +1139,59 @@ defmodule Localize.CalendarCallbacksTest do
                )
     end
 
+    # A year, and a year and a quarter, name no day, and read as a map they
+    # are the fields the calendar's own format wrote, as a year and a week
+    # are. en.xml's generic `y` is "y G" and its `yQQQ` "QQQ y G", and week 25
+    # is in the calendar's second quarter, weeks 14 to 26. The year alone was
+    # an error, no whole date being read to convert, and the year and the
+    # quarter were the quarter's whole first day, `%{year: 2026, month: 14,
+    # day: 1}`.
+    test "reads a year, and a year and a quarter, as the fields it wrote" do
+      value = iso_week(2026, 25, 2)
+
+      for {format, text, fields} <- [
+            {:y, "2026 AD", %{year: 2026}},
+            {:yQQQ, "Q2 2026 AD", %{year: 2026, quarter: 2}}
+          ] do
+        assert Localize.Date.to_string(value, format: format, locale: :en) == {:ok, text}
+
+        assert Localize.Date.parse(text,
+                 locale: :en,
+                 calendar: IsoWeek,
+                 format: format,
+                 as: :map
+               ) == {:ok, Map.put(fields, :calendar, IsoWeek)},
+               text
+      end
+
+      assert Localize.Date.parse("2026 AD", locale: :en, calendar: IsoWeek, as: :map) ==
+               {:ok, %{calendar: IsoWeek, year: 2026}}
+
+      # As a date, a quarter is its first day and a year alone is none.
+      assert Localize.Date.parse("Q2 2026 AD", locale: :en, calendar: IsoWeek, format: :yQQQ) ==
+               {:ok, iso_week(2026, 14, 1)}
+
+      assert {:error, %Localize.DateParseError{}} =
+               Localize.Date.parse("2026 AD", locale: :en, calendar: IsoWeek, format: :y)
+
+      # A quarter the calendar does not have is no quarter of its year.
+      assert {:error, %Localize.DateParseError{}} =
+               Localize.Date.parse("Q5 2026 AD",
+                 locale: :en,
+                 calendar: IsoWeek,
+                 format: :yQQQ,
+                 as: :map
+               )
+
+      # A date of a month and a day is still read whole and converted, and a
+      # year and a week are the week.
+      assert Localize.Date.parse("Jun 16, 2026", locale: :en, calendar: IsoWeek, as: :map) ==
+               {:ok, %{calendar: IsoWeek, year: 2026, month: 25, day: 2}}
+
+      assert Localize.Date.parse("week 25 of 2026", locale: :en, calendar: IsoWeek, as: :map) ==
+               {:ok, %{calendar: IsoWeek, year: 2026, month: 25}}
+    end
+
     # A week without its year has no week of the year, and says so.
     test "asks for the year of a week alone" do
       assert {:error, %Localize.DateTimeInvalidInputError{missing: [:year]}} =

@@ -782,9 +782,10 @@ defmodule Localize.Date do
     fields some date has, so `"June 31"` is an error in both forms while
     `"February 29"` is a partial date. A date read in another calendar and
     converted, as a calendar of weeks reads one, comes back whole, as a
-    partial date has no fields in the other calendar. A week is the
-    exception: it names no day, and a calendar of weeks holds it in its
-    month field, so `"week 25 of 2026"` is `%{year: 2026, month: 25}`, the
+    partial date has no fields in the other calendar. What names no day to
+    convert is the exception: a year is `%{year: 2026}`, a year and a
+    quarter are the two, and a week, which a calendar of weeks holds in its
+    month field, is `%{year: 2026, month: 25}` for `"week 25 of 2026"`, the
     value `to_string/2` writes it from. The default is `:struct`.
 
   ### Returns

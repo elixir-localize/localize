@@ -2990,14 +2990,73 @@ defmodule Localize.Date.Parser do
     as = Keyword.get(options, :as, :struct)
     options = Keyword.merge(options, calendar: parsing, own_calendar: calendar_module)
 
-    with {:ok, value} <- parse.(Keyword.put(options, :as, :struct), parsing),
+    with :no_fields_of_its_own <- years_and_quarters(as, options, parsing, parse, calendar_module),
+         {:ok, value} <- parse.(Keyword.put(options, :as, :struct), parsing),
          {:ok, converted} <- convert_value(value, calendar_module) do
       weeks = weeks_without_days(as, converted, options, parsing, parse)
       {:ok, converted |> finalise.(as) |> without_days(weeks)}
     else
+      {:ok, _fields_of_its_own} = read -> read
       unread -> inverted_in_its_calendar(unread, calendar_module)
     end
   end
+
+  # A year, or a year and a quarter, read as a map for a calendar whose
+  # dates are read in another. They name no day to convert, and are the
+  # calendar's own fields as they are read: the reader takes them so where
+  # it makes a date of a quarter (`build_from_quarter/2`), and the formatter
+  # writes them from the calendar's own year. So a calendar of weeks' "2023
+  # AD" is `%{year: 2023}`, as the Gregorian calendar's "2023" is, where it
+  # was an error, no whole date being read to convert; and "Q2 2023 AD" is
+  # the year and the quarter, where it was the quarter's whole first day.
+  # Each end of an interval is taken so where both are. The calendar must
+  # have the year, and the quarter of it.
+  defp years_and_quarters(:map, options, parsing, parse, calendar_module) do
+    case parse.(Keyword.put(options, :as, :map), parsing) do
+      {:ok, {%{} = from, %{} = to}} ->
+        if year_and_quarter?(from, calendar_module) and year_and_quarter?(to, calendar_module),
+          do: {:ok, {%{from | calendar: calendar_module}, %{to | calendar: calendar_module}}},
+          else: :no_fields_of_its_own
+
+      {:ok, %{} = fields} ->
+        if year_and_quarter?(fields, calendar_module),
+          do: {:ok, %{fields | calendar: calendar_module}},
+          else: :no_fields_of_its_own
+
+      _unread ->
+        :no_fields_of_its_own
+    end
+  end
+
+  defp years_and_quarters(_as, _options, _parsing, _parse, _calendar_module),
+    do: :no_fields_of_its_own
+
+  defp year_and_quarter?(%{calendar: _read_in, year: year} = fields, calendar_module)
+       when is_integer(year) do
+    days =
+      case Map.drop(fields, [:calendar, :year]) do
+        none when map_size(none) == 0 ->
+          LCalendar.ask(calendar_module, :year, [year], "the days of a year", &range?/1)
+
+        %{quarter: quarter} = one when map_size(one) == 1 ->
+          LCalendar.ask(
+            calendar_module,
+            :quarter,
+            [year, quarter],
+            "the days of a quarter",
+            &range?/1
+          )
+
+        _other_fields ->
+          :error
+      end
+
+    match?({:ok, _days}, days)
+  end
+
+  defp year_and_quarter?(_fields, _calendar_module), do: false
+
+  defp range?(answer), do: match?(%Date.Range{}, answer)
 
   # An inverted range names its two dates, and they are the caller's in the
   # calendar asked for, as the range is where it is read: a calendar of
