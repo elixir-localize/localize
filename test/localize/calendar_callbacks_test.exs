@@ -705,8 +705,17 @@ defmodule Localize.CalendarCallbacksTest do
       afternoon = at(from, 14, 0)
       later = at(to, 14, 0)
 
+      # The medium time has seconds, which no interval item is keyed by, so
+      # two times of one day are each written whole about the fallback
+      # pattern, as two of different days are (TR35's last step); at the
+      # short format the times have `en`'s `hm` item and the date is written
+      # once beside them (its step 3.2).
       assert Localize.Interval.to_string(morning, afternoon, locale: :en) ==
-               {:ok, "2026-W25-2, 10:30:00#{@narrow}AM#{@thin}–#{@thin}2:00:00#{@narrow}PM"}
+               {:ok,
+                "2026-W25-2, 10:30:00#{@narrow}AM#{@thin}–#{@thin}2026-W25-2, 2:00:00#{@narrow}PM"}
+
+      assert Localize.Interval.to_string(morning, afternoon, locale: :en, format: :short) ==
+               {:ok, "2026-W25-2, 10:30#{@narrow}AM#{@thin}–#{@thin}2:00#{@narrow}PM"}
 
       assert Localize.Interval.to_string(morning, later, locale: :en) ==
                {:ok,

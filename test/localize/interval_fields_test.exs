@@ -76,14 +76,36 @@ defmodule Localize.IntervalFieldsTest do
   end
 
   describe "to_string/3 same-day datetime interval exact output" do
-    test "date renders once with a time range" do
+    # `en`'s short time is "h:mm a", and its `hm` interval item's pattern
+    # for a difference of the hour "h:mm – h:mm a", a narrow no-break space
+    # before its day period: TR35's step 3.2 joins the date, written once,
+    # to it with the date-time pattern "{1}, {0}". CLDR gives an interval
+    # item no `alt="ascii"` pattern, so `prefer: :ascii` changes nothing in
+    # it.
+    test "date renders once with a time range where the times have an interval format" do
+      for options <- [[], [prefer: :ascii]] do
+        result =
+          interval(
+            ~U[2024-06-01 09:00:00Z],
+            ~U[2024-06-01 11:30:00Z],
+            [locale: :en, format: :short] ++ options
+          )
+
+        assert result == "6/1/24, 9:00#{@separator}11:30\u202FAM"
+      end
+    end
+
+    # The default format's time is "h:mm:ss a", and no interval item has
+    # seconds, so TR35's last step writes "the start and end datetime using
+    # the fallback pattern", each whole.
+    test "both values render whole where the times have none" do
       result =
         interval(~U[2024-06-01 09:00:00Z], ~U[2024-06-01 11:30:00Z],
           locale: :en,
           prefer: :ascii
         )
 
-      assert result == "Jun 1, 2024, 9:00:00 AM#{@separator}11:30:00 AM"
+      assert result == "Jun 1, 2024, 9:00:00 AM#{@separator}Jun 1, 2024, 11:30:00 AM"
     end
   end
 

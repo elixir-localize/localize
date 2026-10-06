@@ -8,6 +8,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Breaking changes
 
+* Two times of one day at a format with seconds are each written whole around the locale's fallback pattern, as TR35's interval algorithm has it where no interval format is keyed by the time fields: the default format writes "Apr 8, 2026, 12:00:00 PM – Apr 8, 2026, 2:00:00 PM" in `en`, where the date was written once, "Apr 8, 2026, 12:00:00 PM – 2:00:00 PM". `time_format: :short`, or a skeleton without seconds such as `:yMMMdhm`, writes the date once beside CLDR's time interval, as before.
+
 * A date and time read with an offset is a `t:DateTime.t/0` whose time zone is the offset itself, `"-05:00"`, as ECMA-262 Temporal and RFC 9557 name the zone of a fixed offset, where it was `"Etc/UTC"` beside a non-zero `:utc_offset`: Elixir took that for UTC, so `DateTime.shift_zone/3` returned it unchanged and `DateTime.shift/3` a time hours out. `DateTime.add/4` and `DateTime.shift/3` need a time zone database that knows such a zone, which the new `Localize.TimeZoneDatabase` is, wrapping the application's own, and a value under `"Etc/UTC"` with an offset of its own is still written and measured as the fixed offset it is.
 
 * `Localize.Calendar.localize/3` returns a `Localize.DateTimeInvalidInputError` naming the field for a value that lacks one its part is named from, as `Localize.Date.to_string/2` does for a pattern that asks for the part. It named the part's first value: `localize(%{year: 2026}, :month)` was "January", a year and a month a Monday, and a value with no year of the current era; a value that is no map is an error too.
@@ -264,9 +266,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 * `Localize.Date.parse/2` reads the rest of ISO 8601's date forms: a week without a day ("2026-W25", "2026W25"), which is the Monday of ISO 8601's week whatever the locale's weeks are, and the week date and the day of the year without separators ("2026W252", "2026166"). A year and a month, or a year, is read `as: :map` in every locale.
 
-* An interval writes the fields its format names and no others, as TR35's interval algorithm has it: two values that differ in a field the skeleton does not write are each written with it around the locale's fallback pattern, `:MMMd` from 28 December to 3 January being "Dec 28 – Jan 3", and two alike in every field it writes are one, a date and a time as a date is, so `:yMMMHm` on two days of June at 10:00 is "Jun 2026, 10:00". The year, the month or the era two values differ in is written where the format asks for it (`:yMMMd`, `:GyMMMd`).
-
 * `Localize.Time.parse/2` reads an hour only in the range TR35 gives its field, `h` 1 to 12 and `K` 0 to 11: "0:30 AM" at `h:mm a` and "12:30 AM" at `K:mm a` are errors, where they were read as 00:30 and 12:30. `H` and `k` were held to their ranges already.
+
+* An interval writes the fields its format names and no others, as TR35's interval algorithm has it: two values that differ in a field the skeleton does not write are each written with it around the locale's fallback pattern, `:MMMd` from 28 December to 3 January being "Dec 28 – Jan 3", and two alike in every field it writes are one, a date and a time as a date is, so `:yMMMHm` on two days of June at 10:00 is "Jun 2026, 10:00". The year, the month or the era two values differ in is written where the format asks for it (`:yMMMd`, `:GyMMMd`).
 
 * `Localize.Time.to_string/2` writes a `Time` and a `NaiveDateTime` at a standard format with the locale's standard time pattern, where it took the pattern CLDR's skeleton for the format resolves to: another in 44 locales at `:short` and 47 at `:medium`. `bg`'s short time is "10:30", not "10:30 ч.", and `cop`, `syr` and `kxv` keep their 12-hour clock.
 

@@ -165,7 +165,7 @@ One format writes both endpoints, so they hold the same fields: a month and a mo
 
 `Localize.Interval.to_string/3` accepts `Date`, `Time`, `NaiveDateTime`, and `DateTime` values, as well as any map with the appropriate fields. The formatting strategy depends on what fields differ:
 
-* **Same-day datetime intervals** — format the date once with the start time and end time as a time range (`"Apr 8, 2026, 12:00 PM – 2:00 PM"`). The `:time_format` option (`:short`, `:medium`, `:long`) controls the time portion independently.
+* **Same-day datetime intervals** — format the date once with the start time and end time as a time range (`"Apr 8, 2026, 12:00 PM – 2:00 PM"`), where CLDR has an interval format for the time fields, as it has for hours and minutes: `time_format: :short`, or a skeleton such as `:yMMMdhm`. CLDR has none with seconds, so at a format that writes them, the default `:medium` among them, both values are written whole around the fallback pattern (`"Apr 8, 2026, 12:00:00 PM – Apr 8, 2026, 2:00:00 PM"`), as TR35's interval algorithm has it. The `:time_format` option (`:short`, `:medium`, `:long`) controls the time portion independently.
 
 * **Different-day datetime intervals** — format both endpoints as full datetimes separated by the locale's interval fallback separator (`"Apr 15, 2026, 12:49 AM – Apr 16, 2026, 1:49 AM"`).
 
@@ -205,7 +205,7 @@ iex> String.contains?(result, "10:30")
 true
 ```
 
-A skeleton for a datetime interval is split into its date and time fields, as TR35's interval algorithm separates them. On one day the date is written once and the times as a range. A skeleton of time fields alone writes only the times, across days too, as TR35's algorithm reads; ICU adds the locale's numeric date there. A skeleton of date fields alone formats the dates as a date interval does.
+A skeleton for a datetime interval is split into its date and time fields, as TR35's interval algorithm separates them. On one day the date is written once and the times as a range, where CLDR has an interval format for the time fields; it has none with seconds, so `:yMMMdHms` writes both values whole, "Jun 15, 2026, 10:00:00 – Jun 15, 2026, 14:30:00". A skeleton of time fields alone writes only the times, across days too, as TR35's algorithm reads; ICU adds the locale's numeric date there. A skeleton of date fields alone formats the dates as a date interval does.
 
 ```elixir
 iex> Localize.Interval.to_string(~N[2026-06-15 10:00:00], ~N[2026-06-15 14:30:00], format: :yMMMdHm, locale: :en)

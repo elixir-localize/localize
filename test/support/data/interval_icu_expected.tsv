@@ -441,10 +441,13 @@ fr	time	H	10:00:00	11:00:00	10 – 11
 fr	time	H	00:00:00	12:00:00	00 – 12
 # Datetime intervals, TR35 step 3, from ICU4J 73 for each locale short and
 # medium date and time skeletons. 13 generated rows are left
-# out: same-day intervals with seconds, where Localize shows the date once and
-# ICU repeats it when the hour differs (or shows it once in another date
-# pattern), and fr short, which Localize joins with the fr short date-time
-# pattern by the TR35 length rule where ICU uses the medium one.
+# out: same-day intervals with seconds, where ICU repeats the date when the
+# hour differs (or shows it once in another date pattern), and fr short,
+# which Localize joins with the fr short date-time pattern by the TR35 length
+# rule where ICU uses the medium one. Of the rows kept, the two same-day
+# intervals with seconds (en and fr medium, 10:00:00 to 10:30:00) are ICU's
+# date written once: no interval item has seconds, so TR35's last step writes
+# both values whole, and the test holds those two rows to TR35 and not to ICU.
 en	datetime	short	2024-07-06T10:00:00	2024-07-06T10:30:00	7/6/24, 10:00 – 10:30 AM
 en	datetime	short	2024-07-06T10:00:00	2024-07-06T14:00:00	7/6/24, 10:00 AM – 2:00 PM
 en	datetime	short	2024-07-06T10:00:00	2024-07-06T11:00:00	7/6/24, 10:00 – 11:00 AM

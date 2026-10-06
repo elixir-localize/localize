@@ -637,6 +637,19 @@ defmodule Localize.Time do
   end
 
   @doc false
+  # The pattern `time` is written with at `format`, as `to_string/2` writes
+  # it: a time without one of its fields has no standard pattern and takes
+  # the format of the fields it holds, `%{hour: 10, minute: 0}` the
+  # locale's hour and minute.
+  def written_pattern(time, format, locale, options) do
+    plan_options = options |> Keyword.put(:format, format) |> Keyword.put(:locale, locale)
+
+    with {:ok, pattern, _locale_id, _formatter_options} <- formatting_plan(time, plan_options) do
+      {:ok, pattern}
+    end
+  end
+
+  @doc false
   # A skeleton with its hour symbols replaced to honour a `-u-hc-` override
   # in `locale`, or the skeleton unchanged when there is none.
   def hour_cycle_skeleton(skeleton, locale) do

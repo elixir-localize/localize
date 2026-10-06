@@ -193,13 +193,17 @@ defmodule Localize.IntervalSkeletonTest do
   end
 
   describe "a datetime interval" do
+    # TR35's step 3.2: "separate the skeleton into a date fields part and a
+    # time fields part ... Use the time fields part to look up an
+    # `intervalFormatItem`", and join the date's pattern to the item's with
+    # the date-time pattern: `en`'s `Hm` and `hm` items beside "MMM d, y"
+    # in "{1}, {0}".
     test "splits a skeleton into its date and time fields" do
       from = ~N[2026-06-15 10:00:00]
       same_day = ~N[2026-06-15 14:30:00]
 
       for {skeleton, expected} <- [
             {:yMMMdHm, "Jun 15, 2026, 10:00#{@thin}–#{@thin}14:30"},
-            {:yMMMdHms, "Jun 15, 2026, 10:00:00#{@thin}–#{@thin}14:30:00"},
             {:yMMMEdhm, "Mon, Jun 15, 2026, 10:00#{@narrow}AM#{@thin}–#{@thin}2:30#{@narrow}PM"},
             {:yMMMdjm, "Jun 15, 2026, 10:00#{@narrow}AM#{@thin}–#{@thin}2:30#{@narrow}PM"}
           ] do
@@ -211,6 +215,34 @@ defmodule Localize.IntervalSkeletonTest do
 
       assert interval(from, ~N[2026-06-16 14:30:00], format: :yMMMdHm, locale: :en) ==
                {:ok, "Jun 15, 2026, 10:00#{@thin}–#{@thin}Jun 16, 2026, 14:30"}
+    end
+
+    # No interval item of CLDR's is keyed by seconds, so TR35's step 3.2
+    # finds none for the time fields of `yMMMdHms` and its last step
+    # applies: "Otherwise, format the start and end datetime using the
+    # fallback pattern", in which "{0} is replaced by the start datetime,
+    # and {1} is replaced by the end datetime". `en`'s `yMMMd` is "MMM d,
+    # y" and its `Hms` "HH:mm:ss", in "{1}, {0}", about root's "{0} – {1}".
+    # ICU4C 78.3 writes the date once, "Jun 15, 2026, 10:00:00 – 14:30:00".
+    test "writes both values whole where no item has the skeleton's time fields" do
+      from = ~N[2026-06-15 10:00:00]
+      same_day = ~N[2026-06-15 14:30:00]
+
+      assert interval(from, same_day, format: :yMMMdHms, locale: :en) ==
+               {:ok, "Jun 15, 2026, 10:00:00#{@thin}–#{@thin}Jun 15, 2026, 14:30:00"}
+
+      assert interval(from, ~N[2026-06-15 10:00:30], format: :yMMMdHms, locale: :en) ==
+               {:ok, "Jun 15, 2026, 10:00:00#{@thin}–#{@thin}Jun 15, 2026, 10:00:30"}
+
+      # Two values alike in every field the skeleton writes are one.
+      assert interval(from, ~N[2026-06-15 10:00:00.500], format: :yMMMdHms, locale: :en) ==
+               {:ok, "Jun 15, 2026, 10:00:00"}
+
+      assert {:ok, parts} =
+               Localize.Interval.to_parts(from, same_day, format: :yMMMdHms, locale: :en)
+
+      assert Enum.map_join(parts, & &1.value) ==
+               "Jun 15, 2026, 10:00:00#{@thin}–#{@thin}Jun 15, 2026, 14:30:00"
     end
 
     test "with a skeleton of time fields writes the times alone" do

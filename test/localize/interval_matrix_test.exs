@@ -8,9 +8,10 @@ defmodule Localize.IntervalMatrixTest do
   Expected values come from ICU4J 73's `DateIntervalFormat` for Gregorian
   dates in UTC (`test/support/data/interval_icu_expected.tsv`), except where
   CLDR 49 has changed the locale data since ICU 73's CLDR 43, and where ICU
-  adds a year to a selection of fields without one, which TR35's algorithm
-  does not; those cases are checked here against the CLDR 49 patterns and
-  TR35's steps themselves. Every case goes through `to_string/3` and
+  adds a year to a selection of fields without one, or writes the date once
+  beside two times no interval item is keyed by, neither of which TR35's
+  algorithm does; those cases are checked here against the CLDR 49 patterns
+  and TR35's steps themselves. Every case goes through `to_string/3` and
   `to_parts/3`, whose parts must join to the same string and carry a valid
   `:source`.
 
@@ -40,10 +41,20 @@ defmodule Localize.IntervalMatrixTest do
     kind in ["month", "month_and_day"] and String.slice(from, 0, 4) != String.slice(to, 0, 4)
   end
 
+  # Two times of one day at a format with seconds. No interval item of
+  # CLDR's is keyed by seconds, so TR35's step 3.2 finds none for the time
+  # fields and its step 8 writes both values whole; ICU writes the date
+  # once.
+  defp no_item_for_the_times?([_locale, kind, format, from, to, _expected]) do
+    kind == "datetime" and format == "medium" and from != to and
+      String.slice(from, 0, 10) == String.slice(to, 0, 10)
+  end
+
   test "date and time intervals match ICU wherever it does as TR35 says" do
     mismatches =
       for [locale, kind, format, from, to, expected] = row <- fixture_rows(),
           not year_not_written?(row),
+          not no_item_for_the_times?(row),
           mismatch <- [check_case(locale, kind, format, from, to, expected)],
           mismatch != nil,
           do: mismatch
@@ -178,13 +189,56 @@ defmodule Localize.IntervalMatrixTest do
              ) == {:ok, "06/07/2024 10:00 – 10:30"}
     end
 
-    # CLDR ships no time interval pattern with seconds. The date is still
-    # shown once, with both times joined by the fallback pattern.
-    test "with seconds the date is shown once and both times in full" do
+    # TR35's step 3.2 has the time fields of a skeleton looked up as an
+    # interval item, and no item of CLDR's has seconds: `en`'s time items
+    # are `h`, `hm`, `hmv`, `hv`, `H`, `Hm`, `Hmv`, `Hv`, `Bh` and `Bhm`.
+    # So nothing is synthesized for a difference in the time fields, and
+    # the last step applies: "Otherwise, format the start and end datetime
+    # using the fallback pattern", in which "{0} is replaced by the start
+    # datetime, and {1} is replaced by the end datetime". Each is `en`'s
+    # medium date "MMM d, y" and medium time "h:mm:ss a" in its medium
+    # date-time pattern "{1}, {0}", about root's "{0} – {1}"; `fr`'s are
+    # "d MMM y", "HH:mm:ss" and "{1}, {0}". ICU writes the date once: "Jul
+    # 6, 2024, 10:00:00 AM – 10:30:00 AM".
+    test "with seconds, which no interval item has, both values are written whole" do
       assert Localize.Interval.to_string(~N[2024-07-06 10:00:00], ~N[2024-07-06 14:00:00],
                format: :medium,
                locale: :en
-             ) == {:ok, "Jul 6, 2024, 10:00:00 AM – 2:00:00 PM"}
+             ) == {:ok, "Jul 6, 2024, 10:00:00 AM – Jul 6, 2024, 2:00:00 PM"}
+
+      assert Localize.Interval.to_string(~N[2024-07-06 10:00:00], ~N[2024-07-06 10:30:00],
+               format: :medium,
+               locale: :en
+             ) == {:ok, "Jul 6, 2024, 10:00:00 AM – Jul 6, 2024, 10:30:00 AM"}
+
+      assert Localize.Interval.to_string(~N[2024-07-06 10:00:00], ~N[2024-07-06 10:30:00],
+               format: :medium,
+               locale: :fr
+             ) == {:ok, "6 juil. 2024, 10:00:00 – 6 juil. 2024, 10:30:00"}
+    end
+
+    # The two rows of the fixture that ICU writes with the date once are
+    # the ones held above, and no other.
+    test "the fixture's rows of two times with seconds are the two held to TR35" do
+      rows = Enum.filter(fixture_rows(), &no_item_for_the_times?/1)
+
+      assert Enum.map(rows, fn [locale, _kind, _format, from, to, _icu] -> {locale, from, to} end) ==
+               [
+                 {"en", "2024-07-06T10:00:00", "2024-07-06T10:30:00"},
+                 {"fr", "2024-07-06T10:00:00", "2024-07-06T10:30:00"}
+               ]
+
+      for [locale, _kind, _format, from, to, icu] <- rows do
+        {from, to} = {NaiveDateTime.from_iso8601!(from), NaiveDateTime.from_iso8601!(to)}
+        options = [format: :medium, locale: String.to_existing_atom(locale)]
+
+        assert {:ok, written} = Localize.Interval.to_string(from, to, options)
+        assert written != icu
+
+        assert {:ok, parts} = Localize.Interval.to_parts(from, to, options)
+        assert Enum.map_join(parts, & &1.value) == written
+        assert Enum.all?(parts, &(&1.source in @sources))
+      end
     end
 
     test "a difference only in seconds is an interval only where seconds show" do
@@ -192,7 +246,7 @@ defmodule Localize.IntervalMatrixTest do
       to = ~N[2024-07-06 10:00:30]
 
       assert Localize.Interval.to_string(from, to, format: :medium, locale: :en) ==
-               {:ok, "Jul 6, 2024, 10:00:00 AM – 10:00:30 AM"}
+               {:ok, "Jul 6, 2024, 10:00:00 AM – Jul 6, 2024, 10:00:30 AM"}
 
       assert Localize.Interval.to_string(from, to, format: :short, locale: :en) ==
                {:ok, "7/6/24, 10:00 AM"}

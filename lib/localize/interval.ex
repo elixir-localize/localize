@@ -62,7 +62,7 @@ defmodule Localize.Interval do
 
   * `:locale` is a locale identifier. The default is `:en`.
 
-  * `:format` is a standard format, `:short`, `:medium`, `:long` or `:full`, a skeleton such as `:yMMMEd` or `:yMMMdHm`, or a pattern such as `"d MMM y"`. The default is `:medium`. A skeleton selects CLDR's interval format for its fields, as CLDR keys them, so it can name a format no standard format reaches. A pattern names no interval format, so both endpoints are formatted with it around the locale's interval fallback pattern. A datetime interval's skeleton is split into its date and time fields, as TR35's interval algorithm separates them: on one day the date is written once and the times as a range, a skeleton of time fields alone writes only the times, and a skeleton of date fields alone formats the dates as a date interval does. A date in a calendar of weeks, such as `Calendrical.ISOWeek`, is written at a standard format in the calendar's own notation, so an interval of its dates is both dates around the fallback pattern: "2026-W25-2 – 2026-W27-1". A skeleton's month is such a date's week and its day the weekday, which no interval format is keyed by, so its interval is both dates in full too: "Tue, week 25 of 2026 – Mon, week 26 of 2026".
+  * `:format` is a standard format, `:short`, `:medium`, `:long` or `:full`, a skeleton such as `:yMMMEd` or `:yMMMdHm`, or a pattern such as `"d MMM y"`. The default is `:medium`. A skeleton selects CLDR's interval format for its fields, as CLDR keys them, so it can name a format no standard format reaches. A pattern names no interval format, so both endpoints are formatted with it around the locale's interval fallback pattern. A datetime interval's skeleton is split into its date and time fields, as TR35's interval algorithm separates them: on one day the date is written once and the times as a range where CLDR has an interval format for the time fields, a skeleton of time fields alone writes only the times, and a skeleton of date fields alone formats the dates as a date interval does. CLDR has no interval format with seconds, so at a format that writes them, `:medium`, `:long` and `:full` among them, two times of one day are each written whole around the fallback pattern, as the algorithm's last step has it: "Jun 15, 2026, 10:00:00 – Jun 15, 2026, 14:30:00". A date in a calendar of weeks, such as `Calendrical.ISOWeek`, is written at a standard format in the calendar's own notation, so an interval of its dates is both dates around the fallback pattern: "2026-W25-2 – 2026-W27-1". A skeleton's month is such a date's week and its day the weekday, which no interval format is keyed by, so its interval is both dates in full too: "Tue, week 25 of 2026 – Mon, week 26 of 2026".
 
   * `:date_format` and `:time_format` choose the date and the time half of a datetime interval separately, each a standard format, a skeleton or a pattern. `:date_format` is a date interval's format too, and `:time_format` a time interval's.
 
@@ -114,6 +114,12 @@ defmodule Localize.Interval do
       ...>   locale: :en
       ...> )
       {:ok, "10:00 – 14:30"}
+
+      iex> Localize.Interval.to_string(~N[2026-06-15 10:00:00], ~N[2026-06-15 14:30:00],
+      ...>   format: :yMMMdHms,
+      ...>   locale: :en
+      ...> )
+      {:ok, "Jun 15, 2026, 10:00:00 – Jun 15, 2026, 14:30:00"}
 
   """
   @spec to_string(map() | nil, map() | nil, Keyword.t()) ::
@@ -784,10 +790,11 @@ defmodule Localize.Interval do
   # around the fallback pattern. A time difference formats the date once and
   # joins it, through the locale's date-time pattern, to the time interval
   # CLDR ships for the time fields: "7/6/24, 10:00 – 10:30 AM". Where CLDR
-  # ships none, as for a format with seconds, the date is still shown once,
-  # with both times around the fallback pattern. Two values that differ in
-  # no field either half writes are a single datetime, as two dates are
-  # (`datetime_fields_differ?/4`).
+  # ships none, as for a format with seconds, nothing is synthesized for a
+  # difference in the time fields, and the algorithm's last step formats
+  # "the start and end datetime using the fallback pattern", each whole.
+  # Two values that differ in no field either half writes are a single
+  # datetime, as two dates are (`datetime_fields_differ?/4`).
 
   defp format_datetime_interval(from, to, options, output) do
     locale = Keyword.get(options, :locale, Localize.get_locale())
@@ -839,15 +846,16 @@ defmodule Localize.Interval do
       skeletons = {date_skeleton, time_skeleton}
       field_options = Keyword.put_new(options, :locale, locale)
       in_full = {Localize.DateTime, to, datetime_options}
-      order = Localize.DateTime.Format.interval_order(formats)
 
-      # The two times about the fallback pattern, the date written once with
-      # the time the locale writes first: `from`'s, or `to`'s where the
-      # fallback pattern is "{1} – {0}", as ICU4C writes "Jun 16, 2026,
-      # 14:30:00 – 10:00:00". A format without a date half writes the times
-      # alone.
-      {first, second} =
-        date_once(order, date_format, {from, to}, {datetime_options, time_options})
+      # Two times of a day whose fields no interval item is keyed by, as
+      # no item has seconds: "Otherwise, format the start and end datetime
+      # using the fallback pattern" (TR35's step 8), in which "{0} is
+      # replaced by the start datetime, and {1} is replaced by the end
+      # datetime". So each is written whole, "Jun 16, 2026, 10:00:05 –
+      # Jun 16, 2026, 14:30:07", where the date was written once, "Jun 16,
+      # 2026, 10:00:05 – 14:30:07". A format without a date half writes
+      # the times alone.
+      {first, second} = both_whole(date_format, {from, to}, {datetime_options, time_options})
 
       cond do
         not datetime_fields_differ?(skeletons, {from, to}, locale_id, field_options) ->
@@ -872,14 +880,11 @@ defmodule Localize.Interval do
     end
   end
 
-  defp date_once(_order, :none, {from, to}, {_datetime_options, time_options}),
+  defp both_whole(:none, {from, to}, {_datetime_options, time_options}),
     do: {{Localize.Time, from, time_options}, {Localize.Time, to, time_options}}
 
-  defp date_once(:latest_first, _date_format, {from, to}, {datetime_options, time_options}),
-    do: {{Localize.Time, from, time_options}, {Localize.DateTime, to, datetime_options}}
-
-  defp date_once(:earliest_first, _date_format, {from, to}, {datetime_options, time_options}),
-    do: {{Localize.DateTime, from, datetime_options}, {Localize.Time, to, time_options}}
+  defp both_whole(_date_format, {from, to}, {datetime_options, _time_options}),
+    do: {{Localize.DateTime, from, datetime_options}, {Localize.DateTime, to, datetime_options}}
 
   # The formats of a datetime interval's date and time halves: `:date_format`
   # and `:time_format` where given, else `:format` for both. A skeleton is
@@ -967,9 +972,9 @@ defmodule Localize.Interval do
   end
 
   # A time difference shows the date once, joined to the time interval CLDR
-  # ships for the time fields, or where it ships none to both times around
-  # the fallback pattern. A format without a date half shows the time
-  # interval alone.
+  # has for the time fields (TR35's step 3.2), and where it has none both
+  # values whole around the fallback pattern (step 8). A format without a
+  # date half shows the time interval alone.
   defp format_time_range(
          {:split, left, right},
          output,
@@ -1039,20 +1044,35 @@ defmodule Localize.Interval do
   # are always its skeleton.
   #
   # A time without one of its fields has no standard pattern, and is written
-  # alone in the format of the fields it holds; its interval asks for CLDR's
-  # skeleton, which names every unit, and falls back to each value in full.
+  # alone in the format of the fields it holds, so its interval's skeleton
+  # is those fields: two maps of an hour and a minute take CLDR's `hm` or
+  # `Hm` item, as TR35's step 3.2 has the time fields of a skeleton looked
+  # up. Their skeleton was CLDR's for the standard format, with seconds
+  # the values do not hold and no item is keyed by.
   defp standard_time_skeleton(time, format, {locale, locale_id, calendar}, options) do
     case Localize.Time.resolve_pattern(time, format, locale, options) do
       {:ok, pattern} ->
-        fields = Localize.DateTime.Format.Match.pattern_skeleton(pattern)
-        {:ok, skeleton_atom(fields)}
+        {:ok, pattern_skeleton_atom(pattern)}
 
       {:error, _no_standard_pattern} ->
+        fields_held_skeleton(time, format, {locale, locale_id, calendar}, options)
+    end
+  end
+
+  defp fields_held_skeleton(time, format, {locale, locale_id, calendar}, options) do
+    case Localize.Time.written_pattern(time, format, locale, options) do
+      {:ok, pattern} ->
+        {:ok, pattern_skeleton_atom(pattern)}
+
+      {:error, _not_written} ->
         with {:ok, skeletons} <- Localize.DateTime.Format.time_formats(locale_id, calendar) do
           {:ok, Map.get(skeletons, format)}
         end
     end
   end
+
+  defp pattern_skeleton_atom(pattern),
+    do: pattern |> Localize.DateTime.Format.Match.pattern_skeleton() |> skeleton_atom()
 
   # The interval CLDR ships for the time fields of a datetime format, split in
   # two. A 12-hour hour implies its day period, so `a` is dropped before
@@ -1373,7 +1393,9 @@ defmodule Localize.Interval do
   # The greatestDifference id CLDR keys each difference by. Hour entries use
   # the skeleton's own hour symbol. An AM/PM difference takes the `a` entry,
   # or the `B` entry of a flexible-day-period item, and otherwise the hour
-  # entry, as ICU does for 24-hour items that ship no `a`.
+  # entry. A 24-hour pattern has no day period, by TR35, and its item no
+  # entry for one; TR35 does not say what two times across noon take then
+  # (`plans/tr35-audit.md`).
   defp difference_key(:era, _skeleton, _item), do: :G
   defp difference_key(:year, _skeleton, _item), do: :y
   defp difference_key(:month, _skeleton, _item), do: :M

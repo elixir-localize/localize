@@ -284,10 +284,13 @@ defmodule Localize.IntervalCalendarTest do
 
   describe "a date-time interval takes its calendar's date-time pattern" do
     # CLDR gives `nl` Buddhist dates the date-time pattern "{1} {0}" and
-    # Gregorian ones "{1}, {0}". ICU4C writes "1 apr 2566 BE, 10:00:00 –
-    # 10:30:00": its `DateIntervalFormat` joins every calendar's date to its
-    # time range with the Gregorian pattern, reading
-    # `calendar/gregorian/DateTimePatterns`.
+    # Gregorian ones "{1}, {0}". The medium time has seconds, which no
+    # interval item is keyed by, so the two values are each written whole
+    # about the fallback pattern (TR35's last step), each a date and a time
+    # in its calendar's own date-time pattern. ICU4C writes "1 apr 2566 BE,
+    # 10:00:00 – 10:30:00": the date once, and joined to the times with the
+    # Gregorian pattern, its `DateIntervalFormat` reading
+    # `calendar/gregorian/DateTimePatterns` for every calendar.
     test "in nl" do
       options = [locale: :nl, format: :medium, style: :standard]
 
@@ -295,13 +298,34 @@ defmodule Localize.IntervalCalendarTest do
                datetime(Buddhist, 2566, 4, 1, 10, 0),
                datetime(Buddhist, 2566, 4, 1, 10, 30),
                options
-             ) == {:ok, "1 apr 2566 BE 10:00:00\u2009–\u200910:30:00"}
+             ) == {:ok, "1 apr 2566 BE 10:00:00\u2009–\u20091 apr 2566 BE 10:30:00"}
 
       assert Localize.Interval.to_string(
                ~N[2023-04-01 10:00:00],
                ~N[2023-04-01 10:30:00],
                options
-             ) == {:ok, "1 apr 2023, 10:00:00\u2009–\u200910:30:00"}
+             ) == {:ok, "1 apr 2023, 10:00:00\u2009–\u20091 apr 2023, 10:30:00"}
+    end
+
+    # At the short format the times have CLDR's `Hm` item, and the date is
+    # written once beside them, joined by the calendar's own pattern (TR35's
+    # step 3.2). `nl`'s Buddhist short date is its generic calendar's
+    # "dd-MM-yy GGGGG", joined by root's "{1} {0}", and its Gregorian one
+    # "dd-MM-y", joined by "{1}, {0}"; the `Hm` item is root's "HH:mm–HH:mm".
+    test "in nl, beside two times that have an interval item" do
+      options = [locale: :nl, format: :short, style: :standard]
+
+      assert Localize.Interval.to_string(
+               datetime(Buddhist, 2566, 4, 1, 10, 0),
+               datetime(Buddhist, 2566, 4, 1, 10, 30),
+               options
+             ) == {:ok, "01-04-66 BE 10:00–10:30"}
+
+      assert Localize.Interval.to_string(
+               ~N[2023-04-01 10:00:00],
+               ~N[2023-04-01 10:30:00],
+               options
+             ) == {:ok, "01-04-2023, 10:00–10:30"}
     end
   end
 
@@ -374,15 +398,37 @@ defmodule Localize.IntervalCalendarTest do
                {:ok, "1 בתמוז 5786, 14:30:00"}
     end
 
-    # The date written once beside two times is the date as it is written
-    # alone, as it was at the short format. ICU4C's `DateIntervalFormat`
-    # works from a skeleton and writes digits, "2026年五月2 14:30:45–15:30:45".
-    test "and so does the date a date-time interval writes once" do
+    # Each date a date-time interval writes is the date as it is written
+    # alone. The medium time has seconds, which no interval item is keyed
+    # by, so the two values are whole about `zh`'s Chinese fallback pattern
+    # "{0}–{1}" (TR35's last step). ICU4C's `DateIntervalFormat` works from
+    # a skeleton and writes digits, and the date once, "2026年五月2
+    # 14:30:45–15:30:45".
+    test "and so does each date a date-time interval writes" do
       assert Localize.Interval.to_string(
                datetime(Chinese, 4660, 5, 2, 14, 30),
                datetime(Chinese, 4660, 5, 2, 15, 30),
                locale: :zh
-             ) == {:ok, "2023年四月初二 14:30:00–15:30:00"}
+             ) == {:ok, "2023年四月初二 14:30:00–2023年四月初二 15:30:00"}
+    end
+
+    # At the short format the times have CLDR's `Hm` item, and the date
+    # written once beside them (TR35's step 3.2) is the date as it is
+    # written alone.
+    test "and so does the date a date-time interval writes once" do
+      {:ok, date} =
+        Localize.Date.to_string(date(Chinese, 4660, 5, 2), locale: :zh, format: :short)
+
+      assert {:ok, written} =
+               Localize.Interval.to_string(
+                 datetime(Chinese, 4660, 5, 2, 14, 30),
+                 datetime(Chinese, 4660, 5, 2, 15, 30),
+                 locale: :zh,
+                 format: :short
+               )
+
+      assert String.starts_with?(written, date)
+      assert [_before, _after] = String.split(written, date)
     end
   end
 

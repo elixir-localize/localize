@@ -211,7 +211,8 @@ An interval takes the formats of its endpoints' calendar. ICU4C 78.3 differs fro
 
 | Interval | Localize | ICU4C renders |
 |---|---|---|
-| `nl` Buddhist date and time range | "1 apr 2566 BE 10:00:00 – 10:30:00" | "1 apr 2566 BE, 10:00:00 – 10:30:00" |
+| `nl` Buddhist medium, 10:00 to 10:30 on 1 April 2566 | "1 apr 2566 BE 10:00:00 – 1 apr 2566 BE 10:30:00" | "1 apr 2566 BE, 10:00:00 – 10:30:00" |
+| `en` `yMMMdHms`, 12:00:05 to 14:30:07 on 8 April 2026 | "Apr 8, 2026, 12:00:05 – Apr 8, 2026, 14:30:07" | "Apr 8, 2026, 12:00:05 – 14:30:07" |
 | `en` Chinese medium, `rMMMd` | "Mo2bis 11 – 20, gui-mao" | "Mo2bis 11, 2023 – Mo2bis 20, 2023" |
 | `am` medium, equal endpoints | "1 ኤፕሪ 2023" | "ኤፕሪ 1 2023" |
 | `en` `Hm`, 10:00 on 15 June to 14:30 on 16 June 2026 | "10:00 – 14:30" | "6/15/2026, 10:00 – 6/16/2026, 14:30" |
@@ -228,7 +229,7 @@ An interval takes the formats of its endpoints' calendar. ICU4C 78.3 differs fro
 | `en` `MMMdHm`, 10:00 on 15 June 2026 to 14:30 on 15 June 2027 | "Jun 15, 10:00 – Jun 15, 14:30" | "Jun 15, 2026, 10:00 – Jun 15, 2027, 14:30" |
 | `en` medium, 31 December 1 BC to 1 January AD 1 | "Dec 31, 1 – Jan 1, 1" | "Dec 31, 1 BC – Jan 1, 1 AD" |
 | `ja` long, 1 to 10 April 2023 | "2023年4月1日～10日" | "2023/04/01～2023/04/10" |
-| `zh` Chinese medium, 14:30:45 to 15:30:45 on 16 June 2026 | "2026年五月初二 14:30:45–15:30:45" | "2026年五月2 14:30:45–15:30:45" |
+| `zh` Chinese medium, 14:30:45 to 15:30:45 on 16 June 2026 | "2026年五月初二 14:30:45–2026年五月初二 15:30:45" | "2026年五月2 14:30:45–15:30:45" |
 | `en` Chinese `Md`, 16 June 2026 to 12 June 2086 | "5/2" | "5/2 – 5/2" |
 | `he` Hebrew medium, 1 to 5 Tamuz 5786 | "א׳–ה׳ בתמוז ה׳תשפ״ו" | "1–5 בתמוז 5786" |
 
@@ -242,6 +243,8 @@ An interval takes the formats of its endpoints' calendar. ICU4C 78.3 differs fro
 
 * **Whole datetimes across days.** TR35 says an interval takes the standard date-time pattern, its example "March 15, 9:00 AM – March 16, 5:00 PM", and Localize joins each datetime's date and time with it (user, 2026-10-02). ICU does so for a date joined to a time range, but formats each whole datetime of a fallback with its single-date pattern, which takes the "at" pattern.
 
+* **Two times of a day no interval item is keyed by.** TR35's algorithm looks the time fields of a skeleton up as an interval item and joins the date, written once, to it; where there is none its last step applies, "format the start and end datetime using the fallback pattern", in which "{0} is replaced by the start datetime, and {1} is replaced by the end datetime". No interval item of CLDR's has seconds, so at a format that writes them, the `:medium`, `:long` and `:full` formats among them, two times of one day are each written whole. ICU writes the date once and the two times around the fallback pattern (user, 2026-10-06: TR35).
+
 * **A time skeleton across days.** TR35's interval algorithm, read as it is written, finds no day difference in a time item and formats both values with the skeleton around the fallback pattern. ICU adds the locale's `yMd` date to a skeleton of time fields alone when the days differ (user, 2026-10-01: not the ICU approach).
 
 * **Numeric widths.** TR35 finds the closest interval item "as in `availableFormats`", whose pattern takes the field lengths of the skeleton requested, so a numeric month and day are padded as the skeleton asks: `am`'s short date is "dd/MM/y" with the skeleton `yMMdd`, and its `yMd` item "d/M/y – d/M/y" is written as the single date is, "01/04/2023". ICU adjusts the width of the year (`yy`) and of a month written as a name (`MMMM`), but writes a numeric month and day at the item's own widths (user, 2026-10-04: TR35).
@@ -252,7 +255,7 @@ An interval takes the formats of its endpoints' calendar. ICU4C 78.3 differs fro
 
 * **A field the skeleton does not write.** TR35's algorithm writes the fields of the skeleton asked for and no others. Two values alike in every field of the pattern are "a single date"; where the item has no pattern for their greatest difference, "the start and end datetime" are written "using the fallback pattern", each with the skeleton; and for a date and a time "the result will be the same for each `greatestDifference` of a day or longer". So `MMMd` from 28 December to 3 January is "Dec 28 – Jan 3", the same day of two years "Jun 15", `d` from 28 June to 3 July "28 – 3", `yMMMHm` on two days of June "Jun 2026, 10:00 – Jun 2026, 14:30", and two dates of two eras at a format with no era are written without one. ICU adds the day, the month, the year or the era the two differ in, to a skeleton CLDR has an interval item for, and writes a skeleton it has none for as it stands (`Ed`, `QQQ`). Localize adds nothing (user, 2026-10-06: TR35).
 
-* **The date's numbering.** CLDR gives a date pattern the numbering its numeric fields are written in, the `numbers` attribute, and the date a date-time interval writes once beside two times is the date as `Localize.Date.to_string/2` writes it, in that numbering: `zh`'s Chinese day is "初二" and `he`'s Hebrew date is in Hebrew numerals. ICU's `DateIntervalFormat` works from the format's skeleton, which carries no numbering, and writes digits, though its single date-time formatter writes "2026年五月初二 14:30:45" as Localize does. An interval of two dates at a standard format takes the format's numbering too, since it is made from the format's skeleton, which CLDR gives the same `numbers` attribute, and TR35 has that attribute cover "all of the numeric fields in the date format": `zh`'s Chinese medium interval is "2026年五月初二至初六" and `he`'s Hebrew "א׳–ה׳ בתמוז ה׳תשפ״ו". ICU writes digits there as well. At a skeleton, which states no numbering, both write digits, "2026年五月2至6".
+* **The date's numbering.** CLDR gives a date pattern the numbering its numeric fields are written in, the `numbers` attribute, and each date a date-time interval writes is the date as `Localize.Date.to_string/2` writes it, in that numbering: `zh`'s Chinese day is "初二" and `he`'s Hebrew date is in Hebrew numerals. ICU's `DateIntervalFormat` works from the format's skeleton, which carries no numbering, and writes digits, though its single date-time formatter writes "2026年五月初二 14:30:45" as Localize does. An interval of two dates at a standard format takes the format's numbering too, since it is made from the format's skeleton, which CLDR gives the same `numbers` attribute, and TR35 has that attribute cover "all of the numeric fields in the date format": `zh`'s Chinese medium interval is "2026年五月初二至初六" and `he`'s Hebrew "א׳–ה׳ בתמוז ה׳תשפ״ו". ICU writes digits there as well. At a skeleton, which states no numbering, both write digits, "2026年五月2至6".
 
 ### Relative time
 

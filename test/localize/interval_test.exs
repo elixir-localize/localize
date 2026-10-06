@@ -499,20 +499,24 @@ defmodule Localize.IntervalTest do
                {:ok, "14:30–10:00"}
     end
 
-    # Two times with no item of their own are joined by the fallback pattern
-    # and the date is written once, with the time written first: ICU4C given
-    # that fallback pattern writes `en`'s `yMdHms` as "6/16/2026, 14:30:00 –
-    # 10:00:00". `kek.xml`'s `yMd` is "d/M/y".
-    test "writes a date once beside the later of two times joined" do
+    # Two times of a day with no item of their own, as none has seconds,
+    # are TR35's last step: "format the start and end datetime using the
+    # fallback pattern", in which "{0} is replaced by the start datetime,
+    # and {1} is replaced by the end datetime". So each is written whole,
+    # and `kek`'s "{1} – {0}" has the later first. `kek.xml`'s `yMd` is
+    # "d/M/y", in root's "{1} {0}"; `en`'s is "M/d/y" in "{1}, {0}". ICU4C
+    # 78.3 writes `en`'s with the date once, "6/16/2026, 10:00:00 –
+    # 14:30:00".
+    test "writes two values whole, the later first, where no item has their time fields" do
       assert Interval.to_string(~N[2026-06-16 10:00:00], ~N[2026-06-16 14:30:00],
                locale: :kek,
                format: :yMdHms
-             ) == {:ok, "16/6/2026 14:30:00 – 10:00:00"}
+             ) == {:ok, "16/6/2026 14:30:00 – 16/6/2026 10:00:00"}
 
       assert Interval.to_string(~N[2026-06-16 10:00:00], ~N[2026-06-16 14:30:00],
                locale: :en,
                format: :yMdHms
-             ) == {:ok, "6/16/2026, 10:00:00 – 14:30:00"}
+             ) == {:ok, "6/16/2026, 10:00:00 – 6/16/2026, 14:30:00"}
     end
 
     # An interval open at one end is the fallback pattern with nothing for
