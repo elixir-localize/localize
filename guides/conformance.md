@@ -245,7 +245,7 @@ Two areas are explicitly out of scope:
 | Quarter names | Implemented | `Localize.Calendar.quarters/2`. |
 | Era names | Implemented | `Localize.Calendar.eras/2`. |
 | Day period names (AM/PM, flexible) | Implemented | `Localize.Calendar.day_periods/2`. |
-| Cyclic name sets (Chinese/Dangi) | Implemented | `Localize.Calendar.cyclic_years/2`; `U` formats and parses the cyclic year name. |
+| Cyclic name sets (Chinese/Dangi) | Implemented | `Localize.Calendar.cyclic_years/2`; `U` formats and parses the cyclic year name, `y` the year's place in the sixty-year cycle and `G` the cycle's number, which TR35 leaves open and ICU writes. |
 | Month patterns (leap months) | Implemented | `Localize.Calendar.month_patterns/2`; a leap month formats and parses in the locale's pattern. |
 
 ### Date/Time Formatting

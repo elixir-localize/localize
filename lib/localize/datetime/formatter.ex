@@ -861,10 +861,19 @@ defmodule Localize.DateTime.Formatter do
 
   # ── Era (G) ────────────────────────────────────────────────
 
+  # A calendar of cyclic years has no era CLDR names: its `G` is the number
+  # of the year's sixty-year cycle at every width, as ICU writes it, in the
+  # numbering the date's numbers are written in (`Localize.Calendar.cycle/2`).
   @doc false
   def era(date, count, locale_id, options) when is_map_key(date, :year) do
-    format = if count in 4..5, do: format_for_count(count), else: :abbreviated
-    localize_part(date, :era, locale: locale_id, style: format, era: options[:era])
+    case Localize.Calendar.cycle(date, locale_id) do
+      {:ok, cycle} ->
+        apply_ns(cycle, locale_id, options, "G")
+
+      :none ->
+        format = if count in 4..5, do: format_for_count(count), else: :abbreviated
+        localize_part(date, :era, locale: locale_id, style: format, era: options[:era])
+    end
   end
 
   def era(_date, _count, _locale_id, _options), do: ""

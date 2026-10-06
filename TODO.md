@@ -22,11 +22,11 @@ Outstanding work on Localize. The design detail behind these items lives under [
 
 * [ ] **An interval across sixty-year cycles writes its two dates alike** — two Chinese or Dangi dates sixty years apart take the interval's pattern for a year, "5/2/43 – 5/2/43" for `en`'s `yMd`, where ICU4C holds the cycle as an era and writes both in the skeleton's own format, "5/2/2026 – 5/2/2086". Decide whether a year of another cycle is written in full, as a year of another era is.
 
-* [ ] **`G` for a Chinese or Dangi date is an error** — CLDR gives those calendars one era and no name for it, so a pattern with `G` returns `Localize.ItemNotFoundError`, where ICU4C writes the number of the sixty-year cycle, "78". TR35 is silent; decide what it writes.
-
 * [ ] **An interval item is written in digits where the date alone takes its format's numbering** — `he`'s Hebrew medium interval is "1–5 בתמוז 5786" beside the date "א׳ בתמוז ה׳תשפ״ו", and `zh`'s Chinese "2026年五月2至6" beside "2026年五月初二", as ICU4C writes them: CLDR's interval items carry no numbering and TR35 says nothing of one for them. Decide whether an interval at a standard format takes the format's numbering, as it takes its fields.
 
 ## In progress
+
+* [ ] **`G` for a Chinese or Dangi date is an error** — CLDR gives those calendars one era and no name for it, so a pattern with `G` returns `Localize.ItemNotFoundError`, where ICU4C writes the number of the sixty-year cycle, "78". TR35 is silent; decide what it writes. Landed 2026-10-06: `G` writes the number of the year's cycle, counted as ICU counts it from the cycle that began in 2637 BC, in the numbering of the date's numbers, and is read with the year's place or name as the one year the two name (user, 2026-10-06); the batch's sweep across the locales and the calendars is still to run.
 
 * [ ] **An interval is parsed by compiling its patterns' regexes on every call** — a date's patterns are compiled once for a locale and calendar and kept, an interval's are not, so `Localize.Interval.parse/2` takes about 70 ms where no early pattern reads the text, and `Localize.DateTime.Parser.parse/2` pays it for a single date wherever the locale's fallback separator is in the text (`da`'s hyphen). Keeping them costs literal memory, some megabytes for a locale and calendar; decide between keeping them, a bounded cache, and refusing a pattern by its count of fields before it is compiled. Landed 2026-10-06: the patterns are compiled once for a locale and calendar and kept in `:persistent_term`, as a date's are (user, 2026-10-06), about 80 ms to 2 for an `en` interval at up to 300 KB a locale and calendar; the batch's sweep across the locales and the calendars is still to run.
 

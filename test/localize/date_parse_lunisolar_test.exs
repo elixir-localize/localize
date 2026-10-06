@@ -550,6 +550,105 @@ defmodule Localize.DateParseLunisolarTest do
     end
   end
 
+  # CLDR gives the Chinese and Dangi calendars one era and no name for it,
+  # and TR35 does not say what `G` writes there. ICU holds the sixty-year
+  # cycle as their era and writes its number, counted alike in both from the
+  # cycle that began in 2637 BC, and Localize follows it (user, 2026-10-06).
+  # ICU4C 78.3 writes "78" for `G`, `GGGG` and `GGGGG` on 16 June 2026 in
+  # both calendars, "78 43" for "G y", "78 bing-wu" for "G U" and "78 2026"
+  # for "G r"; "77 60" on 1 February 1984 and "78 1" the day after, the new
+  # year; "78 60" and "79 1" either side of the new year of 2044; and
+  # "٧٨ ٤٣" in `ar-EG`. The year that began in 1983 is 4620 as Calendrical
+  # numbers it, and 2026's is 4663.
+  describe "the era of a calendar of cyclic years" do
+    test "is written as the number of the year's cycle, at every width" do
+      for pattern <- ["G", "GG", "GGG", "GGGG", "GGGGG"] do
+        assert Localize.Date.to_string(date(4663, 5, 2), format: pattern, locale: :en) ==
+                 {:ok, "78"},
+               pattern
+      end
+
+      for {year, expected} <- [
+            {4663, "78 43"},
+            {4620, "77 60"},
+            {4621, "78 1"},
+            {4680, "78 60"},
+            {4681, "79 1"}
+          ] do
+        assert Localize.Date.to_string(date(year, 5, 2), format: "G y", locale: :en) ==
+                 {:ok, expected},
+               "#{year}"
+      end
+
+      assert Localize.Date.to_string(date(4663, 5, 2), format: "G U", locale: :en) ==
+               {:ok, "78 bing-wu"}
+
+      assert Localize.Date.to_string(date(4663, 5, 2), format: "G r", locale: :en) ==
+               {:ok, "78 2026"}
+
+      assert Localize.Date.to_string(%{calendar: Lunisolar, year: 4663}, format: "G y") ==
+               {:ok, "78 43"}
+    end
+
+    test "is written in the numbering of the date's numbers" do
+      assert Localize.Date.to_string(date(4663, 5, 2), format: "G y", locale: :"ar-EG") ==
+               {:ok, "٧٨ ٤٣"}
+
+      assert Localize.Date.to_string(date(4663, 5, 2), format: "G y", locale: "zh-u-nu-hanidec") ==
+               {:ok, "七八 四三"}
+    end
+
+    # A place in the cycle alone is the year of that place nearest the
+    # reference date, 4680 for the 60th from 4662. With its cycle it is one
+    # year, however far from the reference date.
+    test "is read with the year's place as the one year the two name" do
+      assert parse("60-5-2", :en, format: "y-M-d") == {:ok, date(4680, 5, 2)}
+      assert parse("77 60-5-2", :en, format: "G y-M-d") == {:ok, date(4620, 5, 2)}
+      assert parse("79 1-5-2", :en, format: "G y-M-d") == {:ok, date(4681, 5, 2)}
+      assert parse("70 43-5-2", :en, format: "G y-M-d") == {:ok, date(4183, 5, 2)}
+
+      assert parse("78 bing-wu 5 2", :en, format: "G U M d") == {:ok, date(4663, 5, 2)}
+      assert parse("77 bing-wu 5 2", :en, format: "G U M d") == {:ok, date(4603, 5, 2)}
+
+      assert parse("٧٧ ٦٠-٥-٢", :"ar-EG", format: "G y-M-d") == {:ok, date(4620, 5, 2)}
+
+      assert parse("七八 四三", "zh-u-nu-hanidec", format: "G y", as: :map) ==
+               {:ok, %{calendar: Lunisolar, year: 4663}}
+
+      assert parse("77 60", :en, format: "G y", as: :map) ==
+               {:ok, %{calendar: Lunisolar, year: 4620}}
+    end
+
+    test "is read back as it is written, far from the reference date" do
+      failures =
+        for locale <- [:en, :zh, :ja, :ko, :vi, :de, :"ar-EG", :fa],
+            pattern <- ["G y-M-d", "y G M d", "G U M d", "d M G y", "G r-M-d"],
+            year <- [4183, 4601, 4620, 4621, 4660, 4663, 4680, 4681, 4723],
+            written = date(year, 5, 2),
+            {:ok, text} = Localize.Date.to_string(written, format: pattern, locale: locale),
+            parse(text, locale, format: pattern) != {:ok, written} do
+          {locale, pattern, year, text}
+        end
+
+      assert failures == []
+    end
+
+    # 2026 is of the 78th cycle.
+    test "is refused beside a year of another cycle" do
+      assert parse("78 2026-5-2", :en, format: "G r-M-d") == {:ok, date(4663, 5, 2)}
+      assert {:error, %Localize.DateParseError{}} = parse("77 2026-5-2", :en, format: "G r-M-d")
+    end
+
+    # Calendrical's lunisolar Japanese calendar has the Chinese calendar's
+    # months and cycle and the Japanese calendar's eras, which CLDR names.
+    test "is its name where the calendar's eras have names" do
+      date = Date.new!(4662, 6, 1, LunisolarEras)
+
+      assert Localize.Date.to_string(date, format: "G y", locale: :en) == {:ok, "Reiwa 7"}
+      assert Localize.Date.to_string(~D[2026-06-16], format: "G", locale: :en) == {:ok, "AD"}
+    end
+  end
+
   # TR35's Matching Skeletons gives a numeric and a text field "a larger
   # distance from each other" than two widths of one kind, and a year is a
   # number at every width of `y` where `U` is the year's name at every width

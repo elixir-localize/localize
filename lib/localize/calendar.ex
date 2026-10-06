@@ -1335,6 +1335,10 @@ defmodule Localize.Calendar do
   @spec displayed_year(term()) :: {:ok, Calendar.year()} | {:error, [atom()] | Exception.t()}
   def displayed_year(date), do: settle(date, &displayed_year_on/2)
 
+  # The related Gregorian year in which the first sixty-year cycle began, as
+  # ICU counts the cycles of the Chinese and Dangi calendars: 2637 BC.
+  @first_cyclic_year -2636
+
   @doc false
   # The place of a date's year in the sixty-year cycle, where `y` writes that
   # place. TR35's `U` names "the year value" and is written as `y` writes it
@@ -1369,6 +1373,49 @@ defmodule Localize.Calendar do
   end
 
   def cycle_place(_date, _locale), do: :none
+
+  @doc false
+  # The number of the sixty-year cycle a date's year is in, where `y` writes
+  # the year's place in it (`cycle_place/2`). CLDR gives the Chinese and
+  # Dangi calendars one era and no name for it, and TR35 does not say what
+  # `G` writes for them; ICU holds the cycle as their era and writes its
+  # number, and Localize follows it (user, 2026-10-06). ICU counts both
+  # calendars' cycles from the one that began in 2637 BC, so the year that
+  # began in 1984 is the first of the 78th in each: the count is the same
+  # for every calendar of cyclic years, and is taken from the year's related
+  # Gregorian year, which the calendar answers.
+  @spec cycle(term(), Localize.locale()) :: {:ok, integer()} | :none
+  def cycle(date, locale) do
+    with {:ok, _place} <- cycle_place(date, locale),
+         {:ok, related} <- related_gregorian_year(date) do
+      {:ok, cycle_of_related_year(related)}
+    else
+      _no_cycle -> :none
+    end
+  end
+
+  @doc false
+  # The cycle a related Gregorian year is in, and the related Gregorian
+  # year of a place in a cycle: the first year of the first cycle began in
+  # 2637 BC, the year -2636.
+  @spec cycle_of_related_year(integer()) :: integer()
+  def cycle_of_related_year(related), do: Integer.floor_div(related - @first_cyclic_year, 60) + 1
+
+  @doc false
+  @spec related_year_of_cycle(integer(), pos_integer()) :: integer()
+  def related_year_of_cycle(cycle, place), do: @first_cyclic_year + (cycle - 1) * 60 + place - 1
+
+  # The related Gregorian year is constant through a calendar year, so a
+  # date without its month or its day is asked on the first it could be.
+  defp related_gregorian_year(%{year: year} = date) do
+    ask(
+      Map.get(date, :calendar, Calendar.ISO),
+      :related_gregorian_year,
+      [year, integer_or_first(Map.get(date, :month)), integer_or_first(Map.get(date, :day))],
+      "a Gregorian year",
+      &is_integer/1
+    )
+  end
 
   # The cyclic year is constant through a calendar year, so a date without
   # its month or its day is asked on the first it could be.

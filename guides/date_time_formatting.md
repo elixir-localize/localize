@@ -492,6 +492,8 @@ A lunisolar date parses as it is written, in the calendar the `:calendar` option
 
 In a calendar of cyclic years, the Chinese and Dangi calendars, `y` is the year's place in the sixty-year cycle, the number `U` names, as TR35 has it: 43 for the year that began in 2026, as ICU writes it, with `u` for the year's number, 4663. The calendar answers the place, its `cyclic_year/3`. The place recurs every sixty years, so it is read as the year of that place nearest the reference date, as a cyclic name is. A lunisolar calendar that displays its years as years of an era keeps the year of the era for `y`.
 
+CLDR names no era for those calendars, and `G` writes the number of the year's sixty-year cycle at every width, as ICU does: 78 for the cycle that began in 1984, counted in both calendars from the one that began in 2637 BC. A cycle and a place in it name one year, so "77 60" at `G y` is the year that began in 1983 whatever the reference date, and a cycle beside a year that is not in it is refused.
+
 A date-time is read with the date-time patterns of the calendar it is read in, in the order the locale writes the two halves: `vi` puts the time first, as in "10:05 1/4/23".
 
 Times follow the locale's hour cycle, so a 12-hour locale accepts a day period and a 24-hour locale does not need one:

@@ -1533,6 +1533,8 @@ defmodule Localize.Date.Parser do
     month = extract_month(caps, prefix)
     day = extract_day(caps, prefix)
     asked = {month || extract_month(caps, other), day || extract_day(caps, other)}
+    cycle = capture(caps, prefix <> "cycle") || capture(caps, other <> "cycle")
+    caps = Map.put(caps, prefix <> "cycle", cycle)
 
     with {:ok, year} <- extract_calendar_year(caps, prefix, nil, era_index, ctx, asked) do
       reject_invalid(%{year: year, month: month, day: day})
@@ -1545,11 +1547,45 @@ defmodule Localize.Date.Parser do
   # `year_fallback`. A related year, a place or a cyclic name written
   # beside the year it was not taken from must agree with that year.
   defp extract_calendar_year(caps, prefix, year_fallback, era_index, ctx, month_day) do
+    name = named_capture_index(caps, prefix <> "__u")
+    cycle = capture(caps, prefix <> "cycle")
+
     with {:ok, year, place} <- written_year(caps, prefix, era_index, ctx, month_day),
+         {:ok, year} <- with_cycle(year, cycle, place || name, ctx),
          {:ok, year} <- with_related_year(year, capture(caps, prefix <> "related_year"), ctx),
          {:ok, year} <- with_cyclic_year(year, place, ctx),
-         {:ok, year} <- with_cyclic_year(year, named_capture_index(caps, prefix <> "__u"), ctx) do
+         {:ok, year} <- with_cyclic_year(year, name, ctx),
+         {:ok, year} <- in_cycle(year, cycle, ctx) do
       {:ok, year || year_fallback}
+    end
+  end
+
+  # `G` in a calendar of cyclic years is the number of the year's cycle
+  # (`Localize.Calendar.cycle/2`), and with the year's place in it, as `y`
+  # or `U` writes it, names one year: "77 60" is the year that began in
+  # 1983, where the place alone is the year of that place nearest the
+  # reference date. A cycle with no place names no year.
+  defp with_cycle(year, nil, _place, _ctx), do: {:ok, year}
+  defp with_cycle(year, _cycle, nil, _ctx), do: {:ok, year}
+
+  defp with_cycle(year, raw, place, ctx) do
+    case parse_year(raw) do
+      {cycle, ""} -> year_with_related(year, LCalendar.related_year_of_cycle(cycle, place), ctx)
+      _other -> :error
+    end
+  end
+
+  # A cycle written beside a year it did not help to name must be the
+  # year's own.
+  defp in_cycle(year, cycle, _ctx) when is_nil(year) or is_nil(cycle), do: {:ok, year}
+
+  defp in_cycle(year, raw, ctx) do
+    with {cycle, ""} <- parse_year(raw),
+         {:ok, related} <- related_year_of(year, ctx.calendar_module),
+         ^cycle <- LCalendar.cycle_of_related_year(related) do
+      {:ok, year}
+    else
+      _another_cycle -> :error
     end
   end
 
@@ -3378,13 +3414,14 @@ defmodule Localize.Date.Parser do
 
   # Era marker. Try to capture against the locale's era names
   # so we can resolve era → year offset for Japanese imperial.
-  # If no era names are available, fall back to tolerate-and-skip.
-  defp field_regex({:G, count}, _months, eras, _lenient, _ctx) do
+  # If no era names are available, it is a cycle's number or else
+  # tolerated and skipped (`unnamed_era_field/1`).
+  defp field_regex({:G, count}, _months, eras, _lenient, ctx) do
     width = Map.get(@era_widths, count, :abbreviated)
 
     case era_name_regex(eras, width) do
       {:branches, regex} -> {:capture, :era, regex}
-      :none -> {:plain, "[\\p{L}\\.]+"}
+      :none -> unnamed_era_field(ctx)
     end
   end
 
@@ -3392,6 +3429,22 @@ defmodule Localize.Date.Parser do
   # pattern a caller gives can hold: it reads nothing, so its pattern
   # matches no text.
   defp field_regex(_field, _months, _eras, _lenient, _ctx), do: {:plain, "(?!)"}
+
+  # `G` where the locale names no era for the calendar. A calendar of
+  # cyclic years has no era CLDR names, and the formatter writes the number
+  # of the year's cycle (`Localize.Calendar.cycle/2`), in the digits its
+  # pattern writes numbers in. It is such a calendar where the locale's
+  # data names its years by a cycle, which is a fact of the locale and the
+  # calendar, as every regex kept for the two must be: the reference date
+  # has no part in it.
+  defp unnamed_era_field(ctx) do
+    if cyclic_names?(Map.get(ctx, :cyclic_years)),
+      do: {:capture, :cycle, "(?P<cycle>[-−]?#{digit_class(ctx, "G")}{1,3})"},
+      else: {:plain, "[\\p{L}\\.]+"}
+  end
+
+  defp cyclic_names?(%{years: %{format: %{} = names}}), do: map_size(names) > 0
+  defp cyclic_names?(_no_names), do: false
 
   # The digits a numeric field is written with: Latin (or the locale's
   # own, read as Latin before matching) and those of the numbering the

@@ -136,6 +136,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+* `G` for a date of the Chinese or Dangi calendar writes the number of the year's sixty-year cycle, "78" in 2026, as ICU does, where it returned `Localize.ItemNotFoundError`: CLDR names no era for those calendars and TR35 does not say what `G` writes. Read beside the year's place or name it gives the one year the two name, "77 60" being the year that began in 1983.
+
 * An interval written without a year across the new year ends in the year after: "Dec 28 – Jan 3" was refused as an inverted range of the reference date's year. The later date is a year on only where it would otherwise come before the earlier, by its calendar's own days, and never an earlier day of the same month.
 
 * A date written without its year beside one written with its year takes that year, or the year next to it across the new year, wherever a range is read: "June 16 to August 20, 2031" was read as five years from the reference date's June, and "Dec 28 – Jan 3, 2027" was refused. As maps the two share the year the same way, and two strings for a calendar of weeks are read as Gregorian dates before they are converted.
