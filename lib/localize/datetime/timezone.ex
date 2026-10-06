@@ -1768,7 +1768,12 @@ defmodule Localize.DateTime.Timezone do
   @doc false
   # The zone fields of a fixed offset, as `offset_datetime/2` carries them.
   # No offset at all is UTC.
-  @spec offset_zone_fields(integer()) :: map()
+  @spec offset_zone_fields(integer()) :: %{
+          time_zone: String.t(),
+          utc_offset: integer(),
+          std_offset: 0,
+          zone_abbr: String.t()
+        }
   def offset_zone_fields(0),
     do: %{time_zone: "Etc/UTC", utc_offset: 0, std_offset: 0, zone_abbr: "UTC"}
 

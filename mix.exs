@@ -114,6 +114,9 @@ defmodule Localize.MixProject do
       formatters: ["html", "markdown"],
       groups_for_modules: groups_for_modules(),
       groups_for_extras: groups_for_extras(),
+      # `tz` hides its database module from its docs, and it is the name a
+      # consumer configures, so it is written as code and not linked.
+      skip_code_autolink_to: ["Tz.TimeZoneDatabase"],
       skip_undefined_reference_warnings_on:
         [
           "CHANGELOG.md"
