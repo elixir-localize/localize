@@ -765,8 +765,11 @@ defmodule Localize.Unit.Formatter do
 
   # CLDR marks components such as "person" as unit-id suffixes
   # (`unitIdComponent type="suffix"`). Units like "year-person"
-  # (person-years) carry no display data of their own and are shown as
-  # their base unit ("year" → "years"), matching ICU. When a direct
+  # (person-years) carry no display data of their own in some locales and
+  # are shown as their base unit ("year" → "years"): TR35 has such units
+  # "provided simply because they have different names in some languages",
+  # so where a language has no other name the base unit's is the name
+  # (user, 2026-10-06, `plans/tr35-audit.md`). When a direct
   # lookup misses, strip a trailing recognized suffix component and retry
   # against the base unit — which only resolves when that base is itself
   # a real unit, so it is a no-op for identifiers without display data.

@@ -208,9 +208,9 @@ defmodule Localize.Number do
 
       # `:standard` survives options resolution as an atom only when
       # the number system is algorithmic (`:hans`, `:roman`, …) —
-      # numeric systems always resolve it to a pattern string. Per
-      # ICU, decimal formatting in an algorithmic system uses the
-      # system's RBNF rules.
+      # numeric systems always resolve it to a pattern string. TR35:
+      # "the rules for presentation of numbers in an algorithmic
+      # system are defined using the RBNF syntax", the system's `rules`.
       format == :standard and algorithmic_system?(validated_options.number_system) ->
         System.to_system(number, validated_options.number_system)
 
@@ -409,8 +409,7 @@ defmodule Localize.Number do
         Formatter.Currency.to_parts(number, format, validated_options)
 
       # Algorithmic numbering systems format via RBNF; the rendered
-      # numeral is a single opaque token, so it is one integer part —
-      # the same shape ICU produces.
+      # numeral is a single opaque token, so it is one integer part.
       format == :standard and algorithmic_system?(validated_options.number_system) ->
         with {:ok, formatted} <- System.to_system(number, validated_options.number_system) do
           {:ok, [%{type: :integer, value: formatted}]}
@@ -1245,8 +1244,8 @@ defmodule Localize.Number do
 
   * `:lenient` governs how strictly grouping separators must be
     positioned. `true`, the default, requires each group to be at
-    least two digits, which is ICU's lenient rule and is what keeps
-    `"3 4 5"` three numbers rather than one. `false` requires each
+    least two digits, which is what keeps `"3 4 5"` three numbers
+    rather than one. `false` requires each
     group to be exactly the locale's grouping size, so `fr` takes
     `"1 234 567"` and refuses `"1 23"`.
 
@@ -1289,8 +1288,8 @@ defmodule Localize.Number do
 
   * `:lenient` governs how strictly grouping separators must be
     positioned. `true`, the default, requires each group to be at
-    least two digits, which is ICU's lenient rule and is what keeps
-    `"3 4 5"` three numbers rather than one. `false` requires each
+    least two digits, which is what keeps `"3 4 5"` three numbers
+    rather than one. `false` requires each
     group to be exactly the locale's grouping size, so `fr` takes
     `"1 234 567"` and refuses `"1 23"`.
 

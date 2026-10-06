@@ -96,11 +96,15 @@ defmodule Localize.Number.Formatter.Short do
   # is rounded — and the rounding can carry into the next magnitude, leaving
   # the value formatted against a rule it has outgrown. `999.9` matches no
   # compact rule at all (it is below 1000), rounds to 1000 and renders
-  # "1,000" where ICU gives "1K"; `999999.9` takes the thousands rule and
-  # renders "1000K" instead of "1M".
+  # "1,000"; `999999.9` takes the thousands rule and renders "1000K". TR35's
+  # steps choose the pattern by the number, "the pattern element with
+  # greatest type less than or equal to N", and say nothing of a mantissa
+  # that rounds up into the next type; taken to the letter they write those.
+  # CLDR's own test data (`common/testData/decimal`) has "1K" and "1M".
   #
-  # ICU re-checks the carry, and so does this: the rounded mantissa is scaled
-  # back into the original units and the rule chosen again. Re-selecting
+  # So the carry is checked again (user, 2026-10-06, `plans/tr35-audit.md`):
+  # the rounded mantissa is scaled back into the original units and the rule
+  # chosen again. Re-selecting
   # unconditionally is both simpler and safer than testing for the carry —
   # the test has to know how the rule divided, and locales whose compact
   # pattern is a bare "0" (German's thousands, among others) do not divide at
@@ -140,14 +144,20 @@ defmodule Localize.Number.Formatter.Short do
     rounded * (number / mantissa)
   end
 
-  # Compact notation groups on ICU's MIN2 strategy: a separator appears only
-  # where at least two digits precede it. That is one rule, and it accounts
-  # for two opposite-looking mismatches — German renders a compact 5000 as
-  # "5000" where the standard format would give "5.000", while Bengali
-  # renders 50000 as "৫০,০০০" where a compact format carrying no grouping at
-  # all would give "৫০০০০". Expressed as `minimum_grouping_digits`, MIN2 is
-  # simply 2, which `minimum_group_size/2` then adds to the locale's primary
-  # group size.
+  # Compact notation groups only where at least two digits precede the
+  # separator, the `min2` of ECMA-402's `useGrouping` and of TR35's
+  # MessageFormat. That is one rule, and it accounts for two opposite-looking
+  # results — German renders a compact 5000 as "5000" where the standard
+  # format would give "5.000", while Bengali renders 50000 as "৫০,০০০" where
+  # a compact format carrying no grouping at all would give "৫০০০০".
+  # Expressed as `minimum_grouping_digits` it is simply 2, which
+  # `minimum_group_size/2` then adds to the locale's primary group size.
+  #
+  # TR35's compact steps say otherwise of a number whose pattern is "0": it
+  # takes "the normal formatting for the locale (such as the grouping
+  # separators)", which for German's 5000 is "5.000". CLDR's own test data
+  # (`common/testData/decimal`) has "5000", and it is followed (user,
+  # 2026-10-06, `plans/tr35-audit.md`).
   defp maybe_set_minimum_grouping(%{minimum_grouping_digits: nil} = options) do
     %{options | minimum_grouping_digits: 2}
   end
@@ -159,9 +169,10 @@ defmodule Localize.Number.Formatter.Short do
   defp maybe_set_minimum_grouping(options), do: options
 
   # When the caller supplies no fraction-digit options, apply the
-  # ECMA-402/ICU compact default: at most two significant digits on
-  # the mantissa, never clipping its integer digits and never forcing
-  # a trailing zero — "1.2M", "12M", "123M" and "1M" (not "1.0M").
+  # compact default of ECMA-402, which TR35's own examples show
+  # ("1.2 K" for 1200, "12 K" for 12345): at most two significant
+  # digits on the mantissa, never clipping its integer digits and never
+  # forcing a trailing zero — "1.2M", "12M", "123M" and "1M" (not "1.0M").
   # That reduces to max one fraction digit while the mantissa is a
   # single integer digit, none afterwards.
   defp maybe_set_fractional_digits(
@@ -174,8 +185,9 @@ defmodule Localize.Number.Formatter.Short do
 
   defp maybe_set_fractional_digits(options, _mantissa), do: options
 
-  # ICU's compact precision is `Precision.integer().withMinDigits(2)`: round
-  # the mantissa to an integer, but never below two significant digits. For a
+  # That precision is an integer of at least two significant digits: round
+  # the mantissa to an integer, but never below two significant digits
+  # (CLDR's test data has a compact 0.00831765 as "0.0083"). For a
   # mantissa of 1 or more that is what "at most one fraction digit while a
   # single integer digit remains" already gives — 1.2M, 12M, 123M. Below 1 the
   # two diverge, because the significant digits start after the leading zeros:

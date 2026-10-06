@@ -46,8 +46,8 @@ defmodule Localize.Number.Parser do
 
   @single_space ~r/^\p{Zs}$/u
 
-  # Smallest group a lenient parse will accept after a separator. ICU's own
-  # lenient mode uses two, which is the floor that keeps "3 4 5" three numbers.
+  # Smallest group a lenient parse will accept after a separator: two, the
+  # floor that keeps "3 4 5" three numbers (see "Grouping shape" below).
   @lenient_group_floor 2
 
   # {primary, secondary} for a locale whose pattern carries no grouping.
@@ -89,8 +89,8 @@ defmodule Localize.Number.Parser do
 
   * `:lenient` governs how strictly grouping separators must be
     positioned. `true`, the default, requires each group to be at
-    least two digits, which is ICU's lenient rule and is what keeps
-    `"3 4 5"` three numbers rather than one. `false` requires each
+    least two digits, which is what keeps `"3 4 5"` three numbers
+    rather than one. `false` requires each
     group to be exactly the locale's grouping size, so `fr` takes
     `"1 234 567"` and refuses `"1 23"`.
 
@@ -202,8 +202,8 @@ defmodule Localize.Number.Parser do
 
   * `:lenient` governs how strictly grouping separators must be
     positioned. `true`, the default, requires each group to be at
-    least two digits, which is ICU's lenient rule and is what keeps
-    `"3 4 5"` three numbers rather than one. `false` requires each
+    least two digits, which is what keeps `"3 4 5"` three numbers
+    rather than one. `false` requires each
     group to be exactly the locale's grouping size, so `fr` takes
     `"1 234 567"` and refuses `"1 23"`.
 
@@ -798,8 +798,14 @@ defmodule Localize.Number.Parser do
 
   # ── Grouping shape ─────────────────────────────────────────────
   #
-  # ICU validates that grouping separators sit in plausible positions, and does
-  # so in both of its modes — the two differ only in how strict "plausible" is:
+  # TR35's heuristics for parsing a number, which "may be helpful", have a
+  # grouping separator ignored wherever it stands, and leave it to the
+  # implementation "to disambiguate the sets of characters that might serve in
+  # more than one position, based on context". A space is such a character: it
+  # groups digits in many locales and parts numbers in all of them. So a
+  # grouping separator is held to a plausible position, in both modes, which
+  # differ only in how strict "plausible" is (user, 2026-10-06,
+  # `plans/tr35-audit.md`; ICU holds it so too, with the same floor):
   #
   #   * strict  — every group is exactly the locale's grouping size, so `fr`
   #     takes "1 234 567" and refuses "1 23".
@@ -996,9 +1002,8 @@ defmodule Localize.Number.Parser do
 
   # `@number_format` admits a grouping separator whenever a digit follows. That
   # is too permissive once the separator can be a space: it would read "3 4 5"
-  # as one number. Requiring a plausible group instead — ICU's rule, two digits
-  # leniently or an exact group size strictly — is what makes the wider class
-  # safe.
+  # as one number. Requiring a plausible group instead, two digits leniently
+  # or an exact group size strictly, is what makes the wider class safe.
   defp group_lookahead(pattern, language_tag, number_system, symbols, lenient?) do
     {primary, secondary} = grouping_sizes(language_tag, number_system)
 

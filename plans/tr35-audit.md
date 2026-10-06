@@ -12,9 +12,9 @@ Localize follows TR35, and follows ICU only where ICU clearly follows TR35 (user
 
 * **TR35 is silent, decided on recommendation** — fourteen choices that followed ICU, or were mine, and had never been put to the user, who settled them on 2026-10-06.
 
-* **Departs from TR35 by the user's decision** — two behaviours the user decided with TR35's text in the question. They are listed so that every place Localize does not do as TR35 says is in one document.
+* **Departs from TR35 by the user's decision** — two behaviours of dates the user decided with TR35's text in the question, and three of numbers where TR35's sentence and CLDR's own test data differ. They are listed so that every place Localize does not do as TR35 says is in one document.
 
-The date, time, time zone, interval and calendar modules are checked in full: the 64 mentions of ICU their 11 files held before the audit, each behaviour in a table below. The number, unit, RBNF, plural-rule, locale-matching and message modules name ICU in 44 more places in 15 files that justify a behaviour, and **none of those has been read against TR35 yet**; they are the last table.
+Every module is checked: the 64 mentions of ICU the 11 files of the date, time, time zone, interval and calendar modules held before the audit, and the 44 places in 15 files of the number, unit, RBNF, plural-rule, locale-matching and message modules that gave ICU as the reason for a behaviour. Each behaviour is in a table below.
 
 ## Contradicted TR35, fixed
 
@@ -133,15 +133,59 @@ These fourteen were found undecided: each had been settled without the user, mos
 
 **Zero takes the future pattern.** "in 0 days". TR35 has a `relativeTime` for "a counted number of units in the past or the future" and does not say which zero is. Kept, as ECMA-402, whose shape this API has, takes the future pattern for a value that is not negative.
 
-## Not yet checked
+## Numbers, units and rule-based numbers
 
-| Module | Places | Status |
-|---|---|---|
-| `Localize.Number`, its formatters, parser and options | 25 | Open |
-| `Localize.Number.Rbnf` and its processor | 8 | Open |
-| `Localize.Message.Interpreter` | 4 | Open |
-| `Localize.Unit` formatting and the Beaufort scale | 3 | Open |
-| `Localize.Locale.DistanceTrie` | 2 | Open |
-| `Localize.Inflection` | 2 | Open |
+The number, unit, RBNF, plural-rule, locale-matching and message modules gave ICU as the reason for a behaviour in 44 places in 15 files. Each was read against TR35's Part 3 (`tr35-numbers.md`), Part 1 (`tr35.md`), Part 6 (`tr35-info.md`) and Part 9 (`tr35-messageFormat.md`) at the same commit, and the comment now gives the clause, its silence, or CLDR's test data. Mentions that only name a thing are not counted: ICU MessageFormat 2, the NIF that binds ICU4C, the plural rules' syntax, and the upstream inflection tokenizer's use of ICU's break iterator.
 
-These name ICU as the reason for a behaviour: the lenient grouping a number is read with, the sign of a negative zero, compact notation's rounding, grouping and default precision, the plural operands of a currency, RBNF's rollback rule and its bracketed rules, the numbering system of rule-based output, the Beaufort scale's boundaries, and the walk of the locale-distance trie. Each is to be read against TR35's Part 3 (`tr35-numbers.md`), Part 1 (`tr35.md`) and Part 6 (`tr35-info.md`), and given a standing as above. Mentions that only name a thing, ICU MessageFormat 2 or the NIF that binds ICU4C, are not counted.
+### TR35 is the rule
+
+| Behaviour | Where | TR35 | Status |
+|---|---|---|---|
+| A number in an algorithmic numbering system is written by its RBNF rules | `Localize.Number`, `Localize.Number.Format.Options`, `Localize.Message.Interpreter` | Numbering Systems | Done |
+| Any numbering system may be asked for by name | `Localize.Number.System` | Number Elements, the `-u-nu-` keyword | Done |
+| A plural category is of the number as it is displayed | `Localize.Number.Formatter.Decimal`, `Localize.Number.Formatter.Currency` | Plural Operand Meanings: "visible fraction digits" | Done |
+| An explicit plus is the negative subpattern with its minus replaced | `Localize.Number.Formatter.Decimal` | Explicit Plus Signs | Done |
+| Significant digits take what integer and fraction digits they need | `Localize.Number.Formatter.Decimal` | Significant Digits | Done |
+| A scientific pattern with no digits is unconstrained | `Localize.Number.Formatter.Decimal` | Scientific Notation: "#E0 means infinite precision" | Done |
+| Compact notation's default precision is two significant digits | `Localize.Number.Formatter.Short` | Compact Number Formats: "1.2 K", "12 K" | Done |
+| RBNF rolls back from a rule of two substitutions | `Localize.Number.Rbnf.Processor` | Rule Sets: rule selection | Done |
+| An RBNF plural is chosen by the quotient | `Localize.Number.Rbnf.Processor` | Rule Sets: `$(cardinal,…)$` | Done |
+| `spellout-numbering` is the default spellout | `Localize.Number.Rbnf`, `Localize.Inflection.NumberConcept` | SpelloutRules: "the default used when there is no context" | Done |
+| A locale's distance is from the language matching data | `Localize.Locale.DistanceTrie` | Language Matching | Done |
+
+**The rollback** is the one of these that changed. TR35: "If that rule has two substitutions, its base value is not an even multiple of its divisor, and the number *is* an even multiple of the rule's divisor, use the rule that precedes it in the rule list." The code rolled back from any rule with a remainder substitution, as ICU does (`NFRule.shouldRollBack`), and now asks for the two. No number a rule set of CLDR 49 is given tells the two apart, so nothing it writes changed: of the 339 rules with a remainder and no quotient whose base value is no multiple of their divisor, two hold a multiple of it, the last rules of root's `%%cyrillic-lower-final` and `%%hebrew-0-99`, which are never given 100.
+
+### Departs from TR35's sentence, as CLDR's own test data has it
+
+| Behaviour | TR35 | CLDR's test data | Status |
+|---|---|---|---|
+| A compact number is given its pattern again after it is rounded | Compact steps, step 1: "greatest type less than or equal to N" | `en` 999999.9 is "1M" | Done |
+| A compact number whose pattern is "0" groups only from two digits | "the normal formatting for the locale (such as the grouping separators)" | `de` 5000 is "5000" | Done |
+| RBNF's optional text is always written in a rule whose base value is no positive multiple of its divisor | "When the number is an even multiple of the rule's divisor ... omit the text" | `af` 1100 is "elf honderd nul" | Done |
+
+CLDR publishes test data under `common/testData`, generated from ICU, and Localize is held to it by its conformance tests (8,900 decimal rows, every locale's RBNF rows). In these three places the test data and TR35's sentence give different text, so no implementation can do both. They stay as the test data has them (user, 2026-10-06, on recommendation), which is the ground of the user's decision the same day on `availableFormats`: CLDR's conformance data over the sentence. The other reading of each writes "1000K" for 999999.9, "5.000" for German's compact 5000, and "elf honderd" for the Afrikaans year 1100; the last looks like what the rule's author meant. A report to CLDR is drafted in `tmp/cldr-reports/16-compact-steps-and-rbnf-brackets-against-the-test-data.md`, for the user to file.
+
+### TR35 is silent, decided on recommendation
+
+| Behaviour | Where | Decided | Status |
+|---|---|---|---|
+| A grouping separator is read only in a plausible position | `Localize.Number.Parser` | Kept | Done |
+| A sign is judged on the number as rounded | `Localize.Number.Formatter.Decimal` | Kept | Done |
+| A plus is written before an accounting pattern | `Localize.Number.Formatter.Decimal` | Kept | Done |
+| The plural of an RBNF fraction rule | `Localize.Number.Rbnf.Processor` | Kept | Done |
+| A unit with a suffix and no names of its own takes its base unit's | `Localize.Unit.Formatter` | Kept | Done |
+| The Beaufort scale is converted between the midpoints of its thresholds | `Localize.Unit.Conversion.Beaufort` | Kept | Done |
+| An algorithmic numeral is one part | `Localize.Number.to_parts/2` | Kept | Done |
+| MessageFormat's `numberingSystem` takes any numbering system | `Localize.Message.Interpreter` | Kept | Done |
+
+**A grouping separator's position.** TR35's heuristics for parsing a number "may be helpful", and have a grouping separator ignored wherever it stands; they leave it to the implementation "to disambiguate the sets of characters that might serve in more than one position, based on context". A space groups digits in many locales and parts numbers in all of them, so a group is held to the locale's size strictly, and to two digits or more leniently, which keeps "3 4 5" three numbers. The floor of two is ICU's too.
+
+**Signs.** `:sign_display` is ECMA-402's `signDisplay`, which TR35's MessageFormat takes over with the rest of `:number`'s options ("derived from the options in JavaScript's `Intl.NumberFormat`"). ECMA-402 judges the sign on the rounded number, and asks for a plus where TR35's explicit plus forms none, the negative subpattern of an accounting format having no minus to replace.
+
+**The plural of an RBNF fraction rule.** TR35 has the plural chosen by "the number divided by the radix to the power of the exponent of the base value" and says nothing of a number below 1. It is chosen on the number multiplied by the divisor and rounded, as in ICU's formatter, which TR35 names as the reference for RBNF's details ("The syntax is carried over from the ICU based RBNF rules ... For more details see Rule-Based Number Formatter").
+
+**A unit with a suffix.** TR35 has units such as `year-person` "provided simply because they have different names in some languages". Where a locale has no names for one, its base unit's are written.
+
+**The Beaufort scale.** TR35 names the conversion `special` and does not define it. The thresholds are the WMO's, the conversion is between their midpoints as ICU does it, and it gives the one value CLDR's unit test data has.
+
+**Parts.** `to_parts/2` has the shape of ECMA-402's `formatToParts`, which has no algorithmic numbering system; a numeral of one is a single integer part.

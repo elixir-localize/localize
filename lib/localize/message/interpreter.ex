@@ -1877,8 +1877,8 @@ defmodule Localize.Message.Interpreter do
 
       # An algorithmic numbering system (`hans`, `roman`, …) defines no
       # decimal patterns — plain `:number`/`:integer` formatting uses the
-      # system's RBNF rules, matching `Localize.Number.to_string/2` and
-      # ICU. Grouping options don't apply to rule-based output. Explicit
+      # system's RBNF rules, as `Localize.Number.to_string/2` does and
+      # TR35 has it. Grouping options don't apply to rule-based output. Explicit
       # format overrides (`:percent`) degrade to the default system's
       # pattern, as in `Localize.Number.Format.Options.resolve_format/3`.
       resolved_format =
@@ -1934,8 +1934,9 @@ defmodule Localize.Message.Interpreter do
   end
 
   # The MF2 `numberingSystem` option may name a system the locale carries
-  # no symbol or format data for (any CLDR system is honoured, matching
-  # Intl/ICU). `Symbol.number_symbols_for/2` and `Format.formats_for/2`
+  # no symbol or format data for (any CLDR system is honoured, as
+  # ECMA-402's `numberingSystem` is, from whose options TR35 has
+  # `:number`'s derived). `Symbol.number_symbols_for/2` and `Format.formats_for/2`
   # fall back to the locale's default-system data themselves — digit
   # transliteration still uses the requested system.
   defp number_symbols_with_fallback(locale, number_system) do
@@ -2024,7 +2025,7 @@ defmodule Localize.Message.Interpreter do
         # numbering system atoms are created lazily when the
         # supplemental data is first read.
         #
-        # The MF2 `numberingSystem` option matches Intl/ICU semantics:
+        # The MF2 `numberingSystem` option has ECMA-402's semantics:
         # any numbering system in the CLDR inventory is honoured even
         # when the locale does not list it, so `numberingSystem=thai`
         # renders Thai digits in an `en` locale. Genuinely unknown
@@ -2817,7 +2818,7 @@ defmodule Localize.Message.Interpreter do
   # rule set as `asWords`; and ordinal digits from a `digits-` rule set
   # as `asOrdinalDigits`, or `asDigits` with a variant. The variant
   # names the rule set; one the locale lacks falls back to the default,
-  # `spellout-numbering` or `digits-ordinal` as in ICU, and that to the
+  # `spellout-numbering` or `digits-ordinal`, and that to the
   # locale's best available rules.
   defp numeral(number, nil, _variant, locale),
     do: Localize.Inflection.NumberConcept.digits(number, locale)

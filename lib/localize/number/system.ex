@@ -386,7 +386,7 @@ defmodule Localize.Number.System do
   etc.) or directly by name (`:latn`, `:arab`, etc.). This function
   resolves the reference to the actual system name.
 
-  Following TR35 and ICU, any numbering system in the CLDR inventory
+  Following TR35, any numbering system in the CLDR inventory
   is accepted by name even when the locale does not list it — the
   `-u-nu-` locale keyword and the `:number_system` formatting option
   may request, for example, `:thai` digits in an `:en` locale. Only
@@ -437,7 +437,7 @@ defmodule Localize.Number.System do
           {:ok, system_name}
 
         # Known globally even though the locale does not list it.
-        # Per TR35/ICU an explicit numbering-system request (the
+        # Per TR35 an explicit numbering-system request (the
         # `-u-nu-` keyword or a direct option) is honoured for any
         # CLDR numbering system: formats and symbols inherit from
         # the locale's default system (root aliases them to `latn`)

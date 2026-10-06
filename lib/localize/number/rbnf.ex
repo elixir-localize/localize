@@ -298,8 +298,9 @@ defmodule Localize.Number.Rbnf do
   # The atoms `:spellout` and `:ordinal` are special: they map to
   # the "best available" rule in the locale's public rule sets.
   # Any other atom or string is returned unchanged in string form.
-  # spellout-numbering leads the preferences: it is ICU's default
-  # rule set for SPELLOUT formatting, and it exists in every locale
+  # spellout-numbering leads the preferences: TR35 has `numbering`
+  # "the default used when there is no context for the number", and it
+  # exists in every locale
   # with spellout rules — including locales like de and ru that have
   # only gendered spellout-cardinal variants.
   defp resolve_rule_name(:spellout, all_rule_sets, locale_id) do

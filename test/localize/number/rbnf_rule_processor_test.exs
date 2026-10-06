@@ -255,6 +255,57 @@ defmodule Localize.Number.RbnfRuleProcessorTest do
       assert Processor.process(21, "units", units(), all_rule_sets) == {:ok, "twenty-one"}
     end
 
+    # TR35: "Binary-search the rule list for the rule with the highest base
+    # value less than or equal to the number. If that rule has two
+    # substitutions, its base value is not an even multiple of its divisor,
+    # and the number *is* an even multiple of the rule's divisor, use the
+    # rule that precedes it in the rule list."
+    test "rolls back from a rule of two substitutions to the rule before it" do
+      rules =
+        units() ++
+          [
+            %{
+              base_value: 100,
+              radix: 10,
+              definition: "<< hundred",
+              range: "undefined",
+              divisor: 100
+            },
+            %{
+              base_value: 101,
+              radix: 10,
+              definition: "<< hundred and >>",
+              range: "undefined",
+              divisor: 100
+            }
+          ]
+
+      all_rule_sets = %{"units" => %{rules: rules}}
+
+      assert Processor.process(200, "units", rules, all_rule_sets) == {:ok, "two hundred"}
+      assert Processor.process(201, "units", rules, all_rule_sets) == {:ok, "two hundred and one"}
+      assert Processor.process(100, "units", rules, all_rule_sets) == {:ok, "one hundred"}
+    end
+
+    # A rule of one substitution is the rule for the number, by the same
+    # sentence, whatever its base value: its remainder is formatted though
+    # it is nothing. ICU rolls back from it too. No rule set of CLDR's is
+    # given such a number.
+    test "does not roll back from a rule of one substitution" do
+      rules =
+        Enum.take(units(), 3) ++
+          [
+            %{base_value: 10, radix: 10, definition: "ten", range: "undefined", divisor: 10},
+            %{base_value: 11, radix: 10, definition: "ten->>", range: "undefined", divisor: 10}
+          ]
+
+      all_rule_sets = %{"units" => %{rules: rules}}
+
+      assert Processor.process(10, "units", rules, all_rule_sets) == {:ok, "ten"}
+      assert Processor.process(12, "units", rules, all_rule_sets) == {:ok, "ten-two"}
+      assert Processor.process(20, "units", rules, all_rule_sets) == {:ok, "ten-zero"}
+    end
+
     test "a -x rule formats negative numbers" do
       rules = [
         %{

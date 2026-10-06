@@ -3,8 +3,11 @@ defmodule Localize.Unit.Conversion.Beaufort do
   Nonlinear conversion between the Beaufort wind force scale and
   meters per second.
 
-  Implements the ICU algorithm using interpolated midpoints between
-  the WMO-defined speed thresholds for each Beaufort number.
+  TR35 names this conversion `special` and does not define it: "The only
+  `special` conversion currently supported is for beaufort". It is done
+  here by interpolating between the midpoints of the WMO-defined speed
+  thresholds for each Beaufort number, as ICU does it, which gives the
+  value CLDR's unit test data has.
 
   Registered as a `:special` custom unit so that the generic
   conversion pipeline dispatches through `forward/1` and `inverse/1`

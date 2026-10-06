@@ -474,9 +474,10 @@ defmodule Localize.Number.Formatter.Decimal do
     end
   end
 
-  # The plural category is taken from the digits the number displays, so
-  # "1.00" (plural operand v=2) selects `other` in English, as it does in
-  # ICU. NaN and infinity display no digits and select `other`.
+  # The plural category is taken from the digits the number displays, as
+  # TR35's operands are (`v`, "the number of visible fraction digits in N,
+  # with trailing zeros"), so "1.00" (v=2) selects `other` in English. NaN
+  # and infinity display no digits and select `other`.
   defp currency_plural_name(digits, %{currency: currency, locale: locale}) do
     category =
       case digits do
@@ -613,8 +614,8 @@ defmodule Localize.Number.Formatter.Decimal do
   # `:positive` and `:negative` select the format's subpatterns as
   # usual; the derived `:positive_plus` pattern renders the locale's
   # plus sign (see `pattern_parts/2`). Zero-ness is judged on the
-  # digits after rounding, matching ICU — `-0.001` at zero fractional
-  # digits is a zero for `:except_zero` and `:negative`.
+  # digits after rounding, as ECMA-402 judges it — `-0.001` at zero
+  # fractional digits is a zero for `:except_zero` and `:negative`.
   defp resolve_sign_display(%{sign_display: sign_display} = options, number, zero?)
        when sign_display in [:always, :except_zero, :negative, :never] do
     %{options | pattern: sign_display_pattern(sign_display, negative_number?(number), zero?)}
@@ -846,9 +847,9 @@ defmodule Localize.Number.Formatter.Decimal do
   # usual `#E0` pattern declares none. For scientific that means
   # "unconstrained", not "round to an integer", so a pattern-derived maximum
   # is ignored here — rounding 1.5E0 to zero fraction digits would give 2E0.
-  # A maximum the caller asked for is a different thing and is applied: ICU's
-  # `Notation.scientific()` defaults to six fraction digits on the mantissa,
-  # which is what CLDR's conformance data expects, and without this the
+  # TR35 has it so: "#E0 means infinite precision". A maximum the caller
+  # asked for is a different thing and is applied: CLDR's conformance data is
+  # made with six fraction digits on the mantissa, and without this the
   # mantissa carried the input's full float precision
   # (`-1.5000000000000002E-1` for `-1.5E-1`).
   defp round_fractional_digits({number, exponent}, %{exponent_digits: exp_digits}, options)
@@ -1251,13 +1252,15 @@ defmodule Localize.Number.Formatter.Decimal do
     |> :erlang.iolist_to_binary()
   end
 
-  # The `:positive_plus` pattern is derived, not compiled: it is the
-  # negative subpattern with the minus token replaced by the locale's
-  # plus sign. When the negative subpattern carries no minus token
-  # (an explicit subpattern such as accounting's `(¤#,##0.00)`), the
-  # plus sign is prefixed to the positive subpattern instead — the
-  # ICU behaviour behind ECMA-402's `+$1.00` / `($1.00)` pairing for
-  # accounting formats with `signDisplay: "always"`.
+  # The `:positive_plus` pattern is derived, not compiled, as TR35's
+  # explicit plus is: "Get the negative subpattern (explicit or
+  # implicit). Replace any unquoted ASCII minus sign by an ASCII plus
+  # sign. If there are any replacements, use that for the positive
+  # subpattern." Where there is none, the negative subpattern carrying
+  # no minus token (accounting's `(¤#,##0.00)`), TR35 forms no explicit
+  # plus, and ECMA-402's `signDisplay: "always"` still asks for a sign:
+  # the plus sign is prefixed to the positive subpattern, `+$1.00`
+  # beside `($1.00)`.
   defp pattern_parts(format, :positive_plus) do
     negative = format[:negative] || []
 
@@ -1521,8 +1524,9 @@ defmodule Localize.Number.Formatter.Decimal do
     meta
   end
 
-  # When significant digits are active they own the fraction display,
-  # per TR35/ICU. Enough fraction digits are forced to reach `min`
+  # When significant digits are active they own the fraction display:
+  # TR35 has a formatter that uses them use "however many integer and
+  # fraction digits are required". Enough fraction digits are forced to reach `min`
   # significant digits (1.0 at min 3 → "1.00") and none are forced when
   # the rounded value already carries them in its integer part
   # (1234.567 at max 3 → "1,230", not "1,230.0"). The max of 10 stops

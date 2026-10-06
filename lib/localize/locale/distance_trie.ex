@@ -1,8 +1,9 @@
 defmodule Localize.Locale.DistanceTrie do
   @moduledoc false
 
-  # A 3-level nested map implementing the ICU XLocaleDistance trie
-  # for locale distance lookups.
+  # A 3-level nested map of TR35's language matching distances
+  # (`languageMatching` in `languageInfo.xml`), arranged as ICU's
+  # XLocaleDistance trie is, for locale distance lookups.
   #
   # The trie is keyed by {desired, supported} tuples at each level.
   # Wildcard entries use :* and negative variable entries use
@@ -12,8 +13,9 @@ defmodule Localize.Locale.DistanceTrie do
 
   @doc false
   @spec lookup(String.t(), atom(), atom(), String.t(), atom(), atom()) :: number()
-  # ICU XLocaleDistance trie walk: match/wildcard/default fallbacks at
-  # each of the language, script, and territory levels.
+  # The trie walk: match/wildcard/default fallbacks at each of the
+  # language, script, and territory levels, as TR35's language matching
+  # compares them.
   # credo:disable-for-next-line Credo.Check.Refactor.CyclomaticComplexity
   def lookup(
         desired_lang,

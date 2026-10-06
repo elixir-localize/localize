@@ -552,8 +552,8 @@ defmodule Localize.Number.Format.Options do
   # `:standard` with an algorithmic system (`:hans`, `:roman`, …) is
   # the exception: it stays an atom so `Localize.Number.to_string/2`
   # dispatches to the system's RBNF rules instead of the decimal
-  # formatter — matching ICU, where plain decimal formatting in an
-  # algorithmic numbering system is rule-based. All other standard
+  # formatter: TR35 has "the rules for presentation of numbers in an
+  # algorithmic system" given by its RBNF rule set. All other standard
   # formats degrade to the default system's pattern (with latin
   # digits) since algorithmic systems define no patterns for them.
   defp resolve_format(format, language_tag, system_name) when format in @standard_formats do
@@ -672,8 +672,8 @@ defmodule Localize.Number.Format.Options do
   defp negative?(%Decimal{sign: sign}) when sign < 0, do: true
 
   # IEEE-754 negative zero compares equal to zero, so `< 0` misses it, but it
-  # is negative and both ICU and CLDR's decimal conformance data expect it to
-  # render with its sign — `-0.0` is "-0", not "0". Read the sign bit rather
+  # is negative and CLDR's decimal conformance data has it rendered with its
+  # sign — `-0.0` is "-0", not "0". Read the sign bit rather
   # than the value; for every other float it agrees with `< 0`.
   defp negative?(number) when is_float(number),
     do: match?(<<1::1, _::bitstring>>, <<number::float>>)

@@ -5,7 +5,8 @@ defmodule Localize.Inflection.NumberConcept do
   # upstream `NumberConcept`: digits in the locale's decimal format,
   # words from one of its RBNF rule sets, or digits spoken as words.
   # A rule set the locale lacks falls back to its default,
-  # `spellout-numbering` or `digits-ordinal` as in ICU, and that to the
+  # `spellout-numbering` (TR35's "default used when there is no context
+  # for the number") or `digits-ordinal`, and that to the
   # best rules the locale has. Results are speakable strings.
 
   alias Localize.Inflection.SpeakableString

@@ -213,18 +213,28 @@ defmodule Localize.Number.Rbnf.Processor do
     |> Kernel.||(Enum.find(integer_rules, &(get_base_value(&1) == 0)))
   end
 
-  # ICU's *rollback rule*. RBNF's standard idiom pairs a rule for exact
-  # multiples with one for the same magnitude carrying a remainder, numbered
-  # one higher: Burmese has `100: <<ရာ;` beside `101: <<ရာ့[>>];`, and
-  # Bulgarian `20: и <%…<десет;` beside `21: <%…<десет >>;`. Selecting purely
-  # on "largest base value not above the number" always picks the second, so
-  # 200 was spelled "နှစ်ရာ့" with the remainder form's suffix and no remainder
-  # to justify it, and 40 became "четиридесет и нула" — "forty and zero".
+  # TR35's rule selection: "Binary-search the rule list for the rule with
+  # the highest base value less than or equal to the number. If that rule
+  # has two substitutions, its base value is not an even multiple of its
+  # divisor, and the number *is* an even multiple of the rule's divisor, use
+  # the rule that precedes it in the rule list."
   #
-  # ICU rolls back to the preceding rule when the chosen rule takes a
-  # remainder, the number divides exactly, and the rule's own base value does
-  # not (`NFRule.shouldRollBack`). A base value that *is* an even multiple
-  # needs no rollback: that rule's optional part already omits itself.
+  # RBNF's standard idiom pairs a rule for exact multiples with one for the
+  # same magnitude carrying a remainder, numbered one higher: Burmese has
+  # `100: <<ရာ;` beside `101: <<ရာ့[>>];`, and Bulgarian `20: и <%…<десет;`
+  # beside `21: <%…<десет >>;`. Selecting purely on "largest base value not
+  # above the number" always picks the second, so 200 was spelled "နှစ်ရာ့"
+  # with the remainder form's suffix and no remainder to justify it, and 40
+  # became "четиридесет и нула" — "forty and zero". A base value that *is*
+  # an even multiple needs no rollback: that rule's optional part already
+  # omits itself.
+  #
+  # ICU rolls back from a rule with a remainder substitution, whether or
+  # not it has a second one (`NFRule.shouldRollBack`). No number a rule set
+  # of CLDR 49 is given tells the two apart: of the 339 rules with a
+  # remainder and no quotient whose base value is no multiple of their
+  # divisor, two hold a multiple of it, the last rules of root's
+  # `%%cyrillic-lower-final` and `%%hebrew-0-99`, which are never given 100.
   defp roll_back_rule(nil, _number, _rules), do: nil
 
   defp roll_back_rule(rule, number, rules) do
@@ -234,7 +244,7 @@ defmodule Localize.Number.Rbnf.Processor do
     with true <- is_integer(divisor) and divisor > 0,
          0 <- rem(number, divisor),
          true <- rem(base, divisor) != 0,
-         true <- takes_a_remainder?(rule),
+         true <- two_substitutions?(rule),
          preceding when not is_nil(preceding) <-
            Enum.find(rules, &(get_base_value(&1) < base)) do
       preceding
@@ -243,16 +253,28 @@ defmodule Localize.Number.Rbnf.Processor do
     end
   end
 
-  # True when the rule carries a remainder substitution — `>>`, `>%name>` or
-  # `>>>`. Optional text counts: a rule whose base value is not an even
-  # multiple of its divisor is never split, so its brackets always render and
-  # the substitution inside them always runs.
-  defp takes_a_remainder?(rule) do
+  # True when the rule has its two substitutions: a quotient, `<<` or
+  # `<%name<`, and a remainder, `>>`, `>%name>` or `>>>`. One in optional
+  # text counts: a rule whose base value is not an even multiple of its
+  # divisor is never split, so its brackets always render and the
+  # substitution inside them always runs.
+  defp two_substitutions?(rule) do
     case Rule.parse(get_definition(rule) || "") do
-      {:ok, parsed} -> remainder_operation?(parsed)
+      {:ok, parsed} -> remainder_operation?(parsed) and quotient_operation?(parsed)
       _unparseable -> false
     end
   end
+
+  defp quotient_operation?(parsed) when is_list(parsed) do
+    Enum.any?(parsed, fn
+      {:quotient, _argument} -> true
+      {:conditional, argument} -> quotient_operation?(argument)
+      {:conditional_alternate, {present, absent}} -> quotient_operation?(present ++ absent)
+      _other_operation -> false
+    end)
+  end
+
+  defp quotient_operation?(_parsed), do: false
 
   defp remainder_operation?(parsed) when is_list(parsed) do
     Enum.any?(parsed, fn
@@ -497,14 +519,17 @@ defmodule Localize.Number.Rbnf.Processor do
   # Locales whose ordinal/cardinal categories differ from English
   # for the input number (notably fr where `21` is `:other` not
   # `:one`, producing `21e` not `21er`) now select the right key.
-  # Per TR35/ICU (`NFRule::doFormat`), the plural category for a
-  # `$(cardinal,…)$` / `$(ordinal,…)$` substitution is selected on
+  # Per TR35, the plural category for a `$(cardinal,…)$` /
+  # `$(ordinal,…)$` substitution is selected on "the number divided
+  # by the radix to the power of the exponent of the base value",
   # the value divided by the rule's divisor — the quotient the rule
   # body spells out — not on the full number. Russian `2_000_000`
   # with the base-1000000 rule spells the quotient `2`, so the
   # plural is `plural(2)` → `:few` → "миллиона", not
   # `plural(2_000_000)` → `:many` → "миллионов". For values below 1
-  # (fraction rules) ICU selects on `round(number * divisor)`.
+  # (fraction rules), of which TR35 says nothing, the selection is on
+  # `round(number * divisor)`, as in ICU's formatter, which TR35 names
+  # as the reference for RBNF's details.
   defp do_operation(:ordinal, number, _rule_set, rule, plurals, _all_sets, locale) do
     plural = Localize.Number.PluralRule.Ordinal.plural_rule(plural_operand(number, rule), locale)
     Map.get(plurals, plural) || Map.get(plurals, :other, "")
@@ -518,12 +543,16 @@ defmodule Localize.Number.Rbnf.Processor do
   end
 
   # Optional text renders when the remainder is non-zero — but only for a rule
-  # ICU would have split in two. ICU implements `[…]` by expanding the rule
-  # into one that omits the text and one, numbered a step higher, that keeps
-  # it; it only does so when the base value is positive and an even multiple
-  # of the divisor (`NFRule.makeRules`). Any other rule keeps a single form
-  # with the text always present, which is how Afrikaans `%%2d-year`'s
-  # `0: honderd[ >%spellout-numbering>]` spells 1100 "elf honderd nul".
+  # whose base value is positive and an even multiple of its divisor. TR35
+  # has the text of every normal rule omitted "when the number is an even
+  # multiple of the rule's divisor". ICU, which TR35 names as the reference
+  # for RBNF, implements `[…]` by expanding such a rule into one that omits
+  # the text and one, numbered a step higher, that keeps it
+  # (`NFRule.makeRules`), and any other rule keeps a single form with the text
+  # always present. CLDR's own test data (`common/testData/rbnf`) is made so:
+  # Afrikaans `%%2d-year`'s `0: honderd[ >%spellout-numbering>]` spells 1100
+  # "elf honderd nul" there, where TR35's sentence gives "elf honderd". The
+  # test data is followed (user, 2026-10-06, `plans/tr35-audit.md`).
   defp do_operation(:conditional, number, rule_set, rule, argument, all_sets, locale)
        when is_integer(number) do
     mod = number - div(number, rule.divisor) * rule.divisor
@@ -597,9 +626,10 @@ defmodule Localize.Number.Rbnf.Processor do
 
   # ── Helpers ────────────────────────────────────────────────
 
-  # ICU only splits a bracketed rule into an omitting and an including form
-  # when the base value is positive and an even multiple of the divisor; any
-  # other rule keeps its optional text unconditionally.
+  # A bracketed rule has an omitting and an including form only when its
+  # base value is positive and an even multiple of the divisor; any other
+  # rule keeps its optional text unconditionally, as CLDR's test data has it
+  # (`do_operation/7` for `:conditional`).
   defp splits_on_optional_text?(%{base_value: base, divisor: divisor})
        when is_integer(base) and is_integer(divisor) and divisor > 0 do
     base > 0 and rem(base, divisor) == 0

@@ -242,8 +242,8 @@ defmodule Localize.Number.Formatter.Currency do
     Map.get(substitutions, category) || Map.get(substitutions, :other)
   end
 
-  # Plural selection follows the value as displayed, per the CLDR
-  # plural operands and matching ICU/Intl: "1.00" carries the
+  # Plural selection follows the value as displayed, per TR35's
+  # plural operands ("visible fraction digits"): "1.00" carries the
   # operand v=2 and selects :other ("1.00 US dollars"), while a
   # bare "1" selects :one ("1 US dollar"). Rescaling the number to
   # the displayed fraction digits makes the plural rule see the
