@@ -244,6 +244,33 @@ defmodule Localize.CalendarCallbacksTest do
     end
   end
 
+  # A calendar of weeks whose years all have fifty-two weeks, so its week 53
+  # is no week in a year whose ISO 8601 weeks number fifty-three.
+  defmodule FiftyTwoWeeks do
+    @moduledoc false
+    use Localize.Test.StandInCalendar
+
+    def cldr_calendar_type, do: :generic
+    def era_calendar_type, do: :gregorian
+    def date_to_string(year, week, day), do: WeekNotation.write(year, week, day)
+    def parse_date(text), do: WeekNotation.read(text, __MODULE__)
+    def parsing_calendar, do: Calendar.ISO
+    def valid_date?(_year, week, day), do: week in 1..52 and day in 1..7
+    def week_of_year(year, week, _day), do: {year, week}
+
+    def week(year, week) do
+      first = %Date{year: year, month: week, day: 1, calendar: __MODULE__}
+      Date.range(first, %{first | day: 7})
+    end
+
+    defdelegate day_of_week(year, week, day, starting_on), to: SundayWeeks
+
+    defdelegate naive_datetime_to_iso_days(year, week, day, hour, minute, second, microsecond),
+      to: SundayWeeks
+
+    defdelegate naive_datetime_from_iso_days(iso_days), to: SundayWeeks
+  end
+
   # A calendar of weeks that names a year and its era only for a whole date,
   # and counts more days in a week than the week has, 28 where it has seven,
   # as a calendar counts a month a reform took days out of (December 1582
@@ -1966,13 +1993,18 @@ defmodule Localize.CalendarCallbacksTest do
       assert Localize.Date.parse("2026W252", locale: :en, calendar: IsoWeek) ==
                {:ok, %Date{year: 2026, month: 25, day: 2, calendar: IsoWeek}}
 
-      monday = %Date{year: 2027, month: 2, day: 2, calendar: SundayWeeks}
-      assert Date.convert!(monday, Calendar.ISO) == ~D[2027-01-04]
+      # A calendar whose weeks begin on Sunday writes its dates in the same
+      # notation, so the week is its own too (user, 2026-10-06): its first
+      # week of 2027 begins on Sunday 27 December 2026, where ISO 8601's
+      # begins on Monday 4 January 2027, the second day of the calendar's
+      # second week, which the text was read as.
+      sunday = %Date{year: 2027, month: 1, day: 1, calendar: SundayWeeks}
+      assert Date.convert!(sunday, Calendar.ISO) == ~D[2026-12-27]
 
-      assert Localize.Date.parse("2027-W01", locale: :en, calendar: SundayWeeks) == {:ok, monday}
+      assert Localize.Date.parse("2027-W01", locale: :en, calendar: SundayWeeks) == {:ok, sunday}
 
       assert Localize.Date.parse("2027-W01", locale: :en, calendar: SundayWeeks, as: :map) ==
-               {:ok, %{year: 2027, month: 2, day: 2, calendar: SundayWeeks}}
+               {:ok, %{year: 2027, month: 1, calendar: SundayWeeks}}
 
       assert Localize.Interval.parse("2026-W25 – 2026-W27",
                locale: :en,
@@ -2026,6 +2058,104 @@ defmodule Localize.CalendarCallbacksTest do
 
       {:ok, text} = Localize.Date.to_string(week_1, format: :yw, locale: :en)
       assert Localize.Date.parse(text, locale: :en, calendar: SundayWeeks) == {:ok, week_1}
+    end
+
+    # Every form ISO 8601 writes a week date in is a calendar of weeks' own
+    # week and day, where the calendar writes its dates in that notation
+    # (user, 2026-10-06). Only the extended form the calendar writes was:
+    # the basic form and a week alone were ISO 8601's weeks, so one day was
+    # written two ways. The calendar's week 25 of 2026 begins on Sunday 14
+    # June, and its day 2 is Monday 15 June, where ISO 8601's 2026-W25-2 is
+    # Tuesday 16 June, the calendar's day 3.
+    test "in every ISO 8601 form are a calendar of weeks' own" do
+      own = %Date{year: 2026, month: 25, day: 2, calendar: SundayWeeks}
+      first = %Date{year: 2026, month: 25, day: 1, calendar: SundayWeeks}
+      assert Date.convert(own, Calendar.ISO) == {:ok, ~D[2026-06-15]}
+      assert Date.convert(first, Calendar.ISO) == {:ok, ~D[2026-06-14]}
+
+      for text <- ["2026-W25-2", "2026W252"] do
+        assert Localize.Date.parse(text, locale: :en, calendar: SundayWeeks) == {:ok, own}, text
+
+        assert Localize.Date.parse(text, locale: :en, calendar: SundayWeeks, as: :map) ==
+                 {:ok, %{calendar: SundayWeeks, year: 2026, month: 25, day: 2}},
+               text
+      end
+
+      for text <- ["2026-W25", "2026W25"] do
+        assert Localize.Date.parse(text, locale: :en, calendar: SundayWeeks) == {:ok, first}, text
+
+        assert Localize.Date.parse(text, locale: :en, calendar: SundayWeeks, as: :map) ==
+                 {:ok, %{calendar: SundayWeeks, year: 2026, month: 25}},
+               text
+      end
+
+      for text <- ["2026W252T10:30", "2026W252T1030", "2026W252T10:30:00", "2026-W25-2T1030"] do
+        assert {:ok,
+                %NaiveDateTime{
+                  calendar: SundayWeeks,
+                  year: 2026,
+                  month: 25,
+                  day: 2,
+                  hour: 10,
+                  minute: 30
+                }} = Localize.DateTime.parse(text, locale: :en, calendar: SundayWeeks),
+               text
+      end
+
+      for text <- ["2026W252 – 2026W271", "2026-W25-2 – 2026-W27-1"] do
+        assert Localize.Interval.parse(text, locale: :en, calendar: SundayWeeks) ==
+                 {:ok,
+                  Date.range(own, %Date{year: 2026, month: 27, day: 1, calendar: SundayWeeks})},
+               text
+      end
+    end
+
+    # ISO 8601's own weeks are `Calendar.ISO`'s, and a calendar that writes
+    # its dates in the locale's formats has no week dates of its own, so its
+    # week date is still ISO 8601's, Tuesday 16 June 2026, converted: the
+    # stand-in counts its days as the Gregorian calendar does, so the day
+    # has the same fields in it.
+    test "are ISO 8601's for Calendar.ISO and for a calendar with no such notation" do
+      for {text, date} <- [
+            {"2026-W25-2", ~D[2026-06-16]},
+            {"2026W252", ~D[2026-06-16]},
+            {"2026-W25", ~D[2026-06-15]},
+            {"2026W25", ~D[2026-06-15]},
+            {"2026-W53-1", ~D[2026-12-28]}
+          ] do
+        assert Localize.Date.parse(text, locale: :en) == {:ok, date}, text
+      end
+
+      for text <- ["2026-W25-2", "2026W252"] do
+        assert Localize.Date.parse(text, locale: :en, calendar: FiscalJuly) ==
+                 {:ok, %Date{year: 2026, month: 6, day: 16, calendar: FiscalJuly}}
+      end
+    end
+
+    # A week date the calendar does not have is no date, in any form. ISO
+    # 8601's 2026 has a week 53, which begins on Monday 28 December, and a
+    # calendar whose years have fifty-two weeks read "2026-W53-1" as that
+    # day, in ISO 8601's weeks where "2026-W52-1" was in its own.
+    test "that the calendar does not have are no date, never ISO 8601's" do
+      assert :calendar.iso_week_number({2026, 12, 28}) == {2026, 53}
+
+      for text <- ["2026-W53-1", "2026W531", "2026-W53", "2026W53", "2026-W52-8"] do
+        assert {:error, %Localize.DateParseError{}} =
+                 Localize.Date.parse(text, locale: :en, calendar: FiftyTwoWeeks),
+               text
+      end
+
+      for text <- ["2026-W53-1T10:30", "2026W531T1030"] do
+        assert {:error, %{__exception__: true}} =
+                 Localize.DateTime.parse(text, locale: :en, calendar: FiftyTwoWeeks),
+               text
+      end
+
+      assert Localize.Date.parse("2026-W52-7", locale: :en, calendar: FiftyTwoWeeks) ==
+               {:ok, %Date{year: 2026, month: 52, day: 7, calendar: FiftyTwoWeeks}}
+
+      assert Localize.Date.parse("2026W527", locale: :en, calendar: FiftyTwoWeeks) ==
+               {:ok, %Date{year: 2026, month: 52, day: 7, calendar: FiftyTwoWeeks}}
     end
 
     # A weekday name is an ISO day of the week, matched against the date's

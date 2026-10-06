@@ -144,6 +144,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+* A calendar of weeks reads a week date as its own in every form ISO 8601 writes one in, where only the form it writes was: "2026W252" and a week alone, "2026-W25", were ISO 8601's weeks, so in a calendar whose weeks are not ISO 8601's one text named two days as its hyphens came and went. A week or a day the calendar does not have is an error, where "2026-W53-1" was ISO 8601's week 53 for a calendar whose 2026 has 52 weeks.
+
 * A year, and a year and a quarter, written for a calendar whose dates are read in another are read as a map of the fields written: a calendar of weeks' "2023 AD" is `%{year: 2023}`, as the Gregorian calendar's "2023" is, where it was an error, and "Q2 2023 AD" is the year and the quarter, where it was the quarter's whole first day.
 
 * A related Gregorian year is read as the calendar's year that begins in it, however far from the reference date: the Islamic calendar's "AH 1699-12-28", 16 June 1700, was an error read in 2026, its year taken as far from the reference date's as 1699 is from 2025, where the two calendars' years are not one length. Of two years that begin in one Gregorian year, as the Islamic years 1429 and 1430 did in 2008, the nearer the reference date is read.

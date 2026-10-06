@@ -175,6 +175,14 @@ defmodule Localize.Date.Parser do
       {:ok, date} ->
         {:ok, finalise_date(date, as)}
 
+      # A week of the calendar's own, written without its day: its first
+      # day, or as a map the week, as ISO 8601's is (`iso_week_value/4`).
+      {:week, first_day, year_and_week} ->
+        iso_week_value(first_day, year_and_week, calendar_module, as)
+
+      :no_date ->
+        {:error, no_match_error(hd(inputs), locale, calendar_module)}
+
       {:error, _exception} = error ->
         error
 
@@ -381,15 +389,81 @@ defmodule Localize.Date.Parser do
   end
 
   # A date written in the notation of the calendar asked for, as the
-  # formatter writes a calendar of weeks' date ("2026-W25-2"), read back by
-  # that calendar and taken into the calendar the input is read in; else a
-  # date in one of the calendar's own formats (`own_format`), which come
-  # before ISO 8601; else an ISO 8601 date.
+  # formatter writes a calendar of weeks' date ("2026-W25-2") or in another
+  # of ISO 8601's forms of a week date (`week_date/2`), read back by that
+  # calendar and taken into the calendar the input is read in; else a date
+  # in one of the calendar's own formats (`own_format`), which come before
+  # ISO 8601; else an ISO 8601 date.
   defp written_date(input, calendar_module, own_calendar, own_format) do
+    case week_date(input, own_calendar) do
+      {:ok, date} -> in_calendar(date, calendar_module)
+      {:week, _first_day, _year_and_week} = week -> week
+      :no_date -> :no_date
+      :none -> written_otherwise(input, calendar_module, own_calendar, own_format)
+      {:error, _exception} = error -> error
+    end
+  end
+
+  # A notation that is no week date is the calendar's own to read too.
+  defp written_otherwise(input, calendar_module, own_calendar, own_format) do
     case Localize.Calendar.from_notation(input, own_calendar) do
       {:ok, date} -> in_calendar(date, calendar_module)
       :none -> own_format.(input) || iso_date(input, calendar_module)
       {:error, _exception} = error -> error
+    end
+  end
+
+  @doc false
+  # A week date in any form ISO 8601 writes one in, for a calendar that
+  # writes its own dates in that notation, as a calendar of weeks does: the
+  # extended form the calendar writes ("2026-W25-2"), the basic form without
+  # its hyphens ("2026W252"), and the week alone at reduced precision
+  # ("2026-W25", "2026W25"). Each names the calendar's own week and day
+  # (user, 2026-10-06). The forms the calendar does not write were read as
+  # ISO 8601's weeks, so in a calendar whose year begins in February
+  # "2026W252" was a day five weeks from "2026-W25-2".
+  #
+  # Localize reads the form, and the calendar its notation: the year, the
+  # week and the day are put to it as it writes them
+  # (`Localize.Calendar.from_notation/2`). A calendar writes its dates so
+  # where it reads, and writes back, the first day of the first week of the
+  # year named. A week or a day it does not have is then no date, never ISO
+  # 8601's week of that number: "2026-W53-1" was 28 December 2026 for a
+  # calendar whose 2026 has 52 weeks.
+  #
+  # `{:ok, date}` for a day and `{:week, first_day, {year, week}}` for a
+  # week alone, both in the calendar; `:no_date` for a week date the
+  # calendar does not have; `:none` for text that is no week date, or for a
+  # calendar with no such notation.
+  @spec week_date(String.t(), module()) ::
+          {:ok, Date.t()}
+          | {:week, Date.t(), {integer(), integer()}}
+          | :no_date
+          | :none
+          | {:error, Exception.t()}
+  def week_date(text, calendar) do
+    case Regex.run(~r/\A(\d{4})(-?)W(\d{2})(?:\2(\d))?\z/, text) do
+      [_text, year, _hyphen, week] -> week_of_its_own({year, week, nil}, calendar)
+      [_text, year, _hyphen, week, day] -> week_of_its_own({year, week, day}, calendar)
+      nil -> :none
+    end
+  end
+
+  defp week_of_its_own({year, week, day}, calendar) do
+    with {:ok, _first_day} <- Localize.Calendar.from_notation("#{year}-W01-1", calendar) do
+      case Localize.Calendar.from_notation("#{year}-W#{week}-#{day || "1"}", calendar) do
+        {:ok, date} when is_nil(day) ->
+          {:week, date, {String.to_integer(year), String.to_integer(week)}}
+
+        {:ok, date} ->
+          {:ok, date}
+
+        :none ->
+          :no_date
+
+        {:error, _exception} = error ->
+          error
+      end
     end
   end
 

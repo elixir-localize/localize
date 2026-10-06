@@ -864,10 +864,21 @@ defmodule Localize.DateTime.Parser do
 
   # The date before the `T`. A calendar with a notation of its own reads it
   # first, as it reads a date alone and a date before a space: "2026-W25-2"
-  # is a calendar of weeks' own week 25, not ISO 8601's. Any other date is
-  # ISO 8601's, and either is carried as the Gregorian day it is, for
-  # `iso_or_locale_datetime/5` to return in the calendar asked for.
+  # is a calendar of weeks' own week 25, not ISO 8601's, and so is the basic
+  # form of it, "2026W252" (`Localize.Date.Parser.week_date/2`). A week date
+  # the calendar does not have is no date, and a week alone is none before a
+  # time. Any other date is ISO 8601's, and either is carried as the
+  # Gregorian day it is, for `iso_or_locale_datetime/5` to return in the
+  # calendar asked for.
   defp iso_date(text, calendar_module) do
+    case Localize.Date.Parser.week_date(text, calendar_module) do
+      {:ok, date} -> Date.convert(date, Calendar.ISO)
+      :none -> other_iso_date(text, calendar_module)
+      _no_such_day -> :error
+    end
+  end
+
+  defp other_iso_date(text, calendar_module) do
     case Localize.Calendar.from_notation(text, calendar_module) do
       {:ok, date} -> Date.convert(date, Calendar.ISO)
       :none -> Localize.Date.Parser.from_iso8601(text)

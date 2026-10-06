@@ -437,7 +437,7 @@ iex> Localize.Date.parse("2026-03-22", locale: :de)
 {:ok, ~D[2026-03-22]}
 ```
 
-Its other date forms are read too: without separators ("20260322"), by the day of the year ("2026-081", "2026081") and by the week, with its day ("2026-W12-7", "2026W127") or without one. A week without a day is the week's first day, and its weeks are ISO 8601's, from Monday, whatever the locale's are. A year and a month, or a year alone, is no date and is read `as: :map`:
+Its other date forms are read too: without separators ("20260322"), by the day of the year ("2026-081", "2026081") and by the week, with its day ("2026-W12-7", "2026W127") or without one. A week without a day is the week's first day, and its weeks are ISO 8601's, from Monday, whatever the locale's are; for a calendar of weeks, which writes its own dates in that notation, they are the calendar's own (see [calendars](#calendars)). A year and a month, or a year alone, is no date and is read `as: :map`:
 
 ```elixir
 iex> Localize.Date.parse("2026-W25", locale: :en)
@@ -724,7 +724,7 @@ Localize.Date.parse("2026-W25-2", locale: :en, calendar: Calendrical.ISOWeek)
 #=> {:ok, ~D[2026-W25-2 Calendrical.ISOWeek]}
 ```
 
-A date and time joins the notation to the locale's time, "2026-W25-2, 10:30:00 AM", and an interval writes both dates around the locale's fallback pattern, "2026-W25-2 – 2026-W27-1". The notation is the calendar's own date before a time however the two are joined, by the locale's separator, a space or ISO 8601's `T`: "2026-W25-2T10:30:00" is day 2 of the calendar's own week 25, which is ISO 8601's only where the calendar's weeks are. A pattern takes the calendar's own answers: its weeks, quarters and days of the week, and its months, the ordinal periods of its pattern of weeks, named by CLDR's generic calendar, "M06"; see the [format pattern reference](#format-pattern-reference).
+A date and time joins the notation to the locale's time, "2026-W25-2, 10:30:00 AM", and an interval writes both dates around the locale's fallback pattern, "2026-W25-2 – 2026-W27-1". The notation is the calendar's own date before a time however the two are joined, by the locale's separator, a space or ISO 8601's `T`: "2026-W25-2T10:30:00" is day 2 of the calendar's own week 25, which is ISO 8601's only where the calendar's weeks are. It is the calendar's own in every form ISO 8601 writes a week date in: without its hyphens, "2026W252", and as a week alone, "2026-W25" or "2026W25", which is the first day of the calendar's week 25 or, read `as: :map`, its year and week. A week or a day the calendar does not have is an error, never ISO 8601's week of that number. A pattern takes the calendar's own answers: its weeks, quarters and days of the week, and its months, the ordinal periods of its pattern of weeks, named by CLDR's generic calendar, "M06"; see the [format pattern reference](#format-pattern-reference).
 
 A date of such a calendar without its day is a week, since the month field of its dates holds a week. It is written as the locale writes a week of the year, CLDR's `yw` format, at every standard format:
 

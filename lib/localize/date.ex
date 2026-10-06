@@ -753,7 +753,9 @@ defmodule Localize.Date do
     read with the locale's patterns for the calendar's CLDR type, and the
     date is built and returned in this module. A calendar of weeks, such
     as `Calendrical.ISOWeek`, reads its own notation as it writes it,
-    `"2024-W05-4"`, and any other input as a Gregorian date, as its
+    `"2024-W05-4"`, and in the other forms ISO 8601 writes a week date
+    in, `"2024W054"` and the week alone, `"2024-W05"`, and any other
+    input as a Gregorian date, as its
     `parsing_calendar/0` says, since a written month and day name no
     single week; the date is converted into it, so `"Feb 1, 2024"` is
     2024-W05-4. A composite calendar, whose dates are written with the
