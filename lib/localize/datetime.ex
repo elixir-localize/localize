@@ -75,6 +75,8 @@ defmodule Localize.DateTime do
     calendar of weeks, such as `Calendrical.ISOWeek`, is written at
     a standard format in the calendar's own notation, as
     `Localize.Date.to_string/2` writes it: "2026-W25-2, 10:30:00 AM".
+    A skeleton's month is its week and its day the weekday:
+    `:yMMMdHm` writes "Tue, week 25 of 2026, 10:30".
     A value with no time zone, a `t:NaiveDateTime.t/0` or a map
     holding neither `:time_zone` nor `:utc_offset`, is written at
     `:long` and `:full` with the time `Localize.Time.to_string/2`
@@ -537,8 +539,15 @@ defmodule Localize.DateTime do
       |> Localize.Time.hour_cycle_skeleton(Keyword.get(options, :locale, locale_id))
       |> Localize.DateTime.Format.Match.split_fractional_seconds()
 
+    # A calendar of weeks' month is its week and its day the weekday, in a
+    # date and time as in a date (`Localize.Date.own_fields/2`).
+    {skeleton, _calendar} = Localize.Date.own_fields(datetime, skeleton)
+
     with {:ok, available} <-
-           Localize.DateTime.Format.available_formats(locale_id, cldr_calendar_for(datetime)) do
+           Localize.DateTime.Format.available_formats(
+             locale_id,
+             formats_calendar(datetime, skeleton)
+           ) do
       # A skeleton naming only zone fields is its own pattern: there is one
       # field, so nothing to order, and `availableFormats` carries no
       # zone-only entry for the matcher to find.
@@ -609,7 +618,7 @@ defmodule Localize.DateTime do
     case Localize.DateTime.Format.Match.best_match(
            skeleton,
            locale_id,
-           cldr_calendar_for(datetime)
+           formats_calendar(datetime, skeleton)
          ) do
       {:ok, matched_skeleton} when is_atom(matched_skeleton) ->
         format_matched_skeleton(
@@ -672,7 +681,12 @@ defmodule Localize.DateTime do
         |> format_halves(datetime, options, locale_id, fraction_count, output)
 
       nil ->
-        case AppendItems.augment(skeleton, locale_id, cldr_calendar_for(datetime), options) do
+        case AppendItems.augment(
+               skeleton,
+               locale_id,
+               formats_calendar(datetime, skeleton),
+               options
+             ) do
           {:ok, pattern} ->
             pattern
             |> Localize.DateTime.Format.Match.append_fractional_seconds(
@@ -701,7 +715,7 @@ defmodule Localize.DateTime do
     alias Localize.DateTime.Format.AppendItems
     alias Localize.DateTime.Format.Match
 
-    calendar = cldr_calendar_for(datetime)
+    calendar = formats_calendar(datetime, skeleton)
 
     with {:ok, date_pattern} <-
            AppendItems.resolve_pattern(date_skeleton, locale_id, calendar, options),
@@ -760,7 +774,7 @@ defmodule Localize.DateTime do
        ) do
     alias Localize.DateTime.Format.AppendItems
 
-    calendar = cldr_calendar_for(datetime)
+    calendar = formats_calendar(datetime, skeleton)
 
     with {:ok, zero, one} <-
            glue_parts(kind, date_skeleton, time_skeleton, {locale_id, calendar}, options),
@@ -805,6 +819,14 @@ defmodule Localize.DateTime do
 
       {:ok, time_pattern, weekday_pattern}
     end
+  end
+
+  # The CLDR calendar whose formats write a skeleton for a value: the
+  # value's own, or, for a calendar of weeks' skeleton that names a week,
+  # the calendar its dates are read in (`Localize.Date.own_fields/2`).
+  defp formats_calendar(datetime, skeleton) do
+    {_skeleton, calendar} = Localize.Date.own_fields(datetime, skeleton)
+    calendar
   end
 
   defp unresolved_skeleton(skeleton, locale_id) do

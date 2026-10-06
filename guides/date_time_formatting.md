@@ -746,6 +746,22 @@ Localize.Date.parse("week 25 of 2026", locale: :en, calendar: Calendrical.ISOWee
 #=> {:ok, ~D[2026-W25-1 Calendrical.ISOWeek]}
 ```
 
+A skeleton names fields, and for such a calendar its month is the week and its day the day of that week. So `:yMMMd` is the skeleton `:ywE`: the locale's week of the year with the weekday appended, as TR35 appends a field no format carries, and it reads back with the skeleton or with none. A skeleton of a year and a month is the week of the year, and an interval at a skeleton is both dates in full, since no interval format is keyed by a week:
+
+```elixir
+# With calendrical installed
+Localize.Date.to_string(~D[2026-W25-2 Calendrical.ISOWeek], format: :yMMMd, locale: :en)
+#=> {:ok, "Tue, week 25 of 2026"}
+
+Localize.Date.to_string(~D[2026-W25-2 Calendrical.ISOWeek], format: :yMMMd, locale: :de)
+#=> {:ok, "Di., Woche 25 des Jahres 2026"}
+
+Localize.Date.parse("Tue, week 25 of 2026", locale: :en, calendar: Calendrical.ISOWeek)
+#=> {:ok, ~D[2026-W25-2 Calendrical.ISOWeek]}
+```
+
+A pattern is written as it stands, with the calendar's own answers, so the period of its pattern of weeks is a pattern's `M`: `"MMM y"` is "M06 2026".
+
 `Localize.Time.parse/2` takes the option too: a time is read in the time formats of the calendar given, and then in the Gregorian calendar's.
 
 ## Format pattern reference

@@ -270,18 +270,20 @@ defmodule Localize.Date.Parser do
     with {:ok, pattern} <- format_pattern(format, options, reading),
          {:ok, _patterns, ctx} <-
            locale_patterns(locale, calendar_module, own_calendar, reference) do
+      patterns = Enum.uniq(own_fields_pattern(format, options, reading) ++ [pattern])
+
       # One format reads the text, so an era's narrow name is read whatever
       # width the format states (`narrow_era_branches/2`).
       ctx = %{
         ctx
-        | regexes: %{pattern => build_pattern_regex(pattern, ctx)},
+        | regexes: Map.new(patterns, &{&1, build_pattern_regex(&1, ctx)}),
           mixed_years: false,
           narrow_eras: true
       }
 
       transliterated = inputs |> Enum.map(&transliterate_digits(&1, locale)) |> Enum.uniq()
 
-      read_patterns([{:format, pattern}], transliterated, ctx, as) ||
+      read_patterns(Enum.map(patterns, &{:format, &1}), transliterated, ctx, as) ||
         {:error,
          DateParseError.exception(
            input: hd(inputs),
@@ -323,6 +325,30 @@ defmodule Localize.Date.Parser do
       if map_size(numbers) == 0, do: {:ok, pattern}, else: {:ok, {pattern, numbers}}
     end
   end
+
+  # The pattern a skeleton resolves to for a date of the calendar asked for,
+  # where the text is read in another: a calendar of weeks writes a
+  # skeleton's month as its week and its day as the weekday
+  # (`Localize.Date.own_fields/2`), "Tue, week 25 of 2026" for `yMMMd`, and
+  # that text is the skeleton's before a Gregorian date is, "Jun 16, 2026",
+  # which is still read and converted. A standard format writes such a
+  # calendar's notation, which is read before any format, and a pattern is
+  # read as it stands.
+  defp own_fields_pattern(format, options, {locale, calendar_module, own_calendar, reference})
+       when is_atom(format) and own_calendar != calendar_module and
+              format not in [:short, :medium, :long, :full] do
+    first_day = %{calendar: own_calendar, year: reference.year, month: 1, day: 1}
+
+    with {:ok, locale_id} <- Localize.Locale.cldr_locale_id_from(locale),
+         {:ok, pattern, _numbers} <-
+           Localize.Date.resolve_pattern_and_numbers(first_day, format, locale_id, options) do
+      [pattern]
+    else
+      _unresolved -> []
+    end
+  end
+
+  defp own_fields_pattern(_format, _options, _reading), do: []
 
   # A whole date of the calendar the text is read in, which a format is
   # resolved for: the reference date, or the first day of its year where it
@@ -2456,6 +2482,7 @@ defmodule Localize.Date.Parser do
         standard
         |> collect_patterns()
         |> Enum.concat(available_patterns)
+        |> Enum.concat(weekday_of_week_pattern(locale, calendar_module))
         |> Enum.uniq_by(fn {_skeleton, pattern} -> pattern end)
 
       ctx = field_context(locale, calendar_module, own_calendar, reference, months_data)
@@ -2476,6 +2503,24 @@ defmodule Localize.Date.Parser do
         )
 
       {:ok, patterns, ctx}
+    end
+  end
+
+  # A weekday beside a week of the year, `ywE`, which no locale has a format
+  # for: the formatter appends the weekday to the locale's `yw`, as TR35
+  # appends a field no format carries ("Tue, week 25 of 2026"), and writes a
+  # calendar of weeks' year, week and day so at a skeleton. Without its
+  # pattern the text was read with the weekday taken off its front, as the
+  # week alone, and was that week's first day, whatever day it named. It is
+  # a function of the locale and the calendar, as every pattern kept is.
+  defp weekday_of_week_pattern(locale, calendar_module) do
+    first_day = %{calendar: calendar_module, year: 1, month: 1, day: 1}
+
+    with {:ok, locale_id} <- Localize.Locale.cldr_locale_id_from(locale),
+         {:ok, pattern} <- Localize.Date.resolve_date_skeleton(first_day, :ywE, locale_id, []) do
+      [{:ywE, pattern}]
+    else
+      _no_week_format -> []
     end
   end
 

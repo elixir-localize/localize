@@ -64,7 +64,9 @@ defmodule Localize.Date do
     format in the calendar's own notation, as its `date_to_string/3`
     writes it, `"2026-W25-2"`, which parses back as itself. Its
     month field holds a week, so a year and a week of it is written
-    as the locale writes a week of the year, `"week 25 of 2026"`.
+    as the locale writes a week of the year, `"week 25 of 2026"`,
+    and a skeleton's month is its week and its day the weekday:
+    `:yMMMd` writes `"Tue, week 25 of 2026"`.
 
   * `:locale` is a locale identifier. The default is `:en`.
 
@@ -381,8 +383,8 @@ defmodule Localize.Date do
       standard_date_format(date, format, locale_id, cldr_calendar, options)
     else
       # Skeleton format — look up in available_formats
-      [skeleton: format, locale_id: locale_id, calendar: cldr_calendar, options: options]
-      |> resolve_skeleton()
+      date
+      |> resolve_date_skeleton(format, locale_id, options)
       |> Localize.DateTime.Formatter.explain_unresolved(date, format)
     end
   end
@@ -390,6 +392,86 @@ defmodule Localize.Date do
   defp find_format(_date, format, _locale_id, _options) do
     {:error, Localize.DateTimeFormatError.exception(format: format, reason: :invalid_format)}
   end
+
+  @doc false
+  # The pattern a skeleton of date fields resolves to for `date`, the
+  # skeleton an atom or a string: `Localize.DateTime` resolves the date half
+  # of a skeleton here.
+  @spec resolve_date_skeleton(map(), atom() | String.t(), atom(), Keyword.t()) ::
+          {:ok, String.t()} | {:error, Exception.t()}
+  def resolve_date_skeleton(date, skeleton, locale_id, options) do
+    {skeleton, calendar} = own_fields(date, skeleton)
+
+    resolve_skeleton(
+      skeleton: skeleton,
+      locale_id: locale_id,
+      calendar: calendar,
+      options: options
+    )
+  end
+
+  @doc false
+  # The skeleton a date's own fields are written with, and the CLDR calendar
+  # whose formats write it. A skeleton names fields, and a calendar of weeks
+  # holds other things in two of them: a week in its month field and the day
+  # of that week in its day field (user, 2026-10-04: "For week based
+  # calendars we need to interpret `:month` as `:week` and pick the correct
+  # skeleton accordingly"). So a skeleton's month is the date's week and its
+  # day the weekday: `yMMMd` is `ywE`, "Tue, week 25 of 2026" for
+  # "2026-W25-2" (user, 2026-10-06). A skeleton that names a week, its own
+  # or the month's, is written with the formats of the calendar the dates
+  # are read in (`parsing_calendar/0`), which are the ones that name a week.
+  # The calendar's period and day number, written as a month and a day of
+  # the month, "M06 2, 2026 AD", named no week and read back as no date; a
+  # pattern still writes them, and so does a skeleton that names a week
+  # beside its month (`MMMMW`), whose month is then the period.
+  @spec own_fields(map(), atom() | String.t()) :: {atom() | String.t(), atom()}
+  def own_fields(date, skeleton) do
+    with %{calendar: calendar} <- date,
+         :ok <- Localize.Calendar.validate_calendar(date),
+         {:ok, parsing} when parsing != calendar <- Localize.Calendar.parsing_calendar(calendar) do
+      weeks = week_skeleton(skeleton)
+
+      if names_week?(weeks),
+        do: {weeks, Localize.Calendar.cldr_calendar_type(parsing)},
+        else: {weeks, cldr_calendar_for(date)}
+    else
+      _the_fields_it_names -> {skeleton, cldr_calendar_for(date)}
+    end
+  end
+
+  # A skeleton with its month as a week, unless it names a week already, and
+  # its day as a weekday, unless it names one. No atom is made: a skeleton no
+  # format is named by is matched as a string.
+  defp week_skeleton(skeleton) do
+    letters = skeleton_letters(skeleton)
+    week? = names_week?(skeleton)
+    weekday? = Enum.any?(letters, &(&1 in ["E", "e", "c"]))
+
+    weeks =
+      letters
+      |> Enum.chunk_by(& &1)
+      |> Enum.map_join(fn
+        [letter | _rest] = run when letter in ["M", "L"] ->
+          if week?, do: Enum.join(run), else: "w"
+
+        ["d" | _rest] ->
+          if weekday?, do: "", else: "E"
+
+        run ->
+          Enum.join(run)
+      end)
+
+    cond do
+      weeks == Kernel.to_string(skeleton) -> skeleton
+      atom = Localize.Utils.Helpers.existing_atom(weeks) -> atom
+      true -> weeks
+    end
+  end
+
+  defp names_week?(skeleton), do: Enum.any?(skeleton_letters(skeleton), &(&1 in ["w", "W"]))
+
+  defp skeleton_letters(skeleton), do: skeleton |> Kernel.to_string() |> String.graphemes()
 
   # A standard format is the locale's standard date format of that length,
   # unless the date's calendar writes its dates in a notation of its own:

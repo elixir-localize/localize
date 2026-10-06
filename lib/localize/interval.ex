@@ -54,7 +54,7 @@ defmodule Localize.Interval do
 
   * `:locale` is a locale identifier. The default is `:en`.
 
-  * `:format` is a standard format, `:short`, `:medium`, `:long` or `:full`, a skeleton such as `:yMMMEd` or `:yMMMdHm`, or a pattern such as `"d MMM y"`. The default is `:medium`. A skeleton selects CLDR's interval format for its fields, as CLDR keys them, so it can name a format no standard format reaches. A pattern names no interval format, so both endpoints are formatted with it around the locale's interval fallback pattern. A datetime interval's skeleton is split into its date and time fields, as TR35's interval algorithm separates them: on one day the date is written once and the times as a range, a skeleton of time fields alone writes only the times, and a skeleton of date fields alone formats the dates as a date interval does. A date in a calendar of weeks, such as `Calendrical.ISOWeek`, is written at a standard format in the calendar's own notation, so an interval of its dates is both dates around the fallback pattern: "2026-W25-2 – 2026-W27-1".
+  * `:format` is a standard format, `:short`, `:medium`, `:long` or `:full`, a skeleton such as `:yMMMEd` or `:yMMMdHm`, or a pattern such as `"d MMM y"`. The default is `:medium`. A skeleton selects CLDR's interval format for its fields, as CLDR keys them, so it can name a format no standard format reaches. A pattern names no interval format, so both endpoints are formatted with it around the locale's interval fallback pattern. A datetime interval's skeleton is split into its date and time fields, as TR35's interval algorithm separates them: on one day the date is written once and the times as a range, a skeleton of time fields alone writes only the times, and a skeleton of date fields alone formats the dates as a date interval does. A date in a calendar of weeks, such as `Calendrical.ISOWeek`, is written at a standard format in the calendar's own notation, so an interval of its dates is both dates around the fallback pattern: "2026-W25-2 – 2026-W27-1". A skeleton's month is such a date's week and its day the weekday, which no interval format is keyed by, so its interval is both dates in full too: "Tue, week 25 of 2026 – Mon, week 26 of 2026".
 
   * `:date_format` and `:time_format` choose the date and the time half of a datetime interval separately, each a standard format, a skeleton or a pattern. `:date_format` is a date interval's format too, and `:time_format` a time interval's.
 
@@ -363,6 +363,21 @@ defmodule Localize.Interval do
     case Localize.Calendar.own_notation?(calendar_of(from)) do
       {:ok, true} -> {:ok, {:fallback_style, format}}
       {:ok, false} -> resolve_standard_format(format, locale_id, {from, to}, options)
+      {:error, _exception} = error -> error
+    end
+  end
+
+  # A skeleton's month is such a calendar's week and its day the weekday
+  # (`Localize.Date.own_fields/2`), which no interval format is keyed by, so
+  # its dates are written in full with the skeleton too: "Tue, week 25 of
+  # 2026 – Mon, week 26 of 2026" for `yMMMd`, where CLDR's generic `yMMMd`
+  # interval wrote the calendar's period and day number as a month and a
+  # day of the month.
+  defp resolve_date_fields(:date, skeleton, locale_id, {from, _to}, _options)
+       when is_atom(skeleton) and not is_nil(skeleton) do
+    case Localize.Calendar.own_notation?(calendar_of(from)) do
+      {:ok, true} -> {:ok, {:fallback_style, skeleton}}
+      {:ok, false} -> resolve_fields(:date, skeleton, locale_id, cldr_calendar_for(from))
       {:error, _exception} = error -> error
     end
   end
@@ -728,9 +743,34 @@ defmodule Localize.Interval do
       across_cycles?(from, to, locale_id) ->
         in_full_with_year(format, from, locale_id, options)
 
+      own_fields?(from, format) ->
+        own_fields_in_full(format, difference, from, locale_id, options)
+
       true ->
         widened_fallback(formats, format, difference, dates, lookup, options) ||
           {:fallback, format}
+    end
+  end
+
+  # A skeleton for a calendar that writes its dates in a notation of its
+  # own, a calendar of weeks, whose month is the week.
+  defp own_fields?(from, format) do
+    is_atom(format) and not is_nil(format) and format not in [:short, :medium, :long, :full] and
+      match?({:ok, true}, Localize.Calendar.own_notation?(calendar_of(from)))
+  end
+
+  # Both dates in full with the skeleton, widened with the week or the year
+  # they differ in where it writes neither, as a skeleton of months and days
+  # is: no interval format is keyed by a week and a weekday, so none is
+  # looked for.
+  defp own_fields_in_full(format, difference, from, locale_id, options) do
+    with widened when is_binary(widened) <- widened_skeleton(format, difference),
+         skeleton when is_atom(skeleton) and not is_nil(skeleton) <-
+           Localize.Utils.Helpers.existing_atom(widened),
+         {:ok, _pattern} <- Localize.Date.resolve_pattern(from, skeleton, locale_id, options) do
+      {:fallback, skeleton}
+    else
+      _as_it_is -> {:fallback, format}
     end
   end
 
