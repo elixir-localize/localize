@@ -3320,6 +3320,15 @@ defmodule Localize.Date.Parser do
   defp tokenize([], acc, nil), do: acc
   defp tokenize([], acc, current), do: [field_token(current) | acc]
 
+  # TR35: "Two adjacent single vertical quotes (''), which represent a
+  # literal single quote, either inside or outside quoted text". mt.xml's
+  # week of the year is "w 'ġimgħa' 'ta''' Y", whose "ta'" was read as "ta"
+  # and its text, "25 ġimgħa ta' 2026", as nothing.
+  defp tokenize(["'", "'" | rest], acc, current) do
+    acc = if current, do: [field_token(current) | acc], else: acc
+    tokenize(rest, prepend_literal(acc, "'"), nil)
+  end
+
   defp tokenize(["'" | rest], acc, current) do
     {literal, rest} = take_quoted(rest, [])
     acc = if current, do: [field_token(current) | acc], else: acc
@@ -3339,6 +3348,7 @@ defmodule Localize.Date.Parser do
     end
   end
 
+  defp take_quoted(["'", "'" | rest], acc), do: take_quoted(rest, ["'" | acc])
   defp take_quoted(["'" | rest], acc), do: {acc |> Enum.reverse() |> Enum.join(), rest}
   defp take_quoted([char | rest], acc), do: take_quoted(rest, [char | acc])
   defp take_quoted([], acc), do: {acc |> Enum.reverse() |> Enum.join(), []}

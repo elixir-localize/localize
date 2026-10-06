@@ -147,6 +147,31 @@ defmodule Localize.DateParseFormatTest do
       assert failures == []
     end
 
+    # TR35: "Two adjacent single vertical quotes (''), which represent a
+    # literal single quote, either inside or outside quoted text". mt.xml's
+    # week of the year is "w 'ġimgħa' 'ta''' Y", whose "ta'" was read as "ta"
+    # and its text as nothing. Week 25 of 2026 begins on Sunday 14 June in
+    # `en`: its weeks begin on Sunday and the week of 1 January is the first.
+    test "is a pattern with a quote written as text, inside quoted text and outside it" do
+      for {format, text} <- [
+            {"d 'o''clock' MMMM y", "16 o'clock June 2026"},
+            {"y''MM''dd", "2026'06'16"}
+          ] do
+        assert Localize.Date.to_string(~D[2026-06-16], locale: :en, format: format) == {:ok, text}
+
+        assert Localize.Date.parse(text, locale: :en, format: format) == {:ok, ~D[2026-06-16]},
+               format
+      end
+
+      week = "w 'ġimgħa' 'ta''' Y"
+
+      assert Localize.Date.to_string(~D[2026-06-16], locale: :en, format: week) ==
+               {:ok, "25 ġimgħa ta' 2026"}
+
+      assert Localize.Date.parse("25 ġimgħa ta' 2026", locale: :en, format: week) ==
+               {:ok, ~D[2026-06-14]}
+    end
+
     # A format with fewer fields than a date reads the fields it has.
     test "of some of a date's fields gives those fields as a map" do
       assert Localize.Date.parse("Mar 2024", locale: :en, format: :yMMM, as: :map) ==

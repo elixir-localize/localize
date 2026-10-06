@@ -23,6 +23,10 @@ defmodule Localize.TimeParseFormatTest do
             {:hm, "10:30 PM", ~T[22:30:00]},
             {:Hms, "22:30:45", ~T[22:30:45]},
             {"HH'h'mm", "22h30", ~T[22:30:00]},
+            # TR35: two adjacent quotes are a quote written as text, inside
+            # quoted text and outside it.
+            {"H 'o''clock' mm", "22 o'clock 30", ~T[22:30:00]},
+            {"H''mm", "22'30", ~T[22:30:00]},
             {"HH.mm.ss", "22.30.45", ~T[22:30:45]},
             {"HH:mm:ss.SSS", "22:30:45.250", ~T[22:30:45.250]}
           ] do
