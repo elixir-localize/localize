@@ -762,7 +762,22 @@ Localize.Date.parse("Tue, week 25 of 2026", locale: :en, calendar: Calendrical.I
 #=> {:ok, ~D[2026-W25-2 Calendrical.ISOWeek]}
 ```
 
-A pattern is written as it stands, with the calendar's own answers, so the period of its pattern of weeks is a pattern's `M`: `"MMM y"` is "M06 2026".
+A pattern is written as it stands, with the calendar's own answers, so the period of its pattern of weeks is a pattern's `M` and the number of the day in its week a pattern's `d`: `"MMM y"` is "M06 2026" and `"y-M-d"` "2026-6-2". A period and a day number do not say which of the period's weeks the day is in, so that text holds no date of the calendar and does not read back: with the same pattern it is read as any month and day written for a calendar of weeks are, as the Gregorian 2 June 2026. The fields that hold a week date are the week's own, `Y`, `w` and the day of the week, `E` by its name or `e` by its number from the locale's first day of the week, and a pattern of them reads back as the date it was written from:
+
+```elixir
+# With calendrical installed
+Localize.Date.to_string(~D[2026-W25-2 Calendrical.ISOWeek], format: "y 'week' w, EEEE", locale: :en)
+#=> {:ok, "2026 week 25, Tuesday"}
+
+Localize.Date.parse("2026 week 25, Tuesday",
+  format: "y 'week' w, EEEE",
+  locale: :en,
+  calendar: Calendrical.ISOWeek
+)
+#=> {:ok, ~D[2026-W25-2 Calendrical.ISOWeek]}
+```
+
+A pattern given as `:format` is read before the calendar's notation, which it does not write, so `"Y-'W'ww-e"`, which writes that Tuesday as "2026-W25-3" in `en`, whose weeks begin on Sunday, reads it back as the Tuesday and not as the notation's third day.
 
 `Localize.Time.parse/2` takes the option too: a time is read in the time formats of the calendar given, and then in the Gregorian calendar's.
 

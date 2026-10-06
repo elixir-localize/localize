@@ -903,6 +903,92 @@ defmodule Localize.CalendarCallbacksTest do
              ) == {:ok, %{calendar: IsoWeek, year: 2026, month: 25}}
     end
 
+    # A pattern's `M` and `d` are the calendar's period and the number of
+    # the day in its week (user, 2026-10-02 and 2026-10-06). They do not say
+    # which of the period's weeks the day is in: weeks 22 to 26 are all the
+    # sixth period of a 4-4-5 quarter, and "2026-6-2" is the Tuesday of each.
+    # So the text holds no date of the calendar, and is read as any month and
+    # day written for a calendar of weeks are, as the Gregorian date they
+    # name (user, 2026-10-01): 2 June 2026, the Tuesday of week 23. A period's
+    # name is no month of the Gregorian calendar's, and is read as nothing.
+    test "writes a period and a day number, which name no one day and do not read back" do
+      for week <- 22..26 do
+        assert Localize.Date.to_string(iso_week(2026, week, 2), format: "y-M-d", locale: :en) ==
+                 {:ok, "2026-6-2"}
+
+        assert Localize.Date.to_string(iso_week(2026, week, 2), format: "MMM d, y", locale: :en) ==
+                 {:ok, "M06 2, 2026"}
+      end
+
+      assert Localize.Date.parse("2026-6-2", format: "y-M-d", locale: :en, calendar: IsoWeek) ==
+               {:ok, iso_week(2026, 23, 2)}
+
+      assert {:error, %Localize.DateParseError{}} =
+               Localize.Date.parse("M06 2, 2026",
+                 format: "MMM d, y",
+                 locale: :en,
+                 calendar: IsoWeek
+               )
+    end
+
+    # The fields that do hold a date of the calendar are its week's own: the
+    # week-based year, the week and the day of the week, by its name (`E`)
+    # or by TR35's local number (`e`), "which depends on the local starting
+    # day of the week", Sunday in `en` and Monday in `de`. A pattern of them
+    # reads back as the date it was written from, in every week of the year.
+    test "writes a week date with a pattern of its week's fields, and reads it back" do
+      for {pattern, locale, written} <- [
+            {"y 'week' w, EEEE", :en, "2026 week 25, Tuesday"},
+            {"Y 'W'w E", :en, "2026 W25 Tue"},
+            {"EEEE, 'W'ww Y", :de, "Dienstag, W25 2026"},
+            {"e/w/Y", :en, "3/25/2026"},
+            {"e/w/Y", :de, "2/25/2026"}
+          ] do
+        options = [format: pattern, locale: locale]
+        assert Localize.Date.to_string(iso_week(2026, 25, 2), options) == {:ok, written}
+
+        for week <- [1, 13, 25, 52, 53], day <- [1, 2, 7] do
+          value = iso_week(2026, week, day)
+          {:ok, text} = Localize.Date.to_string(value, options)
+
+          assert Localize.Date.parse(text, [calendar: IsoWeek] ++ options) == {:ok, value},
+                 "#{pattern} #{locale} #{inspect(text)}"
+        end
+      end
+    end
+
+    # A pattern is the format its text was written with, and is read before
+    # the calendar's notation, which a standard format writes and a pattern
+    # does not: "Y-'W'ww-e" writes the Tuesday of week 25 as "2026-W25-3" in
+    # `en`, whose weeks begin on Sunday, and the notation reads that text as
+    # the week's third day, Wednesday. The notation is still read with a
+    # pattern that does not read the text.
+    test "reads a pattern's text as the pattern writes it, before the calendar's notation" do
+      tuesday = iso_week(2026, 25, 2)
+      options = [format: "Y-'W'ww-e", locale: :en]
+
+      assert Localize.Date.to_string(tuesday, options) == {:ok, "2026-W25-3"}
+      assert Localize.Date.parse("2026-W25-3", [calendar: IsoWeek] ++ options) == {:ok, tuesday}
+
+      for week <- [1, 25, 53], day <- 1..7 do
+        value = iso_week(2026, week, day)
+        {:ok, text} = Localize.Date.to_string(value, options)
+        assert Localize.Date.parse(text, [calendar: IsoWeek] ++ options) == {:ok, value}, text
+      end
+
+      assert Localize.Date.parse("2026-W25-3", locale: :en, calendar: IsoWeek) ==
+               {:ok, iso_week(2026, 25, 3)}
+
+      assert Localize.Date.parse("2026-W25-3", format: :long, locale: :en, calendar: IsoWeek) ==
+               {:ok, iso_week(2026, 25, 3)}
+
+      assert Localize.Date.parse("2026-W25-3",
+               format: "y 'week' w, EEEE",
+               locale: :en,
+               calendar: IsoWeek
+             ) == {:ok, iso_week(2026, 25, 3)}
+    end
+
     # The weekday beside a week is the day of it, in the Gregorian calendar
     # as in a calendar of weeks: it was taken off the front of the text and
     # the week's first day returned, 14 June for "Tue, week 25 of 2026" in

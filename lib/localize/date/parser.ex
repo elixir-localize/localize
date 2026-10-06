@@ -32,7 +32,8 @@ defmodule Localize.Date.Parser do
   # notation: neither ISO 8601 nor another of the locale's formats is
   # tried, since a skeleton may write its fields in another order than
   # the standard formats do (`mt`'s `yMd` is "M/d/y" beside a short
-  # date of "dd/MM/y").
+  # date of "dd/MM/y"). A pattern is read before the notation, which
+  # it never writes.
   #
   # ### Calendars
   #
@@ -246,13 +247,30 @@ defmodule Localize.Date.Parser do
   # 2026-10-04: "Let parse/2 take the format the text was written with"). A
   # calendar's own notation, which every standard format writes for a
   # calendar of weeks, is read before it.
-  defp read_in_format(inputs, format, options, reading, as) do
-    {_locale, calendar_module, own_calendar, _reference} = reading
+  #
+  # A pattern is not written as the notation is, so its own reading comes
+  # first: "Y-'W'ww-e" writes the Tuesday of a calendar of weeks' week 25 as
+  # "2026-W25-3" in `en`, whose weeks begin on Sunday, and the notation
+  # reads that text as the week's third day. The notation is read where the
+  # pattern reads nothing.
+  defp read_in_format(inputs, format, options, reading, as) when is_binary(format) do
+    with {:error, _exception} = unread <- try_format(inputs, format, options, reading, as) do
+      case notation_reading(inputs, reading, as) do
+        nil -> unread
+        read -> read
+      end
+    end
+  end
 
+  defp read_in_format(inputs, format, options, reading, as) do
+    notation_reading(inputs, reading, as) || try_format(inputs, format, options, reading, as)
+  end
+
+  defp notation_reading(inputs, {_locale, calendar_module, own_calendar, _reference}, as) do
     case Enum.find_value(inputs, &notation_date(&1, calendar_module, own_calendar)) do
       {:ok, date} -> {:ok, finalise_date(date, as)}
       {:error, _exception} = error -> error
-      nil -> try_format(inputs, format, options, reading, as)
+      nil -> nil
     end
   end
 
