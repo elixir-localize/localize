@@ -484,26 +484,98 @@ defmodule Localize.DateParseLunisolarTest do
       assert {:error, _reason} = parse("1964 40. 2. 29.", :en, format: "r y. M. d.")
     end
 
-    # Years sixty apart share their place and their name, and are still two
-    # dates: `en.xml` writes the Chinese calendar's `yMd` across years as
-    # "M/d/y – M/d/y" and `yMMMd` as "MMM d, U – MMM d, U". ICU4C 78.3 holds
-    # the cycle as an era and writes both in full, "5/2/2026 – 5/2/2086".
-    test "is written for both dates of an interval sixty years long" do
+    # Years of different cycles share their places and their names, and an
+    # interval item writes a year as its place or its name: `en.xml` writes
+    # the Chinese calendar's `yMd` across years as "M/d/y – M/d/y", so 16
+    # June 2026 to 12 June 2086 was "5/2/43 – 5/2/43". The two are written in
+    # full, each as the format writes a date alone (user, 2026-10-06), as
+    # ICU4C 78.3, which holds the cycle as an era, writes them. `de`'s formats
+    # name the year by its place or its name alone, and its dates are alike
+    # there too.
+    test "is written in full for both dates of an interval across cycles" do
       from = date(4663, 5, 2)
       to = date(4723, 5, 2)
 
-      assert Localize.Interval.to_string(from, to, format: :yMd, locale: :en) ==
-               {:ok, "5/2/43 – 5/2/43"}
+      for {locale, format, expected} <- [
+            {:en, :yMd, "5/2/2026 – 5/2/2086"},
+            {:en, :yM, "5/2026 – 5/2086"},
+            {:en, :yMMMd, "Mo5 2, 2026 – Mo5 2, 2086"},
+            {:en, :yMMM, "Mo5 2026 – Mo5 2086"},
+            {:en, :y, "2026(bing-wu) – 2086(bing-wu)"},
+            {:en, :UMd, "5/2/bing-wu – 5/2/bing-wu"},
+            {:en, :short, "5/2/2026 – 5/2/2086"},
+            {:en, :medium, "Mo5 2, 2026 – Mo5 2, 2086"},
+            {:de, :yMd, "2.5.43 – 2.5.43"},
+            {:de, :yMMMd, "2. M05 bing-wu – 2. M05 bing-wu"},
+            {:de, :medium, "02.05 bing-wu – 02.05 bing-wu"}
+          ] do
+        assert Localize.Interval.to_string(from, to, format: format, locale: locale) ==
+                 {:ok, expected},
+               "#{locale} #{format}"
+      end
 
-      assert Localize.Interval.to_string(from, to, format: :yMMMd, locale: :en) ==
-               {:ok, "Mo5 2, bing-wu – Mo5 2, bing-wu"}
+      # 2087 is another place of the next cycle: ICU4C writes
+      # "5/2/2026 – 6/2/2086" for a month on in 2086.
+      assert Localize.Interval.to_string(from, date(4723, 6, 2), format: :yMd, locale: :en) ==
+               {:ok, "5/2/2026 – 6/2/2086"}
+    end
+
+    # Within one cycle a year's difference takes the item's pattern, as it
+    # did, and as ICU4C writes it: "5/2/43 – 7/19/44" for 16 June 2026 to 20
+    # August 2027.
+    test "is written by the interval's pattern for two years of one cycle" do
+      assert Localize.Interval.to_string(date(4663, 5, 2), date(4664, 7, 19),
+               format: :yMd,
+               locale: :en
+             ) == {:ok, "5/2/43 – 7/19/44"}
 
       # One date is written with the skeleton's own format, which for
       # `yMMMd` is `yyyyMMMd`'s "MMM d, r" and not `UMMMd`'s "MMM d, U": TR35
       # puts a numeric and a text field further apart than two widths of a
       # number, and ICU4C 78.3 writes it so.
-      assert Localize.Interval.to_string(from, from, format: :yMMMd, locale: :en) ==
-               {:ok, "Mo5 2, 2026"}
+      assert Localize.Interval.to_string(date(4663, 5, 2), date(4663, 5, 2),
+               format: :yMMMd,
+               locale: :en
+             ) == {:ok, "Mo5 2, 2026"}
+    end
+
+    # A format that writes no year is widened with one for two dates a year
+    # or more apart, as it is in any calendar, and then written in full
+    # across cycles. ICU4C 78.3 does not widen it for its era, and writes
+    # "5/2 – 5/2" (a recorded divergence).
+    test "is written with its year across cycles where the format has none" do
+      from = date(4663, 5, 2)
+      to = date(4723, 5, 2)
+
+      written =
+        for format <- [:Md, :MMMd, :d, :MMM] do
+          {format, Localize.Interval.to_string(from, to, format: format, locale: :en)}
+        end
+
+      assert written == [
+               Md: {:ok, "5/2/2026 – 5/2/2086"},
+               MMMd: {:ok, "Mo5 2, 2026 – Mo5 2, 2086"},
+               d: {:ok, "5/2/2026 – 5/2/2086"},
+               MMM: {:ok, "Mo5 2026 – Mo5 2086"}
+             ]
+    end
+
+    test "an interval written in full across cycles reads back" do
+      from = date(4663, 5, 2)
+      to = date(4723, 5, 2)
+
+      for locale <- [:en, :zh, :ko, :he], format <- [:yMd, :yMMMd, :short, :medium] do
+        {:ok, text} = Localize.Interval.to_string(from, to, format: format, locale: locale)
+
+        if text =~ "2086" do
+          assert Localize.Interval.parse(text,
+                   locale: locale,
+                   calendar: Lunisolar,
+                   reference_date: @reference
+                 ) == {:ok, Date.range(from, to)},
+                 "#{locale} #{format} #{text}"
+        end
+      end
     end
 
     # A calendar may answer the place itself, from its `calendar_year/3`: it

@@ -517,6 +517,9 @@ defmodule Localize.Interval do
       not date_difference_visible?(skeleton, difference, {from, to}, locale_id, options) ->
         :single
 
+      across_cycles?(from, to, locale_id) ->
+        in_full_with_year(skeleton, from, locale_id, options)
+
       difference == :era and is_nil(item_pattern(Map.get(formats, format_key), :G)) and
           not String.contains?(Kernel.to_string(skeleton), "G") ->
         era_widened_split(formats, {format_key, requested_skeleton}, lookup, options)
@@ -526,6 +529,38 @@ defmodule Localize.Interval do
           key = difference_key(difference, skeleton, Map.get(formats, format_key))
           interval_split(formats, format_key, requested_skeleton, key, options, skeleton)
         end
+    end
+  end
+
+  # Two dates of different sixty-year cycles, in a calendar of cyclic years
+  # (`Localize.Calendar.cycle/2`). An interval item writes a year once or
+  # twice as the item's own year, which in those calendars is the year's
+  # place in its cycle or its name, the same in every cycle: `en`'s `yMd`
+  # item wrote 16 June 2026 to 12 June 2086 as "5/2/43 – 5/2/43". So the
+  # two are written in full, each as the format writes a date alone (user,
+  # 2026-10-06), as ICU, which holds the cycle as an era, writes them:
+  # "5/2/2026 – 5/2/2086". A format that writes no year is widened with one
+  # first, as it is for any two years.
+  defp across_cycles?(from, to, locale_id) do
+    with {:ok, from_cycle} <- Localize.Calendar.cycle(from, locale_id),
+         {:ok, to_cycle} <- Localize.Calendar.cycle(to, locale_id) do
+      from_cycle != to_cycle
+    else
+      _no_cycle -> false
+    end
+  end
+
+  # The widened skeleton is one a date is written with, whether or not the
+  # locale's data holds a format under its name: no atom is made of it.
+  defp in_full_with_year(skeleton, date, locale_id, options) do
+    with true <- is_atom(skeleton) and skeleton not in [:short, :medium, :long, :full],
+         widened when is_binary(widened) <- widened_skeleton(skeleton, :year),
+         format when is_atom(format) and not is_nil(format) <-
+           Localize.Utils.Helpers.existing_atom(widened),
+         {:ok, _pattern} <- Localize.Date.resolve_pattern(date, format, locale_id, options) do
+      {:fallback, format}
+    else
+      _as_it_is -> {:fallback, skeleton}
     end
   end
 
@@ -652,12 +687,18 @@ defmodule Localize.Interval do
 
   defp fallback_plan(formats, format, {from, to} = dates, locale_id, options) do
     difference = calendar_difference(from, to)
+    lookup = {locale_id, cldr_calendar_for(from)}
 
-    if date_difference_visible?(format, difference, dates, locale_id, options) do
-      lookup = {locale_id, cldr_calendar_for(from)}
-      widened_fallback(formats, format, difference, dates, lookup, options) || {:fallback, format}
-    else
-      :single
+    cond do
+      not date_difference_visible?(format, difference, dates, locale_id, options) ->
+        :single
+
+      across_cycles?(from, to, locale_id) ->
+        in_full_with_year(format, from, locale_id, options)
+
+      true ->
+        widened_fallback(formats, format, difference, dates, lookup, options) ||
+          {:fallback, format}
     end
   end
 

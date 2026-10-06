@@ -136,6 +136,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+* An interval whose dates are in two sixty-year cycles of the Chinese or Dangi calendar writes both dates in full, "5/2/2026 – 5/2/2086" for `en`'s `yMd`, as ICU does, where the interval's pattern wrote the two alike, "5/2/43 – 5/2/43". A format that writes no year takes one first, as it does for any two years.
+
 * `G` for a date of the Chinese or Dangi calendar writes the number of the year's sixty-year cycle, "78" in 2026, as ICU does, where it returned `Localize.ItemNotFoundError`: CLDR names no era for those calendars and TR35 does not say what `G` writes. Read beside the year's place or name it gives the one year the two name, "77 60" being the year that began in 1983.
 
 * An interval written without a year across the new year ends in the year after: "Dec 28 – Jan 3" was refused as an inverted range of the reference date's year. The later date is a year on only where it would otherwise come before the earlier, by its calendar's own days, and never an earlier day of the same month.

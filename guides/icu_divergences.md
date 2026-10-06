@@ -204,7 +204,7 @@ TR35's location format (`VVVV`) names a zone's country by "short country name, i
 
 ### Interval formatting
 
-An interval takes the formats of its endpoints' calendar. ICU4C 78.3 differs from Localize in eleven places, asserted in `test/localize/interval_calendar_test.exs`, `test/localize/interval_skeleton_test.exs`, `test/localize/interval_closest_match_test.exs` and `test/localize/interval_standard_format_test.exs`; the third follows ECMA-402 and the others TR35.
+An interval takes the formats of its endpoints' calendar. ICU4C 78.3 differs from Localize in eleven places, asserted in `test/localize/interval_calendar_test.exs`, `test/localize/interval_skeleton_test.exs`, `test/localize/interval_closest_match_test.exs`, `test/localize/interval_standard_format_test.exs` and `test/localize/date_parse_lunisolar_test.exs`; the third follows ECMA-402 and the others TR35.
 
 | Interval | Localize | ICU4C renders |
 |---|---|---|
@@ -221,12 +221,13 @@ An interval takes the formats of its endpoints' calendar. ICU4C 78.3 differs fro
 | `en` `QQQ`, 15 June 2026 to 15 June 2027 | "Q2 2026 – Q2 2027" | "Q2 – Q2" |
 | `ja` long, 1 to 10 April 2023 | "2023年4月1日～10日" | "2023/04/01～2023/04/10" |
 | `zh` Chinese medium, 14:30:45 to 15:30:45 on 16 June 2026 | "2026年五月初二 14:30:45–15:30:45" | "2026年五月2 14:30:45–15:30:45" |
+| `en` Chinese `Md`, 16 June 2026 to 12 June 2086 | "5/2/2026 – 5/2/2086" | "5/2 – 5/2" |
 
 * **The date-time pattern.** TR35 joins a date to a time range with the calendar's `dateTimeFormat`. ICU's `DateIntervalFormat` reads `calendar/gregorian/DateTimePatterns` whatever the calendar, though its single date-time formatter uses the calendar's own.
 
 * **Year symbols.** TR35 gives skeleton symbols of one field type a small distance, so the related year `r` and the cyclic year `U` of a Chinese or Dangi format match the `y`-keyed interval items. ICU's interval matcher compares letters one for one, finds no item, and writes both dates in full.
 
-* **Years of another cycle.** ICU holds the sixty-year cycle of the Chinese and Dangi calendars as an era, so two dates of different cycles differ in a field no interval item is keyed by, and it writes both in full in the skeleton's own format: "5/2/2026 – 5/2/2086" for `en`'s `yMd`, 16 June 2026 to 12 June 2086. A calendar answers Localize with one era, as CLDR's `supplementalData.xml` gives those calendars, so the two differ in their year and take the item's pattern for a year: "5/2/43 – 5/2/43", two dates written alike where the pattern has no related year.
+* **Years of another cycle.** ICU holds the sixty-year cycle of the Chinese and Dangi calendars as an era, so two dates of different cycles differ in a field no interval item is keyed by, and it writes both in full in the skeleton's own format: "5/2/2026 – 5/2/2086" for `en`'s `yMd`, 16 June 2026 to 12 June 2086. Localize writes them in full too. A skeleton that writes no year is widened with one first, as it is for two dates of different years in any calendar, so `Md` writes "5/2/2026 – 5/2/2086" where ICU, which widens a skeleton for a year and not for an era, writes "5/2 – 5/2".
 
 * **Equal endpoints.** Localize writes the requested standard format, as ECMA-402's `formatRange` and `Localize.Date.to_string/2` do. ICU writes its pattern generator's pattern for the style's skeleton, which prefers an `availableFormats` entry with that skeleton over the standard format.
 
