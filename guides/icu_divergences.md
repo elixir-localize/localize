@@ -222,6 +222,7 @@ An interval takes the formats of its endpoints' calendar. ICU4C 78.3 differs fro
 | `ja` long, 1 to 10 April 2023 | "2023年4月1日～10日" | "2023/04/01～2023/04/10" |
 | `zh` Chinese medium, 14:30:45 to 15:30:45 on 16 June 2026 | "2026年五月初二 14:30:45–15:30:45" | "2026年五月2 14:30:45–15:30:45" |
 | `en` Chinese `Md`, 16 June 2026 to 12 June 2086 | "5/2/2026 – 5/2/2086" | "5/2 – 5/2" |
+| `he` Hebrew medium, 1 to 5 Tamuz 5786 | "א׳–ה׳ בתמוז ה׳תשפ״ו" | "1–5 בתמוז 5786" |
 
 * **The date-time pattern.** TR35 joins a date to a time range with the calendar's `dateTimeFormat`. ICU's `DateIntervalFormat` reads `calendar/gregorian/DateTimePatterns` whatever the calendar, though its single date-time formatter uses the calendar's own.
 
@@ -243,7 +244,7 @@ An interval takes the formats of its endpoints' calendar. ICU4C 78.3 differs fro
 
 * **A difference larger than the skeleton writes.** Both widen a skeleton that has an interval item with the month or the year its two dates differ in: `d` is "6/15 – 7/15" across months and "6/15/2026 – 6/15/2027" across years. ICU does not widen a skeleton CLDR has no item for and writes both dates with it as it stands. Localize widens it the same way, with the closest item's pattern (`MEd`'s for `Ed`) or, where there is none, with both dates in full (`yQQQ` for `QQQ`, `yw` for `w`).
 
-* **The date's numbering.** CLDR gives a date pattern the numbering its numeric fields are written in, the `numbers` attribute, and the date a date-time interval writes once beside two times is the date as `Localize.Date.to_string/2` writes it, in that numbering: `zh`'s Chinese day is "初二" and `he`'s Hebrew date is in Hebrew numerals. ICU's `DateIntervalFormat` works from the format's skeleton, which carries no numbering, and writes digits, though its single date-time formatter writes "2026年五月初二 14:30:45" as Localize does. An interval item's own fields are in digits in both, "2026年五月2至6".
+* **The date's numbering.** CLDR gives a date pattern the numbering its numeric fields are written in, the `numbers` attribute, and the date a date-time interval writes once beside two times is the date as `Localize.Date.to_string/2` writes it, in that numbering: `zh`'s Chinese day is "初二" and `he`'s Hebrew date is in Hebrew numerals. ICU's `DateIntervalFormat` works from the format's skeleton, which carries no numbering, and writes digits, though its single date-time formatter writes "2026年五月初二 14:30:45" as Localize does. An interval of two dates at a standard format takes the format's numbering too, since it is made from the format's skeleton, which CLDR gives the same `numbers` attribute, and TR35 has that attribute cover "all of the numeric fields in the date format": `zh`'s Chinese medium interval is "2026年五月初二至初六" and `he`'s Hebrew "א׳–ה׳ בתמוז ה׳תשפ״ו". ICU writes digits there as well. At a skeleton, which states no numbering, both write digits, "2026年五月2至6".
 
 ### Relative time
 

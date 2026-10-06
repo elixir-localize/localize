@@ -136,6 +136,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+* An interval of two dates at a standard format is written in the numbering that format states, CLDR's `numbers` attribute, as the date alone is: `he`'s Hebrew medium interval is "א׳–ה׳ בתמוז ה׳תשפ״ו", where it was "1–5 בתמוז 5786" beside the date "א׳ בתמוז ה׳תשפ״ו", and `zh`'s Chinese "2026年五月初二至初六". It is read back in that numbering, and an interval at a skeleton, which states none, stays in digits.
+
 * A year a format names is never made a number, nor a numbered year a name, as TR35's adjustments have it ("never convert a numeric element in the pattern to an alphabetic element, or the opposite"): `en`'s Chinese medium interval is "Mo5 2 – 6, bing-wu", the year its own pattern names, where the related year the format asks for took the name's place, and `de`'s `rMMMd` is "2. M05 bing-wu". Between two numbered years the one asked for is still written, "5/2/2026 – 5/6/2026" from "M/d/y – M/d/y".
 
 * An interval whose dates are in two sixty-year cycles of the Chinese or Dangi calendar writes both dates in full, "5/2/2026 – 5/2/2086" for `en`'s `yMd`, as ICU does, where the interval's pattern wrote the two alike, "5/2/43 – 5/2/43". A format that writes no year takes one first, as it does for any two years.

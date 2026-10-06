@@ -830,8 +830,11 @@ defmodule Localize.Date.Parser do
   #
   # Each pattern is one entry: the literal text it must be written with
   # (`pattern_literals/1`) and its tokens and regex for each reading of its
-  # year. A pattern with no field written twice reads one date and is no
-  # interval's.
+  # year, in digits and in each numbering the calendar's date formats state
+  # (`written_years/4`): an interval at a standard format is written in that
+  # format's numbering, `he`'s Hebrew medium "א׳–ה׳ בתמוז ה׳תשפ״ו". A
+  # numbering that changes nothing a pattern reads adds no reading. A
+  # pattern with no field written twice reads one date and is no interval's.
   defp interval_entries(patterns, years, ctx) do
     patterns
     |> Enum.flat_map(fn pattern -> [pattern | synthesize_day_first_variants(pattern)] end)
@@ -842,10 +845,17 @@ defmodule Localize.Date.Parser do
 
       readings =
         for reading <- year_readings(tokens, years),
-            %Regex{} = regex <- [compile_interval_regex(reading, ctx)],
-            do: {reading, regex}
+            numbers <- [%{} | years.numberings],
+            %Regex{} = regex <- [compile_interval_regex(reading, %{ctx | numbers: numbers})],
+            do: {reading, regex, numbers}
 
-      %{literals: pattern_literals(tokens), readings: readings}
+      %{
+        literals: pattern_literals(tokens),
+        readings:
+          Enum.uniq_by(readings, fn {reading, regex, _numbers} ->
+            {reading, Regex.source(regex)}
+          end)
+      }
     end)
   end
 
@@ -898,7 +908,7 @@ defmodule Localize.Date.Parser do
   # related year.
   defp interval_reading(input, %{readings: readings}, ctx, as) do
     readings
-    |> Enum.map(fn {tokens, regex} -> match_interval_tokens(input, tokens, regex, ctx, as) end)
+    |> Enum.map(&match_interval_tokens(input, &1, ctx, as))
     |> Enum.reject(&(&1 == :error))
     |> Enum.min_by(&interval_distance(&1, ctx.reference_year), fn -> nil end)
   end
@@ -947,8 +957,11 @@ defmodule Localize.Date.Parser do
   # How the calendar's dates write their year in the locale, other than as
   # the `y` an interval pattern is keyed by: as the related Gregorian year,
   # where one of its date patterns has an `r`, and as the year's two
-  # low-order digits, where one has `yy`. Cached, as the patterns' regexes
-  # are.
+  # low-order digits, where one has `yy`. With them, the numberings its
+  # date formats state for their numbers (CLDR's `numbers` attribute, `hebr`
+  # in `he`'s Hebrew formats and `d=hanidays` in `zh`'s Chinese): an
+  # interval at a standard format is written in its format's numbering, and
+  # an interval pattern states none. Cached, as the patterns' regexes are.
   defp written_years(locale, calendar_module, own_calendar, reference) do
     key = {__MODULE__, :written_years, locale, calendar_module}
 
@@ -961,11 +974,12 @@ defmodule Localize.Date.Parser do
 
               %{
                 related: Enum.any?(tokens, &match?({:r, _count}, &1)),
-                truncated: two_digit_year?(tokens)
+                truncated: two_digit_year?(tokens),
+                numberings: stated_numberings(patterns)
               }
 
             _no_patterns ->
-              %{related: false, truncated: false}
+              %{related: false, truncated: false, numberings: []}
           end
 
         :persistent_term.put(key, years)
@@ -979,10 +993,22 @@ defmodule Localize.Date.Parser do
   defp pattern_tokens({_skeleton, pattern}),
     do: pattern |> pattern_text() |> tokenize_pattern()
 
-  defp match_interval_tokens(input, tokens, regex, ctx, as) do
-    ctx = %{ctx | two_digit_year: two_digit_year?(tokens)}
+  defp stated_numberings(patterns) do
+    for {_skeleton, pattern} <- patterns,
+        numbers = pattern_numbers(pattern),
+        map_size(numbers) > 0,
+        uniq: true,
+        do: numbers
+  end
 
-    with %{} = caps <- Regex.named_captures(regex, input),
+  # One reading of an interval pattern: its tokens, their regex and the
+  # numbering the regex reads its numbers in, whose digits are read as Latin
+  # ones as a date's are (`latin_digits/2`).
+  defp match_interval_tokens(input, {tokens, regex, numbers}, ctx, as) do
+    ctx = %{ctx | two_digit_year: two_digit_year?(tokens), numbers: numbers}
+
+    with %{} = captured <- Regex.named_captures(regex, input),
+         caps = latin_digits(captured, numbers),
          {left_era, right_era} = interval_eras(caps),
          {:ok, left_partial} <- extract_partial(caps, {"left_", "right_"}, left_era, ctx),
          {:ok, right_partial} <- extract_partial(caps, {"right_", "left_"}, right_era, ctx) do

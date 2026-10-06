@@ -485,7 +485,8 @@ defmodule Localize.Interval do
           format_single(output, Localize.Date, from, Keyword.put(options, :format, whole_format))
 
         {:split, left, right} ->
-          format_split(output, from, to, left, right, locale_id, options_map)
+          numbered = with_format_numbering(options_map, whole_format, {from, to}, lookup)
+          format_split(output, from, to, left, right, locale_id, numbered)
 
         {:fallback, ^skeleton} ->
           format_in_full(output, Localize.Date, {from, to}, whole_format, formats, options)
@@ -498,6 +499,37 @@ defmodule Localize.Interval do
       end
     end
   end
+
+  # An interval of two whole dates at a standard format writes its numbers
+  # in the numbering the format states for them, as the date alone is
+  # written (user, 2026-10-06). CLDR gives a standard date format's pattern,
+  # and the skeleton it gives beside it, a `numbers` attribute, which TR35
+  # has "specify a number system to be used for all of the numeric fields in
+  # the date format" or for one of them; an interval item has none of its
+  # own, and it is the format's skeleton the interval is made from. So
+  # `he`'s Hebrew medium interval is "א׳–ה׳ בתמוז ה׳תשפ״ו" beside the date
+  # "א׳ בתמוז ה׳תשפ״ו", and `zh`'s Chinese "2026年五月初二至初六" beside
+  # "2026年五月初二", where both were digits, "1–5 בתמוז 5786", as ICU's
+  # `DateIntervalFormat` writes them. A numbering the caller gives stands
+  # over the format's, as it does for a date alone. A date without one of
+  # its fields is written with no standard format, and neither is its
+  # interval.
+  defp with_format_numbering(options_map, format, {from, to}, {locale_id, calendar})
+       when format in [:short, :medium, :long, :full] do
+    if date_fields(from) == @date_fields and date_fields(to) == @date_fields do
+      numbers =
+        Localize.DateTime.Format.number_system_overrides(:date, format, locale_id, calendar)
+
+      Map.update(options_map, :number_system_overrides, numbers, &over_format(&1, numbers))
+    else
+      options_map
+    end
+  end
+
+  defp with_format_numbering(options_map, _format, _dates, _lookup), do: options_map
+
+  defp over_format(given, numbers) when is_map(given), do: Map.merge(numbers, given)
+  defp over_format(given, _numbers), do: given
 
   # TR35 §Interval Formats steps 4 to 7, as ICU implements them. Values that
   # differ in no field the skeleton writes format as one. A year or a month

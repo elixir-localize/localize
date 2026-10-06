@@ -182,6 +182,10 @@ defmodule Localize.IntervalCalendarTest do
              ) == {:ok, "Apr 1, 31 Heisei\u2009–\u2009Jun 10, 1 Reiwa"}
     end
 
+    # `zh`'s rows are at its medium format, which states `d=hanidays`: the
+    # days are the numerals the date alone has, "十一", "二十" and "初一" as
+    # ICU4C writes it alone, in zh.xml's "r年MMMd至d" and "r年MMMd至MMMd".
+    # ICU4C's interval has them in digits, "2023年闰二月11–2023年三月1".
     test "in a leap month of the Chinese calendar" do
       leap_11 = date(Chinese, 4660, 3, 11)
 
@@ -194,8 +198,8 @@ defmodule Localize.IntervalCalendarTest do
              "Mo2bis\u2009–\u2009Mo3 gui-mao"},
             {date(Chinese, 4661, 3, 12), [locale: :en, fields: :year_and_month],
              "Mo2bis gui-mao\u2009–\u2009Mo3 jia-chen"},
-            {date(Chinese, 4660, 3, 20), [locale: :zh], "2023年闰二月11至20"},
-            {date(Chinese, 4660, 4, 1), [locale: :zh], "2023年闰二月11至三月1"}
+            {date(Chinese, 4660, 3, 20), [locale: :zh], "2023年闰二月十一至二十"},
+            {date(Chinese, 4660, 4, 1), [locale: :zh], "2023年闰二月十一至三月初一"}
           ] do
         assert Localize.Interval.to_string(leap_11, to, options) == {:ok, expected},
                "#{inspect(options)} to #{inspect(to)}"
@@ -440,6 +444,117 @@ defmodule Localize.IntervalCalendarTest do
                calendar: Chinese,
                reference_date: from
              ) == {:ok, Date.range(from, to)}
+    end
+  end
+
+  # CLDR gives a standard date format's pattern, and the skeleton beside it,
+  # a `numbers` attribute, which TR35 has "specify a number system to be
+  # used for all of the numeric fields in the date format" or for one of
+  # them. An interval at a standard format is made from that format's
+  # skeleton and is written in its numbering, as the date alone is (user,
+  # 2026-10-06); ICU4C's `DateIntervalFormat` writes digits, "1–5 בתמוז
+  # 5786". The patterns are CLDR's: he.xml's Hebrew `yMMMd` interval is
+  # "d–d בMMM y", "d בMMM – d בMMM y" and "d בMMM y – d בMMM y", at the
+  # medium format's wide month, and its formats state `hebr`; zh.xml's
+  # Chinese `yMMMd` is "r年MMMd至d", "r年MMMd至MMMd" and "r年MMMd至r年MMMd"
+  # beside a medium format that states `d=hanidays` and a short one that
+  # states nothing; ja.xml's Japanese medium format states `y=jpanyear`. The
+  # numerals are the date's own, as ICU4C 78.3 writes it alone: "א׳", "ה׳",
+  # "ז׳" and "י״ז"; "初二", "初六", "初八" and "十九"; "元" for an era's first
+  # year.
+  describe "an interval at a standard format takes the format's numbering" do
+    test "in he's Hebrew calendar, and is read back" do
+      from = date(HebrewTimes, 5786, 11, 1)
+
+      for {to, expected} <- [
+            {date(HebrewTimes, 5786, 11, 5), "א׳–ה׳ בתמוז ה׳תשפ״ו"},
+            {date(HebrewTimes, 5786, 12, 7), "א׳ בתמוז – ז׳ באב ה׳תשפ״ו"},
+            {date(HebrewTimes, 5787, 12, 17), "א׳ בתמוז ה׳תשפ״ו – י״ז באב ה׳תשפ״ז"}
+          ] do
+        assert Localize.Interval.to_string(from, to, locale: :he) == {:ok, expected},
+               inspect(to)
+
+        assert Localize.Interval.parse(expected,
+                 locale: :he,
+                 calendar: HebrewTimes,
+                 reference_date: from
+               ) == {:ok, Date.range(from, to)},
+               expected
+      end
+    end
+
+    test "in zh's Chinese calendar, and is read back" do
+      from = date(Chinese, 4663, 5, 2)
+
+      for {to, expected} <- [
+            {date(Chinese, 4663, 5, 6), "2026年五月初二至初六"},
+            {date(Chinese, 4663, 7, 8), "2026年五月初二至七月初八"},
+            {date(Chinese, 4664, 7, 19), "2026年五月初二至2027年七月十九"}
+          ] do
+        assert Localize.Interval.to_string(from, to, locale: :zh) == {:ok, expected},
+               inspect(to)
+
+        assert Localize.Interval.parse(expected,
+                 locale: :zh,
+                 calendar: Chinese,
+                 reference_date: from
+               ) == {:ok, Date.range(from, to)},
+               expected
+      end
+    end
+
+    test "in ja's Japanese calendar, an era's first year, and is read back" do
+      from = date(Japanese, 2019, 5, 1)
+
+      for {to, expected} <- [
+            {date(Japanese, 2019, 5, 5), "令和元年5月1日～5日"},
+            {date(Japanese, 2020, 7, 19), "令和元年5月1日～2年7月19日"}
+          ] do
+        assert Localize.Interval.to_string(from, to, locale: :ja) == {:ok, expected},
+               inspect(to)
+
+        assert Localize.Interval.parse(expected,
+                 locale: :ja,
+                 calendar: Japanese,
+                 reference_date: from
+               ) == {:ok, Date.range(from, to)},
+               expected
+      end
+    end
+
+    # A skeleton states no numbering, and neither does a standard format
+    # that has none: the interval is in digits, as the date alone is.
+    test "and is in digits where the format states none" do
+      assert Localize.Interval.to_string(
+               date(HebrewTimes, 5786, 11, 1),
+               date(HebrewTimes, 5786, 11, 5),
+               locale: :he,
+               format: :yMMMd
+             ) == {:ok, "1–5 בתמוז 5786"}
+
+      assert Localize.Interval.to_string(
+               date(Chinese, 4663, 5, 2),
+               date(Chinese, 4663, 5, 6),
+               locale: :zh,
+               format: :short
+             ) == {:ok, "2026-5-2至2026-5-6"}
+
+      assert Localize.Interval.to_string(
+               date(HebrewTimes, 5786, 11, 1),
+               date(HebrewTimes, 5786, 11, 5),
+               locale: :en
+             ) == {:ok, "1\u2009–\u20095 Tamuz 5786"}
+    end
+
+    test "as its parts are" do
+      {:ok, parts} =
+        Localize.Interval.to_parts(
+          date(HebrewTimes, 5786, 11, 1),
+          date(HebrewTimes, 5786, 11, 5),
+          locale: :he
+        )
+
+      assert Enum.map_join(parts, & &1.value) == "א׳–ה׳ בתמוז ה׳תשפ״ו"
     end
   end
 

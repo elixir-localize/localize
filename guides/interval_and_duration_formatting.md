@@ -91,6 +91,8 @@ iex> Localize.Interval.to_string(~D[2023-04-01], ~D[2023-04-10], locale: :vi, fo
 
 A month the pattern writes as a number beside a word is the month's name as the locale writes it, so `ja`'s long date "2023年4月1日" stays "2023年4月1日～10日" in an interval, where ECMA-402's `formatRange` writes "2023/04/01～2023/04/10" (see [ICU divergences](icu_divergences.md#interval-formatting)).
 
+The numbers of an interval at a standard format are in the numbering the format states for a date's, CLDR's `numbers` attribute, which TR35 has cover "all of the numeric fields in the date format" or one of them. So two days of Tamuz in Calendrical's Hebrew calendar are "א׳–ה׳ בתמוז ה׳תשפ״ו" in `he`, beside the date "א׳ בתמוז ה׳תשפ״ו", and two days of the Chinese calendar's fifth month "2026年五月初二至初六" in `zh`. A skeleton states no numbering, and its interval is in digits, as its date alone is.
+
 ### Skeletons and patterns
 
 `:format` also takes a skeleton, which selects CLDR's interval format for its fields as CLDR keys them, so it can name a format no standard format reaches, or a pattern, with which both endpoints are formatted around the locale's interval fallback pattern. `:date_format` takes either too. `:fields` applies with a standard format only, since a skeleton names its fields itself.
