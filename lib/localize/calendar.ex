@@ -1403,7 +1403,8 @@ defmodule Localize.Calendar do
 
   @doc false
   @spec related_year_of_cycle(integer(), pos_integer()) :: integer()
-  def related_year_of_cycle(cycle, place), do: @first_cyclic_year + (cycle - 1) * 60 + place - 1
+  def related_year_of_cycle(cycle, place) when is_integer(cycle) and is_integer(place),
+    do: @first_cyclic_year + (cycle - 1) * 60 + place - 1
 
   # The related Gregorian year is constant through a calendar year, so a
   # date without its month or its day is asked on the first it could be.
