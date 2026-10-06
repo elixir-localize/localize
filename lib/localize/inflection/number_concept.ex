@@ -25,7 +25,7 @@ defmodule Localize.Inflection.NumberConcept do
   end
 
   # Digits whose spoken form is the words (`asSpokenWords`). Where the
-  # locale has no words for the number the digits are spoken, as ICU's
+  # locale has no words for the number the digits are spoken, as CLDR's
   # root rules speak them.
   def spoken_words(number, locale, variant \\ nil) do
     with {:ok, print} <- Localize.Number.to_string(number, locale: locale) do

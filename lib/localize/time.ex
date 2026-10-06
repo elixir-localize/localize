@@ -384,8 +384,9 @@ defmodule Localize.Time do
   # locale's preferred cycle, which a skeleton asks for with `j` or
   # `J`, so only those take the override's symbol (`:h11` → `K`,
   # `:h12` → `h`, `:h23` → `H`, `:h24` → `k`). `C` asks for the first
-  # of the locale's allowed hour formats instead, which the override
-  # does not change, as in ICU's pattern generator. An explicit `h` or
+  # of the locale's allowed hour formats instead (TR35: "the values in
+  # `allowed` are traversed from first to last"), which the override
+  # does not change. An explicit `h` or
   # `H` keeps the cycle it names, and `apply_hour_cycle/3` then gives
   # the matched pattern the override's symbol within that cycle.
   #
@@ -464,7 +465,7 @@ defmodule Localize.Time do
   #
   # A `skeleton` that asks for the hour with `J` wants the cycle's hour with
   # no day period, so its pattern takes the cycle's symbol whichever cycle
-  # it was written in: under `ja-u-hc-h11` "H:mm" is "K:mm", as in ICU.
+  # it was written in: under `ja-u-hc-h11` "H:mm" is "K:mm".
   def apply_hour_cycle(pattern, locale, skeleton \\ nil)
 
   def apply_hour_cycle(pattern, locale, skeleton) when is_binary(pattern) do

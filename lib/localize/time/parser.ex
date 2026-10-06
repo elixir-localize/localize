@@ -16,7 +16,7 @@ defmodule Localize.Time.Parser do
   #
   # * Numeric hour tokens `h` (1-12), `H` (0-23), `K` (0-11),
   # `k` (1-24) — relaxed to 1-2 digits regardless of pattern
-  # count, matching the ICU lenient mode behaviour.
+  # count: TR35 has a pattern parsed leniently ("accept 9, 09").
   #
   # * Minute `m`/`mm` and second `s`/`ss` — relaxed similarly.
   #
@@ -698,7 +698,7 @@ defmodule Localize.Time.Parser do
   end
 
   # Numeric hour fields — relaxed to 1-2 digits regardless of
-  # `h` vs `hh` per ICU lenient mode.
+  # `h` vs `hh`, as TR35's lenient parse of a pattern accepts "9, 09".
   defp field_regex({letter, _count}, _dp, _lenient) when letter in [:h, :H, :K, :k] do
     "(?P<hour_#{letter}>\\d{1,2})"
   end

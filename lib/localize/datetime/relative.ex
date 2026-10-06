@@ -244,8 +244,10 @@ defmodule Localize.DateTime.Relative do
   end
 
   # With `numeric: :auto` an offset of -2 to 2 takes the unit's named form
-  # ("yesterday", "this hour") where the locale has one. ICU matches an
-  # offset within one percent of those, so 0.9999 days is still "tomorrow".
+  # ("yesterday", "this hour") where the locale has one. An offset within
+  # one percent of those is taken for it, so 0.9999 days is still
+  # "tomorrow": TR35 does not speak of an offset that is no whole number,
+  # and ICU matches it so (`plans/tr35-audit.md`).
   defp named_form(relative, %{relative_ordinal: %{} = names}, :auto)
        when relative > -2.1 and relative < 2.1 do
     hundredths = round(relative * 100)
@@ -260,7 +262,8 @@ defmodule Localize.DateTime.Relative do
   # The number is formatted for the locale, and the pattern is chosen by the
   # plural category of the number as displayed: "in 1.5 days" is `:other` in
   # English and "dans 1,5 jour" `:one` in French. Zero takes the future
-  # pattern ("in 0 days"), as in ECMA-402 and ICU.
+  # pattern ("in 0 days"), as ECMA-402 has it; TR35 does not say which
+  # pattern zero takes (`plans/tr35-audit.md`).
   defp pattern_parts(relative, unit, unit_data, locale, locale_id) do
     direction = if relative < 0, do: :relative_past, else: :relative_future
     magnitude = abs(relative)
@@ -625,7 +628,8 @@ defmodule Localize.DateTime.Relative do
   # The date one unit after `date` in its calendar: the next day, the same
   # day a week on, or the date a month or a year on as the calendar shifts
   # it (its `shift_date/4`, through `Date.shift/2`): the same day of the next
-  # month, clamped to that month's days as ICU clamps it, or of the month of
+  # month, clamped to that month's days as the calendar clamps it, or of the
+  # month of
   # the same name next year, as a lunisolar calendar keeps it, Nisan being
   # the eighth month of a Hebrew leap year and the seventh of an ordinary one.
   defp anniversary(date, :day), do: Date.add(date, 1)

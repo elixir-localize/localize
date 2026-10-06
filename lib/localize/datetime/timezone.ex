@@ -58,9 +58,9 @@ defmodule Localize.DateTime.Timezone do
   # value. TR35's parsing has the localized GMT format read with "non-Latin
   # numbers", and the format is written in the locale's digits or in those
   # asked for: "غرينتش+٥:٣٠" in `ar-EG`, "GMT+५:३०" in `ne`. The digits of
-  # any system are read in any locale, as ICU reads them, and in an ISO 8601
-  # offset too, where ICU reads 0 to 9 alone: the date and time parsers read
-  # all of a time in the locale's digits, its offset with it.
+  # any system are read in any locale, and in an ISO 8601 offset too, which
+  # TR35 does not speak of: the date and time parsers read all of a time in
+  # the locale's digits, its offset with it.
   @ascii_digits for {_system, %{digits: digits}} <- Localize.Number.System.numeric_systems(),
                     {digit, value} <- Enum.with_index(String.graphemes(digits)),
                     digit not in ~w(0 1 2 3 4 5 6 7 8 9),
@@ -77,14 +77,15 @@ defmodule Localize.DateTime.Timezone do
   # no `from`. TR35 has such a period reach "as far backwards in time as
   # there is data for", and CLDR's zones are told apart "at any time back to
   # 1970": no period of its data begins before 1971. So a metazone is a
-  # zone's from 1970 on (user, 2026-10-06), as ICU has it, and before it a
+  # zone's from 1970 on (user, 2026-10-06, TR35 naming no date), and before it a
   # zone is written by its own names and its offset: New York in 1965 is
   # "GMT-05:00" and "New York Time", and Los Angeles' local mean time of
   # 1850, "GMT-07:52:58", is no "Pacific Standard Time".
   #
   # A name is read wherever it is found, and a metazone's name read with a
   # date before 1970 means what it means after it (`:as_read`): "10:00 EST"
-  # in July 1965 is 10:00 at -05:00, as ICU reads it.
+  # in July 1965 is 10:00 at -05:00. TR35 does not speak of a name read
+  # before its metazone began (`plans/tr35-audit.md`).
   @metazones_from ~N[1970-01-01 00:00:00]
 
   # CLDR metazone data keys zones by their canonical IANA name; the
@@ -484,7 +485,7 @@ defmodule Localize.DateTime.Timezone do
 
   A zone keeps no metazone before 1970. CLDR tells zones apart back to
   1970, and where it gives a zone's first period no beginning the
-  period begins at 00:00 on 1 January 1970 in UTC, as ICU begins it.
+  period begins at 00:00 on 1 January 1970 in UTC.
   Before that a zone is written by its own names, its offset and its
   location: New York in 1965 is "GMT-05:00" and "New York Time".
 
@@ -1098,7 +1099,7 @@ defmodule Localize.DateTime.Timezone do
 
   # The offset in the digits of the numbering system asked for, or of the
   # locale's (TR35, "Time Zone Format Terminology"): "GMT-४" in `ne`,
-  # "غرينتش-٤" in `ar-EG`, as ICU writes them. A system without digits of its
+  # "غرينتش-٤" in `ar-EG`. A system without digits of its
   # own, or one that is not known, leaves 0 to 9.
   defp offset_digits(offset, locale_id, number_system) do
     with {:ok, system} <- offset_number_system(locale_id, number_system),
@@ -1493,7 +1494,8 @@ defmodule Localize.DateTime.Timezone do
   Arenas)" is `America/Punta_Arenas`. A metazone name stands for the
   metazone's zone in the country the string names, else in the locale's
   country, else its golden zone, so "Mitteleuropäische Zeit" is
-  `Europe/Berlin` in `de` and `Europe/Vienna` in `de-AT`, as ICU reads it.
+  `Europe/Berlin` in `de` and `Europe/Vienna` in `de-AT`, the zone the
+  formatter writes that name for in each.
   Where several metazones share a name ("Greenwich Mean Time") the one with
   a zone in that country is read, else the one with zones in the most
   countries. A country with several zones stands for its primary zone, as
@@ -1600,14 +1602,15 @@ defmodule Localize.DateTime.Timezone do
   CLDR names standard and daylight for the zone's metazone where it gives
   them (Punta Arenas keeps Chile's summer time all year), and else as the
   time zone database says. On any other date the name keeps its own offset,
-  as ICU reads it: "10:00 EST" in July is 10:00 at -05:00, a fixed offset,
+  which TR35 allows such a name to read back as ("or to just an offset"):
+  "10:00 EST" in July is 10:00 at -05:00, a fixed offset,
   since New York keeps daylight time then. A standard name whose zone and
   metazone have no daylight name in the locale stands for every type, as
   TR35's type fallback has it, and follows the zone's clock.
 
   Any other form follows the zone's clock, and a wall time its clocks pass
   twice is read in standard time, one they skip at the offset before the
-  change, as ICU reads them.
+  change. TR35 does not say how either is read.
 
   Some strings have more than one reading: `it`'s "Ora dell’Europa
   orientale (Kaliningrad)" names a metazone no zone has kept since 2014 and
@@ -1802,7 +1805,7 @@ defmodule Localize.DateTime.Timezone do
   end
 
   # A name or place comes before a zone ID, which TR35's process does not
-  # read at all: "EST" is Eastern Standard Time in `en`, as ICU reads it,
+  # read at all: "EST" is Eastern Standard Time in `en`, a name CLDR gives,
   # though the time zone database also keeps it as a link to Panama.
   #
   # Bytes that are not text name no zone, and are not put to the names'
@@ -1855,7 +1858,7 @@ defmodule Localize.DateTime.Timezone do
   # format whose part in parentheses is a place is read as a name N and that
   # place P ("Pacific Time (Canada)"), and else, or when that reading names
   # no zone, as a name alone. A string that is itself a name is read as that
-  # name first, as ICU takes the longest match: `uk` names Eastern time "за
+  # name first, TR35 having a parse "look for the longest match": `uk` names Eastern time "за
   # східним часом (ET)", and `he` a standard time "… (חורף)", "(winter)".
   # So is one that is itself a place, alone or in a region format: `fr-CA`
   # names a country "Saint-Martin (France)", whose zone is not Paris.
@@ -1919,12 +1922,13 @@ defmodule Localize.DateTime.Timezone do
   # zone; N or M as a zone's own name, or a city; then N or M as a
   # metazone's name, whose zone is C's, else the locale's country's. So
   # "Chile Time (Punta Arenas)" is Punta Arenas, a city of a country with
-  # several zones, as ICU reads it.
+  # several zones, the zone the formatter writes that string for.
   #
   # The city comes before the country because a name is qualified by the
   # city of the zone it was written for, and the name can be a country's
   # location as well: "Israel Time (Gaza)" is Gaza's time while it kept the
-  # Israel metazone, as ICU reads it, and not the one zone of Israel that
+  # Israel metazone, the zone it is written for, and not the one zone of
+  # Israel that
   # "Israel Time" alone is.
   #
   # After them comes what TR35's sample leaves out, the primary zone of a
@@ -1967,7 +1971,8 @@ defmodule Localize.DateTime.Timezone do
   # The place a string names in a region format, and that format's type of
   # time. A string the locale has as a name is no standard or daylight
   # region format, which no pattern writes: `af`'s "Samoa-standaardtyd" is
-  # American Samoa's standard time, as ICU reads it, not the standard time
+  # American Samoa's standard time, as the locale's data names it, not the
+  # standard time
   # of the country Samoa.
   defp named_region_place(name, index) do
     case region_place(name, index) do
@@ -2049,7 +2054,8 @@ defmodule Localize.DateTime.Timezone do
   # The metazone's zone in the country the string names: the zone CLDR maps
   # to that country, or the metazone's golden zone where that is in the
   # country, the two zones the formatter qualifies by a country. "Eastern
-  # Time (United States)" is New York in `en-JM`, as ICU reads it, though
+  # Time (United States)" is New York in `en-JM`, by TR35's "Metazone +
+  # Country => TZID mapping", though
   # Jamaica keeps Eastern time too. With no country named, the zone is the
   # locale's country's, else the golden zone, which stands for every country
   # CLDR maps no zone of its own to.
@@ -2080,7 +2086,9 @@ defmodule Localize.DateTime.Timezone do
   # the one with zones in the most territories, else the first by name: ICU
   # reads "Greenwich Mean Time", which names the GMT, British and Irish
   # metazones, as `Atlantic/Reykjavik` in `en`, `Europe/London` in `en-GB`
-  # and `Europe/Dublin` in `en-IE`.
+  # and `Europe/Dublin` in `en-IE`. TR35 does not speak of metazones that
+  # share a name: the order is made to give ICU's results, and is no rule of
+  # TR35's (`plans/tr35-audit.md`).
   defp preferred_metazone(metazones, territory) do
     Enum.min_by(metazones, fn {metazone, type} ->
       zones = Map.get(@metazone_mapzones, metazone, %{})
@@ -2340,7 +2348,9 @@ defmodule Localize.DateTime.Timezone do
   # clocks pass twice, the later is taken, as a generic name's is.
   #
   # Where the zone keeps another time then, the name keeps its own offset,
-  # as ICU reads it: "10:00 EST" in July is 10:00 at -05:00. A standard name
+  # which TR35 allows a name of standard or daylight time to read back as
+  # ("or to just an offset"): "10:00 EST" in July is 10:00 at -05:00. A
+  # standard name
   # that stands for every type (`stands_for_every_type?/4`) has no offset of
   # its own, and follows the zone's clock as a generic name does.
   defp resolve_parsed_zone({:zone, time_zone, type}, naive_datetime, database, language_tag) do
@@ -2400,7 +2410,8 @@ defmodule Localize.DateTime.Timezone do
   defp daylight_name?(_no_names), do: false
 
   # A wall time the clocks skip is read at the offset before the change,
-  # as ICU reads it: New York's 02:30 on the day it springs forward is 03:30
+  # which TR35 does not speak of and ICU does (`plans/tr35-audit.md`): New
+  # York's 02:30 on the day it springs forward is 03:30
   # daylight time.
   defp across_gap(naive_datetime, time_zone, offset, database) do
     with {:ok, utc} <- DateTime.from_naive(NaiveDateTime.add(naive_datetime, -offset), "Etc/UTC"),
@@ -2444,7 +2455,8 @@ defmodule Localize.DateTime.Timezone do
   # keeping another time: the one its metazone period names (TR35's
   # `stdOffset` and `dstOffset`), and else the zone's standard offset then,
   # with, for daylight time, the most the zone saves within nine months
-  # either side, or an hour where it saves none, as ICU reads it.
+  # either side, or an hour where it saves none, which TR35 does not speak
+  # of and ICU does (`plans/tr35-audit.md`).
   defp named_offset(type, time_zone, reference, nearby) do
     case metazone_period(time_zone, reference, :as_read) do
       %{std_offset: std, dst_offset: dst} when is_integer(std) and is_integer(dst) ->
@@ -2603,7 +2615,7 @@ defmodule Localize.DateTime.Timezone do
     # only when they are non-zero, so "GMT-8" and "GMT+5:30". The format
     # decides the hour's digits, not the pattern's hour field: `cs`, `fi`
     # and `vmw` write it `H` ("+H:mm", "+H.mm"), and their long format is
-    # "GMT+05:30" and "UTC+05.30" all the same, as ICU writes it.
+    # "GMT+05:30" and "UTC+05.30" all the same.
     #
     # Each has an "optional 2-digit seconds field", for the offsets zones
     # kept before standard time: Los Angeles' -7:52:58 is "GMT-07:52:58" and
@@ -2628,9 +2640,11 @@ defmodule Localize.DateTime.Timezone do
     |> String.replace("ss", pad(seconds, 2))
   end
 
-  # The short format of a whole hour is the pattern up to its hour field, as
-  # ICU's `truncateOffsetPattern` derives it: the minutes, their separator and
-  # anything after them go. That drops the left-to-right mark `he` ends its
+  # The short format of a whole hour is the pattern up to its hour field.
+  # TR35 has the short format use "hour fields without leading zero, with
+  # optional 2-digit minutes" and does not say how the pattern is cut; it is
+  # cut as ICU's `truncateOffsetPattern` cuts it (`plans/tr35-audit.md`): the
+  # minutes, their separator and anything after them go. That drops the left-to-right mark `he` ends its
   # negative pattern with, which its GMT format then repeated after the
   # offset. A pattern without minutes or hours is kept as it is.
   defp hour_field_pattern(sign_format) do
@@ -2646,7 +2660,7 @@ defmodule Localize.DateTime.Timezone do
   # CLDR's `hourFormat` has hours and minutes, and TR35 does not say where
   # the seconds of an offset go. They follow the minutes behind the text the
   # pattern has between its hours and its minutes, as ICU's
-  # `expandOffsetPattern` places them: "+HH:mm:ss", `fi`'s "+H.mm.ss" and
+  # `expandOffsetPattern` places them (`plans/tr35-audit.md`): "+HH:mm:ss", `fi`'s "+H.mm.ss" and
   # `am`'s "+HHmmss", with what follows the minutes (`he`'s left-to-right
   # mark) after them. An offset of whole minutes, and a pattern without
   # minutes or hours, has none.
@@ -2849,8 +2863,7 @@ defmodule Localize.DateTime.Timezone do
   # The exemplar city the `VVV` symbol renders: CLDR's, else one derived from
   # the identifier as `exemplar_city/3` derives it, except for an `Etc/` zone.
   # That names an offset or a time scale rather than a place, so TR35 falls
-  # back to the exemplar city of `Etc/Unknown`, "Unknown Location" in `en`,
-  # as ICU renders `Etc/UTC`.
+  # back to the exemplar city of `Etc/Unknown`, "Unknown Location" in `en`.
   @spec location_exemplar_city(String.t(), Localize.locale()) ::
           {:ok, String.t()} | {:error, Exception.t()}
   def location_exemplar_city(iana_id, locale) when is_binary(iana_id) do

@@ -488,8 +488,9 @@ defmodule Localize.DateTime.SemanticSkeleton do
   end
 
   # TR35 §Alignment: `:column` renders the numeric fields it affects with at
-  # least two digits. As ICU4X does, a month, day or hour written with one
-  # letter is widened to two, which pads a number and leaves a spelled-out
+  # least two digits ("a minimum of two digits on impacted fields"), and it
+  # does not name the fields. As ICU4X does (`plans/tr35-audit.md`), a month,
+  # day or hour written with one letter is widened to two, which pads a number and leaves a spelled-out
   # month (`MMM`) as it is; the year is not touched. Quoted literal text
   # keeps its letters.
   defp apply_alignment(pattern, %__MODULE__{alignment: :column}) do

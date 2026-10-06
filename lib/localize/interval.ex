@@ -232,7 +232,7 @@ defmodule Localize.Interval do
   end
 
   # An interval is formatted with the formats of its endpoints' calendar, so
-  # endpoints in two calendars have none to share, as for ICU.
+  # endpoints in two calendars have none to share.
   defp format_closed_interval(from, to, options, output) do
     if calendar_of(from) != calendar_of(to) do
       {:error,
@@ -1205,8 +1205,9 @@ defmodule Localize.Interval do
 
   # Units from largest to smallest. AM/PM sits above the hour: two times on
   # either side of noon differ in it first. The era sits above the year, as
-  # ICU's `UCAL_ERA` does: it changes with the year in most calendars but
-  # mid-year in the Japanese one, whose years count from each era.
+  # CLDR's items give `G` a pattern beside `y`'s: it changes with the year
+  # in most calendars but mid-year in the Japanese one, whose years count
+  # from each era.
   @unit_order [:era, :year, :month, :day, :am_pm, :hour, :minute, :second]
 
   # The pattern symbols that display each unit. A 12-hour hour displays the

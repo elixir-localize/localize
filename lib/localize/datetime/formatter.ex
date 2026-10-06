@@ -862,7 +862,8 @@ defmodule Localize.DateTime.Formatter do
   # ── Era (G) ────────────────────────────────────────────────
 
   # A calendar of cyclic years has no era CLDR names: its `G` is the number
-  # of the year's sixty-year cycle at every width, as ICU writes it, in the
+  # of the year's sixty-year cycle at every width (user, 2026-10-06, TR35 not
+  # saying what `G` is where CLDR names no era), in the
   # numbering the date's numbers are written in (`Localize.Calendar.cycle/2`).
   @doc false
   def era(date, count, locale_id, options) when is_map_key(date, :year) do
@@ -1473,8 +1474,9 @@ defmodule Localize.DateTime.Formatter do
   # TR35 `b`: am, pm, noon, midnight. The exact-point (`at`) rules
   # from the locale's day-period rule set select noon/midnight; any
   # other time renders as AM/PM. A time is judged at the precision its
-  # pattern shows, as in ICU: "h b" renders 12:05 as "12 noon", and
-  # "h:mm b" renders it as "12:05 PM".
+  # pattern shows: "h b" renders 12:05 as "12 noon", and "h:mm b" renders
+  # it as "12:05 PM". TR35 has noon "= 12:00" and does not speak of a
+  # pattern that shows no minutes; ICU judges it so (`plans/tr35-audit.md`).
   def period_noon_midnight(time, count, locale_id, options) when is_time(time) do
     minutes = displayed_minutes_of_day(time, options)
 
