@@ -561,6 +561,57 @@ defmodule Localize.IntervalCalendarTest do
     end
   end
 
+  # Which of two dates written without a year is the earlier, and whether the
+  # year turns between them, is the calendar's to say by its days: the later
+  # date is of the year after only where it would come before the earlier in
+  # the reference date's year. The year of `Localize.Test.LadyDayCalendar`
+  # turns on 25 March, as `Calendrical.Julian.March25`'s does, so 20 March
+  # is among a year's last days and 28 March among its first, and January
+  # follows May in one year. Its days are `Calendar.ISO`'s, which each date
+  # expected is given as.
+  describe "an interval written without a year, in a calendar whose year turns within a month" do
+    @lady_day Localize.Test.LadyDayCalendar
+
+    defp lady_day(text) do
+      reference = Date.new!(2026, 6, 1, @lady_day)
+
+      with {:ok, range} <-
+             Localize.Interval.parse(text,
+               locale: :en,
+               calendar: @lady_day,
+               reference_date: reference
+             ) do
+        {{range.first.year, range.last.year}, Date.convert!(range.first, Calendar.ISO),
+         Date.convert!(range.last, Calendar.ISO)}
+      end
+    end
+
+    test "turns the year within the month" do
+      assert lady_day("Mar 20 – 28") == {{2026, 2027}, ~D[2027-03-20], ~D[2027-03-28]}
+      assert lady_day("Mar 24 – 25") == {{2026, 2027}, ~D[2027-03-24], ~D[2027-03-25]}
+    end
+
+    test "does not turn the year from December to January" do
+      assert lady_day("Dec 28 – Jan 3") == {{2026, 2026}, ~D[2026-12-28], ~D[2027-01-03]}
+      assert lady_day("May 20 – Jan 3") == {{2026, 2026}, ~D[2026-05-20], ~D[2027-01-03]}
+    end
+
+    test "turns the year from February to April" do
+      assert lady_day("Feb 25 – Apr 3") == {{2026, 2027}, ~D[2027-02-25], ~D[2027-04-03]}
+    end
+
+    # 28 March is 357 days before 20 March of the same year there: a range
+    # by the calendar's days, as it is with its years written.
+    test "runs through the year where its days say so" do
+      assert lady_day("Mar 28 – 20") == {{2026, 2026}, ~D[2026-03-28], ~D[2027-03-20]}
+    end
+
+    test "is inverted where an earlier day of the month would be a year on" do
+      assert {:error, %Localize.DateRangeParseError{reason: :inverted}} = lady_day("Jun 20 – 16")
+      assert {:error, %Localize.DateRangeParseError{reason: :inverted}} = lady_day("Mar 23 – 21")
+    end
+  end
+
   describe "endpoints in different calendars" do
     test "are an error" do
       assert {:error, %Localize.DateTimeIntervalFormatError{reason: :mixed_calendars} = error} =

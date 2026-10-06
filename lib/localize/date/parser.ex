@@ -745,6 +745,7 @@ defmodule Localize.Date.Parser do
          {:ok, months_data} <- LCalendar.months(locale, cldr_calendar) do
       transliterated = transliterate_digits(input, locale)
       ctx = field_context(locale, calendar_module, own_calendar, reference, months_data)
+      ctx = %{ctx | interval_order: Format.interval_order(intervals)}
 
       item_patterns =
         for {skeleton, by_field} <- intervals,
@@ -947,13 +948,7 @@ defmodule Localize.Date.Parser do
            {left_era, right_era} = interval_eras(caps),
            {:ok, left_partial} <- extract_partial(caps, {"left_", "right_"}, left_era, ctx),
            {:ok, right_partial} <- extract_partial(caps, {"right_", "left_"}, right_era, ctx) do
-        interval_endpoints_for(
-          as,
-          left_partial,
-          right_partial,
-          ctx.calendar_module,
-          ctx.reference_year
-        )
+        interval_endpoints_for(as, left_partial, right_partial, ctx)
       else
         _ -> :error
       end
@@ -999,21 +994,19 @@ defmodule Localize.Date.Parser do
     end)
   end
 
-  # Two dates written without a year, "Jun 16 – 20", are of the reference
-  # date's year, as a date alone written without one is.
-  defp interval_endpoints_for(:struct, left_partial, right_partial, calendar_module, reference) do
-    left = in_reference_year(left_partial, right_partial, reference)
-    right = in_reference_year(right_partial, left_partial, reference)
+  defp interval_endpoints_for(:struct, left, right, ctx) do
+    latest_first? = ctx.interval_order == :latest_first
+    {earlier, later} = if latest_first?, do: {right, left}, else: {left, right}
 
-    with {:ok, left_date} <- materialise(left, right, calendar_module),
-         {:ok, right_date} <- materialise(right, left, calendar_module) do
-      {:ok, left_date, right_date}
-    else
-      _ -> :error
+    with {:ok, earlier_date, later_date} <- endpoints_in_their_years(earlier, later, ctx) do
+      if latest_first?, do: {:ok, later_date, earlier_date}, else: {:ok, earlier_date, later_date}
     end
   end
 
-  defp interval_endpoints_for(:map, left_partial, right_partial, calendar_module, reference) do
+  defp interval_endpoints_for(:map, left_partial, right_partial, ctx) do
+    %{calendar_module: calendar_module, reference_year: reference} = ctx
+    {left_partial, right_partial} = sharing_a_written_year(left_partial, right_partial, ctx)
+
     with true <- interval_partial_meaningful?(left_partial),
          true <- interval_partial_meaningful?(right_partial),
          {:ok, left_map} <-
@@ -1026,13 +1019,181 @@ defmodule Localize.Date.Parser do
     end
   end
 
-  # A date of an interval in the reference date's year, where neither date
-  # is written with a year; one that takes the other's year keeps none here
-  # (`materialise/3`).
-  defp in_reference_year(%{year: nil} = partial, %{year: nil}, reference_year),
-    do: %{partial | year: reference_year}
+  # An interval's two dates, the earlier first, each in its year. Two dates
+  # written without a year are of the reference date's year, as a date alone
+  # written without one is: the earlier is, and the later is the date of its
+  # month and day beside it (`date_beside/4`), so "Dec 28 – Jan 3" ends in
+  # the January that follows (user, 2026-10-06). The formatter writes no such
+  # text for two whole dates, giving both their years where they differ, but
+  # it writes it for two dates given without their years.
+  defp endpoints_in_their_years(%{year: nil} = earlier, %{year: nil} = later, ctx) do
+    earlier = %{earlier | year: ctx.reference_year}
 
-  defp in_reference_year(partial, _other, _reference_year), do: partial
+    with {:ok, earlier_date} <- materialise(earlier, later, ctx.calendar_module),
+         {:ok, later_date} <-
+           partial_beside(later, earlier, earlier_date, :after, ctx.calendar_module) do
+      {:ok, earlier_date, later_date}
+    else
+      _ -> :error
+    end
+  end
+
+  # A date written without its year beside one written with its year takes
+  # that year, as CLDR's interval patterns write a year the two share once,
+  # or the year next to it where the two would otherwise be in the wrong
+  # order: "Dec 28 – Jan 3, 2027" begins in the December before, and `ja`'s
+  # "2026年12月28日～1月3日" ends in the January after.
+  defp endpoints_in_their_years(%{year: nil} = earlier, later, ctx) do
+    with {:ok, later_date} <- materialise(later, earlier, ctx.calendar_module),
+         {:ok, earlier_date} <-
+           partial_beside(earlier, later, later_date, :before, ctx.calendar_module) do
+      {:ok, earlier_date, later_date}
+    else
+      _ -> :error
+    end
+  end
+
+  defp endpoints_in_their_years(earlier, %{year: nil} = later, ctx) do
+    with {:ok, earlier_date} <- materialise(earlier, later, ctx.calendar_module),
+         {:ok, later_date} <-
+           partial_beside(later, earlier, earlier_date, :after, ctx.calendar_module) do
+      {:ok, earlier_date, later_date}
+    else
+      _ -> :error
+    end
+  end
+
+  # Each date written with its year is as it is written, and takes the
+  # fields it does not write from the other (`materialise/3`).
+  defp endpoints_in_their_years(earlier, later, ctx) do
+    with {:ok, earlier_date} <- materialise(earlier, later, ctx.calendar_module),
+         {:ok, later_date} <- materialise(later, earlier, ctx.calendar_module) do
+      {:ok, earlier_date, later_date}
+    else
+      _ -> :error
+    end
+  end
+
+  # As maps, two ends written without a year have none, and one written
+  # without its year beside one written with its year has the year its
+  # date has there (`endpoints_in_their_years/3`). An end with no day is
+  # placed by its first: "Dec – Jan 2027" begins in December 2026.
+  defp sharing_a_written_year(left, right, ctx) do
+    latest_first? = ctx.interval_order == :latest_first
+    {earlier, later} = if latest_first?, do: {right, left}, else: {left, right}
+
+    {earlier, later} =
+      case {earlier, later} do
+        {%{year: nil}, %{year: nil}} -> {earlier, later}
+        {%{year: nil}, _dated} -> {with_year_beside(earlier, later, :before, ctx), later}
+        {_dated, %{year: nil}} -> {earlier, with_year_beside(later, earlier, :after, ctx)}
+        _both_dated -> {earlier, later}
+      end
+
+    if latest_first?, do: {later, earlier}, else: {earlier, later}
+  end
+
+  defp with_year_beside(partial, anchor_partial, side, ctx) do
+    whole = %{partial | day: partial.day || anchor_partial.day || 1}
+    anchor_whole = %{anchor_partial | day: anchor_partial.day || partial.day || 1}
+
+    with {:ok, anchor} <- materialise(anchor_whole, whole, ctx.calendar_module),
+         {:ok, %Date{year: year}} <-
+           partial_beside(whole, anchor_whole, anchor, side, ctx.calendar_module) do
+      %{partial | year: year}
+    else
+      _no_date -> partial
+    end
+  end
+
+  # The date of `partial`, written without its year, on `side` of the date
+  # `anchor` of the interval's other end, whose fields are `anchor_partial`.
+  defp partial_beside(partial, anchor_partial, %Date{} = anchor, side, calendar_module) do
+    backwards? = backwards_in_a_month?(partial, anchor_partial, side)
+
+    date_beside(
+      fn %Date{year: year} ->
+        materialise(%{partial | year: year}, anchor_partial, calendar_module)
+      end,
+      anchor,
+      side,
+      fn _in_the_anchors_year -> backwards? end
+    )
+  end
+
+  # The date an interval's end written without its year is, beside the date
+  # of its other end. `read` gives it in the year of the date it is given,
+  # and `side` is `:after` where it follows `anchor` and `:before` where it
+  # comes before it.
+  #
+  # It is in the anchor's year. Where it would lie on the other side of the
+  # anchor there, or is no date in that year, it is in the year next to the
+  # anchor's on its own side, the two then less than a year apart:
+  # "Dec 28 – Jan 3" is six days, and "Dec 28 – Feb 29" ends in the leap
+  # year after. The years are the calendar's own and so is their order: a
+  # year of `Calendrical.Julian.March25` runs from 25 March, so its
+  # "Mar 20 – 28" turns the year and its "May 20 – Jan 3" does not.
+  #
+  # A day and an earlier day of one month are not taken a year apart
+  # (`backwards?`): "Jun 20 – 16" is an inverted range, as it is with its
+  # year, and not the 361 days to the next 16 June.
+  defp date_beside(read, %Date{} = anchor, side, backwards?) do
+    in_the_anchors_year = read.(anchor)
+
+    with true <- other_side?(in_the_anchors_year, anchor, side),
+         false <- backwards?.(in_the_anchors_year),
+         {:ok, a_year_away} <- a_year_away(anchor, side),
+         {:ok, %Date{} = date} <- read.(a_year_away),
+         true <- within_a_year?(date, anchor, a_year_away, side) do
+      {:ok, date}
+    else
+      _as_it_is -> in_the_anchors_year
+    end
+  end
+
+  # How a date on the other side of an anchor compares with it.
+  defp other_side(:after), do: :lt
+  defp other_side(:before), do: :gt
+
+  defp other_side?({:ok, %Date{} = date}, anchor, side),
+    do: Localize.Calendar.compare_days(date, anchor) == other_side(side)
+
+  defp other_side?(_no_date, _anchor, _side), do: true
+
+  # On the anchor's day or on its own side of it, and short of the same day
+  # a year away.
+  defp within_a_year?(date, anchor, a_year_away, side) do
+    Localize.Calendar.compare_days(date, anchor) != other_side(side) and
+      Localize.Calendar.compare_days(date, a_year_away) == other_side(side)
+  end
+
+  # Whether two ends name one month, or one takes its month from the other,
+  # with their days in the wrong order. The fields are as they were written:
+  # a month's name or its number, and a day.
+  defp backwards_in_a_month?(%{day: day} = fields, %{day: anchor_day} = anchor_fields, side)
+       when is_integer(day) and is_integer(anchor_day) do
+    month = Map.get(fields, :month)
+    anchor_month = Map.get(anchor_fields, :month)
+    same_month? = is_nil(month) or is_nil(anchor_month) or month == anchor_month
+
+    same_month? and if(side == :after, do: day < anchor_day, else: day > anchor_day)
+  end
+
+  defp backwards_in_a_month?(_fields, _anchor_fields, _side), do: false
+
+  # The same day of the year after a date's, or of the year before it, as
+  # its calendar counts: a calendar need not number its years one apart.
+  defp a_year_away(%Date{year: year, month: month, day: day, calendar: calendar}, side) do
+    years = if side == :after, do: 1, else: -1
+
+    with {:ok, {year, month, day}} <-
+           Localize.Calendar.shift(calendar, {year, month, day}, years, 0),
+         {:ok, date} <- Date.new(year, month, day, calendar) do
+      {:ok, date}
+    else
+      _no_such_day -> :error
+    end
+  end
 
   # Build the partial map for one interval endpoint. Missing
   # fields inherit from the other endpoint (CLDR interval
@@ -1661,14 +1822,194 @@ defmodule Localize.Date.Parser do
           {:ok, Date.Range.t() | {map(), map()}} | {:error, Exception.t()}
   def parse_range_pair(from_string, to_string, options)
       when is_binary(from_string) and is_binary(to_string) do
+    read_for_calendar(
+      options,
+      fn options, _calendar_module -> read_range_pair(from_string, to_string, options) end,
+      &finalise_range_value/2
+    )
+  end
+
+  # Two dates, each read as a date alone is, in the calendar the options
+  # name: the calendar their text is read in, where another was asked for
+  # (`read_for_calendar/3`), so that two dates written for a calendar of
+  # weeks share a year as the Gregorian dates they are written as.
+  defp read_range_pair(from_string, to_string, options) do
     allow_inverted = Keyword.get(options, :allow_inverted, false)
     as = Keyword.get(options, :as, :struct)
 
-    with {:ok, from} <- parse_or_wrap(from_string, options, :from_parse_failed),
-         {:ok, to} <- parse_or_wrap(to_string, options, :to_parse_failed) do
+    with {:ok, from, to} <- range_pair(from_string, to_string, as, options) do
       finalise_range(from, to, allow_inverted, as)
     end
   end
+
+  # Two dates written without a year are of the reference date's year: the
+  # earlier is, and the later is the date of its month and day beside it, as
+  # an interval pattern's two dates are (`date_beside/4`), so "December 28
+  # to January 3" ends in the January that follows. A date written without
+  # its year beside one written with its year is the date of its month and
+  # day beside that one, whatever the reference date: "June 16 to August
+  # 20, 2031" is in 2031. A date written with its year stays as it is read.
+  defp range_pair(from_string, to_string, :struct, options) do
+    case {written_fields(from_string, options), written_fields(to_string, options)} do
+      {%{year: nil} = from_fields, %{year: nil} = to_fields} ->
+        with {:ok, %Date{} = from} <- parse_or_wrap(from_string, options, :from_parse_failed),
+             {:ok, to} <-
+               string_beside(
+                 {to_string, to_fields},
+                 {from, from_fields},
+                 :after,
+                 options,
+                 options
+               ) do
+          {:ok, from, to}
+        end
+
+      {%{year: nil} = from_fields, %{} = to_fields} ->
+        with {:ok, %Date{} = to} <- dated_end(to_fields, to_string, :to_parse_failed, options),
+             {:ok, from} <-
+               string_beside(
+                 {from_string, from_fields},
+                 {to, to_fields},
+                 :before,
+                 Keyword.put(options, :reference_date, to),
+                 options
+               ) do
+          {:ok, from, to}
+        end
+
+      {%{} = from_fields, %{year: nil} = to_fields} ->
+        with {:ok, %Date{} = from} <-
+               dated_end(from_fields, from_string, :from_parse_failed, options),
+             {:ok, to} <-
+               string_beside(
+                 {to_string, to_fields},
+                 {from, from_fields},
+                 :after,
+                 Keyword.put(options, :reference_date, from),
+                 options
+               ) do
+          {:ok, from, to}
+        end
+
+      {%{} = from_fields, %{} = to_fields} ->
+        with {:ok, from} <- dated_end(from_fields, from_string, :from_parse_failed, options),
+             {:ok, to} <- dated_end(to_fields, to_string, :to_parse_failed, options) do
+          {:ok, from, to}
+        end
+
+      _no_date ->
+        each_alone(from_string, to_string, options)
+    end
+  end
+
+  # As maps the two are the fields each was written with, and a year one
+  # was written without is the year it has beside the other's, as it is
+  # where an interval pattern reads the two (`sharing_a_written_year/3`):
+  # the year of its date there, or of its month where the two are no dates,
+  # "June to August 2031".
+  defp range_pair(from_string, to_string, _as, options) do
+    with {:ok, %{} = from, %{} = to} <- each_alone(from_string, to_string, options) do
+      if year_written?(from) == year_written?(to),
+        do: {:ok, from, to},
+        else: sharing_a_year(from, to, {from_string, to_string}, options)
+    end
+  end
+
+  defp year_written?(fields),
+    do: Map.has_key?(fields, :year) or Map.has_key?(fields, :week_based_year)
+
+  defp sharing_a_year(from, to, {from_string, to_string}, options) do
+    case range_pair(from_string, to_string, :struct, Keyword.put(options, :as, :struct)) do
+      {:ok, %Date{} = from_date, %Date{} = to_date} ->
+        {:ok, put_year(from, from_date.year), put_year(to, to_date.year)}
+
+      _no_dates ->
+        ctx = %{interval_order: :earliest_first, calendar_module: Map.get(from, :calendar)}
+        {earlier, later} = sharing_a_written_year(written_partial(from), written_partial(to), ctx)
+        {:ok, put_year(from, earlier.year), put_year(to, later.year)}
+    end
+  end
+
+  defp written_partial(fields),
+    do: %{
+      year: Map.get(fields, :year),
+      month: Map.get(fields, :month),
+      day: Map.get(fields, :day)
+    }
+
+  defp put_year(fields, year) do
+    if is_nil(year) or year_written?(fields), do: fields, else: Map.put(fields, :year, year)
+  end
+
+  # An end written with its year, which its text was read for once already
+  # (`written_fields/2`): the date its fields make where they are a year, a
+  # month and a day, and else the text read as a date.
+  defp dated_end(%{date: %Date{} = date}, _string, _reason, _options), do: {:ok, date}
+  defp dated_end(_fields, string, reason, options), do: parse_or_wrap(string, options, reason)
+
+  defp each_alone(from_string, to_string, options) do
+    with {:ok, from} <- parse_or_wrap(from_string, options, :from_parse_failed),
+         {:ok, to} <- parse_or_wrap(to_string, options, :to_parse_failed) do
+      {:ok, from, to}
+    end
+  end
+
+  # The date `string` is, written without its year, beside the date `anchor`
+  # of the range's other end. `same_year` is the options it is read with in
+  # the anchor's year, and each `fields` the fields a string was written
+  # with. Where a day and an earlier day are of one month is told from the
+  # two dates, where there are two, as a month's number in a year is not its
+  # number in another.
+  defp string_beside({string, fields}, {anchor, anchor_fields}, side, same_year, options) do
+    reason = if side == :after, do: :to_parse_failed, else: :from_parse_failed
+
+    date_beside(
+      fn
+        ^anchor -> parse_or_wrap(string, same_year, reason)
+        %Date{} = reference -> parse(string, Keyword.put(options, :reference_date, reference))
+      end,
+      anchor,
+      side,
+      fn
+        {:ok, %Date{} = date} -> backwards_in_a_month?(date, anchor, side)
+        _no_date -> backwards_in_a_month?(fields, anchor_fields, side)
+      end
+    )
+  end
+
+  # The year, the month and the day a date was written with, each `nil`
+  # where it was not written, with the date they make, or `nil` for text
+  # that is no date.
+  defp written_fields(string, options) do
+    case parse(string, Keyword.put(options, :as, :map)) do
+      {:ok, %{} = fields} ->
+        %{
+          year: Map.get(fields, :year) || Map.get(fields, :week_based_year),
+          month: Map.get(fields, :month),
+          day: Map.get(fields, :day),
+          date: date_of_fields(fields)
+        }
+
+      _not_read ->
+        nil
+    end
+  end
+
+  # The date of text read as a year, a month and a day and no other field.
+  # Read as a map, text is given those three only where one of the patterns
+  # made a date of them, the pattern that reads it as a date too, so the
+  # date is theirs and the text need not be read again. Text with another
+  # field, a weekday or a week, is read as a date in its own right.
+  defp date_of_fields(%{calendar: calendar, year: year, month: month, day: day} = fields)
+       when map_size(fields) == 4 and is_integer(year) and is_integer(month) and
+              is_integer(day) do
+    case Date.new(year, month, day, calendar) do
+      {:ok, date} -> date
+      {:error, _no_such_date} -> nil
+    end
+  end
+
+  defp date_of_fields(_fields), do: nil
 
   defp parse_or_wrap(string, options, reason_tag) do
     # `Date.Range` supports any calendar as long as both
@@ -2456,6 +2797,7 @@ defmodule Localize.Date.Parser do
       implied_era: implied_era(reference, calendar_module),
       cyclic_year_written: cyclic_year_written?(reference, calendar_module, locale),
       narrow_eras: false,
+      interval_order: :earliest_first,
       variants: MapSet.new(),
       mixed_years: false,
       calendar_module: calendar_module,

@@ -134,6 +134,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+* An interval written without a year across the new year ends in the year after: "Dec 28 – Jan 3" was refused as an inverted range of the reference date's year. The later date is a year on only where it would otherwise come before the earlier, by its calendar's own days, and never an earlier day of the same month.
+
+* A date written without its year beside one written with its year takes that year, or the year next to it across the new year, wherever a range is read: "June 16 to August 20, 2031" was read as five years from the reference date's June, and "Dec 28 – Jan 3, 2027" was refused. As maps the two share the year the same way, and two strings for a calendar of weeks are read as Gregorian dates before they are converted.
+
 * A zone keeps its metazone from 1970 on, where CLDR gives its first metazone period no beginning, as ICU has it: New York in 1965 is "GMT-05:00" and "New York Time", and Los Angeles at its local mean time of 1850 is "GMT-07:52:58" and no longer "Pacific Standard Time". A metazone's name is still read with an earlier date, and `Localize.DateTime.Timezone.metazone_for/2` is `nil` before 1970.
 
 * A pattern that writes a year's name beside its number keeps the name when a skeleton asks for another numbered year. The skeleton `r` wrote a Chinese year as "2026(2026)" in most locales, root's "r(U)" turned to "r(r)", and writes "2026(bing-wu)".

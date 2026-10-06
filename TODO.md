@@ -26,11 +26,11 @@ Outstanding work on Localize. The design detail behind these items lives under [
 
 * [ ] **`G` for a Chinese or Dangi date is an error** — CLDR gives those calendars one era and no name for it, so a pattern with `G` returns `Localize.ItemNotFoundError`, where ICU4C writes the number of the sixty-year cycle, "78". TR35 is silent; decide what it writes.
 
-* [ ] **An interval typed without years across the new year is refused** — "Dec 28 – Jan 3" is two dates of the reference date's year, the later first, and so an inverted range, as it was when each side was read alone. The formatter never writes one, adding the years where they differ, and neither TR35 nor ICU reads an interval. A decision: whether the second date is of the year after.
-
 * [ ] **An interval item is written in digits where the date alone takes its format's numbering** — `he`'s Hebrew medium interval is "1–5 בתמוז 5786" beside the date "א׳ בתמוז ה׳תשפ״ו", and `zh`'s Chinese "2026年五月2至6" beside "2026年五月初二", as ICU4C writes them: CLDR's interval items carry no numbering and TR35 says nothing of one for them. Decide whether an interval at a standard format takes the format's numbering, as it takes its fields.
 
 ## In progress
+
+* [ ] **An interval typed without years across the new year is refused** — "Dec 28 – Jan 3" is two dates of the reference date's year, the later first, and so an inverted range, as it was when each side was read alone. The formatter never writes one, adding the years where they differ, and neither TR35 nor ICU reads an interval. A decision: whether the second date is of the year after. Landed 2026-10-06: the later date is of the year after where it would otherwise come before the earlier by the calendar's own days, and a date written without its year takes the year of the date written beside it, or the year next to it; the batch's sweep across the locales and the calendars is still to run.
 
 * [ ] **CLDR 49 upgrade** — the plan's items are closed bar item 11; the data is built from CLDR `main` pending beta3 (below), then the final release. [plans/cldr-49.md](plans/cldr-49.md).
 

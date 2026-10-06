@@ -1095,6 +1095,76 @@ defmodule Localize.CalendarCallbacksTest do
     end
   end
 
+  # Two dates written for a calendar of weeks without a year share one as the
+  # Gregorian dates they are written as, whichever way they are given: 28
+  # December 2026 and 3 January 2027 are the Monday and the Sunday of ISO
+  # week 53 of 2026 (`:calendar.iso_week_number/1`), and the calendar's own
+  # year does not turn between them.
+  describe "an interval written without a year for an ISO week calendar" do
+    test "ends in the Gregorian year after, across the Gregorian new year" do
+      assert :calendar.iso_week_number({2026, 12, 28}) == {2026, 53}
+      assert :calendar.iso_week_number({2027, 1, 3}) == {2026, 53}
+
+      week_53 =
+        Date.range(
+          %Date{year: 2026, month: 53, day: 1, calendar: IsoWeek},
+          %Date{year: 2026, month: 53, day: 7, calendar: IsoWeek}
+        )
+
+      options = [locale: :en, calendar: IsoWeek, reference_date: ~D[2026-06-01]]
+
+      for input <- ["Dec 28 – Jan 3", "December 28 to January 3", {"Dec 28", "Jan 3"}] do
+        assert Localize.Interval.parse(input, options) == {:ok, week_53}, inspect(input)
+      end
+    end
+
+    # 16 and 20 June 2026 are the Tuesday and the Saturday of ISO week 25.
+    test "is of the reference date's year where the months run on" do
+      assert :calendar.iso_week_number({2026, 6, 16}) == {2026, 25}
+
+      week_25 =
+        Date.range(
+          %Date{year: 2026, month: 25, day: 2, calendar: IsoWeek},
+          %Date{year: 2026, month: 25, day: 6, calendar: IsoWeek}
+        )
+
+      options = [locale: :en, calendar: IsoWeek, reference_date: ~D[2026-01-01]]
+
+      for input <- ["Jun 16 – 20", "June 16 to June 20", {"Jun 16", "Jun 20"}] do
+        assert Localize.Interval.parse(input, options) == {:ok, week_25}, inspect(input)
+      end
+    end
+
+    test "two strings are read as an interval is, as maps and inverted" do
+      options = [locale: :en, calendar: IsoWeek]
+
+      assert Localize.Interval.parse({"Feb 1, 2024", "Feb 5, 2024"}, [as: :map] ++ options) ==
+               {:ok,
+                {%{year: 2024, month: 5, day: 4, calendar: IsoWeek},
+                 %{year: 2024, month: 6, day: 1, calendar: IsoWeek}}}
+
+      assert {:error, %Localize.DateRangeParseError{reason: :inverted}} =
+               Localize.Interval.parse({"Feb 5, 2024", "Feb 1, 2024"}, options)
+
+      assert Localize.Interval.parse(
+               {"Feb 5, 2024", "Feb 1, 2024"},
+               [allow_inverted: true] ++ options
+             ) ==
+               {:ok,
+                Date.range(
+                  %Date{year: 2024, month: 6, day: 1, calendar: IsoWeek},
+                  %Date{year: 2024, month: 5, day: 4, calendar: IsoWeek},
+                  -1
+                )}
+
+      assert {:error, %Localize.DateRangeParseError{reason: :from_parse_failed}} =
+               Localize.Interval.parse({"not a date", "Feb 1, 2024"}, options)
+
+      assert {:error, %Localize.DateRangeParseError{reason: :to_parse_failed}} =
+               Localize.Interval.parse({"Feb 1, 2024", "not a date"}, options)
+    end
+  end
+
   describe "an ISO 8601 date and time" do
     # ISO 8601 writes a Gregorian date, which is returned in the calendar
     # asked for, as a date alone is.

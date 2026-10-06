@@ -714,7 +714,264 @@ defmodule Localize.IntervalTest do
                 {%{calendar: Calendar.ISO, month: 6, day: 16},
                  %{calendar: Calendar.ISO, month: 6, day: 20}}}
     end
+  end
 
+  # The formatter gives two whole dates their years where they differ, so
+  # text written without one across the new year is typed, or written from
+  # two dates given without their years, and it reads as it runs: the later
+  # date is of the year after where it would come before the earlier in the
+  # reference date's year (user, 2026-10-06). en.xml's `MMMd` interval is
+  # "MMM d – MMM d" and its `Md` "M/d – M/d", de.xml's `MMMd`
+  # "d. MMM – d. MMM".
+  describe "parse/2 of an interval written without a year across the new year" do
+    @reference [reference_date: ~D[2026-06-01]]
+    @across {:ok, Date.range(~D[2026-12-28], ~D[2027-01-03])}
+
+    test "ends in the year after the reference date's" do
+      for text <- ["Dec 28 – Jan 3", "Dec 28–Jan 3", "12/28 – 1/3", "December 28 to January 3"] do
+        assert Interval.parse(text, [locale: :en] ++ @reference) == @across, text
+      end
+
+      assert Interval.parse("28. Dez. – 3. Jan.", [locale: :de] ++ @reference) == @across
+      assert Interval.parse({"Dec 28", "Jan 3"}, [locale: :en] ++ @reference) == @across
+    end
+
+    # kek.xml's Gregorian fallback pattern is "{1} – {0}", the later date
+    # first, and its `Md` interval "d/M – d/M".
+    test "written latest first, begins the year before its first date" do
+      assert Interval.parse("3/1 – 28/12", [locale: :kek] ++ @reference) == @across
+
+      assert Interval.parse("28/12 – 3/1", [locale: :kek] ++ @reference) ==
+               {:ok, Date.range(~D[2026-01-03], ~D[2026-12-28])}
+    end
+
+    test "is a range of the reference year where the months run on" do
+      assert Interval.parse("Jan 3 – Dec 28", [locale: :en] ++ @reference) ==
+               {:ok, Date.range(~D[2026-01-03], ~D[2026-12-28])}
+    end
+
+    test "is still inverted within one month, whatever is allowed" do
+      for text <- ["Jun 20 – 16", "Jun 20 – Jun 16"] do
+        assert {:error, %Localize.DateRangeParseError{reason: :inverted}} =
+                 Interval.parse(text, [locale: :en] ++ @reference),
+               text
+      end
+
+      assert Interval.parse("Dec 28 – Jan 3", [locale: :en, allow_inverted: true] ++ @reference) ==
+               @across
+    end
+
+    # 2027 has no 29 February and 2028 has. The day is taken from the year
+    # after where it is then less than a year from the first date, and a
+    # date is never moved a year and more on for its day: read by an
+    # interval pattern, cut at "to" and as two strings alike.
+    test "takes a day only the year after has, less than a year on" do
+      reference = [locale: :en, reference_date: ~D[2027-06-01]]
+
+      for input <- [
+            "Dec 28 – Feb 29",
+            "December 28 to February 29",
+            {"Dec 28", "Feb 29"}
+          ] do
+        assert Interval.parse(input, reference) ==
+                 {:ok, Date.range(~D[2027-12-28], ~D[2028-02-29])},
+               inspect(input)
+      end
+
+      for input <- ["Jan 5 – Feb 29", "January 5 to February 29", {"Jan 5", "Feb 29"}] do
+        assert {:error, %Localize.DateRangeParseError{}} = Interval.parse(input, reference),
+               inspect(input)
+      end
+    end
+
+    # en.xml's `MMMEd` interval is "E, MMM d – E, MMM d". 28 December 2026
+    # is a Monday and 3 January 2027 a Sunday (`Date.day_of_week/1`); 3
+    # January 2026 is a Saturday.
+    test "with its days of the week" do
+      assert {Date.day_of_week(~D[2026-12-28]), Date.day_of_week(~D[2027-01-03])} == {1, 7}
+
+      assert Interval.parse("Mon, Dec 28 – Sun, Jan 3", [locale: :en] ++ @reference) == @across
+
+      assert Interval.parse({"Mon, Dec 28", "Sun, Jan 3"}, [locale: :en] ++ @reference) ==
+               @across
+    end
+
+    test "is still inverted within one month as two strings" do
+      assert {:error, %Localize.DateRangeParseError{reason: :inverted}} =
+               Interval.parse({"Jun 20", "Jun 16"}, [locale: :en] ++ @reference)
+
+      assert {:error, %Localize.DateRangeParseError{reason: :inverted}} =
+               Interval.parse("June 20 to June 16", [locale: :en] ++ @reference)
+    end
+
+    test "leaves written years as they are" do
+      assert {:error, %Localize.DateRangeParseError{reason: :inverted}} =
+               Interval.parse("Dec 28, 2026 – Jan 3, 2026", locale: :en)
+    end
+
+    for format <- [:Md, :MMMd, :MMMMd] do
+      test "reads what each locale writes at #{inspect(format)} for two months of different years" do
+        failures =
+          for locale <- Localize.Test.InstalledLocales.all(),
+              {:ok, text} =
+                Interval.to_string(%{month: 12, day: 28}, %{month: 1, day: 3},
+                  locale: locale,
+                  format: unquote(format)
+                ),
+              parsed = Interval.parse(text, [locale: locale] ++ @reference),
+              parsed != @across do
+            {locale, text, parsed}
+          end
+
+        assert failures == [], inspect(Enum.take(failures, 5), pretty: true)
+      end
+    end
+  end
+
+  # CLDR's interval patterns write a year two dates share once, beside one
+  # of them: en.xml's `yMMMd` interval is "MMM d – MMM d, y" and ja.xml's
+  # "y年M月d日～M月d日". So a date written without its year beside one
+  # written with it is of that year, read by an interval pattern or as two
+  # dates about a separator, and not of the reference date's: "June 16 to
+  # August 20, 2031" was read as five years from the reference date's June.
+  # Where the two would then be in the wrong order, the undated one is of
+  # the year next to it, as two dates written without a year are a year
+  # apart across the new year.
+  describe "parse/2 of an interval with one of its dates written without a year" do
+    @elsewhere [locale: :en, reference_date: ~D[2021-06-01]]
+
+    test "takes the year of the other date, whatever the reference date" do
+      for input <- [
+            "Jun 16 – Aug 20, 2031",
+            "June 16 to August 20, 2031",
+            "June 16, 2031 to August 20",
+            {"Jun 16", "Aug 20, 2031"},
+            {"Jun 16, 2031", "Aug 20"}
+          ] do
+        assert Interval.parse(input, @elsewhere) ==
+                 {:ok, Date.range(~D[2031-06-16], ~D[2031-08-20])},
+               inspect(input)
+      end
+    end
+
+    test "takes the year next to the other date's across the new year" do
+      for input <- [
+            "Dec 28 – Jan 3, 2027",
+            "Dec 28, 2026 – Jan 3",
+            "December 28 to January 3, 2027",
+            "December 28, 2026 to January 3",
+            {"Dec 28", "Jan 3, 2027"},
+            {"Dec 28, 2026", "Jan 3"}
+          ] do
+        assert Interval.parse(input, @elsewhere) ==
+                 {:ok, Date.range(~D[2026-12-28], ~D[2027-01-03])},
+               inspect(input)
+      end
+    end
+
+    test "where the pattern writes the year beside the first date" do
+      assert Interval.to_string(~D[2026-06-16], ~D[2026-08-20], locale: :ja, format: :yMMMd) ==
+               {:ok, "2026年6月16日～8月20日"}
+
+      reference = [locale: :ja, reference_date: ~D[2021-06-01]]
+
+      assert Interval.parse("2026年6月16日～8月20日", reference) ==
+               {:ok, Date.range(~D[2026-06-16], ~D[2026-08-20])}
+
+      assert Interval.parse("2026年12月28日～1月3日", reference) ==
+               {:ok, Date.range(~D[2026-12-28], ~D[2027-01-03])}
+    end
+
+    # kek.xml's fallback pattern is "{1} – {0}", the later date first.
+    test "written latest first" do
+      assert Interval.parse("3/1/2027 – 28/12", locale: :kek, reference_date: ~D[2021-06-01]) ==
+               {:ok, Date.range(~D[2026-12-28], ~D[2027-01-03])}
+    end
+
+    test "is still inverted within one month" do
+      for input <- ["Jun 20 – 16, 2027", "June 20 to June 16, 2027", {"Jun 20", "Jun 16, 2027"}] do
+        assert {:error,
+                %Localize.DateRangeParseError{
+                  reason: :inverted,
+                  from: ~D[2027-06-20],
+                  to: ~D[2027-06-16]
+                }} = Interval.parse(input, @elsewhere),
+               inspect(input)
+      end
+    end
+
+    # 2021 and 2027 have no 29 February; 2028 has.
+    test "takes a day the other date's year has, or the year next to it" do
+      assert Interval.parse("February 29 to June 16, 2028", @elsewhere) ==
+               {:ok, Date.range(~D[2028-02-29], ~D[2028-06-16])}
+
+      assert Interval.parse("February 29 to January 5, 2029", @elsewhere) ==
+               {:ok, Date.range(~D[2028-02-29], ~D[2029-01-05])}
+
+      assert {:error, %Localize.DateRangeParseError{reason: :from_parse_failed}} =
+               Interval.parse("February 29 to June 16, 2027", @elsewhere)
+    end
+
+    test "leaves two written years as they are" do
+      assert Interval.parse("June 16, 2026 to August 20, 2031", @elsewhere) ==
+               {:ok, Date.range(~D[2026-06-16], ~D[2031-08-20])}
+
+      assert {:error, %Localize.DateRangeParseError{reason: :inverted}} =
+               Interval.parse({"Dec 28, 2027", "Jan 3, 2027"}, @elsewhere)
+    end
+
+    test "as maps, has the year its date has" do
+      december = %{calendar: Calendar.ISO, year: 2026, month: 12, day: 28}
+      january = %{calendar: Calendar.ISO, year: 2027, month: 1, day: 3}
+
+      for input <- [
+            "Dec 28 – Jan 3, 2027",
+            "December 28 to January 3, 2027",
+            {"Dec 28", "Jan 3, 2027"},
+            {"Dec 28, 2026", "Jan 3"}
+          ] do
+        assert Interval.parse(input, [as: :map] ++ @elsewhere) == {:ok, {december, january}},
+               inspect(input)
+      end
+
+      assert Interval.parse("June 16 to August 20, 2031", [as: :map] ++ @elsewhere) ==
+               {:ok,
+                {%{calendar: Calendar.ISO, year: 2031, month: 6, day: 16},
+                 %{calendar: Calendar.ISO, year: 2031, month: 8, day: 20}}}
+    end
+
+    # en.xml's `yMMM` interval is "MMM – MMM y". Two months are no dates, and
+    # each is placed by its first day.
+    test "as maps, two months share a year the same way" do
+      for input <- ["Dec – Jan 2027", "December to January 2027"] do
+        assert Interval.parse(input, [as: :map] ++ @elsewhere) ==
+                 {:ok,
+                  {%{calendar: Calendar.ISO, year: 2026, month: 12},
+                   %{calendar: Calendar.ISO, year: 2027, month: 1}}},
+               input
+      end
+
+      for input <- ["Jun – Aug 2031", "June to August 2031"] do
+        assert Interval.parse(input, [as: :map] ++ @elsewhere) ==
+                 {:ok,
+                  {%{calendar: Calendar.ISO, year: 2031, month: 6},
+                   %{calendar: Calendar.ISO, year: 2031, month: 8}}},
+               input
+      end
+    end
+
+    test "as maps, two dates written without a year have none" do
+      for input <- ["Dec 28 – Jan 3", {"Dec 28", "Jan 3"}, "December 28 to January 3"] do
+        assert Interval.parse(input, [as: :map] ++ @elsewhere) ==
+                 {:ok,
+                  {%{calendar: Calendar.ISO, month: 12, day: 28},
+                   %{calendar: Calendar.ISO, month: 1, day: 3}}},
+               inspect(input)
+      end
+    end
+  end
+
+  describe "parse/2 of an interval written without a year, in each locale" do
     for {name, options} <- [
           {":Md", [format: :Md]},
           {":MMMd", [format: :MMMd]},
