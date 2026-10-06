@@ -69,8 +69,8 @@ defmodule Localize.TimeParseIso8601Test do
     end
 
     # A `Time` has no zone, so the struct is the time as written; the map
-    # carries the offset as a `DateTime` would, a fixed offset under
-    # `Etc/UTC`.
+    # carries the offset as a `DateTime` would: its time zone the offset
+    # itself (user, 2026-10-06), and `Etc/UTC` for no offset at all.
     test "keeps the offset written after it" do
       for {text, time, unwritten} <- @designated,
           {offset_text, offset, abbreviation} <- @offsets do
@@ -78,7 +78,7 @@ defmodule Localize.TimeParseIso8601Test do
         assert Localize.Time.parse(input, locale: :en) == {:ok, time}, input
 
         zone = %{
-          time_zone: "Etc/UTC",
+          time_zone: if(offset == 0, do: "Etc/UTC", else: abbreviation),
           utc_offset: offset,
           std_offset: 0,
           zone_abbr: abbreviation
@@ -127,7 +127,7 @@ defmodule Localize.TimeParseIso8601Test do
                   %{
                     hour: 10,
                     minute: 30,
-                    time_zone: "Etc/UTC",
+                    time_zone: "+02:00",
                     utc_offset: 7200,
                     std_offset: 0,
                     zone_abbr: "+02:00"

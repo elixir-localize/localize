@@ -788,9 +788,10 @@ defmodule Localize.DateTime.Timezone do
   end
 
   # A UTC zone names the zero offset and no other. A struct carrying another
-  # offset under a UTC identifier — the fixed offset an ISO 8601 parse of
-  # `15:04-05:00` gives — is an offset with no name, which TR35 renders in
-  # the localized GMT format rather than as "UTC".
+  # offset under a UTC identifier, as a fixed offset was carried and a
+  # caller may still give one, is an offset with no name, which TR35 renders
+  # in the localized GMT format rather than as "UTC". A fixed offset's own
+  # zone, "-05:00", is no zone CLDR names, and is rendered the same way.
   defp named_zone(time_zone, datetime) when is_binary(time_zone) do
     canonical = Map.get(@zone_canonical_names, time_zone, time_zone)
 
@@ -1587,7 +1588,9 @@ defmodule Localize.DateTime.Timezone do
   Resolves a time zone written in any form `parse_zone/2` reads, at a date
   and time, to the `t:DateTime.t/0` it names.
 
-  A fixed offset resolves on its own, as a `t:DateTime.t/0` at that offset.
+  A fixed offset resolves on its own, as a `t:DateTime.t/0` at that offset,
+  whose time zone is the offset itself, `"+05:30"`, and `"Etc/UTC"` for no
+  offset at all.
   A time zone's offset depends on the date, so it needs the time zone
   database the application configures, such as `:tz`
   (`config :elixir, :time_zone_database, Tz.TimeZoneDatabase`).
@@ -1739,9 +1742,19 @@ defmodule Localize.DateTime.Timezone do
   end
 
   @doc false
-  # A date and time at a fixed offset, carried as Localize and Calendrical
-  # carry one: under `Etc/UTC` with the offset as its `utc_offset` and
-  # spelled as its `zone_abbr`, so the wall time is kept as written.
+  # A date and time at a fixed offset, its wall time kept as written. Its
+  # time zone is the offset itself, "-05:00" (user, 2026-10-06), which is
+  # how ECMA-262 Temporal and RFC 9557 name the zone of a fixed offset, and
+  # its abbreviation the same.
+  #
+  # It was carried under `Etc/UTC` with the offset as its `utc_offset`, and
+  # Elixir takes a zone of that name to have no offset: `DateTime.shift_zone/3`
+  # to UTC returned the value unchanged, `DateTime.add/4` dropped the offset
+  # and `DateTime.shift/3` kept the wall time and dropped the offset, so
+  # 10:00 at -05:00 a month on was 10:00 UTC, five hours out. A zone of its
+  # own name is converted from correctly by its offsets, and a function that
+  # must look the zone up says it does not know it, where
+  # `Localize.TimeZoneDatabase` is not the database.
   @spec offset_datetime(map(), integer()) :: DateTime.t()
   def offset_datetime(naive_datetime, offset) do
     struct(DateTime, Map.merge(Map.from_struct(naive_datetime), offset_zone_fields(offset)))
@@ -1749,21 +1762,44 @@ defmodule Localize.DateTime.Timezone do
 
   @doc false
   # The zone fields of a fixed offset, as `offset_datetime/2` carries them.
+  # No offset at all is UTC.
   @spec offset_zone_fields(integer()) :: map()
+  def offset_zone_fields(0),
+    do: %{time_zone: "Etc/UTC", utc_offset: 0, std_offset: 0, zone_abbr: "UTC"}
+
   def offset_zone_fields(offset) do
-    %{
-      time_zone: "Etc/UTC",
-      utc_offset: offset,
-      std_offset: 0,
-      zone_abbr: offset_abbreviation(offset)
-    }
+    zone = offset_zone(offset)
+    %{time_zone: zone, utc_offset: offset, std_offset: 0, zone_abbr: zone}
   end
 
-  defp offset_abbreviation(0), do: "UTC"
+  @doc false
+  # The time zone of a fixed offset, in seconds: the offset as TR35's
+  # `xxxxx` writes it, with its seconds where it has them, "+05:30", and
+  # "-07:52:58" for Los Angeles before standard time.
+  @spec offset_zone(integer()) :: String.t()
+  def offset_zone(offset) when is_integer(offset), do: format_iso_offset(offset, :full, :extended)
 
-  # The offset as TR35's `xxxxx` writes it, its seconds where it has them:
-  # "+05:30", and "-07:52:58" for Los Angeles before standard time.
-  defp offset_abbreviation(offset), do: format_iso_offset(offset, :full, :extended)
+  @doc false
+  # The offset, in seconds, of a time zone that is a fixed offset's
+  # (`offset_zone/1`), or `:error` for any other.
+  @spec zone_offset(term()) :: {:ok, integer()} | :error
+  def zone_offset(time_zone) when is_binary(time_zone) do
+    case Regex.run(~r/\A([+-])([01]\d|2[0-3]):([0-5]\d)(?::([0-5]\d))?\z/, time_zone) do
+      [_zone, sign, hours, minutes] -> {:ok, signed(sign, hours, minutes, "00")}
+      [_zone, sign, hours, minutes, seconds] -> {:ok, signed(sign, hours, minutes, seconds)}
+      nil -> :error
+    end
+  end
+
+  def zone_offset(_no_zone), do: :error
+
+  defp signed(sign, hours, minutes, seconds) do
+    offset =
+      String.to_integer(hours) * 3600 + String.to_integer(minutes) * 60 +
+        String.to_integer(seconds)
+
+    if sign == "-", do: -offset, else: offset
+  end
 
   # A name or place comes before a zone ID, which TR35's process does not
   # read at all: "EST" is Eastern Standard Time in `en`, as ICU reads it,

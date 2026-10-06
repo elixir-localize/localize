@@ -56,11 +56,15 @@ defmodule Localize.DateTime.WallClock do
   end
 
   @doc false
-  # A fixed offset is carried under `Etc/UTC`, as parsing a localized GMT
-  # format gives it.
+  # A fixed offset's time zone is the offset itself, "-05:00", as parsing a
+  # localized GMT format gives it (`Localize.DateTime.Timezone.offset_zone/1`).
+  # One under `Etc/UTC` with an offset, as it was carried and as a caller
+  # may still give it, is a fixed offset too.
   @spec fixed_offset?(DateTime.t()) :: boolean()
   def fixed_offset?(%DateTime{time_zone: "Etc/UTC"} = datetime), do: offset(datetime) != 0
-  def fixed_offset?(%DateTime{}), do: false
+
+  def fixed_offset?(%DateTime{time_zone: time_zone}),
+    do: match?({:ok, _offset}, Localize.DateTime.Timezone.zone_offset(time_zone))
 
   @doc false
   # A date-time's offset from UTC, in seconds.

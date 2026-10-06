@@ -1093,7 +1093,11 @@ defmodule Localize.DateTime do
 
   An input carrying a fixed UTC offset resolves to a `t:DateTime.t/0`,
   whether written as an ISO 8601 offset (`+05:30`, `Z`) or in the
-  locale's GMT format (`GMT+10:30`, `UTC-5`). A named zone (`PST`,
+  locale's GMT format (`GMT+10:30`, `UTC-5`). Its time zone is the offset
+  itself, `"+05:30"`, as ECMA-262 Temporal and RFC 9557 name the zone of
+  a fixed offset, and `"Etc/UTC"` for no offset at all; see
+  `Localize.TimeZoneDatabase` for the functions of `DateTime` that look
+  such a zone up. A named zone (`PST`,
   `Asia/Tokyo`) carries no offset of its own and needs a time-zone
   database, which the companion
   [calendrical](https://hex.pm/packages/calendrical) package supplies;
@@ -1174,7 +1178,7 @@ defmodule Localize.DateTime do
 
       iex> {:ok, map} = Localize.DateTime.parse("March 22, 2026, 2:30 PM GMT+5", locale: :en, as: :map)
       iex> Map.take(map, [:hour, :time_zone, :utc_offset])
-      %{hour: 14, time_zone: "Etc/UTC", utc_offset: 18000}
+      %{hour: 14, time_zone: "+05:00", utc_offset: 18000}
 
   """
   @spec parse(String.t(), Keyword.t()) ::

@@ -581,7 +581,7 @@ defmodule Localize.ZoneParseTest do
     # A specific name keeps its own offset: EST in July is 10:00 at -05:00,
     # a fixed offset, since New York keeps daylight time then.
     test "a name of standard or daylight time" do
-      assert {:ok, %DateTime{time_zone: "Etc/UTC", utc_offset: -18_000} = datetime} =
+      assert {:ok, %DateTime{time_zone: "-05:00", utc_offset: -18_000} = datetime} =
                Timezone.resolve("EST", ~N[2023-07-01 10:00:00], locale: :en)
 
       assert DateTime.compare(datetime, ~U[2023-07-01 15:00:00Z]) == :eq
@@ -622,7 +622,7 @@ defmodule Localize.ZoneParseTest do
                 %DateTime{time_zone: "America/Punta_Arenas", utc_offset: -10_800, std_offset: 0}} =
                  Timezone.resolve("Chile Summer Time (Punta Arenas)", naive, locale: :en)
 
-        assert {:ok, %DateTime{time_zone: "Etc/UTC", utc_offset: -14_400}} =
+        assert {:ok, %DateTime{time_zone: "-04:00", utc_offset: -14_400}} =
                  Timezone.resolve("Chile Standard Time (Punta Arenas)", naive, locale: :en)
       end
 
@@ -631,7 +631,7 @@ defmodule Localize.ZoneParseTest do
 
       assert DateTime.compare(summer, ~U[2026-07-15 09:00:00Z]) == :eq
 
-      assert {:ok, %DateTime{time_zone: "Etc/UTC"} = winter} =
+      assert {:ok, %DateTime{time_zone: "+01:00"} = winter} =
                Timezone.resolve("Irish Standard Time", ~N[2026-01-15 10:00:00], locale: :en)
 
       assert DateTime.compare(winter, ~U[2026-01-15 09:00:00Z]) == :eq
@@ -653,7 +653,7 @@ defmodule Localize.ZoneParseTest do
         assert DateTime.compare(datetime, utc) == :eq, "#{text} at #{naive}"
       end
 
-      assert {:ok, %DateTime{time_zone: "Etc/UTC", utc_offset: -18_000}} =
+      assert {:ok, %DateTime{time_zone: "-05:00", utc_offset: -18_000}} =
                Timezone.resolve("Eastern Standard Time", ~N[1965-07-15 10:00:00], locale: :en)
 
       assert {:ok, %DateTime{time_zone: "America/New_York", zone_abbr: "EST"}} =

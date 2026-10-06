@@ -8,6 +8,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Breaking changes
 
+* A date and time read with an offset is a `t:DateTime.t/0` whose time zone is the offset itself, `"-05:00"`, as ECMA-262 Temporal and RFC 9557 name the zone of a fixed offset, where it was `"Etc/UTC"` beside a non-zero `:utc_offset`: Elixir took that for UTC, so `DateTime.shift_zone/3` returned it unchanged and `DateTime.shift/3` a time hours out. `DateTime.add/4` and `DateTime.shift/3` need a time zone database that knows such a zone, which the new `Localize.TimeZoneDatabase` is, wrapping the application's own, and a value under `"Etc/UTC"` with an offset of its own is still written and measured as the fixed offset it is.
+
 * `Localize.Calendar.localize/3` returns a `Localize.DateTimeInvalidInputError` naming the field for a value that lacks one its part is named from, as `Localize.Date.to_string/2` does for a pattern that asks for the part. It named the part's first value: `localize(%{year: 2026}, :month)` was "January", a year and a month a Monday, and a value with no year of the current era; a value that is no map is an error too.
 
 ### Added

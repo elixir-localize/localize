@@ -636,7 +636,7 @@ defmodule Localize.ParsingCoverageTest do
                 %{
                   hour: 14,
                   minute: 30,
-                  time_zone: "Etc/UTC",
+                  time_zone: "+05:00",
                   utc_offset: 18_000,
                   std_offset: 0,
                   zone_abbr: "+05:00"
@@ -1097,7 +1097,7 @@ defmodule Localize.ParsingCoverageTest do
 
     test "as: :map resolves a fixed offset when the date is partial" do
       assert {:ok, map} = Localize.DateTime.parse("May 5, 2:30 PM GMT+5", locale: :en, as: :map)
-      assert %{month: 5, day: 5, time_zone: "Etc/UTC", utc_offset: 18_000} = map
+      assert %{month: 5, day: 5, time_zone: "+05:00", utc_offset: 18_000} = map
       refute Map.has_key?(map, :year)
     end
 
@@ -1113,7 +1113,7 @@ defmodule Localize.ParsingCoverageTest do
                   day: 16,
                   hour: 14,
                   minute: 30,
-                  time_zone: "Etc/UTC",
+                  time_zone: "-08:00",
                   utc_offset: -28_800,
                   std_offset: 0,
                   zone_abbr: "-08:00"

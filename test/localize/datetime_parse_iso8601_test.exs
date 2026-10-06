@@ -189,7 +189,8 @@ defmodule Localize.DateTimeParseIso8601Test do
                Localize.DateTime.parse("2026-06-16 10:30", locale: :en, as: :map)
     end
 
-    # A fixed offset is carried under `Etc/UTC`, as a `DateTime` carries it.
+    # A fixed offset's time zone is the offset itself, as a `DateTime` of it
+    # carries it (user, 2026-10-06), where it was carried under `Etc/UTC`.
     test "carry the offset's zone fields" do
       assert Localize.DateTime.parse("20260616T1030+0200", locale: :en, as: :map) ==
                {:ok,
@@ -200,7 +201,7 @@ defmodule Localize.DateTimeParseIso8601Test do
                   day: 16,
                   hour: 10,
                   minute: 30,
-                  time_zone: "Etc/UTC",
+                  time_zone: "+02:00",
                   zone_abbr: "+02:00",
                   utc_offset: 7200,
                   std_offset: 0

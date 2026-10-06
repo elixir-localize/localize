@@ -2192,10 +2192,12 @@ defmodule Localize.Message.Interpreter do
     "cannot convert to the time zone #{inspect(zone)}: #{inspect(reason)}"
   end
 
-  # Localize and Calendrical carry a fixed offset such as an ISO 8601
-  # `-05:00` under the `Etc/UTC` identifier with its own offset, which
-  # `DateTime.shift_zone/2` takes for UTC already and returns unchanged. A
-  # conversion starts from its instant in UTC instead.
+  # A fixed offset such as an ISO 8601 `-05:00` was carried under the
+  # `Etc/UTC` identifier with its own offset, and a caller may still give
+  # one so, which `DateTime.shift_zone/2` takes for UTC already and returns
+  # unchanged. A conversion starts from its instant in UTC instead. A fixed
+  # offset whose zone is the offset itself, as Localize reads one now, is
+  # converted as it is.
   defp utc_instant(%DateTime{time_zone: "Etc/UTC", utc_offset: utc, std_offset: std} = datetime)
        when is_integer(utc) and is_integer(std) and utc + std != 0 do
     DateTime.add(%{datetime | utc_offset: 0, std_offset: 0, zone_abbr: "UTC"}, -(utc + std))

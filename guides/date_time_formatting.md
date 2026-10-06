@@ -646,13 +646,20 @@ A datetime carrying a fixed UTC offset resolves to a `t:DateTime.t/0`. The offse
 
 ```elixir
 iex> Localize.DateTime.parse("May 16, 2026 2:30 PM GMT+10:30", locale: :en)
-{:ok, #DateTime<2026-05-16 14:30:00+10:30>}
+{:ok, #DateTime<2026-05-16 14:30:00+10:30 +10:30 +10:30>}
 
 iex> Localize.DateTime.parse("2026-05-16T14:30:00+10:30", locale: :en)
-{:ok, #DateTime<2026-05-16 14:30:00+10:30>}
+{:ok, #DateTime<2026-05-16 14:30:00+10:30 +10:30 +10:30>}
 ```
 
-Shift to UTC yourself with `DateTime.shift_zone/3` when you want it; the parser does not do it for you, because the original offset cannot be recovered afterwards.
+The value's time zone is the offset itself, `"+10:30"`, as ECMA-262 Temporal and RFC 9557 name the zone of a fixed offset, and its abbreviation is the same, which is why Elixir prints the offset three times. Shift to UTC yourself with `DateTime.shift_zone/3` when you want it; the parser does not do it for you, because the original offset cannot be recovered afterwards. The functions of `DateTime` that need only the value's own offsets take it as it is, `DateTime.shift_zone/3`, `DateTime.compare/2`, `DateTime.diff/3` and `DateTime.to_unix/2` among them. The ones that look the value's own zone up, `DateTime.add/4` and `DateTime.shift/3`, need a time zone database that knows such a zone: `Localize.TimeZoneDatabase` answers for a fixed offset and asks the database it wraps about every other zone.
+
+```elixir
+config :elixir, :time_zone_database, Localize.TimeZoneDatabase
+config :localize, :time_zone_database, Tz.TimeZoneDatabase
+```
+
+A zero offset, "Z" or "GMT", is UTC, `"Etc/UTC"`. A value built by hand under `"Etc/UTC"` with an offset of its own, as Localize carried a fixed offset before, is still formatted and measured as the fixed offset it is.
 
 A *named* zone resolves too, in any form the locale writes one, as TR35's time zone parsing reads them: a zone or metazone name, long or short (`"EDT"`, `"Eastern Daylight Time"`, `"heure d’été de l’Est nord-américain"`), a location (`"New York Time"`, `"heure : New York"`), a city or a zone ID (`"Asia/Tokyo"`). Its offset depends on the date, so it needs the time zone database the application configures, such as [tz](https://hex.pm/packages/tz):
 
