@@ -1,8 +1,8 @@
 # TR35 audit of what follows ICU
 
-**Status:** in progress, 2026-10-06
+**Status:** implemented (v1.4.0), 2026-10-06
 
-Localize follows TR35, and follows ICU only where ICU clearly follows TR35 (user, 2026-10-06: "You must follow TR35 and use ICU ONlY when it's clear it follows TR35"). This document is the check of the code against that rule: every comment and doc in `lib` that names ICU, read against TR35's text at CLDR `6198cae999` (`docs/ldml/tr35-dates.md` in the CLDR repository), and given one of four standings.
+Localize follows TR35, and follows ICU only where ICU clearly follows TR35 (user, 2026-10-06: "You must follow TR35 and use ICU ONlY when it's clear it follows TR35"). This document is the check of the code against that rule: every comment and doc in `lib` that names ICU, read against TR35's text at CLDR `6198cae999` (`docs/ldml/` in the CLDR repository), and given one of these standings.
 
 * **Contradicted TR35** — fixed, with the commit.
 
@@ -189,3 +189,5 @@ CLDR publishes test data under `common/testData`, generated from ICU, and Locali
 **The Beaufort scale.** TR35 names the conversion `special` and does not define it. The thresholds are the WMO's, the conversion is between their midpoints as ICU does it, and it gives the one value CLDR's unit test data has.
 
 **Parts.** `to_parts/2` has the shape of ECMA-402's `formatToParts`, which has no algorithmic numbering system; a numeral of one is a single integer part.
+
+**MessageFormat's `numberingSystem`.** It is not among the options TR35 requires of `:number`. It is ECMA-402's, and takes any numbering system the `-u-nu-` keyword does.
