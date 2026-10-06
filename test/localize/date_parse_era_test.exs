@@ -137,6 +137,25 @@ defmodule Localize.DateParseEraTest do
     defdelegate date_to_string(year, month, day), to: Calendar.ISO
   end
 
+  # The Japanese calendar before its first era, as Calendrical's has those
+  # days: years of that era below 1. Taika, era 0, begins in 645 (Localize's
+  # curated eras), so the year -44 is its year -688. Its dates are ISO's.
+  defmodule EarliestJapanese do
+    @moduledoc false
+    use Localize.Test.StandInCalendar
+
+    def cldr_calendar_type, do: :japanese
+    def cardinal_month(month), do: month
+    def month_of_year(_year, month, _day), do: month
+    def year_of_era(year, _month, _day), do: {year - 645 + 1, 0}
+    def calendar_year(year, _month, _day), do: year - 645 + 1
+
+    defdelegate valid_date?(year, month, day), to: Calendar.ISO
+    defdelegate days_in_month(year, month), to: Calendar.ISO
+    defdelegate months_in_year(year), to: Calendar.ISO
+    defdelegate date_to_string(year, month, day), to: Calendar.ISO
+  end
+
   # The Japanese calendar numbering its years as Calendrical's
   # `Reform.Japan` does: from 645 until the reform, its year 1228 being
   # 1872, and as the Gregorian calendar numbers them from 1873, so it has no
@@ -520,6 +539,36 @@ defmodule Localize.DateParseEraTest do
         end
 
       assert failures == [], inspect(Enum.take(failures, 5), pretty: true)
+    end
+  end
+
+  # The Japanese calendar's days before its first era are years of that era
+  # below 1, and ja.xml's `jpanyear` numbering spells a year's sign
+  # (`rbnf/ja.xml`, `%spellout-numbering-year-latn`: "-x: マイナス>>;"), so 15
+  # March of the year -44 is "大化マイナス688年3月15日" at ja.xml's medium
+  # format, "Gy年M月d日", and the first of its `GyMMMd` interval's patterns,
+  # "Gy年M月d日～d日", writes five days from it. Both were read as nothing,
+  # the sign of a year being a hyphen-minus or a minus sign alone.
+  describe "a year before the first era" do
+    test "is read with the sign its numbering spells" do
+      date = Date.new!(-44, 3, 15, EarliestJapanese)
+      to = Date.new!(-44, 3, 20, EarliestJapanese)
+      text = "大化マイナス688年3月15日"
+      options = [locale: :ja, calendar: EarliestJapanese, reference_date: date]
+
+      for format <- [:medium, :long] do
+        assert Localize.Date.to_string(date, locale: :ja, format: format) == {:ok, text}
+        assert Localize.Date.parse(text, options ++ [format: format]) == {:ok, date}
+      end
+
+      assert Localize.Date.parse(text, options) == {:ok, date}
+      assert Localize.Date.parse("大化-688年3月15日", options) == {:ok, date}
+
+      assert Localize.Interval.to_string(date, to, locale: :ja, format: :medium) ==
+               {:ok, "大化マイナス688年3月15日～20日"}
+
+      assert Localize.Interval.parse("大化マイナス688年3月15日～20日", options) ==
+               {:ok, Date.range(date, to)}
     end
   end
 

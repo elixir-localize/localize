@@ -1721,8 +1721,20 @@ defmodule Localize.Date.Parser do
       _not_digits ->
         case Localize.Number.HebrewNumerals.parse(raw) do
           {:ok, year} -> {year, ""}
-          :error -> :error
+          :error -> year_signed_in_words(raw)
         end
+    end
+  end
+
+  # A year below 1 whose sign its numbering spells out (`year_sign/1`): the
+  # text before its digits is the sign, a year's pattern taking no other
+  # text there.
+  defp year_signed_in_words(raw) do
+    with [_all, digits] <- Regex.run(~r/\A\D+(\d+)\z/u, raw),
+         {year, ""} <- Integer.parse(digits) do
+      {-year, ""}
+    else
+      _no_year -> :error
     end
   end
 
@@ -3507,7 +3519,7 @@ defmodule Localize.Date.Parser do
           "(?P<year>#{digit}{2})"
 
         true ->
-          year_numerals(ctx, "(?P<year>[-−]?#{digit}{1,4})")
+          year_numerals(ctx, "(?P<year>#{year_sign(ctx)}#{digit}{1,4})")
       end
 
     {:capture, :year, regex}
@@ -3732,6 +3744,21 @@ defmodule Localize.Date.Parser do
       end)
 
     "(?:" <> branches <> ")"
+  end
+
+  # The sign of a year below 1: a hyphen-minus or U+2212 MINUS SIGN, and,
+  # where the year is written in an algorithmic numbering, what that
+  # numbering writes for one. `ja`'s `jpanyear` spells it (`rbnf/ja.xml`,
+  # "-x: マイナス>>;"), so a day before the Japanese calendar's first era is
+  # "大化マイナス688年3月15日", which was read as no date.
+  defp year_sign(ctx) do
+    with [{-2, negative}, {2, positive}] <- numeral_names(ctx, "y", [-2, 2]),
+         sign when sign not in ["", "-", "−", negative] <-
+           String.replace_suffix(negative, positive, "") do
+      "(?:[-−]|" <> Regex.escape(sign) <> ")?"
+    else
+      _a_plain_sign -> "[-−]?"
+    end
   end
 
   # The years an algorithmic numbering writes otherwise than in digits, each

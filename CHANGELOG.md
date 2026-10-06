@@ -138,15 +138,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
-* Two dates and times of one day in a calendar of weeks are written at a skeleton with the date as the week and the weekday, "Tue, week 25 of 2026, 10:30 – 12:30", where the date was the calendar's period and day number, "M06 2, 2026 AD, 10:30 – 12:30". The times take the time interval of the calendar whose formats write the skeleton, as a date and time alone takes its time.
-
-* The time of a calendar of weeks' date and time at a skeleton is read in the formats it is written in, those of the calendar its dates are read in: `th`'s "อังคารที่ สัปดาห์ที่ 25 ของปี 2026 10:30 น." was read with the generic calendar's `Hm`, "HH:mm", as no date and time, and so were such texts in 25 more locales whose two calendars write a time differently.
+* A year below 1 is read where its numbering spells its sign: `ja` writes a Japanese date before the first era with the `jpanyear` numbering, "大化マイナス688年3月15日", and it was read as no date, alone and in an interval.
 
 * A week written without its year is a week of the reference date's week-based year, where it was a week of that date's calendar year: "Sun (week: 53)" read on Sunday 3 January 2021, the last day of ISO 8601's 2020, is that day and was no date. Two such weeks are read by their week-based years as an interval, and a week and a weekday without a year, or with an era, are read with no format too.
 
 * A pattern's `''`, a quote written as text, is read inside quoted text and outside it, as TR35 has it and as it was written: `mt`'s week of the year, "w 'ġimgħa' 'ta''' Y", is written "25 ġimgħa ta' 2026" and read as no week, its "ta'" read as "ta". A date or a time read with such a pattern as its `:format` reads back too.
 
-* A skeleton's month is a calendar of weeks' week and its day the weekday: `:yMMMd` for `Calendrical.ISOWeek`'s 2026-W25-2 is "Tue, week 25 of 2026", the locale's week of the year with the weekday appended, where the calendar's period and day number were written as a month and a day, "M06 2, 2026 AD", which read back as no date. It reads back with its skeleton or with none, in a date and time and in an interval, and a weekday beside a week is that day of it in every calendar, where "Tue, week 25 of 2026" was the week's first day.
+* A skeleton's month is a calendar of weeks' week and its day the weekday: `:yMMMd` for `Calendrical.ISOWeek`'s 2026-W25-2 is "Tue, week 25 of 2026", the locale's week of the year with the weekday appended, where the calendar's period and day number were written as a month and a day, "M06 2, 2026 AD", which read back as no date. It reads back with its skeleton or with none, alone, in a date and time and in an interval of two dates, two dates and times of one day are the date once beside their times, "Tue, week 25 of 2026, 10:30 – 12:30", and a weekday beside a week is that day of it in every calendar, where "Tue, week 25 of 2026" was the week's first day.
 
 * An interval of two dates at a standard format is written in the numbering that format states, CLDR's `numbers` attribute, as the date alone is: `he`'s Hebrew medium interval is "א׳–ה׳ בתמוז ה׳תשפ״ו", where it was "1–5 בתמוז 5786" beside the date "א׳ בתמוז ה׳תשפ״ו", and `zh`'s Chinese "2026年五月初二至初六". It is read back in that numbering, and an interval at a skeleton, which states none, stays in digits.
 
