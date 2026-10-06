@@ -40,6 +40,41 @@ defmodule Localize.DateParseMatrixTest do
     assert failures == [], inspect(Enum.take(failures, 20), pretty: true, limit: 12)
   end
 
+  # The patterns a locale's dates are read with, their order and what each
+  # pass asks of a pattern are worked out once for the locale and the
+  # calendar and kept, so they hold nothing of one call: a date is read the
+  # same from them whatever the reference date, whole or as its fields, and
+  # on every call. sv.xml's long date is "d MMMM y", its `MMMd` "d MMM" and
+  # its `yMMMM` "MMMM y", and June is "juni" at both widths.
+  test "a date reads the same once its locale's patterns are kept" do
+    for _call <- 1..2 do
+      assert Localize.Date.parse("16 juni 2026", locale: :sv) == {:ok, ~D[2026-06-16]}
+
+      assert Localize.Date.parse("16 juni", locale: :sv, reference_date: ~D[2031-01-01]) ==
+               {:ok, ~D[2031-06-16]}
+
+      assert Localize.Date.parse("16 juni", locale: :sv, reference_date: ~D[1999-12-31]) ==
+               {:ok, ~D[1999-06-16]}
+
+      assert Localize.Date.parse("16 juni", locale: :sv, as: :map) ==
+               {:ok, %{calendar: Calendar.ISO, month: 6, day: 16}}
+
+      assert Localize.Date.parse("juni 2026", locale: :sv, as: :map) ==
+               {:ok, %{calendar: Calendar.ISO, month: 6, year: 2026}}
+
+      assert {:error, %Localize.DateParseError{}} =
+               Localize.Date.parse("31 juni", locale: :sv, as: :map)
+
+      # A format of the caller's own is none of the kept patterns, and is
+      # read as it stands: its `yy` is a year of the reference date's century.
+      assert Localize.Date.parse("16/06/26",
+               locale: :sv,
+               format: "dd/MM/yy",
+               reference_date: ~D[2026-01-01]
+             ) == {:ok, ~D[2026-06-16]}
+    end
+  end
+
   test "the CLDR 49 spellings of the rows CLDR 49 changed parse" do
     assert Localize.Date.parse("21 sep 2024", locale: "es-AR") == {:ok, ~D[2024-09-21]}
 

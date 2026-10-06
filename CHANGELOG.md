@@ -64,6 +64,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Changed
 
+* A date read with no format is read from patterns kept for its locale and calendar, with their order and what each pass asks of them, where the patterns were tokenized some hundreds of times on every call: `Localize.Date.parse/2` of "Jun 16, 2026" in `en` takes about 0.4 ms where it took 5.
+
 * `Localize.Interval.parse/2` keeps the compiled patterns of a locale's intervals for each calendar, as `Localize.Date.parse/2` keeps a date's, where it compiled them on every call: an `en` interval no early pattern read took about 80 ms and takes about 2. They stay in `:persistent_term`, up to about 300 KB for each locale and calendar a range is read in.
 
 * **Breaking.** A specific zone name (`z`, `zzzz`) taken from a metazone is qualified by the zone's country or city unless the zone is the metazone's preferred zone for the locale's country, by TR35's steps for the non-location formats and as CLDR's own `TimezoneFormatter` writes it: in `en`, Berlin is "Central European Summer Time (Germany)" and Phoenix "Mountain Standard Time (Phoenix)". Each reads back as its own zone; ICU never qualifies one, which the ICU divergences guide records.

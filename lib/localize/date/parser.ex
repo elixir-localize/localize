@@ -901,16 +901,9 @@ defmodule Localize.Date.Parser do
     written ++ lenient
   end
 
-  # Whether each piece of the pattern's literal text is in the input, the
-  # spaces about it apart: a pattern's thin or no-break space is any space
-  # in the text read.
-  defp literals_in?(pattern, plain_input) do
-    pattern
-    |> tokenize_pattern()
-    |> pattern_literals()
-    |> Enum.all?(&String.contains?(plain_input, &1))
-  end
-
+  # The pieces of a pattern's literal text, the spaces about each apart: a
+  # pattern's thin or no-break space is any space in the text read, so a
+  # pattern's own text is in an input where each piece is.
   defp pattern_literals(tokens) do
     for {:lit, text} <- tokens,
         literal = text |> plain_spaces() |> String.trim(),
@@ -2494,15 +2487,8 @@ defmodule Localize.Date.Parser do
   # no era at all, is never passed over for one that only allows it.
   defp read_by_narrow_era(patterns, inputs, ctx, as) do
     patterns
-    |> Enum.filter(fn {_kind, pattern} -> era_field?(pattern) end)
+    |> Enum.filter(fn {_kind, pattern} -> detail(ctx, pattern).era? end)
     |> read_patterns(inputs, %{ctx | narrow_eras: true}, as)
-  end
-
-  defp era_field?(pattern) do
-    pattern
-    |> pattern_text()
-    |> tokenize_pattern()
-    |> Enum.any?(&match?({:G, _count}, &1))
   end
 
   # The first reading of the inputs any of the patterns gives, or `nil`.
@@ -2520,7 +2506,7 @@ defmodule Localize.Date.Parser do
   # `"May"` alone).
   defp read_patterns(patterns, inputs, ctx, :map) do
     run_candidate_pass(patterns, inputs, ctx, {:map, :strict}) ||
-      run_candidate_pass(lax_order(patterns), inputs, ctx, {:map, :lax})
+      run_candidate_pass(lax_order(patterns, ctx), inputs, ctx, {:map, :lax})
   end
 
   # The patterns a calendar's dates are read with in a locale, in the order
@@ -2528,8 +2514,51 @@ defmodule Localize.Date.Parser do
   defp locale_patterns(locale, calendar_module, own_calendar, reference) do
     cldr_calendar = cldr_calendar_type(calendar_module)
 
-    with {:ok, available} <- Format.available_formats(locale, cldr_calendar),
+    with {:ok, kept} <- kept_patterns(locale, calendar_module, cldr_calendar),
          {:ok, months_data} <- LCalendar.months(locale, cldr_calendar) do
+      ctx = field_context(locale, calendar_module, own_calendar, reference, months_data)
+
+      # The compiled regex for each pattern is a pure function of
+      # (locale, calendar) — the CLDR name data and lenient rules are
+      # both derived from them — so the whole set is built once and
+      # cached. Without this every parse (especially a *failing* one,
+      # which exhausts all ~60 patterns) rebuilds and recompiles them.
+      ctx =
+        Map.merge(ctx, %{
+          regexes: pattern_regexes(kept.patterns, ctx),
+          mixed_years: kept.mixed_years,
+          variants: kept.variants,
+          pattern_details: kept.details
+        })
+
+      {:ok, kept.patterns, ctx}
+    end
+  end
+
+  # The patterns of a locale and calendar in the order they are tried, with
+  # what the passes ask of each (`pattern_detail/1`), the patterns that are
+  # a format's variant and whether the patterns write both a calendar's
+  # year and its related year. All are a function of the locale and the
+  # calendar, and are kept for the two as the regexes are: worked out on
+  # every call, the patterns were tokenized some hundreds of times for each
+  # date read, most of the 5 ms an `en` date took.
+  defp kept_patterns(locale, calendar_module, cldr_calendar) do
+    key = {__MODULE__, :locale_patterns, locale, calendar_module}
+
+    case :persistent_term.get(key, nil) do
+      nil ->
+        with {:ok, kept} <- ordered_patterns(locale, calendar_module, cldr_calendar) do
+          :persistent_term.put(key, kept)
+          {:ok, kept}
+        end
+
+      kept ->
+        {:ok, kept}
+    end
+  end
+
+  defp ordered_patterns(locale, calendar_module, cldr_calendar) do
+    with {:ok, available} <- Format.available_formats(locale, cldr_calendar) do
       # The first pattern to read the input wins, so they are taken in a
       # fixed order: the locale's standard formats, which the formatter
       # writes, then the available formats, which come from a map whose
@@ -2550,26 +2579,44 @@ defmodule Localize.Date.Parser do
         |> Enum.concat(weekday_of_week_patterns(locale, calendar_module))
         |> Enum.uniq_by(fn {_skeleton, pattern} -> pattern end)
 
-      ctx = field_context(locale, calendar_module, own_calendar, reference, months_data)
-
-      # The compiled regex for each pattern is a pure function of
-      # (locale, calendar) — the CLDR name data and lenient rules are
-      # both derived from them — so the whole set is built once and
-      # cached. Without this every parse (especially a *failing* one,
-      # which exhausts all ~60 patterns) rebuilds and recompiles them.
-      ctx = Map.put(ctx, :regexes, pattern_regexes(patterns, ctx))
-      ctx = Map.put(ctx, :mixed_years, mixed_year_fields?(patterns, ctx))
-
-      ctx =
-        Map.put(
-          ctx,
-          :variants,
-          variant_patterns(standard) |> MapSet.union(variant_patterns(available))
-        )
-
-      {:ok, patterns, ctx}
+      {:ok,
+       %{
+         patterns: patterns,
+         details:
+           Map.new(patterns, fn {_skeleton, pattern} -> {pattern, pattern_detail(pattern)} end),
+         variants: variant_patterns(standard) |> MapSet.union(variant_patterns(available)),
+         mixed_years: mixed_year_fields?(patterns)
+       }}
     end
   end
+
+  # What the passes ask of a pattern, each from its text alone: the pieces
+  # of its literal text (`written_first/3`), where it comes in the lax
+  # pass's order, whether it has a day, whether it writes its year as `yy`
+  # and whether it has an era.
+  defp pattern_detail(pattern) do
+    text = pattern_text(pattern)
+    tokens = tokenize_pattern(text)
+
+    %{
+      literals: pattern_literals(tokens),
+      specificity: pattern_specificity(pattern),
+      day?: pattern_has_day?(text),
+      two_digit_year?: two_digit_year?(tokens),
+      era?: Enum.any?(tokens, &match?({:G, _count}, &1))
+    }
+  end
+
+  # A pattern's detail as it is kept, or worked out for a pattern that is
+  # none of the locale's own: the pattern of a format a text is read with.
+  defp detail(%{pattern_details: %{} = details}, pattern) do
+    case details do
+      %{^pattern => detail} -> detail
+      _a_format_of_its_own -> pattern_detail(pattern)
+    end
+  end
+
+  defp detail(_ctx, pattern), do: pattern_detail(pattern)
 
   # A weekday beside a week of the year: with the week's year (`ywE`),
   # without it (`wE`) and with the year's era (`GywE`). No locale has a
@@ -2582,25 +2629,10 @@ defmodule Localize.Date.Parser do
   # a weekday beside a week was read with the weekday taken off its front,
   # as the week alone, and was that week's first day, whatever day it named.
   # They are a function of the locale and the calendar, as every pattern
-  # kept is, and are kept for the two: found on every call, the three took
-  # a millisecond and a half of each date read.
+  # kept is, and are kept with the rest (`kept_patterns/3`).
   @weekday_of_week_skeletons [:ywE, :wE, :GywE]
 
   defp weekday_of_week_patterns(locale, calendar_module) do
-    key = {__MODULE__, :weekday_of_week_patterns, locale, calendar_module}
-
-    case :persistent_term.get(key, nil) do
-      nil ->
-        patterns = find_weekday_of_week_patterns(locale, calendar_module)
-        :persistent_term.put(key, patterns)
-        patterns
-
-      patterns ->
-        patterns
-    end
-  end
-
-  defp find_weekday_of_week_patterns(locale, calendar_module) do
     first_day = %{calendar: calendar_module, year: 1, month: 1, day: 1}
 
     case Localize.Locale.cldr_locale_id_from(locale) do
@@ -2627,8 +2659,8 @@ defmodule Localize.Date.Parser do
 
   # The lax pass takes the patterns in a fixed order, day-bearing first,
   # as the first possible reading wins (see `run_locale_pass/4`).
-  defp lax_order(patterns) do
-    Enum.sort_by(patterns, fn {_skeleton, pattern} -> pattern_specificity(pattern) end)
+  defp lax_order(patterns, ctx) do
+    Enum.sort_by(patterns, fn {_skeleton, pattern} -> detail(ctx, pattern).specificity end)
   end
 
   defp run_candidate_pass(patterns, inputs, ctx, pass_as) do
@@ -2650,8 +2682,8 @@ defmodule Localize.Date.Parser do
 
     {written, lenient} =
       Enum.split_with(patterns, fn {_kind, pattern} ->
-        text = pattern_text(pattern)
-        not MapSet.member?(ctx.variants, text) and literals_in?(text, plain_input)
+        not MapSet.member?(ctx.variants, pattern_text(pattern)) and
+          Enum.all?(detail(ctx, pattern).literals, &String.contains?(plain_input, &1))
       end)
 
     written ++ lenient
@@ -2662,9 +2694,7 @@ defmodule Localize.Date.Parser do
   # tries no pattern without one, so "June 31" is not June 2031.
   defp run_locale_pass(patterns, input, ctx, {:map, :lax}) do
     {day_patterns, other_patterns} =
-      Enum.split_with(patterns, fn {_skeleton, pattern} ->
-        pattern_has_day?(pattern_text(pattern))
-      end)
+      Enum.split_with(patterns, fn {_skeleton, pattern} -> detail(ctx, pattern).day? end)
 
     case first_lax_match(day_patterns, input, ctx) do
       {:ok, map} ->
@@ -2714,25 +2744,15 @@ defmodule Localize.Date.Parser do
   defp reading_distance(_reading, _reference_year), do: 0
 
   # Whether the patterns write the year both as the calendar's year (`y`)
-  # and as its related Gregorian year (`r`). Cached with the regexes.
-  defp mixed_year_fields?(patterns, ctx) do
-    key = {__MODULE__, :mixed_year_fields, ctx.locale, ctx.calendar_module}
+  # and as its related Gregorian year (`r`). Kept with the patterns.
+  defp mixed_year_fields?(patterns) do
+    letters =
+      for {_skeleton, pattern} <- patterns,
+          {letter, _count} when letter in [:y, :r] <- tokenize_pattern(pattern_text(pattern)),
+          into: MapSet.new(),
+          do: letter
 
-    case :persistent_term.get(key, nil) do
-      nil ->
-        letters =
-          for {_skeleton, pattern} <- patterns,
-              {letter, _count} when letter in [:y, :r] <- tokenize_pattern(pattern_text(pattern)),
-              into: MapSet.new(),
-              do: letter
-
-        mixed = MapSet.size(letters) == 2
-        :persistent_term.put(key, mixed)
-        mixed
-
-      mixed ->
-        mixed
-    end
+    MapSet.size(letters) == 2
   end
 
   # The first possible reading among `patterns` as `{:ok, map}`, else
@@ -4271,11 +4291,9 @@ defmodule Localize.Date.Parser do
     with %Regex{} = regex <- Map.get(ctx.regexes, pattern),
          %{} = caps <- Regex.named_captures(regex, input),
          true <- ctx.narrow_eras or is_nil(named_capture_index(caps, "__f")) do
-      tokens = pattern |> pattern_text() |> tokenize_pattern()
-
       caps
       |> latin_digits(pattern_numbers(pattern))
-      |> match_captures(%{ctx | two_digit_year: two_digit_year?(tokens)}, as)
+      |> match_captures(%{ctx | two_digit_year: detail(ctx, pattern).two_digit_year?}, as)
     else
       _ -> :no_match
     end
