@@ -138,6 +138,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+* A week written without its year is a week of the reference date's week-based year, where it was a week of that date's calendar year: "Sun (week: 53)" read on Sunday 3 January 2021, the last day of ISO 8601's 2020, is that day and was no date. Two such weeks are read by their week-based years as an interval, and a week and a weekday without a year, or with an era, are read with no format too.
+
 * A pattern's `''`, a quote written as text, is read inside quoted text and outside it, as TR35 has it and as it was written: `mt`'s week of the year, "w 'ġimgħa' 'ta''' Y", is written "25 ġimgħa ta' 2026" and read as no week, its "ta'" read as "ta". A date or a time read with such a pattern as its `:format` reads back too.
 
 * A skeleton's month is a calendar of weeks' week and its day the weekday: `:yMMMd` for `Calendrical.ISOWeek`'s 2026-W25-2 is "Tue, week 25 of 2026", the locale's week of the year with the weekday appended, where the calendar's period and day number were written as a month and a day, "M06 2, 2026 AD", which read back as no date. It reads back with its skeleton or with none, in a date and time and in an interval, and a weekday beside a week is that day of it in every calendar, where "Tue, week 25 of 2026" was the week's first day.

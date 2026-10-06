@@ -1235,18 +1235,27 @@ defmodule Localize.Date.Parser do
   # A day and an earlier day of one month are not taken a year apart
   # (`backwards?`): "Jun 20 – 16" is an inverted range, as it is with its
   # year, and not the 361 days to the next 16 June.
-  defp date_beside(read, %Date{} = anchor, side, backwards?) do
+  #
+  # `next_year` gives the year next to the anchor's: a day of it, which the
+  # end is read in the year of, and the day the anchor's own is there, which
+  # the end is short of. For a date the two are one day, the same day a year
+  # away; for a week they are of a week-based year (`a_week_year_away/3`).
+  defp date_beside(read, %Date{} = anchor, side, backwards?, next_year \\ &the_same_day/2) do
     in_the_anchors_year = read.(anchor)
 
     with true <- other_side?(in_the_anchors_year, anchor, side),
          false <- backwards?.(in_the_anchors_year),
-         {:ok, a_year_away} <- a_year_away(anchor, side),
-         {:ok, %Date{} = date} <- read.(a_year_away),
+         {:ok, reference, a_year_away} <- next_year.(anchor, side),
+         {:ok, %Date{} = date} <- read.(reference),
          true <- within_a_year?(date, anchor, a_year_away, side) do
       {:ok, date}
     else
       _as_it_is -> in_the_anchors_year
     end
+  end
+
+  defp the_same_day(anchor, side) do
+    with {:ok, a_year_away} <- a_year_away(anchor, side), do: {:ok, a_year_away, a_year_away}
   end
 
   # How a date on the other side of an anchor compares with it.
@@ -1989,26 +1998,14 @@ defmodule Localize.Date.Parser do
       {%{year: nil} = from_fields, %{year: nil} = to_fields} ->
         with {:ok, %Date{} = from} <- parse_or_wrap(from_string, options, :from_parse_failed),
              {:ok, to} <-
-               string_beside(
-                 {to_string, to_fields},
-                 {from, from_fields},
-                 :after,
-                 options,
-                 options
-               ) do
+               string_beside({to_string, to_fields}, {from, from_fields}, :after, options) do
           {:ok, from, to}
         end
 
       {%{year: nil} = from_fields, %{} = to_fields} ->
         with {:ok, %Date{} = to} <- dated_end(to_fields, to_string, :to_parse_failed, options),
              {:ok, from} <-
-               string_beside(
-                 {from_string, from_fields},
-                 {to, to_fields},
-                 :before,
-                 Keyword.put(options, :reference_date, to),
-                 options
-               ) do
+               string_beside({from_string, from_fields}, {to, to_fields}, :before, options) do
           {:ok, from, to}
         end
 
@@ -2016,13 +2013,7 @@ defmodule Localize.Date.Parser do
         with {:ok, %Date{} = from} <-
                dated_end(from_fields, from_string, :from_parse_failed, options),
              {:ok, to} <-
-               string_beside(
-                 {to_string, to_fields},
-                 {from, from_fields},
-                 :after,
-                 Keyword.put(options, :reference_date, from),
-                 options
-               ) do
+               string_beside({to_string, to_fields}, {from, from_fields}, :after, options) do
           {:ok, from, to}
         end
 
@@ -2090,26 +2081,86 @@ defmodule Localize.Date.Parser do
   end
 
   # The date `string` is, written without its year, beside the date `anchor`
-  # of the range's other end. `same_year` is the options it is read with in
-  # the anchor's year, and each `fields` the fields a string was written
-  # with. Where a day and an earlier day are of one month is told from the
-  # two dates, where there are two, as a month's number in a year is not its
-  # number in another.
-  defp string_beside({string, fields}, {anchor, anchor_fields}, side, same_year, options) do
+  # of the range's other end: read with the anchor for its reference date,
+  # and then with a day of the year next to the anchor's. Each `fields` is
+  # the fields a string was written with. Where a day and an earlier day are
+  # of one month is told from the two dates, where there are two, as a
+  # month's number in a year is not its number in another.
+  #
+  # A week written without its year is a week of a week-based year, and is
+  # read beside the anchor by those years: "Sun (week: 53) to Mon (week: 1)"
+  # from the last day of ISO 8601's 2020 ends the day after, in week 1 of
+  # 2021. A weekday and an earlier one of one week are an inverted range, as
+  # a day and an earlier day of one month are.
+  defp string_beside({string, fields}, {anchor, anchor_fields}, side, options) do
     reason = if side == :after, do: :to_parse_failed, else: :from_parse_failed
 
-    date_beside(
-      fn
-        ^anchor -> parse_or_wrap(string, same_year, reason)
-        %Date{} = reference -> parse(string, Keyword.put(options, :reference_date, reference))
-      end,
-      anchor,
-      side,
-      fn
-        {:ok, %Date{} = date} -> backwards_in_a_month?(date, anchor, side)
-        _no_date -> backwards_in_a_month?(fields, anchor_fields, side)
-      end
-    )
+    read = fn
+      ^anchor -> parse_or_wrap(string, Keyword.put(options, :reference_date, anchor), reason)
+      %Date{} = reference -> parse(string, Keyword.put(options, :reference_date, reference))
+    end
+
+    case anchors_week(fields, anchor, options) do
+      {:ok, weeks} ->
+        date_beside(
+          read,
+          anchor,
+          side,
+          fn _in_the_anchors_year -> fields.week == weeks.week end,
+          &a_week_year_away(&1, &2, weeks)
+        )
+
+      _a_month_and_a_day ->
+        date_beside(read, anchor, side, fn
+          {:ok, %Date{} = date} -> backwards_in_a_month?(date, anchor, side)
+          _no_date -> backwards_in_a_month?(fields, anchor_fields, side)
+        end)
+    end
+  end
+
+  # For a week written without its year, the weeks it is read in, those of
+  # the calendar asked for or the locale's for `Calendar.ISO`, and the week
+  # of them the anchor is in.
+  defp anchors_week(%{week: week}, anchor, options) when is_integer(week) do
+    calendar = own_calendar(options, anchor.calendar)
+    locale = Keyword.get(options, :locale) || Localize.get_locale()
+    week_data = Localize.DateTime.Week.config(locale)
+
+    with {:ok, date} <- Date.convert(anchor, calendar),
+         {:ok, {week_year, week}} <- LCalendar.week_of_year(date, week_data) do
+      {:ok, %{calendar: calendar, data: week_data, year: week_year, week: week}}
+    end
+  end
+
+  defp anchors_week(_fields, _anchor, _options), do: :error
+
+  # A week every week-based year has, far from both its ends.
+  @mid_year_week 26
+
+  # The week-based year next to an anchor's: a day of it, which a week is
+  # read in the year of, and the day the anchor's own is a week-based year
+  # away, which the week is short of. The same day a year away will not do
+  # for either, as a week-based year is not the year of its days about the
+  # new year: a year on from 3 January 2021, the last day of ISO 8601's
+  # 2020, is the first day of its 2022. The day of the next year is a year
+  # from the middle of the anchor's, as the calendar the anchor is read in
+  # counts one, and the anchor's own day there is as far from it as the two
+  # years' first days are apart.
+  defp a_week_year_away(%Date{} = anchor, side, weeks) do
+    %{calendar: calendar, data: week_data, year: week_year} = weeks
+
+    with {:ok, middle} <- LCalendar.week(calendar, week_year, @mid_year_week, week_data),
+         {:ok, middle_day} <- convert_value(middle.first, anchor.calendar),
+         {:ok, reference} <- a_year_away(middle_day, side),
+         {:ok, day} <- convert_value(reference, calendar),
+         {:ok, {next_year, _week}} when next_year != week_year <-
+           LCalendar.week_of_year(day, week_data),
+         {:ok, first} <- LCalendar.week(calendar, week_year, 1, week_data),
+         {:ok, next_first} <- LCalendar.week(calendar, next_year, 1, week_data) do
+      {:ok, reference, Date.add(anchor, Date.diff(next_first.first, first.first))}
+    else
+      _no_such_year -> :error
+    end
   end
 
   # The year, the month and the day a date was written with, each `nil`
@@ -2122,6 +2173,7 @@ defmodule Localize.Date.Parser do
           year: Map.get(fields, :year) || Map.get(fields, :week_based_year),
           month: Map.get(fields, :month),
           day: Map.get(fields, :day),
+          week: Map.get(fields, :week_of_year),
           date: date_of_fields(fields)
         }
 
@@ -2483,7 +2535,7 @@ defmodule Localize.Date.Parser do
         standard
         |> collect_patterns()
         |> Enum.concat(available_patterns)
-        |> Enum.concat(weekday_of_week_pattern(locale, calendar_module))
+        |> Enum.concat(weekday_of_week_patterns(locale, calendar_module))
         |> Enum.uniq_by(fn {_skeleton, pattern} -> pattern end)
 
       ctx = field_context(locale, calendar_module, own_calendar, reference, months_data)
@@ -2507,21 +2559,48 @@ defmodule Localize.Date.Parser do
     end
   end
 
-  # A weekday beside a week of the year, `ywE`, which no locale has a format
-  # for: the formatter appends the weekday to the locale's `yw`, as TR35
-  # appends a field no format carries ("Tue, week 25 of 2026"), and writes a
-  # calendar of weeks' year, week and day so at a skeleton. Without its
-  # pattern the text was read with the weekday taken off its front, as the
-  # week alone, and was that week's first day, whatever day it named. It is
-  # a function of the locale and the calendar, as every pattern kept is.
-  defp weekday_of_week_pattern(locale, calendar_module) do
+  # A weekday beside a week of the year: with the week's year (`ywE`),
+  # without it (`wE`) and with the year's era (`GywE`). No locale has a
+  # format for any of them: the formatter appends the weekday to the
+  # locale's `yw`, as TR35 appends a field no format carries ("Tue, week 25
+  # of 2026"), and the week to the weekday where there is no year, with the
+  # name of its field ("Tue (week: 25)"). They are what a calendar of weeks'
+  # week and day are written as at the skeletons of a year, a month and a
+  # day, of a month and a day, and of those with an era. Without its pattern
+  # a weekday beside a week was read with the weekday taken off its front,
+  # as the week alone, and was that week's first day, whatever day it named.
+  # They are a function of the locale and the calendar, as every pattern
+  # kept is, and are kept for the two: found on every call, the three took
+  # a millisecond and a half of each date read.
+  @weekday_of_week_skeletons [:ywE, :wE, :GywE]
+
+  defp weekday_of_week_patterns(locale, calendar_module) do
+    key = {__MODULE__, :weekday_of_week_patterns, locale, calendar_module}
+
+    case :persistent_term.get(key, nil) do
+      nil ->
+        patterns = find_weekday_of_week_patterns(locale, calendar_module)
+        :persistent_term.put(key, patterns)
+        patterns
+
+      patterns ->
+        patterns
+    end
+  end
+
+  defp find_weekday_of_week_patterns(locale, calendar_module) do
     first_day = %{calendar: calendar_module, year: 1, month: 1, day: 1}
 
-    with {:ok, locale_id} <- Localize.Locale.cldr_locale_id_from(locale),
-         {:ok, pattern} <- Localize.Date.resolve_date_skeleton(first_day, :ywE, locale_id, []) do
-      [{:ywE, pattern}]
-    else
-      _no_week_format -> []
+    case Localize.Locale.cldr_locale_id_from(locale) do
+      {:ok, locale_id} ->
+        for skeleton <- @weekday_of_week_skeletons,
+            {:ok, pattern} <- [
+              Localize.Date.resolve_date_skeleton(first_day, skeleton, locale_id, [])
+            ],
+            do: {skeleton, pattern}
+
+      _no_locale ->
+        []
     end
   end
 
@@ -3022,6 +3101,7 @@ defmodule Localize.Date.Parser do
       numbers: %{},
       two_digit_year: false,
       lenient: load_lenient_date(locale),
+      reference: reference,
       reference_year: reference.year,
       implied_era: implied_era(reference, calendar_module),
       cyclic_year_written: cyclic_year_written?(reference, calendar_module, locale),
@@ -4283,6 +4363,7 @@ defmodule Localize.Date.Parser do
            extract_calendar_year(caps, "", year_fallback, era_index, ctx, {month, day}) do
       reject_invalid(%{
         year: calendar_year,
+        year_of_week: year_of_week(caps, calendar_year, ctx),
         month: named_month(month, calendar_year, calendar_module),
         day: day,
         quarter: extract_optional_quarter(caps),
@@ -4299,6 +4380,36 @@ defmodule Localize.Date.Parser do
       })
     end
   end
+
+  # The year a week is of where its pattern writes a calendar year beside it
+  # or none: the year written, read as the week-based year `Y` writes beside
+  # `w`, and for a week written without a year the reference date's
+  # week-based year, as a date written without its year is of the reference
+  # date's year. That is not the reference date's own year about the new
+  # year: 3 January 2021 is in week 53 of ISO 8601's 2020, so "Sun (week:
+  # 53)" read on that day is that day, where week 53 of 2021 is no week.
+  defp year_of_week(_caps, nil, _ctx), do: nil
+
+  defp year_of_week(caps, calendar_year, ctx) do
+    if non_empty?(caps, "week_of_year") and not year_captured?(caps),
+      do: reference_week_year(ctx, calendar_year),
+      else: calendar_year
+  end
+
+  # The reference date's week-based year in the weeks a week is read in:
+  # the calendar asked for's own, or the locale's for `Calendar.ISO`
+  # (`Localize.Calendar.week_of_year/2`). The year it would otherwise be of
+  # where the calendar does not say.
+  defp reference_week_year(%{reference: %Date{} = reference} = ctx, calendar_year) do
+    with {:ok, date} <- Date.convert(reference, ctx.own_calendar),
+         {:ok, {week_year, _week}} <- LCalendar.week_of_year(date, ctx.week_config) do
+      week_year
+    else
+      _no_week -> calendar_year
+    end
+  end
+
+  defp reference_week_year(_ctx, calendar_year), do: calendar_year
 
   # A field whose captured value no date can have (month 15, day 32) is
   # `:invalid`, not absent: the pattern does not match, rather than read
@@ -4624,7 +4735,7 @@ defmodule Localize.Date.Parser do
     cond do
       # Year + week of year only → first day of that week.
       has_year_week?(fields) ->
-        date_from_week(fields.year, fields.week_of_year, nil, fields, calendar_module)
+        date_from_week(fields.year_of_week, fields.week_of_year, nil, fields, calendar_module)
 
       has_week_based_year_week?(fields) ->
         date_from_week(fields.week_based_year, fields.week_of_year, nil, fields, calendar_module)
@@ -4692,7 +4803,7 @@ defmodule Localize.Date.Parser do
 
   defp build_from_year_as_week_year(fields, calendar_module) do
     date_from_week(
-      fields.year,
+      fields.year_of_week,
       fields.week_of_year,
       fields.day_of_week,
       fields,
@@ -4925,6 +5036,7 @@ defmodule Localize.Date.Parser do
   defp date_fields(year, month, day, calendar_module) do
     %{
       year: year,
+      year_of_week: year,
       month: month,
       day: day,
       quarter: nil,

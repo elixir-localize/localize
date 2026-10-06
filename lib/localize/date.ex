@@ -755,7 +755,9 @@ defmodule Localize.Date do
   * `:format` is the format the text was written with, as `to_string/2` takes it: a standard format (`:short`, `:medium`, `:long` or `:full`), a skeleton atom such as `:yMd`, a `Localize.DateTime.SemanticSkeleton` or a pattern string such as `"d/M/y"`. The text is read with that format and no other, after the calendar's own notation, so a date written by a skeleton whose fields stand in another order than the locale's standard formats' reads back as itself: `mt`'s `:yMd` writes 3 April 2024 as "4/3/2024", which is 4 March where no format is given. A format of fewer fields than a date has, such as `:yMMM`, needs `as: :map`. The default is `nil`: the text is read in whichever of the locale's formats reads it first.
 
   * `:reference_date` is the `t:Date.t/0` that partial input is completed
-    against, taken in the calendar the input is read in. The default is
+    against, taken in the calendar the input is read in. A week written
+    without its year is a week of the reference date's week-based year,
+    which is not the year of its days about the new year. The default is
     today.
 
   * `:as` is `:struct` or `:map`. `:map` returns only the fields the input

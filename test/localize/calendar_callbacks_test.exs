@@ -982,6 +982,88 @@ defmodule Localize.CalendarCallbacksTest do
              ) == {:ok, Date.range(from, iso_week(2026, 26, 1))}
     end
 
+    # A week written without its year is of the reference date's week-based
+    # year, as a date written without its year is of the reference date's
+    # year: the year `Y` writes beside `w`, which is not the year of the
+    # week's days about the new year. ISO 8601's 2020 has 53 weeks and its
+    # last day, 2020-W53-7, is Sunday 3 January 2021; its 2025 begins on
+    # Monday 30 December 2024. A week was read as a week of the year of the
+    # Gregorian date its reference date is: "Sun (week: 53)" on 3 January
+    # 2021 as no date, 2021 having 52 weeks, and "Mon (week: 1)" on 30
+    # December 2024 as the first day of 2024.
+    test "reads a week written without its year as a week of the reference date's week-based year" do
+      for {value, text, gregorian} <- [
+            {iso_week(2020, 53, 7), "Sun (week: 53)", ~D[2021-01-03]},
+            {iso_week(2025, 1, 1), "Mon (week: 1)", ~D[2024-12-30]},
+            {iso_week(2026, 25, 2), "Tue (week: 25)", ~D[2026-06-16]}
+          ],
+          skeleton <- [:Md, :MMMd, :MEd] do
+        assert Date.convert(value, Calendar.ISO) == {:ok, gregorian}
+
+        assert Localize.Date.to_string(value, format: skeleton, locale: :en) == {:ok, text},
+               "#{skeleton} #{text}"
+
+        for reference <- [value, gregorian], format <- [[format: skeleton], []] do
+          options = [locale: :en, calendar: IsoWeek, reference_date: reference] ++ format
+
+          assert Localize.Date.parse(text, options) == {:ok, value},
+                 "#{text} #{inspect(options)}"
+        end
+      end
+    end
+
+    # Two weeks written without a year are read by their week-based years, as
+    # two dates written without one are read by their years: the earlier is
+    # of the reference date's, and the later of that year or, where its week
+    # comes before the earlier's there, of the year after. 2021-W01-1 is
+    # Monday 4 January 2021, the day after 2020-W53-7, and 2026-W25-2 is
+    # Tuesday 16 June 2026. The same day a year away is no guide to a
+    # week-based year: a year on from 3 January 2021 is the first day of ISO
+    # 8601's 2022.
+    test "reads two weeks written without a year by their week-based years" do
+      last = iso_week(2020, 53, 7)
+      midyear = iso_week(2026, 25, 2)
+
+      for {text, reference, from, to} <- [
+            {"Sun (week: 53) – Mon (week: 1)", last, last, iso_week(2021, 1, 1)},
+            {"Sun (week: 53) – Mon (week: 1)", ~D[2020-06-16], last, iso_week(2021, 1, 1)},
+            {"Tue (week: 25) – Mon (week: 26)", last, iso_week(2020, 25, 2),
+             iso_week(2020, 26, 1)},
+            {"Tue (week: 25) – Mon (week: 24)", midyear, midyear, iso_week(2027, 24, 1)},
+            {"Tue (week: 25) – Sun (week: 53)", midyear, midyear, iso_week(2026, 53, 7)},
+            # One end written with its year: the other is beside it.
+            {"Sun (week: 53) – Mon, week 1 of 2021", midyear, last, iso_week(2021, 1, 1)},
+            {"Sun, week 53 of 2020 – Mon (week: 1)", midyear, last, iso_week(2021, 1, 1)},
+            {"Tue (week: 25) – Mon, week 26 of 2031", midyear, iso_week(2031, 25, 2),
+             iso_week(2031, 26, 1)}
+          ] do
+        options = [locale: :en, calendar: IsoWeek, reference_date: reference]
+
+        assert Localize.Interval.parse(text, options) == {:ok, Date.range(from, to)},
+               "#{text} on #{inspect(reference)}"
+      end
+
+      # A weekday and an earlier one of one week are an inverted range, as a
+      # day and an earlier day of one month are, and not the year to the
+      # same week of the next.
+      assert {:error, %Localize.DateRangeParseError{reason: :inverted}} =
+               Localize.Interval.parse("Tue (week: 25) – Mon (week: 25)",
+                 locale: :en,
+                 calendar: IsoWeek,
+                 reference_date: midyear
+               )
+
+      # ISO 8601's 2025 has 52 weeks and its 2026 has 53: a week 53 after
+      # week 2 of 2025 is no week of that year, and the one of the year
+      # after is more than a week-based year on.
+      assert {:error, %Localize.DateRangeParseError{}} =
+               Localize.Interval.parse("Mon (week: 2) – Mon (week: 53)",
+                 locale: :en,
+                 calendar: IsoWeek,
+                 reference_date: iso_week(2025, 2, 1)
+               )
+    end
+
     # A week without its year has no week of the year, and says so.
     test "asks for the year of a week alone" do
       assert {:error, %Localize.DateTimeInvalidInputError{missing: [:year]}} =
@@ -1506,6 +1588,50 @@ defmodule Localize.CalendarCallbacksTest do
 
       assert Localize.Date.parse("Woche 1 des Jahres 2027", locale: :de) ==
                {:ok, ~D[2027-01-04]}
+    end
+
+    # A week written without its year is of the reference date's week-based
+    # year in the weeks it is read in, for `Calendar.ISO` the locale's.
+    # supplementalData.xml's weekData gives the United States a first day of
+    # Sunday and a week 1 holding 1 January, so Wednesday 30 December 2026 is
+    # in en's week 1 of 2027, and it gives Germany ISO 8601's weeks, so
+    # Sunday 3 January 2021 is in de's week 53 of 2020
+    # (`:calendar.iso_week_number/1`). The week was read as a week of the
+    # reference date's own year: 31 December 2025 in `en`, and no date in
+    # `de`, whose 2021 has 52 weeks. The week alone is its first day.
+    test "written without a year are of the reference date's week-based year" do
+      assert :calendar.iso_week_number({2021, 1, 3}) == {2020, 53}
+
+      for {locale, date, format, text} <- [
+            {:en, ~D[2026-12-30], "E, 'week' w", "Wed, week 1"},
+            {:en, ~D[2026-12-30], :wE, "Wed (week: 1)"},
+            {:de, ~D[2021-01-03], "E, 'Woche' w", "So., Woche 53"},
+            {:en, ~D[2026-06-16], :wE, "Tue (week: 25)"}
+          ] do
+        assert Localize.Date.to_string(date, format: format, locale: locale) == {:ok, text}
+
+        assert Localize.Date.parse(text, format: format, locale: locale, reference_date: date) ==
+                 {:ok, date},
+               text
+      end
+
+      assert Localize.Date.parse("Wed (week: 1)", locale: :en, reference_date: ~D[2026-12-30]) ==
+               {:ok, ~D[2026-12-30]}
+
+      assert Localize.Date.parse("week 1",
+               format: "'week' w",
+               locale: :en,
+               reference_date: ~D[2026-12-30]
+             ) ==
+               {:ok, ~D[2026-12-27]}
+
+      # Two weeks without a year across the end of a week-based year: en's
+      # week 53 of 2022 is the last week of December, and the week after it
+      # is week 1 of 2023, which begins on Sunday 1 January.
+      assert Localize.Interval.parse("Sat (week: 53) – Sun (week: 1)",
+               locale: :en,
+               reference_date: ~D[2022-12-31]
+             ) == {:ok, Date.range(~D[2022-12-31], ~D[2023-01-01])}
     end
 
     # A calendar of weeks reads a written month and day as a Gregorian date,

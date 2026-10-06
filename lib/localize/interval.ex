@@ -2142,7 +2142,7 @@ defmodule Localize.Interval do
 
   The inverse of `to_string/3`. Accepts either a single string, such as `"May 5 – 10, 2026"`, or a 2-tuple `{from_string, to_string}` for two-input UIs that already have the endpoints split.
 
-  A single string is read with the locale's interval formats, in which the two dates share the fields written once, and otherwise cut where the locale's fallback pattern or a separator people write, a dash or "to", has a date on each side, each read as `Localize.Date.parse/2` reads it. The spaces about an interval format's dash may be left out or put in. Two dates written without a year are of the reference date's year, as a date alone is, and the later is of the year after where it would otherwise come before the earlier: "Dec 28 – Jan 3" ends in the January that follows.
+  A single string is read with the locale's interval formats, in which the two dates share the fields written once, and otherwise cut where the locale's fallback pattern or a separator people write, a dash or "to", has a date on each side, each read as `Localize.Date.parse/2` reads it. The spaces about an interval format's dash may be left out or put in. Two dates written without a year are of the reference date's year, as a date alone is, and the later is of the year after where it would otherwise come before the earlier: "Dec 28 – Jan 3" ends in the January that follows. Two weeks written without a year are read the same way by their week-based years: "Sun (week: 53) – Mon (week: 1)" ends the day after it begins.
 
   The result is a `t:Date.Range.t/0` whose endpoints share the calendar named by the `:calendar` option, which defaults to `Calendar.ISO`.
 
