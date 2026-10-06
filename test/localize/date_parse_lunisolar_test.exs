@@ -164,6 +164,60 @@ defmodule Localize.DateParseLunisolarTest do
     end
   end
 
+  # The tabular Islamic civil calendar (Reingold and Dershowitz,
+  # "Calendrical Calculations", the arithmetic Islamic calendar): years of
+  # 354 days, 355 in eleven of every thirty, months of 30 and 29 days in
+  # turn, and a first day of Friday 16 July 622 in the Julian calendar. Its
+  # year is eleven days shorter than the Gregorian calendar's, so its years
+  # and their related Gregorian years drift apart, about three in a century.
+  defmodule TabularIslamic do
+    @moduledoc false
+    use Localize.Test.StandInCalendar
+
+    # The ISO day of 1 Muharram of year 1, Gregorian 0622-07-19.
+    @epoch 227_380
+
+    def cldr_calendar_type, do: :islamic_civil
+    def cardinal_month(month), do: month
+    def month_of_year(_year, month, _day), do: month
+    def calendar_year(year, _month, _day), do: year
+    def year_of_era(year, _month, _day), do: {year, 0}
+    def months_in_year(_year), do: 12
+
+    def days_in_month(year, 12), do: if(Integer.mod(14 + 11 * year, 30) < 11, do: 30, else: 29)
+    def days_in_month(_year, month), do: if(rem(month, 2) == 1, do: 30, else: 29)
+
+    def valid_date?(year, month, day),
+      do: month in 1..12 and day in 1..days_in_month(year, month)
+
+    def related_gregorian_year(year, _month, _day) do
+      {gregorian_year, _month, _day} = Calendar.ISO.date_from_iso_days(first_day(year))
+      gregorian_year
+    end
+
+    defdelegate date_to_string(year, month, day), to: Calendar.ISO
+    defdelegate day_rollover_relative_to_midnight_utc, to: Calendar.ISO
+
+    def naive_datetime_to_iso_days(year, month, day, hour, minute, second, microsecond) do
+      days = first_day(year) + 29 * (month - 1) + div(month, 2) + day - 1
+      {days, Calendar.ISO.time_to_day_fraction(hour, minute, second, microsecond)}
+    end
+
+    def naive_datetime_from_iso_days({days, fraction}) do
+      year = Integer.floor_div(30 * (days - @epoch) + 10_646, 10_631)
+      {month, day} = month_and_day(year, days - first_day(year) + 1, 1)
+      {hour, minute, second, microsecond} = Calendar.ISO.time_from_day_fraction(fraction)
+      {year, month, day, hour, minute, second, microsecond}
+    end
+
+    defp first_day(year), do: @epoch + (year - 1) * 354 + Integer.floor_div(3 + 11 * year, 30)
+
+    defp month_and_day(year, day, month) do
+      days = days_in_month(year, month)
+      if day <= days, do: {month, day}, else: month_and_day(year, day - days, month + 1)
+    end
+  end
+
   # A calendar numbering its years 543 ahead of the Gregorian, as the
   # Buddhist calendar does, with no era before its first.
   defmodule Offset do
@@ -1336,6 +1390,79 @@ defmodule Localize.DateParseLunisolarTest do
 
       assert {:error, %Localize.DateParseError{}} =
                imperial("Heisei 13 geng-chen 4 29", 2026, format: "G y U M d")
+    end
+  end
+
+  # `r` is the Gregorian year a calendar's year begins in (TR35), and a
+  # calendar whose year is not the solar year's length does not keep its
+  # year a fixed number from it. Calendrical's `Islamic.Civil` has 16 June
+  # 1700 as 28 Dhuʻl-Hijjah 1111, a year that began in 1699, 16 June 1900 as
+  # 17 Safar 1318, which began in 1900, and 16 June 2026 as 30 Dhuʻl-Hijjah
+  # 1447, which began in 2025: 336 Islamic years in 326. The year was taken
+  # as far from the reference date's as its related year is from the
+  # reference date's, which is the year 1121 for 1699 read in 2026, a year
+  # that began in 1709, and no date.
+  describe "a related year in a calendar out of step with the Gregorian" do
+    defp islamic(year, month, day), do: Date.new!(year, month, day, TabularIslamic)
+
+    test "the stand-in is the tabular Islamic calendar" do
+      assert Date.convert(~D[1700-06-16], TabularIslamic) == {:ok, islamic(1111, 12, 28)}
+      assert Date.convert(~D[1900-06-16], TabularIslamic) == {:ok, islamic(1318, 2, 17)}
+      assert Date.convert(~D[2026-06-16], TabularIslamic) == {:ok, islamic(1447, 12, 30)}
+      assert Date.convert(islamic(1448, 1, 1), Calendar.ISO) == {:ok, ~D[2026-06-17]}
+    end
+
+    test "is read as the year that begins in it, however far from the reference date" do
+      for {date, text} <- [
+            {islamic(1111, 12, 28), "AH 1699-12-28"},
+            {islamic(1318, 2, 17), "AH 1900-2-17"},
+            {islamic(1447, 12, 30), "AH 2025-12-30"}
+          ] do
+        assert Localize.Date.to_string(date, locale: :en, format: "G r-M-d") == {:ok, text}
+
+        for reference <- [islamic(1448, 1, 1), islamic(1111, 1, 1), islamic(700, 1, 1)],
+            format <- ["G r-M-d", "r-M-d"] do
+          text = if format == "r-M-d", do: String.replace_prefix(text, "AH ", ""), else: text
+
+          assert Localize.Date.parse(text,
+                   locale: :en,
+                   calendar: TabularIslamic,
+                   format: format,
+                   reference_date: reference
+                 ) == {:ok, date},
+                 "#{text} read on #{inspect(reference)}"
+        end
+      end
+    end
+
+    # The Islamic years 1429 and 1430 both began in 2008, on 10 January and
+    # on 29 December, so "2008" is either, and the nearer the reference
+    # date is meant.
+    test "is the nearer of two years that begin in one Gregorian year" do
+      assert TabularIslamic.related_gregorian_year(1429, 1, 1) == 2008
+      assert TabularIslamic.related_gregorian_year(1430, 1, 1) == 2008
+
+      options = [locale: :en, calendar: TabularIslamic, format: "G r-M-d"]
+
+      assert Localize.Date.parse("AH 2008-6-15", [reference_date: islamic(1448, 1, 1)] ++ options) ==
+               {:ok, islamic(1430, 6, 15)}
+
+      assert Localize.Date.parse("AH 2008-6-15", [reference_date: islamic(1400, 1, 1)] ++ options) ==
+               {:ok, islamic(1429, 6, 15)}
+    end
+
+    test "must agree with a year written beside it" do
+      options = [
+        locale: :en,
+        calendar: TabularIslamic,
+        format: "G y (r) M d",
+        reference_date: islamic(1448, 1, 1)
+      ]
+
+      assert Localize.Date.parse("AH 1111 (1699) 12 28", options) == {:ok, islamic(1111, 12, 28)}
+
+      assert {:error, %Localize.DateParseError{}} =
+               Localize.Date.parse("AH 1111 (1700) 12 28", options)
     end
   end
 

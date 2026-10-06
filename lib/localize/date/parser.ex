@@ -1765,25 +1765,65 @@ defmodule Localize.Date.Parser do
     end
   end
 
+  @related_year_steps 12
+
+  # The calendar's year whose related year is the one written. A calendar in
+  # step with the solar year keeps its year a fixed number from its related
+  # year, and one that is not drifts from it: the Islamic calendar's year is
+  # eleven days short, so its year 1111 began in 1699 and its year 1447 in
+  # 2025, 336 years of its own in 326. So the year is not taken as far from
+  # the reference date's as its related year is from the reference date's,
+  # which was no year of that related year by 1700 and an error, but found
+  # by asking the calendar: from that first count, each year's own related
+  # year says how far off it is. Two years may begin in one Gregorian year,
+  # as the Islamic years 1429 and 1430 did in 2008, and the one nearer the
+  # reference date is meant.
   defp year_with_related(nil, related, ctx) do
     %{calendar_module: calendar_module, reference_year: reference_year} = ctx
 
-    case related_year_of(reference_year, calendar_module) do
-      {:ok, reference_related} ->
-        year = related - (reference_related - reference_year)
-
-        Enum.find_value([year, year - 1, year + 1], :error, fn candidate ->
-          related_year_of(candidate, calendar_module) == {:ok, related} && {:ok, candidate}
-        end)
-
-      {:error, _exception} ->
-        :error
+    with {:ok, reference_related} <- related_year_of(reference_year, calendar_module),
+         estimate = related - (reference_related - reference_year),
+         {:ok, year} <- year_of_related(estimate, related, calendar_module, @related_year_steps) do
+      [year - 1, year, year + 1]
+      |> Enum.filter(&(held_related_year(&1, calendar_module) == {:ok, related}))
+      |> Enum.min_by(&abs(&1 - reference_year), fn -> nil end)
+      |> case do
+        nil -> :error
+        year -> {:ok, year}
+      end
+    else
+      _no_such_year -> :error
     end
   end
 
   defp year_with_related(year, related, ctx) do
     if related_year_of(year, ctx.calendar_module) == {:ok, related},
       do: {:ok, year},
+      else: :error
+  end
+
+  # A year of `related`, reached from `year` by the difference its own
+  # related year leaves, in a few steps (`@related_year_steps`): a calendar's
+  # years are near enough the Gregorian calendar's length that each step
+  # leaves a small part of the last.
+  defp year_of_related(year, related, calendar_module, steps) do
+    case held_related_year(year, calendar_module) do
+      {:ok, ^related} ->
+        {:ok, year}
+
+      {:ok, other} when steps > 0 ->
+        year_of_related(year + related - other, related, calendar_module, steps - 1)
+
+      _not_reached ->
+        :error
+    end
+  end
+
+  # A year the calendar does not hold is not asked about: a calendar may
+  # raise for a year outside the range it computes.
+  defp held_related_year(year, calendar_module) do
+    if calendar_holds?(%{calendar: calendar_module, year: year}),
+      do: related_year_of(year, calendar_module),
       else: :error
   end
 

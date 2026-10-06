@@ -140,6 +140,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+* A related Gregorian year is read as the calendar's year that begins in it, however far from the reference date: the Islamic calendar's "AH 1699-12-28", 16 June 1700, was an error read in 2026, its year taken as far from the reference date's as 1699 is from 2025, where the two calendars' years are not one length. Of two years that begin in one Gregorian year, as the Islamic years 1429 and 1430 did in 2008, the nearer the reference date is read.
+
 * A year named by its place in the sixty-year cycle beside an era is the year of that name in the era: `Calendrical.LunarJapanese`'s "Genroku (1688–1704) geng-chen 4 29" is read as 1700, where it was the geng-chen year nearest the reference date, 2000, whatever era was written. An era of more than sixty years takes the nearer of its two, and a name the era has no year of is an error.
 
 * An inverted range read for a calendar whose dates are read in another names its two dates in the calendar asked for: `Localize.Interval.parse/2` of "Feb 5, 2024 – Feb 1, 2024" for a calendar of weeks returned a `Localize.DateRangeParseError` holding the Gregorian dates the text was read as.
