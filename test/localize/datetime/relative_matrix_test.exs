@@ -9,7 +9,9 @@ defmodule Localize.DateTime.RelativeMatrixTest do
   number format grouping by CLDR's minimum grouping digits as ECMA-402 does
   (`test/support/data/relative_icu_expected.tsv`), except where CLDR 49 has
   changed the patterns since ICU's CLDR 48; those cases take the CLDR 49
-  string (`test/support/data/relative_cldr49_changes.tsv`). Every case goes
+  string (`test/support/data/relative_cldr49_changes.tsv`), and except
+  where ICU names an offset that is no whole number, which TR35's
+  `relative` does not; those are held to TR35 here. Every case goes
   through `to_string/2` and `to_parts/2`: the parts must join to the string,
   and the number's parts must be split as ICU splits them and carry the unit.
 
@@ -32,16 +34,62 @@ defmodule Localize.DateTime.RelativeMatrixTest do
 
   test "relative times match ICU, or CLDR 49 where it changed the data" do
     changes = cldr_49_changes()
+    named = named_by_tolerance(rows(@fixture))
 
     mismatches =
       for [locale, style, unit, numeric, value, icu, number, _category] <- rows(@fixture),
           locale not in @root_symbol_locales,
+          not MapSet.member?(named, {locale, style, unit, numeric, value}),
           expected = expected_value(changes, {locale, style, unit, numeric, value}, icu),
           mismatch <- [check_case(locale, style, unit, numeric, value, expected, number)],
           mismatch != nil,
           do: mismatch
 
     assert mismatches == [], report(mismatches)
+  end
+
+  # TR35's `relative` is a name "for the current instance of the field, and
+  # one or two past and future instances", "the day with relative value -1"
+  # being "Yesterday": an instance is a whole number of the field away.
+  # ICU4C names an offset within half a hundredth of a whole number too,
+  # "tomorrow" for 0.9999 and for 1.004 days and "today" for 0.004. Those
+  # rows of its fixture are known from the fixture alone, their string
+  # being the name it gives the whole number beside them, and are held to
+  # TR35: the offset is written as its number, which for 0.9999 is ICU's
+  # own string with `numeric: always`.
+  test "an offset that is no whole number is the number, where ICU names it" do
+    fixture = rows(@fixture)
+    named = named_by_tolerance(fixture)
+    assert MapSet.size(named) == 276
+
+    always =
+      for [locale, style, unit, "always", value, icu | _rest] <- fixture,
+          into: %{},
+          do: {{locale, style, unit, value}, icu}
+
+    for [locale, style, unit, numeric, value, icu | _rest] <- fixture,
+        MapSet.member?(named, {locale, style, unit, numeric, value}),
+        locale not in @root_symbol_locales do
+      options = [
+        unit: String.to_existing_atom(unit),
+        format: Map.fetch!(@formats, style),
+        locale: locale
+      ]
+
+      offset = parse_value(value)
+      {:ok, written} = Relative.to_string(offset, [numeric: :auto] ++ options)
+
+      assert written != icu, inspect({locale, style, unit, value})
+      assert {:ok, written} == Relative.to_string(offset, [numeric: :always] ++ options)
+
+      case Map.fetch(always, {locale, style, unit, value}) do
+        {:ok, numbered} -> assert written == numbered, inspect({locale, style, unit, value})
+        :error -> :ok
+      end
+
+      assert {:ok, parts} = Relative.to_parts(offset, [numeric: :auto] ++ options)
+      assert Enum.map_join(parts, & &1.value) == written
+    end
   end
 
   test "each CLDR 49 change replaces a case in the ICU fixture" do
@@ -162,6 +210,26 @@ defmodule Localize.DateTime.RelativeMatrixTest do
       true ->
         nil
     end
+  end
+
+  # The rows in which ICU names an offset that is no whole number: with
+  # `numeric: auto`, a value with a fraction whose string is the name ICU
+  # gives the whole number nearest it, a name being a string that is not
+  # that whole number's with `numeric: always`.
+  defp named_by_tolerance(fixture) do
+    strings =
+      Map.new(fixture, fn [locale, style, unit, numeric, value, icu | _rest] ->
+        {{locale, style, unit, numeric, value}, icu}
+      end)
+
+    for [locale, style, unit, "auto", value, icu | _rest] <- fixture,
+        String.contains?(value, "."),
+        whole = value |> String.to_float() |> round() |> Integer.to_string(),
+        name = Map.get(strings, {locale, style, unit, "auto", whole}),
+        name == icu,
+        name != Map.get(strings, {locale, style, unit, "always", whole}),
+        into: MapSet.new(),
+        do: {locale, style, unit, "auto", value}
   end
 
   defp parse_value(value) do
