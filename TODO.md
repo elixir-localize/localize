@@ -2,6 +2,10 @@
 
 Outstanding work on Localize. The design detail behind these items lives under [plans/](plans/); the shipped history is in [CHANGELOG.md](CHANGELOG.md), and the release standing is in [STATUS.md](STATUS.md).
 
+## Open
+
+* [ ] **MF2's `calendar` option reaches into Calendrical** — `Localize.Message.Interpreter` resolves `calendar=hebrew` to a module through `Localize.OptionalDependency.call("Calendrical", ...)`, which the rule that Localize never depends on Calendrical forbids. Calendrical's `calendar_from_locale/1` now maps a locale's `-u-ca-<name>` to its calendar module (Calendrical `501cd5a`) and nothing hands it to Localize: a registration Calendrical's application makes at start-up is one way, the option's identifier being put on the message's locale as its `-u-ca-`, the value TR35 has the option override. Open and not begun (user, 2026-10-06: "Leave it as an open item for now"); it was deferred on 2026-10-01.
+
 ## In progress
 
 * [ ] **CLDR 49 upgrade** — the plan's items are closed bar item 11; the data is built from CLDR `main` pending beta3 (below), then the final release. [plans/cldr-49.md](plans/cldr-49.md).
@@ -55,8 +59,6 @@ Outstanding work on Localize. The design detail behind these items lives under [
 * [ ] **A day an astronomical calendar cannot hold raises** — for `Calendrical.Islamic.Rgsa`, `Localize.Date.parse/2` of "1500-01-01", the same text as an interval and with a time, and "Muharram 1" with `reference_date: ~D[1500-01-01]` all raise `Calendrical.UnsupportedDateRangeError` out of `Date.convert/2`, the day being outside the ephemeris, where a year typed out of range in the calendar's own fields is an error (the same before batch 17; the default reference date, today, is in range). It is a raise on text a caller typed, Localize may not rescue, and `Date.convert/2` has no error a calendar's conversion can answer. Recommended: an optional callback by which a calendar says which days it holds, asked before every conversion into a calendar, a day it does not hold being an error; Calendrical's session to shape it. Held by the user (2026-10-06: "hold 3 for now"); the callback is Calendrical's session's to shape, and the user's word revives it.
 
 * [ ] **An interval pattern's `latestFirst:` and `earliestFirst:` prefixes are not read** — TR35 lets one pattern override the order its locale's fallback pattern states, and ICU4C reads the prefixes. No pattern of CLDR 49 has one, and one would be taken for pattern letters; reading them needs the data build to keep a prefix apart from its pattern.
-
-* [ ] **MF2's `calendar` option reaches into Calendrical** — `Localize.Message.Interpreter` resolves `calendar=hebrew` to a module through `Localize.OptionalDependency.call("Calendrical", ...)`, which the rule that Localize never depends on Calendrical forbids; deferred (user, 2026-10-01). A registry Calendrical fills at start-up is one way to a module.
 
 * [ ] **Recheck map-order selections that only today's data keeps deterministic** — seven lookups walk a map and never see two candidates in the current CLDR data; recheck them whenever it is regenerated. [plans/map-order.md](plans/map-order.md).
 
