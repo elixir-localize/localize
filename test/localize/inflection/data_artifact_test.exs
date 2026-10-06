@@ -10,7 +10,7 @@ defmodule Localize.Inflection.DataArtifactTest do
   # otherwise see the temporary directory.
   use ExUnit.Case, async: false
 
-  alias Localize.Inflection.Data
+  alias Localize.Inflection.{Data, DataDir}
 
   setup do
     directory =
@@ -33,7 +33,9 @@ defmodule Localize.Inflection.DataArtifactTest do
     {:ok, directory: directory}
   end
 
-  defp write_artifact(directory, locale, lexicon) do
+  # The artifact goes where `DataDir` resolves it, which is the
+  # configured directory plus the data version segment.
+  defp write_artifact(locale, lexicon) do
     artifact = %{
       lexicon: lexicon,
       grammeme_names: {},
@@ -44,20 +46,21 @@ defmodule Localize.Inflection.DataArtifactTest do
       contractions: []
     }
 
-    File.write!(Path.join(directory, "#{locale}.etf"), :erlang.term_to_binary(artifact))
+    File.mkdir_p!(DataDir.dir())
+    File.write!(DataDir.path("#{locale}.etf"), :erlang.term_to_binary(artifact))
   end
 
-  test "a map-shaped lexicon is reported, not raised", %{directory: directory} do
+  test "a map-shaped lexicon is reported, not raised" do
     locale = :"zz-legacy-map"
-    write_artifact(directory, locale, %{"cat" => {1, [0]}})
+    write_artifact(locale, %{"cat" => {1, [0]}})
 
     assert {:error, :incompatible_inflection_artifact} = Data.ensure_loaded(locale)
     refute Data.loaded?(locale)
   end
 
-  test "a list-shaped lexicon is reported, not raised", %{directory: directory} do
+  test "a list-shaped lexicon is reported, not raised" do
     locale = :"zz-legacy-list"
-    write_artifact(directory, locale, [{"cat", 1, [0]}])
+    write_artifact(locale, [{"cat", 1, [0]}])
 
     assert {:error, :incompatible_inflection_artifact} = Data.ensure_loaded(locale)
     refute Data.loaded?(locale)
@@ -67,9 +70,9 @@ defmodule Localize.Inflection.DataArtifactTest do
     assert {:error, :enoent} = Data.ensure_loaded(:"zz-absent")
   end
 
-  test "lookup degrades to a miss rather than crashing", %{directory: directory} do
+  test "lookup degrades to a miss rather than crashing" do
     locale = :"zz-legacy-lookup"
-    write_artifact(directory, locale, %{"cat" => {1, [0]}})
+    write_artifact(locale, %{"cat" => {1, [0]}})
 
     assert Data.lookup(locale, "cat") == nil
   end

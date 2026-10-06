@@ -271,12 +271,12 @@ defmodule Localize.ApiCoverageTest do
       Application.put_env(:localize, :otp_app, :localize)
       Application.delete_env(:localize, :inflection_data_dir)
 
-      assert Localize.Inflection.DataDir.dir() ==
+      assert Localize.Inflection.DataDir.base_dir() ==
                Application.app_dir(:localize, "priv/localize/inflection")
 
       Application.put_env(:localize, :inflection_data_dir, "priv/i18n/inflection")
 
-      assert Localize.Inflection.DataDir.dir() ==
+      assert Localize.Inflection.DataDir.base_dir() ==
                Application.app_dir(:localize, "priv/i18n/inflection")
     end
 

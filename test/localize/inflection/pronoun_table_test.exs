@@ -14,12 +14,16 @@ defmodule Localize.Inflection.PronounTableTest do
       allow: Application.get_env(:localize, :allow_runtime_locale_download)
     }
 
+    source = DataDir.path("zh.etf")
     data_dir = Path.join(System.tmp_dir!(), "infl_zh_#{System.unique_integer([:positive])}")
-    File.mkdir_p!(data_dir)
-    File.cp!(DataDir.path("zh.etf"), Path.join(data_dir, "zh.etf"))
 
     Application.put_env(:localize, :inflection_data_dir, data_dir)
     Application.put_env(:localize, :allow_runtime_locale_download, false)
+
+    # Artifacts live under the data version segment, so the copy goes
+    # where DataDir resolves once the directory is configured.
+    File.mkdir_p!(DataDir.dir())
+    File.cp!(source, DataDir.path("zh.etf"))
 
     on_exit(fn ->
       restore(:inflection_data_dir, original.data_dir)

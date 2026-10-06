@@ -235,7 +235,7 @@ jobs:
 
           mismatches =
             Enum.filter(hashes, fn {file, expected} ->
-              path = "priv/localize/inflection/#{file}"
+              path = Path.join(Localize.Inflection.DataDir.dir(), file)
               not File.exists?(path) or :crypto.hash(:sha256, File.read!(path)) != expected
             end)
 
@@ -255,7 +255,7 @@ jobs:
         run: |
           echo "Uploading to r2:${R2_BUCKET}/${R2_PREFIX}/${DATA_VERSION}/"
           rclone sync \
-            priv/localize/inflection/ \
+            "priv/localize/inflection/${DATA_VERSION}/" \
             "r2:${R2_BUCKET}/${R2_PREFIX}/${DATA_VERSION}/" \
             --include "*.etf" \
             --transfers 16 \

@@ -1,7 +1,8 @@
 defmodule Mix.Tasks.Localize.Inflection.Generate do
   @moduledoc """
   Compiles downloaded upstream source data into per-locale runtime
-  artifacts under `priv/localize/inflection/`.
+  artifacts under `Localize.Inflection.DataDir.dir/0`, which carries
+  the data version: `priv/localize/inflection/<data version>/`.
 
   With no arguments it generates every locale the inflection data
   supports — the complete set the packaged hash manifest and the CDN

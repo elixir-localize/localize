@@ -8,7 +8,8 @@ defmodule Mix.Tasks.Localize.Inflection.GenerateHashes do
 
       mix localize.inflection.generate_hashes
 
-  Hashes the locale artifacts under `priv/localize/inflection/`.
+  Hashes the locale artifacts under `Localize.Inflection.DataDir.dir/0`,
+  the current data version's directory.
 
       mix localize.inflection.generate_hashes --from-cdn
 
@@ -48,7 +49,7 @@ defmodule Mix.Tasks.Localize.Inflection.GenerateHashes do
   end
 
   defp from_local do
-    directory = Path.join([File.cwd!(), "priv", "localize", "inflection"])
+    directory = Localize.Inflection.DataDir.dir()
 
     for file_name <- file_names(),
         path = Path.join(directory, file_name),

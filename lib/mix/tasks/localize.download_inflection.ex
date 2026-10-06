@@ -30,11 +30,22 @@ defmodule Mix.Tasks.Localize.DownloadInflection do
 
   Re-downloads files that already exist in the data directory.
 
+      mix localize.download_inflection --prune
+
+  Removes the directories of superseded data versions once the
+  current version has downloaded.
+
   ## Output directory
 
   Files are written to `Localize.Inflection.DataDir.dir/0`; see
   that module for the `:otp_app` / `:inflection_data_dir`
   configuration forms.
+
+  That directory carries the data version, so each version holds its
+  own artifacts and a file of an earlier version is never read in
+  place of a current one. The directories of superseded versions
+  survive an upgrade; the task names them when it finds them, and
+  `--prune` removes them.
 
   Every download is verified against the SHA-256 manifest shipped
   in the package before it is written.
@@ -47,11 +58,19 @@ defmodule Mix.Tasks.Localize.DownloadInflection do
 
   @requirements ["compile", "loadconfig"]
 
+  # A data version directory, as `Localize.Inflection.Provider.data_version/0`
+  # names it: twelve hex digits of the upstream commit and the pipeline
+  # revision. Pruning is held to directories of this shape so a data
+  # directory shared with anything else keeps it.
+  @version_dir ~r/^[0-9a-f]{12}-r\d+$/
+
   @impl Mix.Task
   def run(args) do
     {:ok, _started} = Application.ensure_all_started(:localize)
 
-    {options, locale_args} = OptionParser.parse!(args, strict: [all: :boolean, force: :boolean])
+    {options, locale_args} =
+      OptionParser.parse!(args, strict: [all: :boolean, force: :boolean, prune: :boolean])
+
     force? = options[:force] || false
     locales = resolve_locales(options, locale_args)
 
@@ -61,6 +80,7 @@ defmodule Mix.Tasks.Localize.DownloadInflection do
 
     case download_all(locales, force?) do
       0 ->
+        report_superseded(options[:prune] || false)
         Mix.shell().info("Done.")
 
       failures ->
@@ -91,6 +111,39 @@ defmodule Mix.Tasks.Localize.DownloadInflection do
     Enum.count(languages, fn language ->
       download(language <> ".etf", force?) == :error
     end)
+  end
+
+  # Each data version takes its own directory, so the directories of
+  # earlier versions outlive an upgrade holding artifacts nothing reads.
+  # Removing them is explicit: the task names them, and `--prune` is the
+  # instruction to delete them.
+  defp report_superseded(prune?) do
+    case superseded_dirs() do
+      [] ->
+        :ok
+
+      dirs when prune? ->
+        Enum.each(dirs, &File.rm_rf!/1)
+        Mix.shell().info("Pruned #{length(dirs)} superseded data version(s).")
+
+      dirs ->
+        Mix.shell().info(
+          "#{length(dirs)} superseded data version(s) in #{DataDir.base_dir()}: " <>
+            Enum.map_join(dirs, ", ", &Path.basename/1) <> ". Remove them with --prune."
+        )
+    end
+  end
+
+  defp superseded_dirs do
+    current = DataDir.dir()
+
+    DataDir.base_dir()
+    |> Path.join("*")
+    |> Path.wildcard()
+    |> Enum.filter(fn path ->
+      path != current and File.dir?(path) and Regex.match?(@version_dir, Path.basename(path))
+    end)
+    |> Enum.sort()
   end
 
   defp resolve_locales(options, locale_args) do

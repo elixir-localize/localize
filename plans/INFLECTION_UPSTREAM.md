@@ -53,11 +53,11 @@ When both commits share a layout, the compare API is quicker: `gh api repos/unic
 1. Check what the new pin changes (above).
 2. Write the new SHA to `priv/localize/localize_inflection_sha` and update the two doctests in `Localize.Inflection.Provider` that spell out the data version (`data_version/0`, `file_url/1`).
 3. `mix localize.inflection.download` fetches every supported locale's sources into `data/inflection/`. The conformance fixtures under `data/inflection/test/` are committed, so `git status` shows exactly which upstream suites changed.
-4. `mix localize.inflection.generate` rebuilds all 48 artifacts into `priv/localize/inflection/`. It runs one locale per scheduler; 32 GB was comfortable.
+4. `mix localize.inflection.generate` rebuilds all 48 artifacts into `priv/localize/inflection/<data version>/`. It runs one locale per scheduler; 32 GB was comfortable.
 5. Hash every regenerated artifact against `priv/localize/inflection_hashes.etf`. If all match, the manifest stays as it is. If any differ, the manifest must follow the canonical CDN bytes: publish first, then `mix localize.inflection.generate_hashes --from-cdn` and commit the result.
 6. Publish the new data version before anything needs it. **`ci.yml` does not run `upload-inflection.yml`** (despite that workflow's header comment saying it is reused from there), and `test/test_helper.exs` downloads the fixture locales' data from the CDN at the pinned data version. So until the new version is on R2, CI's inflection suites fail on the download. After pushing the branch, run `gh workflow run upload-inflection.yml --ref <branch>`, or push to the `inflection` branch, which triggers it.
 
-A local green run proves less than it appears to. `Mix.Tasks.Localize.DownloadInflection.download_for/2` skips any file already present in `priv/localize/inflection/` and does not check its version, so after a pin change the tests read whatever is on disk. That is exactly what step 4 wants, but it also means a stale directory passes silently.
+A pin change moves the data version, and artifacts are addressed under it (`Localize.Inflection.DataDir.dir/0`), so step 4 regenerates into a directory of its own and the tests can only read the data they just built. The directory of the previous pin is never read in its place: where a stale directory once passed silently, a version that has not been generated or published now fails on the download instead. `mix localize.download_inflection --prune` removes the superseded directories.
 
 ## Serbian — upstream PR #198
 
