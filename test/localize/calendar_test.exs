@@ -742,27 +742,80 @@ defmodule Localize.CalendarTest do
     end
   end
 
-  describe "localize/3 defaults for maps without date fields" do
-    # Characterization: maps lacking the relevant fields resolve to
-    # the first value of each category rather than erroring.
-    test "era defaults to the current era" do
-      assert Localize.Calendar.localize(%{}, :era, locale: :en, style: :abbreviated) ==
-               {:ok, "AD"}
+  describe "localize/3 of a value that lacks the part" do
+    # A part is named from the value's own fields: an era from the year, a
+    # quarter from the year and the month, a month from the month and a day
+    # of the week from the whole date. A value without one of them has no
+    # such part, and is an error naming the field with the pattern symbol
+    # that asks a format for the part, as `Localize.Date.to_string/2` gives
+    # for the same value (user, 2026-10-06). The first value of the part was
+    # named: the current era, the first quarter, January and Monday.
+    defp lacking(value, part) do
+      assert {:error, %Localize.DateTimeInvalidInputError{} = error} =
+               Localize.Calendar.localize(value, part, locale: :en, style: :abbreviated)
+
+      {error.format, error.missing, error.invalid}
     end
 
-    test "quarter defaults to Q1" do
-      assert Localize.Calendar.localize(%{}, :quarter, locale: :en, style: :abbreviated) ==
-               {:ok, "Q1"}
+    test "a value with no date field has no era, quarter, month or day of the week" do
+      for value <- [%{}, ~T[10:00:00]] do
+        assert lacking(value, :era) == {"G", [:year], []}
+        assert lacking(value, :quarter) == {"Q", [:year, :month], []}
+        assert lacking(value, :month) == {"M", [:month], []}
+        assert lacking(value, :day_of_week) == {"E", [:year, :month, :day], []}
+      end
     end
 
-    test "month defaults to January" do
-      assert Localize.Calendar.localize(%{}, :month, locale: :en, style: :abbreviated) ==
-               {:ok, "Jan"}
+    test "each part names the fields the value lacks, and only those" do
+      assert lacking(%{month: 6, day: 16}, :era) == {"G", [:year], []}
+      assert lacking(%{year: 2026}, :quarter) == {"Q", [:month], []}
+      assert lacking(%{month: 5}, :quarter) == {"Q", [:year], []}
+      assert lacking(%{year: 2026}, :month) == {"M", [:month], []}
+      assert lacking(%{year: 2026, month: 6}, :day_of_week) == {"E", [:day], []}
+      assert lacking(%{month: 6, day: 16}, :day_of_week) == {"E", [:year], []}
     end
 
-    test "day of week defaults to Monday" do
-      assert Localize.Calendar.localize(%{}, :day_of_week, locale: :en, style: :abbreviated) ==
-               {:ok, "Mon"}
+    test "the error is the one a pattern for the part gives the same value" do
+      for {value, part, pattern} <- [
+            {%{month: 6, day: 16}, :era, "G"},
+            {%{year: 2026}, :quarter, "Q"},
+            {%{month: 5}, :quarter, "Q"},
+            {%{year: 2026}, :month, "M"},
+            {%{year: 2026, month: 6}, :day_of_week, "E"}
+          ] do
+        assert Localize.Calendar.localize(value, part, locale: :en) ==
+                 Localize.Date.to_string(value, format: pattern, locale: :en)
+      end
+    end
+
+    test "a field that is not an integer is invalid, not missing" do
+      assert lacking(%{year: "2026"}, :era) == {"G", [], [:year]}
+      assert lacking(%{year: 2026, month: nil}, :quarter) == {"Q", [], [:month]}
+      assert lacking(%{month: 6.0}, :month) == {"M", [], [:month]}
+      assert lacking(%{year: 2026, month: 6, day: "16"}, :day_of_week) == {"E", [], [:day]}
+    end
+
+    test "a value holding the part's fields is named, whatever else it lacks" do
+      options = [locale: :en, style: :abbreviated]
+
+      assert Localize.Calendar.localize(%{year: 2026}, :era, options) == {:ok, "AD"}
+      assert Localize.Calendar.localize(%{year: 2026, month: 5}, :quarter, options) == {:ok, "Q2"}
+      assert Localize.Calendar.localize(%{month: 6}, :month, options) == {:ok, "Jun"}
+
+      assert Localize.Calendar.localize(%{year: 2024, month: 7, day: 6}, :day_of_week, options) ==
+               {:ok, "Sat"}
+    end
+
+    test "every day of the week is named for any value, which names no day of its own" do
+      assert {:ok, [{1, "Mon"} | _rest]} =
+               Localize.Calendar.localize(%{}, :days_of_week, locale: :en, style: :abbreviated)
+    end
+
+    test "a value that is no map is an error, never a first month" do
+      for value <- [nil, "2026-06-16", 20_260_616, [year: 2026]], part <- [:month, :era] do
+        assert {:error, %Localize.InvalidValueError{value: ^value}} =
+                 Localize.Calendar.localize(value, part, locale: :en)
+      end
     end
   end
 

@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [1.4.0] — Unreleased
 
+### Breaking changes
+
+* `Localize.Calendar.localize/3` returns a `Localize.DateTimeInvalidInputError` naming the field for a value that lacks one its part is named from, as `Localize.Date.to_string/2` does for a pattern that asks for the part. It named the part's first value: `localize(%{year: 2026}, :month)` was "January", a year and a month a Monday, and a value with no year of the current era; a value that is no map is an error too.
+
 ### Added
 
 * A calendar may name further calendars for its dates to be read in, with an optional `parsing_calendars/0` callback that returns calendar modules: a composite calendar writes the dates of each of its calendars with that calendar's formats, which the formats of its own CLDR type do not all read. `Localize.Date.parse/2`, `Localize.DateTime.parse/2` and `Localize.Interval.parse/2` read a date in each calendar named and convert it, keeping a reading only where the composite writes that day with the formats of the calendar it was read in.

@@ -2104,15 +2104,15 @@ defmodule Localize.CalendarCallbacksTest do
     end
 
     # The year decides a thirteen-month calendar's quarters, so a quarter
-    # needs it: a pattern's field is an error, and `Localize.Calendar.localize/3`
-    # names a date without its year as the first quarter, as it names one
-    # without any field.
+    # needs it: a pattern's field is an error naming the year, and so is
+    # `Localize.Calendar.localize/3`, which named a date without its year as
+    # the first quarter.
     test "need the year" do
-      assert {:error, _missing_year} =
+      assert {:error, %Localize.DateTimeInvalidInputError{missing: [:year]}} =
                Localize.Date.to_string(%{month: 5}, format: "QQQ", locale: :en)
 
-      assert Localize.Calendar.localize(%{month: 5}, :quarter, locale: :en, style: :abbreviated) ==
-               {:ok, "Q1"}
+      assert {:error, %Localize.DateTimeInvalidInputError{missing: [:year]}} =
+               Localize.Calendar.localize(%{month: 5}, :quarter, locale: :en, style: :abbreviated)
 
       assert Localize.Calendar.localize(%{year: 2026, month: 5}, :quarter,
                locale: :en,

@@ -717,10 +717,17 @@ defmodule Localize.Calendar do
   `Calendar.ISO` or one implementing the Calendrical behaviour, which
   answers these questions; any other is refused.
 
+  A part is named from the fields of the value it is asked of: an era
+  from the year, a quarter from the year and the month, a month from the
+  month, a day of the week from the year, the month and the day, and a day
+  period from the hour. A value that lacks one of them has no such part,
+  and is an error naming the field, as a pattern that asks for the part is
+  in `Localize.Date.to_string/2`.
+
   ### Arguments
 
-  * `datetime` is any `t:Date.t/0`, `t:DateTime.t/0`, or
-    `t:NaiveDateTime.t/0`.
+  * `datetime` is any `t:Date.t/0`, `t:Time.t/0`, `t:DateTime.t/0`, or
+    `t:NaiveDateTime.t/0`, or a map with the fields `part` is named from.
 
   * `part` is one of `:era`, `:quarter`, `:month`,
     `:day_of_week`, `:days_of_week`, or `:day_period`.
@@ -759,12 +766,19 @@ defmodule Localize.Calendar do
   * `{:error, %Localize.UnknownCalendarError{}}` if the date's
     calendar cannot answer for its parts.
 
+  * `{:error, %Localize.DateTimeInvalidInputError{}}` if the value lacks
+    a field the part is named from, or holds one that is not an integer.
+
   * `{:error, exception}` if the part cannot be localized.
 
   ### Examples
 
       iex> Localize.Calendar.localize(~D[2019-06-01], :month)
       {:ok, "June"}
+
+      iex> {:error, error} = Localize.Calendar.localize(%{year: 2019}, :month)
+      iex> error.missing
+      [:month]
 
       iex> Localize.Calendar.localize(~D[2019-06-01], :month, style: :abbreviated)
       {:ok, "Jun"}
@@ -787,35 +801,40 @@ defmodule Localize.Calendar do
   def localize(datetime, part, options \\ [])
 
   # A date whose calendar cannot answer for its parts is refused here.
-  def localize(datetime, part, options) when is_keyword_list(options) do
+  def localize(datetime, part, options) when is_map(datetime) and is_keyword_list(options) do
     with :ok <- validate_value(datetime) do
       localize_part(datetime, part, options)
     end
   end
 
+  def localize(datetime, _part, options) when is_keyword_list(options),
+    do: {:error, Localize.Utils.Helpers.invalid_value(datetime, "a date, time or datetime")}
+
   def localize(_datetime, _part, options),
     do: {:error, Localize.Utils.Helpers.invalid_options(options)}
 
   defp localize_part(datetime, :era, options) do
-    with {:ok, era} <- era_of(datetime) do
+    with :ok <- holds_part(datetime, :era),
+         {:ok, era} <- era_of(datetime) do
       era_key = if options[:era] == :variant, do: -era - 1, else: era
       options = Keyword.put_new(options, :calendar, era_calendar_type_from(datetime))
       display_name(:era, era_key, options)
     end
   end
 
-  # A date without its year or month is named as the first quarter.
   defp localize_part(datetime, :quarter, options) do
-    with {:ok, quarter} <- quarter_or_first(datetime) do
+    with :ok <- holds_part(datetime, :quarter),
+         {:ok, quarter} <- quarter_of_year(datetime) do
       display_name(:quarter, quarter, localize_options(datetime, options))
     end
   end
 
-  # A date without a month is named as the first month.
   defp localize_part(datetime, :month, options) do
-    case cldr_month(datetime) do
-      {:error, _reason} = error -> error
-      month -> month_name(month || 1, localize_options(datetime, options))
+    with :ok <- holds_part(datetime, :month) do
+      case cldr_month(datetime) do
+        {:error, _reason} = error -> error
+        month -> month_name(month, localize_options(datetime, options))
+      end
     end
   end
 
@@ -864,6 +883,34 @@ defmodule Localize.Calendar do
        context: "Localize.Calendar.localize/3"
      )}
   end
+
+  # Whether a value holds the fields a part is named from. One that lacks a
+  # field has no such part and is an error naming it, with the pattern
+  # symbol that asks a format for the part, as `Localize.Date.to_string/2`
+  # answers a pattern the value cannot fill. The first value of the part was
+  # named instead: January for a year alone, Monday for a year and a month,
+  # and the current era for a month and a day.
+  defp holds_part(datetime, part) do
+    {symbol, fields} = part_fields(part)
+    missing = Enum.reject(fields, &Map.has_key?(datetime, &1))
+    invalid = Enum.reject(fields -- missing, &is_integer(Map.get(datetime, &1)))
+
+    if missing == [] and invalid == [] do
+      :ok
+    else
+      {:error,
+       Localize.DateTimeInvalidInputError.exception(
+         format: symbol,
+         missing: missing,
+         invalid: invalid
+       )}
+    end
+  end
+
+  defp part_fields(:era), do: {"G", [:year]}
+  defp part_fields(:quarter), do: {"Q", [:year, :month]}
+  defp part_fields(:month), do: {"M", [:month]}
+  defp part_fields(:day_of_week), do: {"E", [:year, :month, :day]}
 
   @doc """
   Same as `localize/3` but raises on error.
@@ -1476,10 +1523,10 @@ defmodule Localize.Calendar do
     end
   end
 
-  # The era `localize/3` names. A value without a year names the current
-  # era, as the other parts name their first value; one whose days span two
-  # eras is an error naming the fields that would settle it.
-  defp era_of(%{year: year} = datetime) when is_integer(year) do
+  # The era `localize/3` names, for a value with its year (`holds_part/2`).
+  # One whose days span two eras is an error naming the fields that would
+  # settle it.
+  defp era_of(datetime) do
     case year_of_era(datetime) do
       {:ok, {_year_of_era, era}} ->
         {:ok, era}
@@ -1491,8 +1538,6 @@ defmodule Localize.Calendar do
         error
     end
   end
-
-  defp era_of(_datetime), do: {:ok, 1}
 
   # The first and last days a partial date could be, and the fields that
   # would say which: its month when it has a month the calendar has, and
@@ -1560,12 +1605,6 @@ defmodule Localize.Calendar do
   defp extended_year_on(calendar, {year, month, day}) do
     ask(calendar, :extended_year, [year, month, day], "an extended year", &is_integer/1)
   end
-
-  defp quarter_or_first(%{year: year, month: month} = date)
-       when is_integer(year) and is_integer(month),
-       do: quarter_of_year(date)
-
-  defp quarter_or_first(_date), do: {:ok, 1}
 
   @doc false
   # The module a calendar's questions are put to: the calendar itself, or
@@ -2014,22 +2053,21 @@ defmodule Localize.Calendar do
 
   @doc false
   # The day of the week, 1 for Monday to 7 for Sunday, as the date's
-  # calendar answers it; a map without a calendar is an ISO date, and a
-  # date without its year, month or day is named as Monday. An error when
-  # its calendar answers with something that is not a day of the week.
+  # calendar answers it; a map without a calendar is an ISO date. An error
+  # for a date without its year, month or day, which is no day of any week
+  # and was named as Monday, and when its calendar answers with something
+  # that is not a day of the week.
   @spec day_of_week(map()) :: {:ok, 1..7} | {:error, Exception.t()}
-  def day_of_week(%{year: year, month: month, day: day} = date)
-      when is_integer(year) and is_integer(month) and is_integer(day) do
+  def day_of_week(%{} = date) do
     calendar = Map.get(date, :calendar, Calendar.ISO)
-    arguments = [year, month, day, :monday]
+    arguments = [Map.get(date, :year), Map.get(date, :month), Map.get(date, :day), :monday]
 
-    with {:ok, {day_of_week, _first, _last}} <-
+    with :ok <- holds_part(date, :day_of_week),
+         {:ok, {day_of_week, _first, _last}} <-
            ask(calendar, :day_of_week, arguments, "a day of the week", &day_of_week?/1) do
       {:ok, day_of_week}
     end
   end
-
-  def day_of_week(_date), do: {:ok, 1}
 
   defp day_of_week?({day, _first, _last}), do: day in 1..7
   defp day_of_week?(_answer), do: false
