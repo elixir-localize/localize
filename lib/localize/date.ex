@@ -596,14 +596,12 @@ defmodule Localize.Date do
   #    it, and resolve_skeleton re-looked-up in the original
   #    non-Gregorian calendar where it's still missing).
   #
-  # 2. If best_match for the calendar finds nothing, fall back
-  #    to gregorian's pattern set. Skeletons are
-  #    calendar-agnostic by design, so a user requesting
-  #    `:yMMMM` against a Japanese date should still get
-  #    "MMMM y" rendering rather than an error.
+  # 2. If best_match for the calendar finds nothing, ask the
+  #    formats the calendar inherits, and then append the
+  #    fields no format carries (`inherited_or_appended/4`).
   #
-  # In both cases the recursion is guarded by a `seen` set
-  # so a degenerate match cycle (`a → b → a`) terminates.
+  # The recursion of step 1 is guarded by a `seen` set so a
+  # degenerate match cycle (`a → b → a`) terminates.
   # TR35 matches a skeleton to the closest available format and then adjusts
   # that format's field widths to the ones actually requested. Only the first
   # half was happening, and the difference shows wherever CLDR ships no entry
@@ -638,23 +636,29 @@ defmodule Localize.Date do
              locale: locale_id
            )}
 
-        _ when calendar != :gregorian ->
-          # Calendar-specific match exhausted — fall back to
-          # gregorian patterns. The displayed values will
-          # still be calendar-correct because the formatter's
-          # `y` / `G` tokens read from `date.calendar`; only
-          # the pattern selection switches to gregorian.
-          resolve_skeleton(
-            skeleton: skeleton,
-            locale_id: locale_id,
-            calendar: :gregorian,
-            options: options,
-            seen: seen
-          )
-
         _no_match ->
-          append_items_or_error(skeleton, locale_id, calendar, options)
+          inherited_or_appended(skeleton, locale_id, calendar, options)
       end
+    end
+  end
+
+  # No format of the calendar's own carries the skeleton's fields, so the
+  # formats it inherits are asked, the Gregorian calendar's for most
+  # calendars (`Localize.DateTime.Format.AppendItems.format_calendars/2`):
+  # the format of that name, as a Hebrew date's `yw` is the Gregorian "week
+  # 39 of 5786", or the closest, as `Yw` is. The values written are still
+  # the calendar's own, since a pattern's fields are read from the date's
+  # calendar. Where none carries them either, the closest format of fewer
+  # fields is found among them all and the rest appended, TR35's Missing
+  # Skeleton Fields, which was reached in the Gregorian calendar alone: a
+  # Hebrew `yMMMdw` was an error, where the Gregorian is "Jun 16, 2026
+  # (week: 25)".
+  defp inherited_or_appended(skeleton, locale_id, calendar, options) do
+    alias Localize.DateTime.Format.AppendItems
+
+    case AppendItems.inherited_pattern(skeleton, locale_id, calendar, options) do
+      {:ok, pattern} -> {:ok, pattern}
+      nil -> append_items_or_error(skeleton, locale_id, calendar, options)
     end
   end
 

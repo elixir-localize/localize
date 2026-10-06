@@ -54,6 +54,15 @@ iex> Localize.Date.to_string(~D[2024-07-10], format: :yMd, locale: :en)
 
 Common date skeletons: `:yMd`, `:yMMMd`, `:yMMMEd`, `:yMMM`, `:yMMMM`, `:MMMd`, `:MMMEd`, `:Md`, `:MEd`.
 
+A skeleton may ask for fields no format of the locale carries together. The closest format with fewer fields is then taken and the rest appended, each with the locale's template for it, as TR35 has it:
+
+```elixir
+iex> Localize.Date.to_string(~D[2024-07-06], format: :yMMMdw, locale: :en)
+{:ok, "Jul 6, 2024 (week: 27)"}
+```
+
+A date of another calendar is matched against that calendar's formats first and then against the Gregorian calendar's, which TR35 has most calendars inherit, so a Hebrew date's `:yw` is the locale's week of the year, "week 39 of 5786", and its `:yMMMdw` the Hebrew date with its week appended, "1 Tamuz 5786 (week: 39)". The Chinese and Dangi calendars, which TR35 excepts, take their own formats alone: "2026(bing-wu) (week: 18)".
+
 ### Semantic skeletons
 
 A classical skeleton names fields. A *semantic* skeleton names what you mean, and lets CLDR choose the fields — TR35 added these so that "a year, a month, a day and a weekday" does not have to be spelled `:yMMMEd` in every locale:

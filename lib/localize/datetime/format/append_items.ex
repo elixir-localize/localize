@@ -110,12 +110,65 @@ defmodule Localize.DateTime.Format.AppendItems do
           {:ok, String.t()} | :error | {:error, Exception.t()}
   def augment(skeleton, locale_id, calendar_type, options \\ []) do
     case appendable_subset(skeleton, locale_id, calendar_type) do
-      {matched_id, missing_tokens} ->
-        append_to(matched_id, missing_tokens, skeleton, locale_id, calendar_type, options)
+      {base_calendar, matched_id, missing_tokens} ->
+        base = {matched_id, base_calendar}
+        append_to(base, missing_tokens, skeleton, locale_id, calendar_type, options)
 
       nil ->
         from_fields(skeleton, locale_id, calendar_type)
     end
+  end
+
+  # The Chinese and Dangi calendars, which TR35 excepts from the calendars
+  # that inherit their date formats (`format_calendars/2`).
+  @own_date_formats_alone [:chinese, :dangi]
+
+  @doc false
+  # The CLDR calendars whose formats a skeleton is matched against, the
+  # calendar's own first. TR35, Calendar Elements: "Non-Gregorian calendars
+  # inherit standard time formats (in the `<timeFormats>` element) from the
+  # Gregorian calendar in the same locale. Most non-Gregorian calendars
+  # (other than Chinese and Dangi) inherit general date format data (in the
+  # `<dateFormats>` and `<dateTimeFormats>` elements) from the "generic"
+  # calendar format data in the same locale, which in turn inherits from
+  # Gregorian." CLDR's data makes the first hop, each such calendar's
+  # formats being the generic calendar's, and has no alias for the second,
+  # so the Gregorian calendar's formats are asked here, after the calendar's
+  # own: a Hebrew date's `yw` is the Gregorian "week 39 of 5786", and its
+  # `yMMMdw` the Hebrew `yMMMd` with the week appended. ICU's pattern
+  # generator follows the data and writes "5786 (week: 39)".
+  #
+  # The Chinese and Dangi calendars match a skeleton of date fields against
+  # their own formats alone (user, 2026-10-06), TR35 not saying what theirs
+  # inherit, and one of time fields against the Gregorian calendar's too, as
+  # every calendar's times are.
+  @spec format_calendars(atom() | String.t(), atom()) :: [atom(), ...]
+  def format_calendars(_skeleton, :gregorian), do: [:gregorian]
+
+  def format_calendars(skeleton, calendar_type) when calendar_type in @own_date_formats_alone do
+    if Match.only_fields?(skeleton, :time), do: [calendar_type, :gregorian], else: [calendar_type]
+  end
+
+  def format_calendars(_skeleton, calendar_type), do: [calendar_type, :gregorian]
+
+  @doc false
+  # A skeleton's pattern in the formats its calendar inherits, the Gregorian
+  # calendar's: the format of that name, else the closest with its widths
+  # adjusted. `nil` where the calendar inherits none, or none carries the
+  # skeleton's fields. `Localize.Date` asks once a calendar's own formats
+  # have none.
+  @spec inherited_pattern(atom() | String.t(), atom(), atom(), Keyword.t()) ::
+          {:ok, String.t()} | nil
+  def inherited_pattern(skeleton, locale_id, calendar_type, options \\ []) do
+    [_its_own | inherited] = format_calendars(skeleton, calendar_type)
+    Enum.find_value(inherited, &single_format(skeleton, locale_id, &1, options))
+  end
+
+  # One calendar's format for a skeleton: the one of that name, or the
+  # closest with the same fields.
+  defp single_format(skeleton, locale_id, calendar_type, options) do
+    available_pattern(skeleton, locale_id, calendar_type, options) ||
+      matched_pattern_for(skeleton, locale_id, calendar_type, options)
   end
 
   # CLDR's field order, which its reference pattern generator builds a
@@ -147,21 +200,38 @@ defmodule Localize.DateTime.Format.AppendItems do
     Enum.find_index(@canonical_order, &(&1 == symbol)) || length(@canonical_order)
   end
 
-  # The closest subset match, but only when every field it lacks is one
-  # TR35 names as an append item.
+  # The closest subset match among the formats the calendar has and the
+  # ones it inherits, but only where every field it lacks is one TR35 names
+  # as an append item. TR35 takes "the one with the greatest number of
+  # matching fields (but no extra fields)", so the one lacking the fewest:
+  # a Hebrew `ywE` takes the Gregorian `yw`, two of its fields, before a
+  # Hebrew format of the year alone. Of two that lack as many, the
+  # calendar's own stands before one it inherits, as an item does in
+  # inheritance, so `yMMMdw` is appended to the Hebrew `yMMMd` and reads as
+  # that date does alone.
   defp appendable_subset(skeleton, locale_id, calendar_type) do
-    with {:ok, matched_id, missing_tokens} <-
-           Match.subset_match(skeleton, locale_id, calendar_type),
+    skeleton
+    |> format_calendars(calendar_type)
+    |> Enum.flat_map(&subset_in(skeleton, locale_id, &1))
+    |> Enum.min_by(fn {_calendar, _matched_id, missing} -> Enum.count(missing) end, fn -> nil end)
+  end
+
+  defp subset_in(skeleton, locale_id, calendar) do
+    with {:ok, matched_id, missing_tokens} <- Match.subset_match(skeleton, locale_id, calendar),
          true <- Enum.all?(missing_tokens, &appendable?/1) do
-      {matched_id, missing_tokens}
+      [{calendar, matched_id, missing_tokens}]
     else
-      _not_appendable -> nil
+      _not_appendable -> []
     end
   end
 
-  defp append_to(matched_id, missing_tokens, skeleton, locale_id, calendar_type, options) do
-    with {:ok, base} <- matched_pattern(matched_id, locale_id, calendar_type, options),
-         {:ok, adjusted} <- adjust_to_match(base, skeleton, missing_tokens, matched_id),
+  # The matched format is its own calendar's, and the fields it lacks are
+  # appended with the templates of the calendar asked for.
+  defp append_to(base, missing_tokens, skeleton, locale_id, calendar_type, options) do
+    {matched_id, base_calendar} = base
+
+    with {:ok, pattern} <- matched_pattern(matched_id, locale_id, base_calendar, options),
+         {:ok, adjusted} <- adjust_to_match(pattern, skeleton, missing_tokens, matched_id),
          {:ok, templates} <- Format.append_items(locale_id, calendar_type) do
       append_all(adjusted, missing_tokens, templates, locale_id)
     end
@@ -173,7 +243,9 @@ defmodule Localize.DateTime.Format.AppendItems do
 
   This is the whole resolution chain in one call: an exact available
   format, else the closest match with its field widths adjusted to the
-  request, else a subset match augmented with append items.
+  request, in the calendar's own formats and then in the Gregorian
+  calendar's, which TR35 has most calendars inherit; else a subset match
+  from either, augmented with append items.
 
   ### Arguments
 
@@ -197,11 +269,16 @@ defmodule Localize.DateTime.Format.AppendItems do
   @spec resolve_pattern(atom() | String.t(), atom(), atom(), Keyword.t()) ::
           {:ok, String.t()} | :error | {:error, Exception.t()}
   def resolve_pattern(skeleton, locale_id, calendar_type, options \\ []) do
-    # Three sources in TR35's order. The first two return `nil` when they
-    # have nothing, so the next is asked; only the last reports failure.
-    with nil <- available_pattern(skeleton, locale_id, calendar_type, options),
-         nil <- matched_pattern_for(skeleton, locale_id, calendar_type, options) do
-      augment(skeleton, locale_id, calendar_type, options)
+    # Three sources in TR35's order, the first two asked of each calendar
+    # whose formats the skeleton is matched against (`format_calendars/2`).
+    # They return `nil` when they have nothing, so the next is asked; only
+    # the last reports failure.
+    skeleton
+    |> format_calendars(calendar_type)
+    |> Enum.find_value(&single_format(skeleton, locale_id, &1, options))
+    |> case do
+      nil -> augment(skeleton, locale_id, calendar_type, options)
+      {:ok, _pattern} = resolved -> resolved
     end
   end
 
