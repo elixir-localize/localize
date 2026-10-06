@@ -203,17 +203,20 @@ defmodule Localize.IntervalCalendarTest do
     end
 
     # `en`'s Chinese medium date, "MMM d, r", has the skeleton `rMMMd`. TR35
-    # matches it to the `yMMMd` interval item, whose "MMM d – d, U" writes
-    # the cyclic year where the request asks for the related Gregorian one.
-    # ICU4C's interval matcher takes `r` and `y` for different fields, finds
-    # no item, and writes both dates in full: "Mo2bis 11, 2023 – Mo2bis 20,
-    # 2023".
-    test "in the related Gregorian year a Chinese format asks for" do
+    # matches it to the `yMMMd` interval item, the year symbols being one
+    # field type, and en.xml's pattern there for a day's difference is "MMM
+    # d – d, U". It names the year, and TR35's adjustments "should never
+    # convert a numeric element in the pattern to an alphabetic element, or
+    # the opposite", so the name stands though the format asks for the
+    # related Gregorian year. ICU4C's interval matcher takes `r` and `y` for
+    # different fields, finds no item, and writes both dates in full:
+    # "Mo2bis 11, 2023 – Mo2bis 20, 2023".
+    test "with the year its own pattern names, though the format asks for a number" do
       assert Localize.Interval.to_string(
                date(Chinese, 4660, 3, 11),
                date(Chinese, 4660, 3, 20),
                locale: :en
-             ) == {:ok, "Mo2bis 11\u2009–\u200920, 2023"}
+             ) == {:ok, "Mo2bis 11\u2009–\u200920, gui-mao"}
     end
   end
 
@@ -403,16 +406,21 @@ defmodule Localize.IntervalCalendarTest do
   end
 
   # en.xml's Chinese `yMMMd` interval names the year, "MMM d – d, U", and
-  # its medium date writes the related year, "MMM d, r", which the formatter
-  # puts where the item has its year: the Chinese year 4660 is "2023". The
-  # interval is read with the year it is written with, each date held to the
-  # date it was written from.
-  describe "an interval whose item names the year, written with the related year" do
-    test "is read back" do
+  # its medium date writes the related year, "MMM d, r". The interval keeps
+  # the name its own pattern has, as TR35's adjustments leave it, so the
+  # Chinese year 4660 is "gui-mao" in the interval and "2023" in the date
+  # alone. It is read with the year it is written with, each date held to
+  # the date it was written from, and a related year written in the name's
+  # place is read too.
+  describe "an interval whose item names the year, at a format that numbers it" do
+    test "is written with the name and read back" do
       from = date(Chinese, 4660, 5, 2)
 
       assert Localize.Interval.to_string(from, date(Chinese, 4660, 5, 6), locale: :en) ==
-               {:ok, "Mo4 2 – 6, 2023"}
+               {:ok, "Mo4 2\u2009–\u20096, gui-mao"}
+
+      assert Localize.Interval.to_string(from, date(Chinese, 4661, 6, 6), locale: :en) ==
+               {:ok, "Mo4 2, gui-mao\u2009–\u2009Mo6 6, jia-chen"}
 
       for to <- [date(Chinese, 4660, 5, 6), date(Chinese, 4660, 6, 6), date(Chinese, 4661, 6, 6)] do
         {:ok, text} = Localize.Interval.to_string(from, to, locale: :en)
@@ -423,11 +431,11 @@ defmodule Localize.IntervalCalendarTest do
       end
     end
 
-    test "is read back in a leap month" do
+    test "is read with the related year in the name's place" do
       from = date(Chinese, 4660, 3, 11)
       to = date(Chinese, 4660, 3, 20)
 
-      assert Localize.Interval.parse("Mo2bis 11 – 20, 2023",
+      assert Localize.Interval.parse("Mo2bis 11\u2009–\u200920, 2023",
                locale: :en,
                calendar: Chinese,
                reference_date: from

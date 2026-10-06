@@ -209,7 +209,7 @@ An interval takes the formats of its endpoints' calendar. ICU4C 78.3 differs fro
 | Interval | Localize | ICU4C renders |
 |---|---|---|
 | `nl` Buddhist date and time range | "1 apr 2566 BE 10:00:00 – 10:30:00" | "1 apr 2566 BE, 10:00:00 – 10:30:00" |
-| `en` Chinese medium, `rMMMd` | "Mo2bis 11 – 20, 2023" | "Mo2bis 11, 2023 – Mo2bis 20, 2023" |
+| `en` Chinese medium, `rMMMd` | "Mo2bis 11 – 20, gui-mao" | "Mo2bis 11, 2023 – Mo2bis 20, 2023" |
 | `am` medium, equal endpoints | "1 ኤፕሪ 2023" | "ኤፕሪ 1 2023" |
 | `en` `Hm`, 10:00 on 15 June to 14:30 on 16 June 2026 | "10:00 – 14:30" | "6/15/2026, 10:00 – 6/16/2026, 14:30" |
 | `en` `yMMMMdHm`, the same two days | "June 15, 2026, 10:00 – June 16, 2026, 14:30" | "June 15, 2026 at 10:00 – June 16, 2026 at 14:30" |
@@ -225,7 +225,7 @@ An interval takes the formats of its endpoints' calendar. ICU4C 78.3 differs fro
 
 * **The date-time pattern.** TR35 joins a date to a time range with the calendar's `dateTimeFormat`. ICU's `DateIntervalFormat` reads `calendar/gregorian/DateTimePatterns` whatever the calendar, though its single date-time formatter uses the calendar's own.
 
-* **Year symbols.** TR35 gives skeleton symbols of one field type a small distance, so the related year `r` and the cyclic year `U` of a Chinese or Dangi format match the `y`-keyed interval items. ICU's interval matcher compares letters one for one, finds no item, and writes both dates in full.
+* **Year symbols.** TR35 finds the closest interval item "as in `availableFormats`", where symbols "representing the same type (year, month, day, etc)" are a distance apart and never a failed match, so the related year `r` and the cyclic year's name `U` of a Chinese or Dangi format take the items CLDR keys by `y`. The item's pattern is then adjusted as TR35 adjusts any: "adjustments should never convert a numeric element in the pattern to an alphabetic element, or the opposite". A numbered year in the item is written as the numbered year asked for, a name stays a name and a number a number: `en`'s medium interval, from "MMM d – d, U", is "Mo5 2 – 6, bing-wu" beside the date "Mo5 2, 2026", and `de`'s, from "y-MM-dd – y-MM-dd", "43-05-02 – 43-05-06" beside "02.05 bing-wu". ICU's interval matcher compares letters one for one, finds no item, and writes both dates in full, "Mo5 2, 2026 – Mo5 6, 2026" and "02.05 bing-wu – 06.05 bing-wu".
 
 * **Years of another cycle.** ICU holds the sixty-year cycle of the Chinese and Dangi calendars as an era, so two dates of different cycles differ in a field no interval item is keyed by, and it writes both in full in the skeleton's own format: "5/2/2026 – 5/2/2086" for `en`'s `yMd`, 16 June 2026 to 12 June 2086. Localize writes them in full too. A skeleton that writes no year is widened with one first, as it is for two dates of different years in any calendar, so `Md` writes "5/2/2026 – 5/2/2086" where ICU, which widens a skeleton for a year and not for an era, writes "5/2 – 5/2".
 

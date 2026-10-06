@@ -303,17 +303,43 @@ defmodule Localize.DateTime.FormatResolutionTest do
       assert Match.adjust_field_lengths("E, MMM d, r(U)", request, id) == {:ok, "E, MMM d, r(U)"}
     end
 
-    # A pattern with the name alone still takes the year asked for, and a
-    # `y` or a `U` asked for leaves every year of the pattern as it is.
-    test "a year's name alone is adjusted as before" do
-      assert Match.adjust_field_lengths("MMM d, U", [{"r", 1}, {"M", 3}, {"d", 1}]) ==
-               {:ok, "MMM d, r"}
+    # The same rule holds for a pattern with the name alone: `U`, the cyclic
+    # year's name, is text, and no numbered year asked for takes its place,
+    # at any width. de.xml's Chinese `yyyyMMMd` is "d. MMM U", and ICU4C
+    # 78.3's pattern generator answers `rMMMd` there with "d. MMM U", "2. M05
+    # bing-wu"; the related year took the name's place, "d. MMM r". A `y` or
+    # a `U` asked for leaves every year of the pattern as it is.
+    test "a year's name alone stands when a numbered year is asked for" do
+      for {symbol, count} <- [{"r", 1}, {"u", 1}, {"Y", 1}, {"y", 1}, {"y", 4}] do
+        assert Match.adjust_field_lengths("d. MMM U", [{symbol, count}, {"M", 3}, {"d", 1}]) ==
+                 {:ok, "d. MMM U"},
+               "#{symbol} #{count}"
+      end
+
+      {:ok, id} = Match.best_match(:rMMMd, :de, :chinese)
+      {:ok, formats} = Localize.DateTime.Format.available_formats(:de, :chinese)
+
+      assert Map.fetch!(formats, id) == "d. MMM U"
+
+      assert Match.adjust_field_lengths("d. MMM U", [{"r", 1}, {"M", 3}, {"d", 1}], id) ==
+               {:ok, "d. MMM U"}
 
       assert Match.adjust_field_lengths("MMM d, r(U)", [{"y", 1}, {"M", 3}, {"d", 1}]) ==
                {:ok, "MMM d, r(U)"}
 
       assert Match.adjust_field_lengths("MMM d, r(U)", [{"U", 1}, {"M", 3}, {"d", 1}]) ==
                {:ok, "MMM d, r(U)"}
+    end
+
+    # The opposite: a year the pattern numbers is not made the name where
+    # `U` is asked for. Between two numbered years the one asked for is
+    # written, as a variant of the same field is.
+    test "a numbered year is not made a name, and takes the numbered year asked for" do
+      assert Match.adjust_field_lengths("y-MM-dd", [{"U", 1}, {"M", 2}, {"d", 2}]) ==
+               {:ok, "y-MM-dd"}
+
+      assert Match.adjust_field_lengths("M/d/y", [{"r", 1}, {"M", 1}, {"d", 1}]) ==
+               {:ok, "M/d/r"}
     end
   end
 

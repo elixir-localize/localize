@@ -136,6 +136,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+* A year a format names is never made a number, nor a numbered year a name, as TR35's adjustments have it ("never convert a numeric element in the pattern to an alphabetic element, or the opposite"): `en`'s Chinese medium interval is "Mo5 2 – 6, bing-wu", the year its own pattern names, where the related year the format asks for took the name's place, and `de`'s `rMMMd` is "2. M05 bing-wu". Between two numbered years the one asked for is still written, "5/2/2026 – 5/6/2026" from "M/d/y – M/d/y".
+
 * An interval whose dates are in two sixty-year cycles of the Chinese or Dangi calendar writes both dates in full, "5/2/2026 – 5/2/2086" for `en`'s `yMd`, as ICU does, where the interval's pattern wrote the two alike, "5/2/43 – 5/2/43". A format that writes no year takes one first, as it does for any two years.
 
 * `G` for a date of the Chinese or Dangi calendar writes the number of the year's sixty-year cycle, "78" in 2026, as ICU does, where it returned `Localize.ItemNotFoundError`: CLDR names no era for those calendars and TR35 does not say what `G` writes. Read beside the year's place or name it gives the one year the two name, "77 60" being the year that began in 1983.
@@ -152,7 +154,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 * A date and time is written with the numbering its date format states, CLDR's `numbers` attribute, as the date alone is. `he`'s Hebrew date and time was "1 בתמוז 5786, 14:30" beside the date's "א׳ בתמוז ה׳תשפ״ו", and `zh`'s Chinese day "2" beside "初二".
 
-* An interval whose CLDR item names the year is read with the related year the formatter writes in its place. `en`'s Chinese "Mo5 2 – 6, 2026", from the item "MMM d – d, U" at the medium format, was an error, as "2026 M05 2–6" was in 487 locales.
+* An interval whose CLDR item names the year is read with the related year written in the name's place. `en`'s Chinese "Mo5 2 – 6, 2026", beside the item "MMM d – d, U", was an error, as "2026 M05 2–6" was in 487 locales.
 
 * A date two of a locale's formats read is read by the one whose own separators it has. `af`'s "10-7-2569 BE" is its `GyMd`'s, "M-d-y G", the seventh of October, where its "d/M/y GGGGG" read it first, a hyphen for its slash, as the tenth of July.
 

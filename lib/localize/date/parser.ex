@@ -886,15 +886,16 @@ defmodule Localize.Date.Parser do
     do: String.replace(text, ~r/[\s\x{00A0}\x{2009}\x{202F}\x{3000}]+/u, " ")
 
   # CLDR keys a calendar's interval patterns by `y`, and the formatter
-  # writes them with the year its format asks for: the related Gregorian
-  # year where the calendar's formats write `r`, as the Chinese and Dangi
-  # calendars' standard formats do ("11/8/2023 – 11/18/2023" for two days of
-  # the Chinese year 4660), and the year's two low-order digits where a
-  # format writes `yy`, as `lij`'s short Islamic date does ("30/12/47 –
-  # 4/1/48 AH"). An interval's year is then read each way its calendar's
-  # formats write one, and the reading whose years are nearest the reference
-  # year is taken, as a single date's is (`run_locale_pass/4`). A year
-  # written as its two low-order digits is no related year.
+  # writes a year they number as the numbered year its format asks for: the
+  # related Gregorian year where the calendar's formats write `r`, as the
+  # Chinese and Dangi calendars' standard formats do ("11/8/2023 –
+  # 11/18/2023" for two days of the Chinese year 4660), and the year's two
+  # low-order digits where a format writes `yy`, as `lij`'s short Islamic
+  # date does ("30/12/47 – 4/1/48 AH"). An interval's year is then read each
+  # way its calendar's formats write one, and the reading whose years are
+  # nearest the reference year is taken, as a single date's is
+  # (`run_locale_pass/4`). A year written as its two low-order digits is no
+  # related year.
   defp interval_reading(input, %{readings: readings}, ctx, as) do
     readings
     |> Enum.map(fn {tokens, regex} -> match_interval_tokens(input, tokens, regex, ctx, as) end)
@@ -916,10 +917,12 @@ defmodule Localize.Date.Parser do
     end)
   end
 
-  # The related year stands wherever the item has its year, as a number or
-  # by its name: the formatter writes the year a format asks for in the
-  # place of whichever the item has, so `en`'s Chinese "MMM d – d, U" is
-  # written "Mo5 2 – 6, 2026" at the medium format, whose date is "MMM d, r".
+  # The related year is read wherever the item has its year, as a number or
+  # by its name. The formatter writes it in a numbered year's place only: a
+  # name stays a name (TR35's adjustments never make one a number), so
+  # `en`'s Chinese "MMM d – d, U" is written "Mo5 2 – 6, bing-wu" at the
+  # medium format, whose date is "MMM d, r". "Mo5 2 – 6, 2026", the year as
+  # the date alone has it, is read all the same.
   defp related_year_tokens(tokens) do
     Enum.map(tokens, fn
       {:y, count} when count != 2 -> {:r, count}
