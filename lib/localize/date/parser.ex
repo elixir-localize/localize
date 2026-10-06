@@ -4950,11 +4950,14 @@ defmodule Localize.Date.Parser do
     end)
   end
 
+  # A year the calendar does not have has no months, and a range down from 1
+  # is not its months: `Calendrical.Reform.Japan` answers 0 for the years
+  # 1229 to 1872, which its reform passed over.
   defp possible_in_year?(fields, year) do
-    months_in_year = fields.calendar_module.months_in_year(year)
-    months = if fields.month, do: [fields.month], else: Enum.to_list(1..months_in_year)
+    months_in_year = 1..fields.calendar_module.months_in_year(year)//1
+    months = if fields.month, do: [fields.month], else: Enum.to_list(months_in_year)
 
-    (is_nil(fields.month) or fields.month in 1..months_in_year) and
+    (is_nil(fields.month) or fields.month in months_in_year) and
       possible_day?(fields, year, months) and
       possible_day_of_year?(fields, year) and
       possible_week?(fields, year) and
