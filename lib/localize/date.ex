@@ -440,6 +440,23 @@ defmodule Localize.Date do
     end
   end
 
+  @doc false
+  # The calendar module whose formats write a skeleton for a calendar's
+  # values: the calendar itself, or, for a calendar of weeks' skeleton that
+  # names a week, the calendar its dates are read in, as `own_fields/2`
+  # gives its CLDR type. A reader asks, to read the time of a date and time
+  # in the formats the formatter wrote it with.
+  @spec formats_calendar(module(), atom() | String.t()) :: module()
+  def formats_calendar(calendar, skeleton) do
+    with :ok <- Localize.Calendar.validate_calendar(%{calendar: calendar}),
+         {:ok, parsing} when parsing != calendar <- Localize.Calendar.parsing_calendar(calendar),
+         true <- names_week?(week_skeleton(skeleton)) do
+      parsing
+    else
+      _its_own -> calendar
+    end
+  end
+
   # A skeleton with its month as a week, unless it names a week already, and
   # its day as a weekday, unless it names one. No atom is made: a skeleton no
   # format is named by is matched as a string.

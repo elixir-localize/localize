@@ -138,6 +138,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+* The time of a calendar of weeks' date and time at a skeleton is read in the formats it is written in, those of the calendar its dates are read in: `th`'s "อังคารที่ สัปดาห์ที่ 25 ของปี 2026 10:30 น." was read with the generic calendar's `Hm`, "HH:mm", as no date and time, and so were such texts in 25 more locales whose two calendars write a time differently.
+
 * A week written without its year is a week of the reference date's week-based year, where it was a week of that date's calendar year: "Sun (week: 53)" read on Sunday 3 January 2021, the last day of ISO 8601's 2020, is that day and was no date. Two such weeks are read by their week-based years as an interval, and a week and a weekday without a year, or with an era, are read with no format too.
 
 * A pattern's `''`, a quote written as text, is read inside quoted text and outside it, as TR35 has it and as it was written: `mt`'s week of the year, "w 'ġimgħa' 'ta''' Y", is written "25 ġimgħa ta' 2026" and read as no week, its "ta'" read as "ta". A date or a time read with such a pattern as its `:format` reads back too.

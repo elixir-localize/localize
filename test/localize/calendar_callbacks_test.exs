@@ -938,6 +938,43 @@ defmodule Localize.CalendarCallbacksTest do
       assert Localize.DateTime.to_string(value, format: :Hm, locale: :en) == {:ok, "10:30"}
     end
 
+    # A skeleton of a date and time is written in one calendar's formats,
+    # and where it names a week they are those of the calendar the dates are
+    # read in, the time's with the date's. th.xml's Gregorian `Hm` is
+    # "HH:mm น." where the generic calendar, a calendar of weeks' own, has
+    # root's "HH:mm"; its `yw` is "สัปดาห์ที่ w ของปี Y" and its `Day-Of-Week`
+    # append item "{1}ที่ {0}", and root joins a date to a time with a space.
+    # The time was read in the generic calendar's formats, as no time.
+    test "reads the time of a date and time's skeleton in the formats it is written in" do
+      value = at(iso_week(2026, 25, 2), 10, 30)
+      text = "อังคารที่ สัปดาห์ที่ 25 ของปี 2026 10:30 น."
+
+      assert Localize.DateTime.to_string(value, format: :yMMMdHm, locale: :th) == {:ok, text}
+
+      for format <- [[format: :yMMMdHm], []] do
+        options = [locale: :th, calendar: IsoWeek] ++ format
+        assert Localize.DateTime.parse(text, options) == {:ok, value}, inspect(format)
+      end
+
+      # A skeleton that names no week is written and read in the calendar's
+      # own formats, and a time's skeleton alone with them.
+      assert Localize.DateTime.to_string(value, format: :Hm, locale: :th) == {:ok, "10:30"}
+
+      for {locale, expected} <- [
+            en: "Tue, week 25 of 2026, 10:30",
+            de: "Di., Woche 25 des Jahres 2026, 10:30"
+          ] do
+        assert Localize.DateTime.to_string(value, format: :yMMMdHm, locale: locale) ==
+                 {:ok, expected}
+
+        assert Localize.DateTime.parse(expected,
+                 format: :yMMMdHm,
+                 locale: locale,
+                 calendar: IsoWeek
+               ) == {:ok, value}
+      end
+    end
+
     # No interval format is keyed by a week and a weekday, so two dates are
     # written in full about the locale's fallback pattern, or once where
     # they are the same day, and a skeleton without a year takes one across

@@ -286,6 +286,8 @@ defmodule Localize.DateTime.Parser do
         end
 
       {:ok, halves} ->
+        time_calendar = time_calendar(Keyword.get(options, :format), calendar_module)
+        halves = Keyword.put(halves, :time_calendar, time_calendar)
         try_locale_glue_candidates(candidates, locale, Keyword.merge(options, halves), as)
 
       {:error, _exception} = error ->
@@ -692,13 +694,32 @@ defmodule Localize.DateTime.Parser do
   # format, which `half_formats/2` has put under `:date_format` and
   # `:time_format`, as that parser's `:format`, or none.
   defp date_options(options), do: half_options(options, :date_format)
-  defp time_options(options), do: half_options(options, :time_format)
+
+  defp time_options(options) do
+    time_calendar = Keyword.get(options, :time_calendar)
+    options = half_options(options, :time_format)
+    if is_nil(time_calendar), do: options, else: Keyword.put(options, :calendar, time_calendar)
+  end
 
   defp half_options(options, half) do
     format = Keyword.get(options, half)
-    options = Keyword.drop(options, [:format, :date_format, :time_format, :glue])
+    options = Keyword.drop(options, [:format, :date_format, :time_format, :glue, :time_calendar])
     if is_nil(format), do: options, else: Keyword.put(options, :format, format)
   end
+
+  # The calendar whose formats the time of a date and time is read in: the
+  # one the formatter wrote it in. A skeleton of a date and time is written
+  # in one calendar's formats, the value's own or, where the skeleton names
+  # a calendar of weeks' week, the calendar its dates are read in
+  # (`Localize.Date.formats_calendar/2`). th.xml's `Hm` is "HH:mm น." in the
+  # Gregorian calendar and root's "HH:mm" in the generic one, a calendar of
+  # weeks' own, so "10:30 น.", written with the first, was read with the
+  # second, as no time.
+  defp time_calendar(format, calendar_module)
+       when is_atom(format) and not is_nil(format) and format not in @standard_formats,
+       do: Localize.Date.formats_calendar(calendar_module, format)
+
+  defp time_calendar(_format, calendar_module), do: calendar_module
 
   # A format that is none is an error whatever the text, and is reported
   # for the first split that meets it rather than taken for text the half
