@@ -55,18 +55,38 @@ if Localize.Nif.available?() do
 
     @differential_units @differential_base_units ++ @differential_compounds
 
-    # {unit, locale} pairs that differ from ICU only by data-version
-    # spelling, not algorithm — each verified by hand. All are the
-    # composed "tonne-kilometer" times-compound:
-    #   * es — "kilómetros" vs ICU "kilometros" (accent; CLDR 48.2 has no
-    #     accent-less form, and simple + precomposed units match ICU).
-    #   * ar — trailing plural-form selection differs under ICU 78.
-    #   * zh — "公里" vs ICU "千米", both valid words for kilometer.
-    # Shrinks when the pin and the system ICU realign.
+    # {unit, locale} pairs where ICU writes a word the pinned CLDR data does
+    # not have. CLDR wins, so each of these is settled rather than pending:
+    # the pair is still formatted on both sides, just not asserted equal. Each
+    # was read out of the CLDR XML against ICU 78.3 on 2026-10-08, and all are
+    # the composed "tonne-kilometer" times-compound.
+    #   * es — ours "kilómetro"/"kilómetros" is `es.xml`'s long unitPattern
+    #     for length-kilometer; ICU drops the accent.
+    #   * ar — ours "كيلومترات" is `ar.xml`'s `few` pattern, the right plural
+    #     category for 5; ICU's "كيلوأمتار" is in no pattern of that unit.
+    #   * zh — ours "公里" is the only kilometer name `zh.xml` carries,
+    #     explicit at short and inherited by long and narrow; ICU writes
+    #     "千米".
+    # And one cause that is a compound pattern rather than a unit name, which
+    # reaches every times-compound in that locale:
+    #   * it at long — `it.xml` gives the `times` compound pattern as
+    #     "{0} {1}", a space, explicitly at long, where ICU uses root's
+    #     "{0}⋅{1}": ours are "watt ore" and "tonnellata metrica chilometri".
+    #     Short and narrow do inherit the dotted form and agree.
+    #
+    # Swept exhaustively on 2026-10-08 — every unit × locale × style × number
+    # the property draws from, 4,896 combinations — and these five pairs are
+    # the whole of it, 19 cases. A sweep is the way to re-check this list,
+    # because the property samples and will surface them one at a time.
+    # Do not expect these to clear with a newer ICU. A pair that starts
+    # agreeing, or a new disagreement, means the CLDR data moved: re-read the
+    # XML before deciding which side is right, rather than assuming ICU.
     @version_skew_quarantine MapSet.new([
                                {"tonne-kilometer", :es},
                                {"tonne-kilometer", :ar},
-                               {"tonne-kilometer", :zh}
+                               {"tonne-kilometer", :zh},
+                               {"tonne-kilometer", :it},
+                               {"watt-hour", :it}
                              ])
 
     describe "differential vs ICU (property)" do
