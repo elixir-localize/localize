@@ -9,7 +9,8 @@ defmodule Localize.LocaleCalendarTest do
 
   """
 
-  use ExUnit.Case, async: true
+  # async: false because the registered calendar provider is global.
+  use ExUnit.Case, async: false
 
   alias Localize.Calendar, as: LocalizeCalendar
 
@@ -96,6 +97,45 @@ defmodule Localize.LocaleCalendarTest do
 
       assert {:error, %Localize.UnknownCalendarError{}} =
                Localize.Date.to_string(lonely, locale: "en-u-ca-buddhist")
+    end
+  end
+
+  describe "a registered provider answers for Calendar.ISO" do
+    setup do
+      previous = LocalizeCalendar.calendar_provider()
+      on_exit(fn -> LocalizeCalendar.register_provider(previous) end)
+      :ok
+    end
+
+    # Localize supplies `Calendar.ISO` and no other calendar, so a value in it
+    # has no family of its own to ask.
+    test "without a provider a Calendar.ISO value names no calendar" do
+      LocalizeCalendar.register_provider(nil)
+
+      assert {:error, %Localize.UnknownCalendarError{calendar: :buddhist}} =
+               LocalizeCalendar.convert_to_locale_calendar(@date, "en-u-ca-buddhist")
+    end
+
+    test "the provider supplies the calendar for a Calendar.ISO value" do
+      LocalizeCalendar.register_provider(Family)
+
+      assert {:ok, %Date{calendar: Buddhist}} =
+               LocalizeCalendar.convert_to_locale_calendar(@date, "en-u-ca-buddhist")
+    end
+
+    test "a provider that cannot supply the type leaves it unknown" do
+      LocalizeCalendar.register_provider(Family)
+
+      assert {:error, %Localize.UnknownCalendarError{calendar: :coptic}} =
+               LocalizeCalendar.convert_to_locale_calendar(@date, "en-u-ca-coptic")
+    end
+
+    test "a value's own family is asked before the provider" do
+      LocalizeCalendar.register_provider(Lonely)
+      {:ok, in_family} = Date.convert(@date, Family)
+
+      assert {:ok, %Date{calendar: Buddhist}} =
+               LocalizeCalendar.convert_to_locale_calendar(in_family, "en-u-ca-buddhist")
     end
   end
 end

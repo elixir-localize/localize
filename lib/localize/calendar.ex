@@ -83,6 +83,7 @@ defmodule Localize.Calendar do
 
   @days 1..7 |> Enum.to_list()
   @the_world :"001"
+  @calendar_provider_key {__MODULE__, :calendar_provider}
 
   # ISO day numbers for the -u-fw- (first day of week) extension values.
   @first_day_from_fw %{mon: 1, tue: 2, wed: 3, thu: 4, fri: 5, sat: 6, sun: 7}
@@ -1731,6 +1732,62 @@ defmodule Localize.Calendar do
     end
   end
 
+  @doc """
+  Registers the module that answers for the calendars an application
+  supplies.
+
+  A CLDR calendar type names no calendar module of its own, and Localize
+  ships `Calendar.ISO` alone. A value in another calendar is asked for the
+  calendars of its own family, and a value in `Calendar.ISO` has no family
+  to ask, so the provider answers for it: a locale's `-u-ca-` then names a
+  calendar for any value. The library supplying the calendars registers
+  itself as its application starts.
+
+  ### Arguments
+
+  * `module` is the module answering `calendar_from_cldr_calendar_type/1`,
+    which takes a CLDR calendar type and returns `{:ok, calendar}`. `nil`
+    registers no provider.
+
+  ### Returns
+
+  * `:ok`.
+
+  ### Examples
+
+      iex> previous = Localize.Calendar.calendar_provider()
+      iex> Localize.Calendar.register_provider(MyApp.Calendars)
+      :ok
+      iex> Localize.Calendar.calendar_provider()
+      MyApp.Calendars
+      iex> Localize.Calendar.register_provider(previous)
+      :ok
+
+  """
+  @spec register_provider(module() | nil) :: :ok
+  def register_provider(module) when is_atom(module) do
+    :persistent_term.put(@calendar_provider_key, module)
+  end
+
+  @doc """
+  Returns the module registered to answer for an application's calendars.
+
+  ### Returns
+
+  * The provider module, or `nil` where none is registered.
+
+  ### Examples
+
+      iex> is_nil(Localize.Calendar.calendar_provider()) or
+      ...>   is_atom(Localize.Calendar.calendar_provider())
+      true
+
+  """
+  @spec calendar_provider() :: module() | nil
+  def calendar_provider do
+    :persistent_term.get(@calendar_provider_key, nil)
+  end
+
   @doc false
   # The value written in the calendar the locale's `-u-ca-` names, which is
   # the calendar TR35 writes a date in where the locale names one:
@@ -1791,16 +1848,35 @@ defmodule Localize.Calendar do
     end
   end
 
+  # The value's own calendar answers for its family, and a value in
+  # `Calendar.ISO` has none: Localize supplies that calendar itself and no
+  # others, so the calendars of a registered provider answer for it.
   defp calendar_of_type(calendar, calendar_type) do
-    answers = answering(calendar)
+    case ask_for_calendar(answering(calendar), calendar_type) do
+      {:ok, target} -> {:ok, target}
+      :error -> ask_provider_for_calendar(calendar_type)
+    end
+  end
 
-    with true <- Code.ensure_loaded?(answers),
-         true <- function_exported?(answers, :calendar_from_cldr_calendar_type, 1),
-         {:ok, target} <- answers.calendar_from_cldr_calendar_type(calendar_type) do
+  defp ask_provider_for_calendar(calendar_type) do
+    case ask_for_calendar(calendar_provider(), calendar_type) do
+      {:ok, target} ->
+        {:ok, target}
+
+      :error ->
+        {:error, Localize.UnknownCalendarError.exception(calendar: calendar_type)}
+    end
+  end
+
+  defp ask_for_calendar(nil, _calendar_type), do: :error
+
+  defp ask_for_calendar(module, calendar_type) do
+    with true <- Code.ensure_loaded?(module),
+         true <- function_exported?(module, :calendar_from_cldr_calendar_type, 1),
+         {:ok, target} <- module.calendar_from_cldr_calendar_type(calendar_type) do
       {:ok, target}
     else
-      _no_calendar ->
-        {:error, Localize.UnknownCalendarError.exception(calendar: calendar_type)}
+      _no_calendar -> :error
     end
   end
 
