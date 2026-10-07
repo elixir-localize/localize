@@ -12,8 +12,20 @@ if Localize.Nif.available?() do
 
     @moduletag :nif
 
-    # Representative locales covering different formatting conventions
-    @test_locales ~w(en de fr ar ja zh)
+    # Representative locales covering different formatting conventions, and
+    # `bn-IN` for the locales whose default numbering system is not `latn`.
+    @test_locales ~w(en de fr ar ja zh bn-IN)
+
+    # Locales that differ from ICU only by data version, not algorithm, so the
+    # equality assertion is held off them and their own value is asserted
+    # below. Shrinks when the pin and the system ICU realign.
+    #
+    #   * bn-IN — CLDR 49 states its default numbering system as `latn`
+    #     explicitly, where CLDR 48 left it inheriting `beng` from `bn`. We
+    #     follow the pin and ICU 78.3 still carries the old value, so we write
+    #     "12,345.6" where ICU writes Bengali digits. `bn` and `bn-BD` agree
+    #     with ICU, as do the other 67 locales ICU gives a non-`latn` system.
+    @version_skew_quarantine MapSet.new(["bn-IN"])
 
     # Test numbers covering various ranges
     @test_numbers [
@@ -31,6 +43,19 @@ if Localize.Nif.available?() do
       1000.99
     ]
 
+    describe "locales quarantined for ICU data-version skew" do
+      # Asserted rather than skipped: this is the CLDR 49 value, and the test
+      # says which side is right while ICU catches up.
+      test "bn-IN writes Latin digits, as CLDR 49 states its numbering system" do
+        assert {:ok, "12,345.6"} = Localize.Number.to_string(12_345.6, locale: "bn-IN")
+
+        assert {:ok, bengali} = Localize.Number.to_string(12_345.6, locale: "bn")
+        refute bengali == "12,345.6"
+
+        assert {:ok, ^bengali} = Localize.Number.to_string(12_345.6, locale: "bn-BD")
+      end
+    end
+
     describe "standard number formatting cross-validation" do
       for locale <- @test_locales do
         for number <- @test_numbers do
@@ -43,9 +68,11 @@ if Localize.Nif.available?() do
             {:ok, elixir_result} =
               Localize.Number.to_string(number, locale: locale)
 
-            assert icu_result == elixir_result,
-                   "ICU: #{inspect(icu_result)} vs Elixir: #{inspect(elixir_result)} " <>
-                     "for #{inspect(number)} in locale #{locale}"
+            unless MapSet.member?(@version_skew_quarantine, locale) do
+              assert icu_result == elixir_result,
+                     "ICU: #{inspect(icu_result)} vs Elixir: #{inspect(elixir_result)} " <>
+                       "for #{inspect(number)} in locale #{locale}"
+            end
           end
         end
       end
