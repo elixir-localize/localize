@@ -1,14 +1,18 @@
 name: Upload Inflection Data to Cloudflare R2
 
-# Publishes the inflection data to Cloudflare R2. On push to the
-# `inflection` branch it reads the data version from
-# priv/localize/localize_inflection_sha (plus the pipeline revision)
-# and uploads that version when it is not already on R2 — i.e. the
-# version changed or was never uploaded. A push that leaves the
-# version unchanged finds it already on R2 and short-circuits to a
-# cheap no-op (no filter, so the never-uploaded case fires on any
-# push). Also reusable from ci.yml (post-merge on main, ahead of the
-# test matrix) and manually dispatchable for recovery.
+# Publishes the inflection data to Cloudflare R2. A maintainer runs it
+# by hand, `gh workflow run upload-inflection.yml`, as the locale data
+# is published by hand with `mix localize.publish_locales`. It reads the
+# data version from priv/localize/localize_inflection_sha (plus the
+# pipeline revision) and uploads that version when it is not already on
+# R2 — i.e. the version changed or was never uploaded. A run that finds
+# the version already there short-circuits to a cheap no-op.
+#
+# Nothing triggers it on its own: development is on `main` only and the
+# `inflection` branch it once watched is gone. `workflow_call` is
+# declared for reuse and no workflow calls it, so a pin bump needs a
+# dispatch of its own before the suites that download the new version
+# can pass.
 #
 # The conformance suites download CLDR locale data for the version in
 # priv/localize/version, and this workflow never generates locale data — a
@@ -19,8 +23,6 @@ name: Upload Inflection Data to Cloudflare R2
 # publishes without the suites, for the window between a CLDR data bump
 # and the locale upload that follows it.
 on:
-  push:
-    branches: [inflection]
   workflow_call:
   workflow_dispatch:
     inputs:
