@@ -4,8 +4,6 @@ Outstanding work on Localize. The design detail behind these items lives under [
 
 ## Open
 
-* [ ] **MF2's `calendar` option reaches into Calendrical** — `Localize.Message.Interpreter` resolves `calendar=hebrew` to a module through `Localize.OptionalDependency.call("Calendrical", ...)`, which the rule that Localize never depends on Calendrical forbids. Calendrical's `calendar_from_locale/1` now maps a locale's `-u-ca-<name>` to its calendar module (Calendrical `501cd5a`) and nothing hands it to Localize: a registration Calendrical's application makes at start-up is one way, the option's identifier being put on the message's locale as its `-u-ca-`, the value TR35 has the option override. Open and not begun (user, 2026-10-06: "Leave it as an open item for now"); it was deferred on 2026-10-01.
-
 ## In progress
 
 * [ ] **CLDR 49 upgrade** — the plan's items are closed bar item 11; the data is built from CLDR `main` pending beta3 (below), then the final release. [plans/cldr-49.md](plans/cldr-49.md).
@@ -63,6 +61,8 @@ Outstanding work on Localize. The design detail behind these items lives under [
 * [ ] **`localize_emoji` sibling library** — plan item 11, a separate package on its own schedule. A Phoenix LiveView picker (`localize_emoji_live`) is out of scope for its 0.1.0.
 
 ## Done
+
+* [x] **MF2's `calendar` option reaches into Calendrical** — the option now names the calendar on the message's locale as its `-u-ca-`, the value TR35 has it override, and a locale's `-u-ca-` is honoured generally: a value is converted into the calendar the key names before it is formatted, where the key was read only for the week rules of `-u-ca-iso8601`. The module comes from the value's own calendar through an optional `calendar_from_cldr_calendar_type/1`, answered for every Calendrical calendar (32 of them, by `Calendrical.Behaviour`, the month, week, Julian and composite compilers), so Localize names no package and `Localize.OptionalDependency` is gone with its only call site. 2026-10-07, v1.4.0.
 
 * [x] **A composite calendar's dates of its earlier calendar do not read back** — a calendar names the further calendars its dates are read in with an optional `parsing_calendars/0`, modules and not CLDR types, and a date is read in each, converted, and held to the calendar the composite writes its day in (Localize's side 2026-10-06). `Calendrical.Composite` now answers it from the member calendars its compiler already holds, the base first and the rest in the order they take effect, so every composite answers at once and a member in effect twice is named once: `Localize.Calendar.parsing_calendars(Calendrical.Reform.Japan)` is `[Japan, LunarJapanese, Japanese]`, and "Mo5 11, 1872" reads back, as do a leap month's date whose cyclic year trails its era year and a 1700 one. 2026-10-07, v1.4.0.
 

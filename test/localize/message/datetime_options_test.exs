@@ -297,9 +297,22 @@ defmodule Localize.Message.DateTimeOptionsTest do
       end
     end
 
-    test "calendar needs Calendrical, which provides the calendars" do
-      assert {:error, %Localize.FormatError{cause: %Localize.DependencyRequiredError{}}} =
+    # The option names the calendar on the message's locale, and the calendars
+    # come from the library that supplies them. Localize ships the ISO calendar
+    # alone, so one no family answers for is an unknown calendar rather than a
+    # named package's absence.
+    test "calendar names a calendar the value's own family has to supply" do
+      assert {:error,
+              %Localize.FormatError{cause: %Localize.UnknownCalendarError{calendar: :hebrew}}} =
                format("{|2006-01-02| :date calendar=hebrew}")
+    end
+
+    # `gregory` is the BCP 47 spelling of the calendar the ISO calendar already
+    # writes, so the locale names a calendar the value is in and it is written
+    # without being converted.
+    test "calendar the value is already in is written as it stands" do
+      assert {:ok, formatted} = format("{|2006-01-02| :date calendar=gregory}")
+      assert {:ok, ^formatted} = format("{|2006-01-02| :date}")
     end
   end
 

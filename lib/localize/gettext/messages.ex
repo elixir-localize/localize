@@ -228,6 +228,12 @@ defmodule Localize.Gettext.Messages do
         Localize.Gettext,
         "localize",
         "locale",
+        "{$value} cannot be written in the calendar {$calendar}."
+      ),
+      Gettext.Macros.dpgettext_noop_with_backend(
+        Localize.Gettext,
+        "localize",
+        "locale",
         "The key path {$keys} was not found in locale {$locale}."
       ),
       Gettext.Macros.dpgettext_noop_with_backend(

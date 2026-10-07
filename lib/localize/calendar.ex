@@ -1732,6 +1732,95 @@ defmodule Localize.Calendar do
   end
 
   @doc false
+  # The value written in the calendar the locale's `-u-ca-` names, which is
+  # the calendar TR35 writes a date in where the locale names one:
+  # `en-u-ca-hebrew` writes a Gregorian date as the Hebrew calendar's. A
+  # locale that names no calendar, and a value already in the one it names,
+  # is returned as it stands.
+  #
+  # A CLDR calendar type names no module on its own, and Localize ships the
+  # ISO calendar alone, so the module comes from the value's own calendar
+  # through the optional `calendar_from_cldr_calendar_type/1` that the
+  # library supplying the calendars answers for its family. A calendar whose
+  # family does not answer, or answers with no calendar of that type, leaves
+  # the type unknown.
+  @spec convert_to_locale_calendar(map(), term()) :: {:ok, map()} | {:error, Exception.t()}
+  def convert_to_locale_calendar(value, locale) do
+    case locale_calendar_type(locale) do
+      nil -> {:ok, value}
+      calendar_type -> convert_to_calendar_type(value, calendar_type)
+    end
+  end
+
+  defp locale_calendar_type(%LanguageTag{locale: keywords} = language_tag)
+       when is_map(keywords) do
+    case locale_keyword(language_tag, :ca) do
+      # `iso8601` names ISO 8601's week rules and not a calendar of its own,
+      # which `first_day_for_locale/1` and `min_days_for_locale/1` read from
+      # the locale; no module answers for it and a date keeps its calendar.
+      :iso8601 -> nil
+      calendar_type -> calendar_type
+    end
+  end
+
+  # A tag whose keywords are not a map names no calendar: the caller resolves
+  # the locale itself and reports the shape.
+  defp locale_calendar_type(%LanguageTag{}), do: nil
+
+  defp locale_calendar_type(locale) do
+    case Localize.validate_locale(locale) do
+      {:ok, language_tag} -> locale_calendar_type(language_tag)
+      # The caller resolves the locale itself and reports what is wrong with it.
+      {:error, _exception} -> nil
+    end
+  end
+
+  # A time has no calendar to write it in, and a value that is no date keeps
+  # whatever fields it was given.
+  defp convert_to_calendar_type(%Time{} = value, _calendar_type), do: {:ok, value}
+
+  defp convert_to_calendar_type(value, calendar_type) do
+    calendar = Map.get(value, :calendar, Calendar.ISO)
+
+    if cldr_calendar_type(calendar) == calendar_type do
+      {:ok, value}
+    else
+      with {:ok, target} <- calendar_of_type(calendar, calendar_type) do
+        convert_value(value, target)
+      end
+    end
+  end
+
+  defp calendar_of_type(calendar, calendar_type) do
+    answers = answering(calendar)
+
+    with true <- Code.ensure_loaded?(answers),
+         true <- function_exported?(answers, :calendar_from_cldr_calendar_type, 1),
+         {:ok, target} <- answers.calendar_from_cldr_calendar_type(calendar_type) do
+      {:ok, target}
+    else
+      _no_calendar ->
+        {:error, Localize.UnknownCalendarError.exception(calendar: calendar_type)}
+    end
+  end
+
+  defp convert_value(%Date{} = value, calendar),
+    do: converted(value, Date.convert(value, calendar), calendar)
+
+  defp convert_value(%NaiveDateTime{} = value, calendar),
+    do: converted(value, NaiveDateTime.convert(value, calendar), calendar)
+
+  defp convert_value(%DateTime{} = value, calendar),
+    do: converted(value, DateTime.convert(value, calendar), calendar)
+
+  defp convert_value(value, _calendar), do: {:ok, value}
+
+  defp converted(_value, {:ok, converted}, _calendar), do: {:ok, converted}
+
+  defp converted(value, {:error, _reason}, calendar),
+    do: {:error, Localize.CalendarConversionError.exception(value: value, calendar: calendar)}
+
+  @doc false
   # A date in its calendar's own notation, as the calendar writes it with its
   # `date_to_string/3`, when the calendar writes its dates in one rather than
   # in the locale's formats: "2026-W25-2" for a calendar of weeks. A calendar

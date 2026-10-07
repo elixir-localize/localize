@@ -148,7 +148,8 @@ defmodule Localize.DateTime do
   # each terminal, so `to_string/2` and `to_parts/2` share every
   # resolution path.
   defp do_format(datetime, options, output) when is_map(datetime) and is_keyword_list(options) do
-    with :ok <- Localize.Calendar.validate_value(datetime) do
+    with :ok <- Localize.Calendar.validate_value(datetime),
+         {:ok, datetime} <- convert_to_locale_calendar(datetime, options) do
       case value_shape(datetime) do
         :complete -> format_datetime(datetime, options, output, :complete)
         :partial -> format_datetime(datetime, options, output, :partial)
@@ -165,6 +166,15 @@ defmodule Localize.DateTime do
   defp do_format(_invalid, _options, _output) do
     {:error, Localize.DateTimeInvalidInputError.exception(type: :datetime)}
   end
+
+  # The locale's `-u-ca-` names the calendar its dates are written in, so a
+  # value is converted into it before a format is resolved for it.
+  defp convert_to_locale_calendar(value, options) when is_keyword_list(options) do
+    locale = Keyword.get(options, :locale, Localize.get_locale())
+    Localize.Calendar.convert_to_locale_calendar(value, locale)
+  end
+
+  defp convert_to_locale_calendar(value, _options), do: {:ok, value}
 
   # A complete value holds every date and time field. A partial one holds
   # some of each, and neither half's fields may be dropped. The rest hold

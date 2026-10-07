@@ -1086,7 +1086,7 @@ defmodule Localize.Message.Interpreter do
        when name in @date_time_functions do
     with {:ok, operand} <- date_time_operand(name, value),
          {:ok, operand} <- convert_time_zone(operand, Map.get(func_opts, :timeZone)),
-         {:ok, operand} <- convert_calendar(operand, Map.get(func_opts, :calendar)),
+         {:ok, options} <- put_locale_calendar(options, Map.get(func_opts, :calendar)),
          {:ok, hour_cycle} <- hour_cycle_option(Map.get(func_opts, :hour12)),
          {:ok, format_options} <- date_time_format(name, func_opts, hour_cycle, options) do
       format_date_time(name, operand, format_options)
@@ -2207,49 +2207,51 @@ defmodule Localize.Message.Interpreter do
   defp utc_instant(datetime), do: datetime
 
   # TR35 names a calendar by its Unicode identifier (`hebrew`,
-  # `islamic-umalqura`), which resolves to a calendar module here, where the
-  # message names it. Calendrical provides the calendars, so without it the
-  # option is a Bad Option error. A time alone has no calendar to change.
-  defp convert_calendar(operand, nil), do: {:ok, operand}
+  # `islamic-umalqura`), and the option overrides the calendar the locale's
+  # `-u-ca-` names, so the identifier is put on the message's locale and the
+  # value is written in that calendar when it is formatted. The calendars
+  # themselves come from the library that supplies them, which answers for
+  # its own family: Localize names none of them.
+  defp put_locale_calendar(options, nil), do: {:ok, options}
 
-  defp convert_calendar(%Time{} = operand, identifier) when is_binary(identifier),
-    do: {:ok, operand}
+  defp put_locale_calendar(options, identifier) when is_binary(identifier) do
+    # The `-u-` parser canonicalizes the identifier and its aliases, so
+    # `gregory` is `:gregorian` and `islamic-umalqura` `:islamic_umalqura`.
+    case Localize.LanguageTag.U.parse("ca-" <> identifier) do
+      {:ok, %Localize.LanguageTag.U{ca: calendar_type}} when not is_nil(calendar_type) ->
+        {:ok, Keyword.put(options, :locale, locale_with_calendar(options, calendar_type))}
 
-  defp convert_calendar(operand, identifier) when is_binary(identifier) do
-    with {:ok, calendar} <- calendar_module(identifier) do
-      case convert_to_calendar(operand, calendar) do
-        {:ok, converted} ->
-          {:ok, converted}
-
-        {:error, reason} ->
-          {:error,
-           "cannot convert #{inspect(operand)} to the #{identifier} calendar: #{inspect(reason)}"}
-      end
+      _no_calendar ->
+        bad_calendar_option(identifier)
     end
   end
 
-  defp convert_calendar(_operand, identifier) do
+  defp put_locale_calendar(_options, identifier), do: bad_calendar_option(identifier)
+
+  defp bad_calendar_option(identifier) do
     {:error,
      "the calendar option must be a Unicode calendar identifier, got #{inspect(identifier)}"}
   end
 
-  defp calendar_module(identifier) do
-    Localize.OptionalDependency.call(
-      "Calendrical",
-      :calendar_from_cldr_calendar_type,
-      [identifier],
-      package: "calendrical",
-      operation: "formatting in the #{identifier} calendar"
-    )
+  defp locale_with_calendar(options, calendar_type) do
+    locale = Keyword.get(options, :locale, Localize.get_locale())
+
+    case Localize.validate_locale(locale) do
+      {:ok, language_tag} ->
+        %{language_tag | locale: keywords_with_calendar(language_tag.locale, calendar_type)}
+
+      # The formatter resolves the locale itself and reports what is wrong
+      # with it, so one it cannot use is passed on as it was given.
+      {:error, _exception} ->
+        locale
+    end
   end
 
-  defp convert_to_calendar(%Date{} = date, calendar), do: Date.convert(date, calendar)
+  defp keywords_with_calendar(%Localize.LanguageTag.U{} = keywords, calendar_type),
+    do: %{keywords | ca: calendar_type}
 
-  defp convert_to_calendar(%NaiveDateTime{} = datetime, calendar),
-    do: NaiveDateTime.convert(datetime, calendar)
-
-  defp convert_to_calendar(%DateTime{} = datetime, calendar),
-    do: DateTime.convert(datetime, calendar)
+  defp keywords_with_calendar(_keywords, calendar_type),
+    do: struct(Localize.LanguageTag.U, ca: calendar_type)
 
   # `hour12` asks for a 12- or 24-hour clock in the locale's own style,
   # TR35's Clock12 and Clock24.

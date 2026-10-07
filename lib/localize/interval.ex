@@ -242,11 +242,22 @@ defmodule Localize.Interval do
        )}
     else
       with :ok <- Localize.Calendar.validate_value(from),
-           :ok <- Localize.Calendar.validate_value(to) do
+           :ok <- Localize.Calendar.validate_value(to),
+           {:ok, from} <- convert_to_locale_calendar(from, options),
+           {:ok, to} <- convert_to_locale_calendar(to, options) do
         format_endpoints(from, to, options, output)
       end
     end
   end
+
+  # The locale's `-u-ca-` names the calendar its dates are written in, so a
+  # value is converted into it before a format is resolved for it.
+  defp convert_to_locale_calendar(value, options) when is_keyword_list(options) do
+    locale = Keyword.get(options, :locale, Localize.get_locale())
+    Localize.Calendar.convert_to_locale_calendar(value, locale)
+  end
+
+  defp convert_to_locale_calendar(value, _options), do: {:ok, value}
 
   defp format_endpoints(from, to, options, output) do
     cond do

@@ -114,10 +114,22 @@ defmodule Localize.Date do
   @spec to_string(map(), Keyword.t()) :: {:ok, String.t()} | {:error, Exception.t()}
   def to_string(date, options \\ []) do
     with :ok <- Localize.Calendar.validate_value(date),
+         {:ok, date} <- convert_to_locale_calendar(date, options),
          {:ok, pattern, locale_id, formatter_options} <- formatting_plan(date, options) do
       Localize.DateTime.Formatter.format(date, pattern, locale_id, formatter_options)
     end
   end
+
+  # The locale's `-u-ca-` names the calendar its dates are written in, so a
+  # value is converted into it before a format is resolved for it: the format
+  # and the fields it writes are the calendar's. Options that are no keyword
+  # list are reported by `formatting_plan/2`.
+  defp convert_to_locale_calendar(date, options) when is_keyword_list(options) do
+    locale = Keyword.get(options, :locale, Localize.get_locale())
+    Localize.Calendar.convert_to_locale_calendar(date, locale)
+  end
+
+  defp convert_to_locale_calendar(date, _options), do: {:ok, date}
 
   # Resolves the format pattern, locale, and formatter options for a
   # date — the shared front half of `to_string/2` and `to_parts/2`.
@@ -267,6 +279,7 @@ defmodule Localize.Date do
           {:ok, [%{type: atom(), value: String.t()}]} | {:error, Exception.t()}
   def to_parts(date, options \\ []) do
     with :ok <- Localize.Calendar.validate_value(date),
+         {:ok, date} <- convert_to_locale_calendar(date, options),
          {:ok, pattern, locale_id, formatter_options} <- formatting_plan(date, options) do
       Localize.DateTime.Formatter.format_to_parts(date, pattern, locale_id, formatter_options)
     end
