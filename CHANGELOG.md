@@ -18,6 +18,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
+* `Localize.Calendar.register_provider/1` registers the module that answers for the calendars an application supplies, which `calendar_provider/0` returns. A CLDR calendar type names no calendar module of its own and Localize ships `Calendar.ISO` alone, so a value in that calendar has no family to ask for the calendar a locale's `-u-ca-` names; the provider answers for it, and a value in another calendar is still asked first.
+
 * A calendar may name further calendars for its dates to be read in, with an optional `parsing_calendars/0` callback that returns calendar modules: a composite calendar writes the dates of each of its calendars with that calendar's formats, which the formats of its own CLDR type do not all read. `Localize.Date.parse/2`, `Localize.DateTime.parse/2` and `Localize.Interval.parse/2` read a date in each calendar named and convert it, keeping a reading only where the composite writes that day with the formats of the calendar it was read in.
 
 * `Localize.Date.parse/2` takes `:format`, the standard format, skeleton or pattern the text was written with, and reads the text with that format alone, so a date written by a skeleton whose fields stand in another order than the standard formats' reads back: `mt`'s `:yMd` "4/3/2024" is 3 April. `Localize.Interval.parse/2` takes it as the interval's own format.
