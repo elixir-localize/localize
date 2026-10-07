@@ -59,7 +59,7 @@ data/                              # Pipeline (compiles in :dev/:test only, not 
 
 * **CLDR JSON** — built from the repository by `mix localize.build_cldr_json`, which runs CLDR's `GenerateProductionData` and `Ldml2JsonConverter` with Maven and writes the JSON packages the pipeline reads. It takes about ten minutes. Location: `$CLDR_PRODUCTION`, default `../cldr_production_data` (on the primary workstation: `~/Development/cldr/cldr_production_data`); the build clears it first.
 
-* **Java and Maven** — Maven running a JDK at least as recent as the `<java-release>` in the repository's `tools/pom.xml`: CLDR 49 requires JDK 21 (`JAVA_HOME=$(/usr/libexec/java_home -v 21)`). CLDR takes ICU4J from the GitHub Packages registry, which needs a token even for public packages: `~/.m2/settings.xml` must hold a server with the id `githubicu` whose password is a GitHub token with the `read:packages` scope.
+* **Java and Maven** — Maven running a JDK at least as recent as the `<java-release>` in the repository's `tools/pom.xml`: CLDR 49 requires JDK 21. Set `JAVA_HOME` to a JDK you have checked, not to `$(/usr/libexec/java_home -v 21)`: on a machine with no JDK 21 that command does not fail, it answers with whatever JVM it does have — on this one a Java 8 *JRE* with no `javac` at all, which fails the Maven build with a confusing error. Check the home you pass: `"$JAVA_HOME/bin/javac" -version` must print 21 or later. Homebrew's keg names are no guide either, `openjdk@21` here resolving to JDK 23. CLDR takes ICU4J from the GitHub Packages registry, which needs a token even for public packages: `~/.m2/settings.xml` must hold a server with the id `githubicu` whose password is a GitHub token with the `read:packages` scope.
 
 * **Only for generating data.** Nothing under `lib/` reads the sources and they are not in the hex package. The test suite does not need them either: in `:dev` and `:test` a locale missing from the cache is generated from the recorded sources when they are present, and downloaded from the CDN otherwise. `mix localize.fetch_sources` puts the recorded sources onto a machine that lacks them — a sparse checkout of the repository at the recorded ref into `$CLDR_REPO`, and the JSON built from it into `$CLDR_PRODUCTION` — which is how a new machine gets them.
 
@@ -120,7 +120,9 @@ git -C $CLDR_REPO checkout release-<N>
 #    minutes; CLDR 49 needs Maven on JDK 21), records the ref in
 #    priv/localize/cldr_repo_ref, writes priv/localize/version, fetches the
 #    UCD files and copies CLDR's conformance fixtures into test/support/data.
-JAVA_HOME=$(/usr/libexec/java_home -v 21) mix localize.prepare_sources
+# JAVA_HOME must be a JDK 21 or later you have verified: see the Java and
+# Maven prerequisite above for why `java_home -v 21` cannot be trusted.
+JAVA_HOME=/path/to/a/checked/jdk21+ mix localize.prepare_sources
 
 # 3. Auxiliary sources
 #    iso_currencies.xml is required, not optional: it is not a CLDR source, and
