@@ -41,6 +41,20 @@ For every item below, three things appear:
 * **Gap** — what is missing or wrong relative to the standard.
 * **Plan** — the steps to close the gap, with explicit notes on API impact and any potential breaking changes.
 
+### Inflection data is outside this upgrade
+
+The inflection artifacts are pinned to `unicode-org/inflection` by `priv/localize/localize_inflection_sha` plus `Localize.Inflection.Provider`'s `@data_revision` — a data version independent of the CLDR version in `priv/localize/version`, currently `ae92d425e57a-r3`. The generator reads no CLDR data, so **CLDR 49 requires no inflection regeneration and no inflection republish.**
+
+The coupling runs the other way. `upload-inflection.yml` refuses to run its conformance suites unless the CLDR locale data for `priv/localize/version` is already on R2, because those suites download the locales they format in; for 49 that resolves to `v49.0.0`, which a forced run on 2026-10-07 confirmed is published with 658 files. An inflection publish attempted before the matching locale data is up therefore stops within a minute, and `-f skip_conformance=true` is how to publish inflection data in that window.
+
+Three operational changes landed 2026-10-07 that anyone executing this upgrade should know:
+
+* Artifacts are addressed under their data version — `priv/localize/inflection/<data version>/de.etf`, from `Localize.Inflection.DataDir.dir/0` — so an artifact of an earlier version is unreachable rather than merely detectable; it was previously indistinguishable from a current one, and a `zh` artifact predating the Traditional Chinese pronoun table resolved `zh-TW` to the Simplified table. Generation, the hash manifest and the R2 upload all read and write that path, and `mix localize.download_inflection --prune` removes superseded version directories.
+
+* Nothing publishes inflection data automatically. The `inflection` branch is gone and all development is on `main`, so publishing is `gh workflow run upload-inflection.yml` by hand; a `@data_revision` bump leaves CI's inflection suites failing on the download until that dispatch happens.
+
+* `-f force=true` re-publishes a data version already on R2, which is how the generate-verify-upload path is exercised when the pin has not moved. The committed hash manifest still gates the upload, so an incomplete generated set fails the run before `rclone sync` can prune R2.
+
 ## Backwards-compatibility commitments
 
 This package is widely used. The following invariants apply to every item in this plan:
@@ -1940,6 +1954,8 @@ This plan must be revisited at the following checkpoints:
 Each checkpoint should leave a dated entry at the bottom of this file noting what changed and which items advanced.
 
 ## Change log for this plan
+
+* 2026-10-07 — Recorded inflection data's relationship to this upgrade under Scope. It needs no regeneration for CLDR 49, its version being pinned to `unicode-org/inflection` with a generator that reads no CLDR data, but `upload-inflection.yml` gates on the CLDR locale data for `priv/localize/version` being on R2 — `v49.0.0` for 49, verified published with 658 files. The section also records the changes of that date: artifacts addressed under their data version, manual-dispatch-only publishing now the `inflection` branch is gone, and the `force` input that re-publishes a version in place.
 
 * 2026-09-14 — Reassessed [unicode-org/cldr#6098](https://github.com/unicode-org/cldr/pull/6098), corrected item 32 and added items 34–36. The PR is still docs-only and still open, and nothing in it requires work, but its text has moved since 2026-09-08: range patterns are now scoped to internal comparison of non-numeric intervals, the sentence item 32 quoted no longer exists, and item 32's note that steps 1–7 became 1–8 was wrong — the markdown numbers them 1–4 then 6–8 and renders 1–7. Reassessing it surfaced two shipped en-CA defects with one cause, fixed as item 34: `month_and_day` intervals at `:short` raised `FunctionClauseError` in releases from 1.0.0, and en-CA skeleton formats rendered their day-first variant from 1.1.0, because the available- and interval-format normalizers key the pair `:default` where the resolver knows only `:standard`. Fixed on `main` as `4b145ca6` and cherry-picked here: 31,076 passing, dialyzer clean, and no interval call raises in any of 656 locales. The review thread's point about interval patterns inherited from a different locale level than the single date became item 35 — 141 of 656 locales disagree in field order, and ICU agrees with us — and a cross-year `month_and_day` interval dropping its year became item 36. Checking out `main` in this working tree to make the fix deleted the ignored `priv/cldr/` pipeline inputs that `main` tracks and let `main`'s test run overwrite 34 CLDR 49 locale files with CLDR 48.2 downloads, adding a stray `aa`. `scripts/build_cldr_production_data` and `mix localize.update_cldr` rebuilt everything from `release-49-alpha2`: the JSON is identical to the 2026-09-05 build, all 657 locale files match `locale_hashes.etf`, the suite passed at 31,066 before the fix was reapplied, and no tracked file changed.
 
