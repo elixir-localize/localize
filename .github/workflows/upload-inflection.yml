@@ -8,6 +8,12 @@ name: Upload Inflection Data to Cloudflare R2
 # R2 — i.e. the version changed or was never uploaded. A run that finds
 # the version already there short-circuits to a cheap no-op.
 #
+# `force` overrides that check and re-publishes the version in place,
+# which is how the generate-verify-upload path is exercised when the pin
+# has not moved. The hash manifest verification still gates the upload,
+# so an incomplete generated set fails the run before `rclone sync` can
+# prune files off R2.
+#
 # Nothing triggers it on its own: development is on `main` only and the
 # `inflection` branch it once watched is gone. `workflow_call` is
 # declared for reuse and no workflow calls it, so a pin bump needs a
@@ -28,6 +34,11 @@ on:
     inputs:
       skip_conformance:
         description: 'Publish without running the conformance suites (only when CLDR locale data for this version is not yet on R2)'
+        required: false
+        default: false
+        type: boolean
+      force:
+        description: 'Generate, verify and upload even when this data version is already on R2 (re-publishes over it)'
         required: false
         default: false
         type: boolean
@@ -106,13 +117,19 @@ jobs:
         id: check_existing
         env:
           DATA_VERSION: ${{ steps.version.outputs.data_version }}
+          FORCE: ${{ inputs.force }}
         run: |
-          existing=$(rclone lsf "r2:${R2_BUCKET}/${R2_PREFIX}/${DATA_VERSION}/" --include "*.etf" 2>/dev/null | wc -l | tr -d '[:space:]')
-          if [ "${existing}" -gt 0 ]; then
-            echo "skip=true" >> "$GITHUB_OUTPUT"
-            echo "::notice::Inflection data ${DATA_VERSION} already exists on R2 with ${existing} file(s); skipping."
-          else
+          if [ "${FORCE}" = "true" ]; then
             echo "skip=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::force requested; ${DATA_VERSION} is generated, verified and uploaded even though it may already be on R2."
+          else
+            existing=$(rclone lsf "r2:${R2_BUCKET}/${R2_PREFIX}/${DATA_VERSION}/" --include "*.etf" 2>/dev/null | wc -l | tr -d '[:space:]')
+            if [ "${existing}" -gt 0 ]; then
+              echo "skip=true" >> "$GITHUB_OUTPUT"
+              echo "::notice::Inflection data ${DATA_VERSION} already exists on R2 with ${existing} file(s); skipping."
+            else
+              echo "skip=false" >> "$GITHUB_OUTPUT"
+            fi
           fi
 
       # The conformance suites download CLDR locale data for the version in
