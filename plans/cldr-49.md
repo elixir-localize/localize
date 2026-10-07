@@ -1630,7 +1630,7 @@ This is not a CLDR 49 change. The gap predates the cycle and was found while ass
 
 Implemented as planned, and step 3 turned out not to be optional. Matching alone took the ICU agreement rate *down*, because a pattern reached by a width-adjusted match still spells its fields at the *matched* skeleton's widths: `en` `:long` asks for `yMMMMd`, matches `yMMMd`, and has to be widened back from "Jun" to "June"; `en` `:short` asks for a two-digit year and has to be narrowed to it. `Match.adjust_field_lengths/3` already did exactly that job for `availableFormats`.
 
-The oracle is Node's `Intl.DateTimeFormat.prototype.formatRange`, which is ICU's `DateIntervalFormat`. Over 36 locales × 4 styles × 3 greatest-differences — 432 cases:
+The oracle is Node's `Intl.DateTimeFormat.prototype.formatRange`, which is ICU's `DateIntervalFormat`. It is ICU **77.1**, the version Node bundles (`process.versions.icu`), and not the system `icu4c` the NIF links, which is 78.3 on the maintainer's machine: the two are different ICUs and a version named here belongs to whichever oracle the measurement used. The NIF formats units, numbers, collation, plurals and MF2 and cannot format an interval or a date, so an interval oracle has to come from elsewhere. Over 36 locales × 4 styles × 3 greatest-differences — 432 cases:
 
 | | before | after |
 |---|---|---|
@@ -1757,7 +1757,7 @@ Measured as disagreement between the field order of a locale's own single date a
 
 `agq` medium renders "3 see, 2026" for a date and "2026 see 3–5" for a range. `es-PA` short is month-first for a date, "05/03/26", and day-first for a range, "03/05/26–05/05/26", which in es-PA's own convention reads as 5 March to 5 May. `en-ZA`, `af` and `en-CA` override a parent's single short date while inheriting its interval order, and `ak` and `hy` changed their single-date patterns after CLDR 47 without changing their interval patterns.
 
-ICU 77.1 produces the same interval strings in every case sampled, apart from the zero-padding item 31 adds, so we agree with ICU and both depart from TR35 step 1.
+ICU 77.1 produces the same interval strings in every case sampled, apart from the zero-padding item 31 adds, so we agree with ICU and both depart from TR35 step 1. Re-measured 2026-10-08 against ICU **78.3** directly, through a small `DateIntervalFormat` harness linked against the system `icu4c@78` rather than through Node: `agq` and `es-PA`, the two locales this item names, agree on all four of `yMd`, `yMMMd`, `yMMMMd` and `yMMMMEEEEd`, so the conclusion holds on the newer ICU too. Over all 657 locales × those four skeletons, 2,361 of 2,628 agree (89.8%); of the 267 that do not, 40 are ICU answering in English for a locale it has no data for, and the rest are ICU's older CLDR content rather than a different algorithm — `bal-Latn`'s month names are still `M06` there and `az`'s day names are lower-cased. Comparing a *style* against a skeleton instead measures the style-to-skeleton mapping and not the interval algorithm; that mistake reported 22% disagreement for the same data.
 
 ### Plan
 
