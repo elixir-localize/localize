@@ -30,6 +30,12 @@ defmodule Localize.DateTime.Format.Match do
 
   alias Localize.DateTime.Format
 
+  # `:short`/`:medium`/`:long`/`:full` name a standard format, which CLDR
+  # keeps in its own table. Each is a sentinel: it is never a key of
+  # `availableFormats` or of the interval table, so it is not a skeleton and
+  # is refused by the matchers below rather than matched as though it were.
+  @standard_formats [:short, :medium, :long, :full]
+
   @date_symbols ~w(G y Y u U r Q q M L W w d D F g E e c)
   # `j`, `J` and `C` are TR35's input-skeleton hour symbols and `A` is the
   # milliseconds in the day, so a split keeps them with the time.
@@ -141,7 +147,15 @@ defmodule Localize.DateTime.Format.Match do
 
   @spec best_match(atom() | String.t(), Localize.locale(), atom()) ::
           {:ok, atom()} | {:ok, {atom(), atom()}} | {:error, Exception.t()}
-  def best_match(original_skeleton, locale_id, calendar_type \\ :gregorian) do
+  def best_match(original_skeleton, locale_id, calendar_type \\ :gregorian)
+
+  # Matching a standard format would spell its name out as fields — "medium"
+  # as month, weekday, day — and rank candidates against that before failing.
+  def best_match(format, locale_id, _calendar_type) when format in @standard_formats do
+    {:error, Localize.DateTimeUnresolvedFormatError.exception(format: format, locale: locale_id)}
+  end
+
+  def best_match(original_skeleton, locale_id, calendar_type) do
     skeleton =
       original_skeleton
       |> Kernel.to_string()
@@ -199,7 +213,14 @@ defmodule Localize.DateTime.Format.Match do
   #
   @spec best_interval_match(atom() | String.t(), Localize.locale(), atom()) ::
           {:ok, atom()} | :error
-  def best_interval_match(original_skeleton, locale_id, calendar_type \\ :gregorian) do
+  def best_interval_match(original_skeleton, locale_id, calendar_type \\ :gregorian)
+
+  def best_interval_match(format, _locale_id, _calendar_type)
+      when format in @standard_formats do
+    :error
+  end
+
+  def best_interval_match(original_skeleton, locale_id, calendar_type) do
     skeleton =
       original_skeleton
       |> Kernel.to_string()
@@ -578,38 +599,70 @@ defmodule Localize.DateTime.Format.Match do
   defp take_quoted([char | rest], taken), do: take_quoted(rest, [char | taken])
   defp take_quoted([], taken), do: {Enum.join(Enum.reverse(taken)), []}
 
-  defp get_available_format_tokens(locale_id, calendar_type) do
-    case Format.available_formats(locale_id, calendar_type) do
-      {:ok, formats} ->
-        formats
-        |> Map.keys()
-        |> Enum.map(fn format_id ->
-          {:ok, tokens} = tokenize_skeleton(Atom.to_string(format_id))
-          {format_id, match_tokens(tokens)}
-        end)
+  defp get_available_format_tokens(locale, calendar_type) do
+    cached_format_tokens(:available_format_tokens, locale, calendar_type, fn ->
+      case Format.available_formats(locale, calendar_type) do
+        {:ok, formats} ->
+          tokenize_format_keys(formats, [])
 
-      _ ->
-        []
-    end
+        _no_formats ->
+          []
+      end
+    end)
   end
 
   # The interval table is keyed by skeleton, with two siblings that are not
   # skeletons: the fallback pattern and the range separator patterns.
   @non_skeleton_interval_keys [:interval_format_fallback, :interval_format_ranges]
 
-  defp interval_format_tokens(locale_id, calendar_type) do
-    case Format.interval_formats(locale_id, calendar_type) do
-      {:ok, formats} ->
-        formats
-        |> Map.keys()
-        |> Enum.reject(&(&1 in @non_skeleton_interval_keys))
-        |> Enum.map(fn format_id ->
-          {:ok, tokens} = tokenize_skeleton(Atom.to_string(format_id))
-          {format_id, match_tokens(tokens)}
-        end)
+  defp interval_format_tokens(locale, calendar_type) do
+    cached_format_tokens(:interval_format_tokens, locale, calendar_type, fn ->
+      case Format.interval_formats(locale, calendar_type) do
+        {:ok, formats} ->
+          tokenize_format_keys(formats, @non_skeleton_interval_keys)
 
-      _no_interval_formats ->
-        []
+        _no_interval_formats ->
+          []
+      end
+    end)
+  end
+
+  defp tokenize_format_keys(formats, rejected_keys) do
+    formats
+    |> Map.keys()
+    |> Enum.reject(&(&1 in rejected_keys))
+    |> Enum.map(fn format_id ->
+      {:ok, tokens} = tokenize_skeleton(Atom.to_string(format_id))
+      {format_id, match_tokens(tokens)}
+    end)
+  end
+
+  # A token table is the CLDR format table of a locale and calendar with every
+  # key tokenized, so it derives from data that does not change and is built
+  # once. Matching a skeleton asks for the table, and a value whose fields do
+  # not make a standard pattern asks several times over as it tries the
+  # patterns it could be written with, so rebuilding it dominated those calls.
+  #
+  # The key holds the locale id, not the tag the caller threads: a tag is a
+  # large term to compare, and two tags naming one locale — one carrying
+  # `-u-` keywords and one not — would otherwise key the same table twice.
+  defp cached_format_tokens(kind, locale, calendar_type, build_tokens) do
+    case Localize.Locale.cldr_locale_id_from(locale) do
+      {:ok, locale_id} ->
+        key = {__MODULE__, kind, locale_id, calendar_type}
+
+        case :persistent_term.get(key, nil) do
+          nil ->
+            tokens = build_tokens.()
+            Localize.LiteralMemory.cache(key, tokens)
+            tokens
+
+          tokens ->
+            tokens
+        end
+
+      {:error, _unresolved_locale} ->
+        build_tokens.()
     end
   end
 

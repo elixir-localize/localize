@@ -396,14 +396,18 @@ defmodule Localize.Time do
   # `apply_hc_override/2` above, and binary patterns are treated as
   # the user's deliberate assertion (the spec is silent on those),
   # so this only fires for non-standard skeleton atoms.
+  # A standard format is a sentinel, not a skeleton of fields: it carries no
+  # hour symbol to substitute and is returned as it came, without being spelt
+  # out as a string to look for one.
+  defp apply_hc_to_skeleton(format, _language_tag) when format in @standard_formats,
+    do: format
+
   defp apply_hc_to_skeleton(format, %{locale: %{hc: hc}})
        when is_atom(format) and hc in [:h11, :h12, :h23, :h24] do
     string = Atom.to_string(format)
     symbols = if hc in [:h23, :h24], do: ["j", "J"], else: ["j"]
 
-    if format in @standard_formats or not String.contains?(string, symbols) do
-      format
-    else
+    if String.contains?(string, symbols) do
       preferred = preferred_symbol_for_cycle(hc)
 
       substituted =
@@ -416,6 +420,8 @@ defmodule Localize.Time do
       else
         String.to_atom(substituted)
       end
+    else
+      format
     end
   end
 
@@ -686,12 +692,24 @@ defmodule Localize.Time do
   defp find_format(time, format, locale_id, options) when is_atom(format) do
     calendar = cldr_calendar_for(time)
 
-    if format in @standard_formats and is_full_time(time) do
-      Localize.DateTime.Format.resolve_format(:time, format, locale_id, calendar, options)
-    else
-      format
-      |> resolve_skeleton({locale_id, calendar}, options)
-      |> Localize.DateTime.Formatter.explain_unresolved(time, format)
+    cond do
+      format in @standard_formats and is_full_time(time) ->
+        Localize.DateTime.Format.resolve_format(:time, format, locale_id, calendar, options)
+
+      # A standard format names a format, not a skeleton. A time holding
+      # fewer than the fields a standard pattern writes has no pattern of
+      # that length, and matching the name as a skeleton only spells it out
+      # as fields — "medium" as month, weekday, day — to fail at the end of
+      # it. The caller takes the fields the value does hold from here
+      # instead (`Localize.Interval.fields_held_skeleton/4`).
+      format in @standard_formats ->
+        {:error,
+         Localize.DateTimeUnresolvedFormatError.exception(format: format, locale: locale_id)}
+
+      true ->
+        format
+        |> resolve_skeleton({locale_id, calendar}, options)
+        |> Localize.DateTime.Formatter.explain_unresolved(time, format)
     end
   end
 

@@ -394,14 +394,24 @@ defmodule Localize.Date do
   defp find_format(date, format, locale_id, options) when is_atom(format) do
     cldr_calendar = cldr_calendar_for(date)
 
-    # For standard formats on full dates, resolve via the standard format map
-    if format in @standard_formats and is_full_date(date) do
-      standard_date_format(date, format, locale_id, cldr_calendar, options)
-    else
+    cond do
+      # For standard formats on full dates, resolve via the standard format map
+      format in @standard_formats and is_full_date(date) ->
+        standard_date_format(date, format, locale_id, cldr_calendar, options)
+
+      # A standard format names a format, not a skeleton: a date holding
+      # fewer than the fields its pattern writes has no pattern of that
+      # length. Callers derive a skeleton from the fields the value does hold
+      # (`resolve_partial_format/2`) rather than matching the name.
+      format in @standard_formats ->
+        {:error,
+         Localize.DateTimeUnresolvedFormatError.exception(format: format, locale: locale_id)}
+
       # Skeleton format — look up in available_formats
-      date
-      |> resolve_date_skeleton(format, locale_id, options)
-      |> Localize.DateTime.Formatter.explain_unresolved(date, format)
+      true ->
+        date
+        |> resolve_date_skeleton(format, locale_id, options)
+        |> Localize.DateTime.Formatter.explain_unresolved(date, format)
     end
   end
 
