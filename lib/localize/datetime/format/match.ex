@@ -643,6 +643,12 @@ defmodule Localize.DateTime.Format.Match do
   # not make a standard pattern asks several times over as it tries the
   # patterns it could be written with, so rebuilding it dominated those calls.
   #
+  # It is held in `Localize.FormatCache` rather than `:persistent_term`: a
+  # table per locale and calendar is unbounded in a process that formats many
+  # locales, and every `:persistent_term.put/2` forces a global GC of the
+  # literal area. The ETS cache is capped and evicts instead, and its reads
+  # are direct.
+  #
   # The key holds the locale id, not the tag the caller threads: a tag is a
   # large term to compare, and two tags naming one locale — one carrying
   # `-u-` keywords and one not — would otherwise key the same table twice.
@@ -651,13 +657,13 @@ defmodule Localize.DateTime.Format.Match do
       {:ok, locale_id} ->
         key = {__MODULE__, kind, locale_id, calendar_type}
 
-        case :persistent_term.get(key, nil) do
-          nil ->
-            tokens = build_tokens.()
-            Localize.LiteralMemory.cache(key, tokens)
+        case Localize.FormatCache.lookup(key) do
+          {:ok, tokens} ->
             tokens
 
-          tokens ->
+          :miss ->
+            tokens = build_tokens.()
+            Localize.FormatCache.store(key, tokens)
             tokens
         end
 
