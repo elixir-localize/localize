@@ -179,6 +179,25 @@ defmodule Localize.Time.Parser do
   defp cldr_calendars(calendar),
     do: Enum.uniq([Localize.Calendar.cldr_calendar_type(calendar), :gregorian])
 
+  # A time is built from an hour, so every pattern that reads one writes an
+  # hour field and the text has to carry a digit for it. Splitting a date from
+  # a time leaves time halves that hold none — a zone name on its own, or a
+  # day period beside one ("AEST", "AM AEST") — and each of those was read
+  # against every pattern the locale has before failing. They are refused
+  # here instead, in one pass over the bytes.
+  defp match_patterns_if_timelike(input, patterns, regexes, day_periods, as, locale) do
+    if digit?(input),
+      do: match_patterns(input, patterns, regexes, day_periods, as, locale),
+      else: nil
+  end
+
+  # The locale's own digits are transliterated to ASCII before this, and an
+  # ASCII digit is never a UTF-8 continuation byte, so the bytes can be read
+  # without decoding them.
+  defp digit?(<<byte, _rest::binary>>) when byte >= ?0 and byte <= ?9, do: true
+  defp digit?(<<_byte, rest::binary>>), do: digit?(rest)
+  defp digit?(<<>>), do: false
+
   # A zone captured in the map form carries the fields it resolves to
   # without a date — a fixed offset's `DateTime` zone fields, or else the
   # zone it names (see `Localize.DateTime.Parser.zone_fields_for_map/3`).
@@ -319,7 +338,7 @@ defmodule Localize.Time.Parser do
       # parser reads them.
       input
       |> Localize.Date.Parser.transliterate_digits(locale)
-      |> match_patterns(patterns, regexes, day_periods, as, locale)
+      |> match_patterns_if_timelike(patterns, regexes, day_periods, as, locale)
       |> Kernel.||({:error, no_match_error(input, locale)})
     end
   end
