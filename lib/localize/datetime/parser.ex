@@ -562,15 +562,29 @@ defmodule Localize.DateTime.Parser do
 
         finder =
           case as do
-            :map -> &try_split_as_map(&1, options)
-            :struct -> &try_split_as_struct(&1, options)
+            :map -> &try_split_as_map/3
+            :struct -> &try_split_as_struct/3
           end
 
-        Enum.find_value(
-          candidates,
-          {:error, no_match_error(input, locale)},
-          finder
-        )
+        first_split_read(candidates, finder, options) ||
+          {:error, no_match_error(input, locale)}
+    end
+  end
+
+  # The first reading any of the splits gives, or `nil` where none reads. The
+  # time halves already read are threaded through the splits rather than held
+  # anywhere, so each distinct half is read once and the order the splits are
+  # tried in — and so which split wins an ambiguous text — is untouched.
+  defp first_split_read(candidates, finder, options) do
+    candidates
+    |> Enum.reduce_while({nil, %{}}, &read_split(&1, &2, finder, options))
+    |> elem(0)
+  end
+
+  defp read_split(candidate, {_unread, times}, finder, options) do
+    case finder.(candidate, options, times) do
+      {nil, times} -> {:cont, {nil, times}}
+      {read, times} -> {:halt, {read, times}}
     end
   end
 
@@ -608,21 +622,28 @@ defmodule Localize.DateTime.Parser do
     end
   end
 
-  defp try_split_as_struct({date_text, time_text}, options) do
+  defp try_split_as_struct({date_text, time_text}, options, times) do
     # Check the time half first: it is cheaper to parse and far more
     # selective (a time needs an hour), so a failing time half
     # short-circuits the expensive date parse on every non-time split.
-    with {:ok, time, zone} <-
-           Localize.Time.Parser.parse_with_zone(time_text, time_options(options)),
-         {:ok, date} <- Localize.Date.parse(date_text, date_options(options)),
-         {:ok, ndt} <- naive_datetime(date, time) do
-      case zone do
-        nil -> {:ok, ndt}
-        _ -> {:ok, resolve_zone(zone, ndt, options)}
+    {time_read, times} =
+      time_read_once(time_text, times, fn ->
+        Localize.Time.Parser.parse_with_zone(time_text, time_options(options))
+      end)
+
+    read =
+      with {:ok, time, zone} <- time_read,
+           {:ok, date} <- Localize.Date.parse(date_text, date_options(options)),
+           {:ok, ndt} <- naive_datetime(date, time) do
+        case zone do
+          nil -> {:ok, ndt}
+          _ -> {:ok, resolve_zone(zone, ndt, options)}
+        end
+      else
+        unread -> half_error(unread)
       end
-    else
-      unread -> half_error(unread)
-    end
+
+    {read, times}
   end
 
   # The date is in the calendar the input is read in and the time in
@@ -733,24 +754,48 @@ defmodule Localize.DateTime.Parser do
   defp half_error({:error, %error{}} = result) when error in @format_errors, do: result
   defp half_error(_unread), do: nil
 
-  defp try_split_as_map({date_text, time_text}, options) do
+  defp try_split_as_map({date_text, time_text}, options, times) do
     date_opts = options |> date_options() |> Keyword.put(:as, :map)
     time_opts = options |> time_options() |> Keyword.put(:as, :map)
 
     # Time half first — cheaper and more selective — so a failing time
     # half short-circuits the expensive date parse (see try_split_as_struct).
-    with {:ok, %{} = time_map, zone} <-
-           Localize.Time.Parser.parse_with_zone(time_text, time_opts),
-         {:ok, %{} = date_map} <- Localize.Date.parse(date_text, date_opts) do
-      # Date map carries `:calendar`; time map carries the time
-      # fields plus the zone fields if any. Merge — date's
-      # `:calendar` wins (the time map has no calendar key) — and
-      # resolve a named zone against the full date when the input
-      # gave one.
-      merged = Map.merge(time_map, date_map)
-      {:ok, put_zone_fields(merged, zone, options)}
-    else
-      unread -> half_error(unread)
+    {time_read, times} =
+      time_read_once(time_text, times, fn ->
+        Localize.Time.Parser.parse_with_zone(time_text, time_opts)
+      end)
+
+    read =
+      with {:ok, %{} = time_map, zone} <- time_read,
+           {:ok, %{} = date_map} <- Localize.Date.parse(date_text, date_opts) do
+        # Date map carries `:calendar`; time map carries the time
+        # fields plus the zone fields if any. Merge — date's
+        # `:calendar` wins (the time map has no calendar key) — and
+        # resolve a named zone against the full date when the input
+        # gave one.
+        merged = Map.merge(time_map, date_map)
+        {:ok, put_zone_fields(merged, zone, options)}
+      else
+        unread -> half_error(unread)
+      end
+
+    {read, times}
+  end
+
+  # The splits offered for one text share time halves: a date half with its
+  # trailing separator and one without leave the same text behind, and since
+  # the time half is read first, that reading ran once per split rather than
+  # once per distinct half. Each is read once and carried through the splits
+  # that follow, which leaves the order the splits are tried in — and so
+  # which split wins an ambiguous text — exactly as it was.
+  defp time_read_once(time_text, times, read) do
+    case Map.fetch(times, time_text) do
+      {:ok, already_read} ->
+        {already_read, times}
+
+      :error ->
+        read = read.()
+        {read, Map.put(times, time_text, read)}
     end
   end
 
