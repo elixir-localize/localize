@@ -60,6 +60,7 @@ defmodule Localize.Data.Locale do
     )
     |> normalize_content(locale)
     |> apply_loader_transforms()
+    |> put_format_key_tokens()
     |> Map.take(Enum.map(@required_modules, &String.to_atom/1))
     |> add_version()
     |> add_name(locale)
@@ -189,6 +190,49 @@ defmodule Localize.Data.Locale do
 
   @lenient_parse_keys ["date", "general", "number"]
 
+  # Stores each calendar's format tables with their keys already tokenized for
+  # skeleton matching. Matching a skeleton needs those tokens, and deriving
+  # them — tokenizing every key of a table that runs to 74 entries — costs far
+  # more than reading them. They derive from data that does not change, so
+  # generating them here trades a little space in the locale file (about 1.6%)
+  # for that work on every match.
+  #
+  # The tokens come from `Localize.DateTime.Format.Match`, the module that
+  # consumes them, so the two cannot drift apart; a change to its tokenizer
+  # means regenerating the locale data.
+  defp put_format_key_tokens(%{dates: %{calendars: calendars} = dates} = content)
+       when is_map(calendars) do
+    tokenized =
+      Map.new(calendars, fn {calendar_type, calendar} ->
+        {calendar_type, put_calendar_format_tokens(calendar)}
+      end)
+
+    %{content | dates: %{dates | calendars: tokenized}}
+  end
+
+  defp put_format_key_tokens(content), do: content
+
+  defp put_calendar_format_tokens(calendar) when is_map(calendar) do
+    alias Localize.DateTime.Format.Match
+
+    calendar
+    |> put_tokens(
+      :available_formats,
+      :available_format_tokens,
+      &Match.tokenize_available_formats/1
+    )
+    |> put_tokens(:interval_formats, :interval_format_tokens, &Match.tokenize_interval_formats/1)
+  end
+
+  defp put_calendar_format_tokens(calendar), do: calendar
+
+  defp put_tokens(calendar, source_key, token_key, tokenize) do
+    case Map.get(calendar, source_key) do
+      formats when is_map(formats) -> Map.put(calendar, token_key, tokenize.(formats))
+      _no_table -> calendar
+    end
+  end
+
   defp apply_loader_transforms(content) do
     content
     |> LMap.atomize_keys(level: 1)
@@ -252,7 +296,13 @@ defmodule Localize.Data.Locale do
     # Without it, term_to_binary reflects a map's internal representation,
     # which differs between VM instances (e.g. macOS/arm64 vs Linux/amd64),
     # breaking the download-integrity hash manifest.
-    File.write!(output_path, :erlang.term_to_binary(content, [:deterministic]))
+    #
+    # `:compressed` shrinks a locale by around 83%: the data repeats itself
+    # heavily — pattern strings, field names and the tokenized format keys
+    # recur across every calendar — and these files are downloaded one per
+    # locale. The cost is about 8% on the one `binary_to_term/1` a locale
+    # load pays, against bytes every consumer fetches and stores.
+    File.write!(output_path, :erlang.term_to_binary(content, [:deterministic, :compressed]))
     :ok
   end
 end

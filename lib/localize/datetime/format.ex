@@ -140,6 +140,24 @@ defmodule Localize.DateTime.Format do
     Localize.Locale.get(locale_id, [:dates, :calendars, calendar_type, :available_formats])
   end
 
+  # # available_format_tokens/2
+  #
+  # The keys of `available_formats/2`, tokenized for skeleton matching, as
+  # the data pipeline stored them (`Localize.Data.Locale`). Matching needs
+  # the tokens and deriving them costs far more than this read, so they are
+  # generated once with the locale data rather than at runtime.
+  #
+  @spec available_format_tokens(Localize.locale(), atom()) ::
+          {:ok, list()} | {:error, Exception.t()}
+  def available_format_tokens(locale_id, calendar_type \\ @default_calendar_type) do
+    Localize.Locale.get(locale_id, [
+      :dates,
+      :calendars,
+      calendar_type,
+      :available_format_tokens
+    ])
+  end
+
   # # append_items/2
   #
   # Returns the append-item templates for a locale.
@@ -173,6 +191,23 @@ defmodule Localize.DateTime.Format do
   @spec interval_formats(Localize.locale(), atom()) :: {:ok, map()} | {:error, Exception.t()}
   def interval_formats(locale_id, calendar_type \\ @default_calendar_type) do
     Localize.Locale.get(locale_id, [:dates, :calendars, calendar_type, :interval_formats])
+  end
+
+  # # interval_format_tokens/2
+  #
+  # The keys of `interval_formats/2`, tokenized for skeleton matching, as the
+  # data pipeline stored them. Its two non-skeleton siblings — the fallback
+  # pattern and the range separators — are left out, as matching skips them.
+  #
+  @spec interval_format_tokens(Localize.locale(), atom()) ::
+          {:ok, list()} | {:error, Exception.t()}
+  def interval_format_tokens(locale_id, calendar_type \\ @default_calendar_type) do
+    Localize.Locale.get(locale_id, [
+      :dates,
+      :calendars,
+      calendar_type,
+      :interval_format_tokens
+    ])
   end
 
   # # interval_order/1
