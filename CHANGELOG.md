@@ -758,6 +758,10 @@ This release settles the `:format` / `:style` option naming across the library. 
 
 * Locale data files are about 81% smaller — `en.etf` is 121 KB where it was 655 KB — as they are compressed, and each carries its format tables' keys already tokenized for skeleton matching, which matching derived on every call. Loading a locale pays about 8% more for the one decode it does.
 
+* Reading a time keeps the patterns it may be written with, in the order it tries them, beside the regexes already compiled from them. Ranking those patterns runs a regex over each of them, and a date and time is read by trying its time half at every boundary the text allows, so the list was gathered and ranked again for each of those attempts: `Localize.Time.parse/2` is about seven times faster (302 µs to 44 µs) and `Localize.DateTime.parse/2` about twice (505 µs to 236 µs).
+
+* A time half carrying no digit is refused before the locale's patterns are tried. A time is read from an hour, so no pattern can read text with no digit in it, where splitting a date from a time leaves halves like "AEST" to be read against every pattern the locale has before failing.
+
 
 ## [1.0.0-rc.4] — July 24th, 2026
 
