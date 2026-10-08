@@ -56,6 +56,11 @@ defmodule Localize.Locale.LocaleDisplay.T do
     |> Enum.sort()
   end
 
+  # As in `Localize.Locale.LocaleDisplay.U`: a `:transform` that is neither a
+  # `Localize.LanguageTag.T` nor the plain map a parsed tag carries names no
+  # field, so none is displayed rather than raising.
+  defp get_fields(_no_fields), do: []
+
   defp get_field(%Localize.LanguageTag.T{} = struct, field) do
     Map.get(struct, field)
   end

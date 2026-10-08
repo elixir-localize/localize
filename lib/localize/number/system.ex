@@ -199,9 +199,9 @@ defmodule Localize.Number.System do
   """
   @spec number_systems_for(Localize.LanguageTag.t() | atom() | String.t()) ::
           {:ok, map()} | {:error, Exception.t()}
-  def number_systems_for(locale) do
-    with {:ok, locale_id} <- cldr_locale_id_from(locale),
-         {:ok, raw_systems} <- Localize.Locale.get(locale_id, [:number_systems]) do
+  def number_systems_for(%Localize.LanguageTag{cldr_locale_id: locale_id} = locale)
+      when not is_nil(locale_id) do
+    with {:ok, raw_systems} <- Localize.Locale.get(locale, [:number_systems]) do
       systems =
         raw_systems
         |> Enum.map(fn {key, value} ->
@@ -210,6 +210,14 @@ defmodule Localize.Number.System do
         |> Map.new()
 
       {:ok, systems}
+    end
+  end
+
+  # The canonical form of a validated locale is the tag, which is read
+  # straight. Anything else is validated once here and read as a tag.
+  def number_systems_for(locale) do
+    with {:ok, language_tag} <- Localize.validate_locale(locale) do
+      number_systems_for(language_tag)
     end
   end
 

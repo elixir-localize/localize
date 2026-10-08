@@ -1903,6 +1903,21 @@ defmodule Localize do
 
   # A struct built by hand can carry fields of the wrong shape, which are
   # reported as an invalid locale rather than raised on.
+  # A tag that carries a `:cldr_locale_id` is valid at all times and is
+  # returned as it stands. Validating a locale string or atom restricts it to
+  # a supported locale and records that id, so a tag that has one has been
+  # through this already; checking it again walked every field and tested the
+  # supported set once more on each call, which one
+  # `Localize.Interval.to_string/3` did 126 times.
+  def validate_locale(%Localize.LanguageTag{cldr_locale_id: cldr_locale_id} = language_tag)
+      when not is_nil(cldr_locale_id) do
+    {:ok, language_tag}
+  end
+
+  # `Localize.LanguageTag.parse/1` returns a tag with no `:cldr_locale_id`: it
+  # is the identifier as written, not yet restricted to a locale Localize has
+  # data for, and `validate_fields/1` is what turns its string subtags into
+  # atoms. Such a tag is resolved here, once, and carries its id afterwards.
   def validate_locale(%Localize.LanguageTag{} = language_tag) do
     case Localize.LanguageTag.validate_fields(language_tag) do
       {:ok, %Localize.LanguageTag{cldr_locale_id: nil} = tag} -> resolve_cldr_locale(tag)

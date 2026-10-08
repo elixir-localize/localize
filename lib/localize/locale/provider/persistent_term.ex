@@ -168,6 +168,11 @@ defmodule Localize.Locale.Provider.PersistentTerm do
   """
   @impl Localize.Locale.Provider
   @spec loaded?(atom() | Localize.LanguageTag.t()) :: boolean()
+  def loaded?(%Localize.LanguageTag{cldr_locale_id: locale_id})
+      when not is_nil(locale_id) do
+    !!:persistent_term.get(locale_key(locale_id), nil)
+  end
+
   def loaded?(locale) do
     case cldr_locale_id_from(locale) do
       {:ok, locale_id} -> !!:persistent_term.get(locale_key(locale_id), nil)
@@ -225,15 +230,28 @@ defmodule Localize.Locale.Provider.PersistentTerm do
     end
   end
 
+  # A validated locale is a tag whose `:cldr_locale_id` is a locale id or nil,
+  # so the id is read out of it rather than derived. The plumbing of one
+  # `Localize.Locale.get/3` used to derive it three times — here, in
+  # `loaded?/1` and in the loader — and a date format makes 20 of those.
+  def get(%Localize.LanguageTag{cldr_locale_id: locale_id}, keys, _options)
+      when not is_nil(locale_id) and is_list(keys) do
+    read_item(locale_id, keys)
+  end
+
   def get(locale, keys, _options) when is_list(keys) do
     with {:ok, locale_id} <- cldr_locale_id_from(locale) do
-      case :persistent_term.get(locale_key(locale_id), :localize_locale_not_loaded) do
-        :localize_locale_not_loaded ->
-          {:error, Localize.ItemNotFoundError.exception(locale: locale_id, keys: keys)}
+      read_item(locale_id, keys)
+    end
+  end
 
-        locale_data ->
-          get_item(get_in(locale_data, keys), locale_id, keys)
-      end
+  defp read_item(locale_id, keys) do
+    case :persistent_term.get(locale_key(locale_id), :localize_locale_not_loaded) do
+      :localize_locale_not_loaded ->
+        {:error, Localize.ItemNotFoundError.exception(locale: locale_id, keys: keys)}
+
+      locale_data ->
+        get_item(get_in(locale_data, keys), locale_id, keys)
     end
   end
 

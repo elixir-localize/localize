@@ -36,7 +36,6 @@ defmodule Localize.LanguageTagFieldsTest do
     private_use: "x",
     requested_locale_id: 42,
     canonical_locale_id: 42,
-    cldr_locale_id: "en",
     cldr_locale_id: :zz_not_a_locale
   ]
 

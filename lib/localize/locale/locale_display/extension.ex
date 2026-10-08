@@ -19,6 +19,15 @@ defmodule Localize.Locale.LocaleDisplay.Extension do
   #
   # * A formatted string, or `[]` if no extensions.
   #
+  # As in `Localize.Locale.LocaleDisplay.U` and `.T`: an `:extensions` field
+  # that is not the map a tag carries names no extension, so none is displayed
+  # rather than raising. `Localize.validate_locale/1` trusts a tag that
+  # carries a `:cldr_locale_id` rather than walking its fields to find this.
+  def display_name(extensions, _locale_id, _display_names)
+      when not is_map(extensions) and not is_list(extensions) do
+    []
+  end
+
   def display_name(extensions, _locale_id, display_names) do
     key_type_pattern = get_in(display_names, [:locale_display_pattern, :locale_key_type_pattern])
 
@@ -51,6 +60,11 @@ defmodule Localize.Locale.LocaleDisplay.Extension do
 
       {extension, value} when is_binary(value) ->
         Localize.Substitution.substitute([extension, value], key_type_pattern)
+
+      # An extension whose value is none of the shapes a tag carries names
+      # nothing to display, so it contributes nothing rather than raising.
+      _no_value ->
+        []
     end)
     |> join_field_values(display_names)
   end

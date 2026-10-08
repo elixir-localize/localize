@@ -211,7 +211,12 @@ defmodule Localize.DateTime.Formatter do
           error
 
         nil ->
-          {tokens, results} = separate_digit_boundaries(tokens, results, locale_id)
+          {tokens, results} =
+            separate_digit_boundaries(
+              tokens,
+              results,
+              formatting_locale(options[:locale], locale_id)
+            )
 
           stripped =
             tokens
@@ -261,7 +266,12 @@ defmodule Localize.DateTime.Formatter do
           error
 
         nil ->
-          {tokens, results} = separate_digit_boundaries(tokens, results, locale_id)
+          {tokens, results} =
+            separate_digit_boundaries(
+              tokens,
+              results,
+              formatting_locale(options[:locale], locale_id)
+            )
 
           parts =
             tokens
@@ -413,8 +423,8 @@ defmodule Localize.DateTime.Formatter do
   # renders as "GMT+8", which ran into the hour as "GMT+814:30:45". Only a
   # text field can surprise its neighbour with a digit; two numeric fields
   # side by side, as in "yyyyMMdd", are meant to run together.
-  defp separate_digit_boundaries(tokens, results, locale_id) do
-    case boundary_spacing(locale_id) do
+  defp separate_digit_boundaries(tokens, results, locale) do
+    case boundary_spacing(locale) do
       spacing when is_binary(spacing) and spacing != "" ->
         tokens
         |> Enum.zip(results)
@@ -465,10 +475,26 @@ defmodule Localize.DateTime.Formatter do
   defp rendered([%{value: _} | _] = parts), do: Enum.map_join(parts, & &1.value)
   defp rendered(value), do: ensure_string(value)
 
-  defp boundary_spacing(locale_id) do
-    case Localize.Locale.get(locale_id, [:placeholder_boundary_spacing, :datetime_digit_digit]) do
+  # A locale already resolved to a tag is read straight: the canonical form of
+  # a validated locale is the tag, and every layer below reads its
+  # `:cldr_locale_id` rather than deriving one. `Localize.Locale.get/3` costs
+  # 783 ns for a tag against 1,659 for an id, and a format asks this once for
+  # every pair of fields it writes.
+  defp boundary_spacing(%Localize.LanguageTag{cldr_locale_id: locale_id} = locale)
+       when not is_nil(locale_id) do
+    case Localize.Locale.get(locale, [:placeholder_boundary_spacing, :datetime_digit_digit]) do
       {:ok, spacing} -> spacing
       _no_spacing -> nil
+    end
+  end
+
+  # Anything else — an id, a string, or a tag `Localize.LanguageTag.parse/1`
+  # left without a `:cldr_locale_id` — is validated once and read as a tag. A
+  # locale that cannot be validated spaces nothing, as one with no data does.
+  defp boundary_spacing(locale) do
+    case Localize.validate_locale(locale) do
+      {:ok, language_tag} -> boundary_spacing(language_tag)
+      {:error, _not_a_locale} -> nil
     end
   end
 

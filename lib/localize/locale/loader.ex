@@ -54,16 +54,45 @@ defmodule Localize.Locale.Loader do
   """
   @spec load_and_store(Localize.Locale.Provider.locale(), Keyword.t()) ::
           :ok | {:error, Exception.t()}
-  def load_and_store(locale, options \\ []) do
+  def load_and_store(locale, options \\ [])
+
+  # A validated locale is a tag whose `:cldr_locale_id` is a locale id or nil,
+  # so the id is read out of it and the tag is what the provider is asked
+  # with: nothing here derives a locale a second time.
+  def load_and_store(%Localize.LanguageTag{cldr_locale_id: locale_id} = locale, options)
+      when not is_nil(locale_id) do
     provider = Keyword.get(options, :provider, Localize.Locale.default_provider())
 
-    with :ok <- Localize.Locale.validate_provider(provider),
-         {:ok, locale_id} <- Localize.Locale.cldr_locale_id_from(locale) do
-      if provider.loaded?(locale_id) do
+    with :ok <- Localize.Locale.validate_provider(provider) do
+      if provider.loaded?(locale) do
         :ok
       else
         GenServer.call(__MODULE__, {:load_and_store, locale_id, provider}, :infinity)
       end
+    end
+  end
+
+  def load_and_store(locale, options) do
+    provider = Keyword.get(options, :provider, Localize.Locale.default_provider())
+
+    with :ok <- Localize.Locale.validate_provider(provider),
+         {:ok, locale_id} <- Localize.Locale.cldr_locale_id_from(locale) do
+      load_and_store_resolved(locale_id, provider)
+    end
+  end
+
+  @doc false
+  # The same work for a locale already resolved to a CLDR locale id, which
+  # `Localize.Locale.get/3` has done at its own boundary. Validation happens
+  # once, where the caller enters the library, and every step below trusts
+  # the id: deriving it again cost about 485 ns a time, three times for each
+  # of the 20 lookups one `Localize.Interval.to_string/3` makes.
+  @spec load_and_store_resolved(atom(), module()) :: :ok | {:error, Exception.t()}
+  def load_and_store_resolved(locale_id, provider) when is_atom(locale_id) do
+    if provider.loaded?(locale_id) do
+      :ok
+    else
+      GenServer.call(__MODULE__, {:load_and_store, locale_id, provider}, :infinity)
     end
   end
 

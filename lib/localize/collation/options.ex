@@ -272,10 +272,14 @@ defmodule Localize.Collation.Options do
 
   # Normalize any locale representation to a canonical BCP47 string via
   # `Localize.validate_locale/1` before parsing. This resolves legacy
-  # aliases (`"iw"` → `"he"`, `"pt_BR"` → `"pt"`), POSIX separators, and
-  # `%LanguageTag{}` inputs to a single canonical form, so a string, an
-  # atom, and an equivalent tag all yield the same collation options. The
-  # raw input is used only as a last resort when validation fails.
+  # aliases (`"iw"` → `"he"`, `"pt_BR"` → `"pt"`) and POSIX separators, so a
+  # string, an atom, and an equivalent tag all yield the same collation
+  # options. The raw input is used only as a last resort when validation
+  # fails.
+  #
+  # A tag that carries a `:cldr_locale_id` costs nothing to validate, and one
+  # from `Localize.LanguageTag.parse/1` is resolved and its subtags turned
+  # into atoms, which the rendering needs.
   defp canonical_locale_string(%Localize.LanguageTag{} = tag) do
     case Localize.validate_locale(tag) do
       {:ok, validated} -> Localize.LanguageTag.to_string(validated)

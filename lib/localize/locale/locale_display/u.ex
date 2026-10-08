@@ -71,6 +71,13 @@ defmodule Localize.Locale.LocaleDisplay.U do
     |> Enum.sort()
   end
 
+  # A tag's `:locale` is a `Localize.LanguageTag.U` or the plain map a parsed
+  # tag carries. Anything else names no extension field, so none is displayed:
+  # library code answers rather than raising, and `Localize.validate_locale/1`
+  # trusts a tag that carries a `:cldr_locale_id` rather than walking its
+  # fields to find this.
+  defp get_fields(_no_fields), do: []
+
   defp get_field(%Localize.LanguageTag.U{} = struct, field) do
     Map.get(struct, field)
   end
