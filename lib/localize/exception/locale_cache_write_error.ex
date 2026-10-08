@@ -47,7 +47,7 @@ defmodule Localize.LocaleCacheWriteError do
 
   @impl true
   def exception(bindings) when is_list(bindings) do
-    bindings = normalize_bindings(bindings)
+    bindings = bindings |> Localize.Exception.normalize_locale_bindings() |> normalize_bindings()
     struct!(__MODULE__, bindings)
   end
 

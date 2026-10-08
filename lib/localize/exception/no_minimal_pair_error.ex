@@ -14,7 +14,7 @@ defmodule Localize.NoMinimalPairError do
 
   @impl true
   def exception(bindings) when is_list(bindings) do
-    struct!(__MODULE__, bindings)
+    struct!(__MODULE__, Localize.Exception.normalize_locale_bindings(bindings))
   end
 
   @impl true

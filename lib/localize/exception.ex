@@ -118,6 +118,49 @@ defmodule Localize.Exception do
   def safe_message(_msgctxt, msgid, _bindings), do: inspect(msgid)
 
   @doc """
+  Normalizes the locale bindings of an exception to locale identifiers.
+
+  A `:locale` or `:locale_id` binding is machine-readable data a caller
+  pattern matches on, so it holds a locale identifier. Formatting code
+  threads a validated `t:Localize.LanguageTag.t/0` rather than an id, and
+  hands that tag to the exception; this replaces such a tag with its
+  `:cldr_locale_id` so the binding keeps its contract. Every other binding,
+  and a tag that carries no id, is left as it stands.
+
+  ### Arguments
+
+  * `bindings` is the keyword list of bindings given to `exception/1`.
+
+  ### Returns
+
+  * The bindings, with any `:locale` or `:locale_id` language tag replaced
+    by its locale identifier.
+
+  ### Examples
+
+      iex> {:ok, language_tag} = Localize.validate_locale("en")
+      iex> Localize.Exception.normalize_locale_bindings(locale: language_tag)
+      [locale: :en]
+
+      iex> Localize.Exception.normalize_locale_bindings(locale: :fr, other: 1)
+      [locale: :fr, other: 1]
+
+  """
+  @spec normalize_locale_bindings(keyword()) :: keyword()
+  def normalize_locale_bindings(bindings) when is_list(bindings) do
+    Enum.map(bindings, fn
+      {key, %Localize.LanguageTag{cldr_locale_id: locale_id}}
+      when key in [:locale, :locale_id] and not is_nil(locale_id) ->
+        {key, locale_id}
+
+      binding ->
+        binding
+    end)
+  end
+
+  def normalize_locale_bindings(bindings), do: bindings
+
+  @doc """
   Renders a locale as a name fit for an exception message.
 
   A validated locale is a `t:Localize.LanguageTag.t/0`, which inspects as
