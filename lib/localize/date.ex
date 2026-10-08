@@ -557,6 +557,15 @@ defmodule Localize.Date do
 
   defp cldr_calendar_for(_value), do: :gregorian
 
+  # The locale a caller's options name, which is the canonical tag form where
+  # they carry one, and the resolved id otherwise. The options reach here as a
+  # keyword list or a map depending on the caller.
+  defp locale_from_options(options, fallback) when is_list(options),
+    do: Keyword.get(options, :locale, fallback)
+
+  defp locale_from_options(%{} = options, fallback), do: Map.get(options, :locale, fallback)
+  defp locale_from_options(_options, fallback), do: fallback
+
   defp resolve_skeleton(opts) when is_list(opts) do
     skeleton = Keyword.fetch!(opts, :skeleton)
     locale_id = Keyword.fetch!(opts, :locale_id)
@@ -570,7 +579,10 @@ defmodule Localize.Date do
     seen = Keyword.get(opts, :seen, MapSet.new())
 
     with {:ok, available} <-
-           Localize.DateTime.Format.available_formats(locale_id, calendar) do
+           Localize.DateTime.Format.available_formats(
+             locale_from_options(options, locale_id),
+             calendar
+           ) do
       case Map.get(available, skeleton) do
         nil ->
           resolve_skeleton_via_best_match(skeleton, locale_id, calendar, options, seen)

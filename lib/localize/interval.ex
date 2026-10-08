@@ -1573,7 +1573,8 @@ defmodule Localize.Interval do
   # other, concatenated directly.
   defp format_split(:string, from, to, left, right, locale_id, options_map) do
     {left, right} = hour_cycle_split(left, right, options_map)
-    {first, second} = in_written_order({from, to}, from, locale_id)
+    locale = Map.get(options_map, :locale, locale_id)
+    {first, second} = in_written_order({from, to}, from, locale)
 
     with {:ok, left_str} <-
            Localize.DateTime.Formatter.format(first, left, locale_id, options_map),
@@ -1585,8 +1586,9 @@ defmodule Localize.Interval do
 
   defp format_split(:parts, from, to, left, right, locale_id, options_map) do
     {left, right} = hour_cycle_split(left, right, options_map)
-    {first, second} = in_written_order({from, to}, from, locale_id)
-    {first_source, second_source} = in_written_order({:start_range, :end_range}, from, locale_id)
+    locale = Map.get(options_map, :locale, locale_id)
+    {first, second} = in_written_order({from, to}, from, locale)
+    {first_source, second_source} = in_written_order({:start_range, :end_range}, from, locale)
 
     with {:ok, left_parts} <-
            Localize.DateTime.Formatter.format_to_parts(first, left, locale_id, options_map),
