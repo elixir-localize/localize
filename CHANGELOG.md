@@ -748,6 +748,16 @@ This release settles the `:format` / `:style` option naming across the library. 
 
 * Compiling a number format pattern is ~40% faster on a cache miss: the regexes used to analyse the pattern are compiled once at startup rather than recompiled on every call. Formatting is unaffected (compiled patterns are already cached).
 
+* Formatting and parsing read locale data with the validated `t:Localize.LanguageTag.t/0` rather than its locale id, so none of the reads a single call makes — 18 for a date, 100 for an interval of two date-times — resolves the locale again. `Localize.Date.to_string/2` is about 2.5 times faster and `Localize.Interval.to_string/3` about a quarter faster; a locale given as an id or a string is still validated once, at the boundary.
+
+* A standard format name is no longer matched as though it were a skeleton. Asking for `:short`, `:medium`, `:long` or `:full` on a value holding fewer fields than that format writes spelled the name out as fields — "medium" as month, weekday, day — and ranked it against the locale's formats before failing, so an interval of two partial date-times is now about five times faster (342 µs to 70 µs for two values of one day holding an hour apiece).
+
+* Skeleton matching breaks a tie between two equally ranked formats by format id, where the winner followed the order the locale's format table happened to be read in and so could differ between VM instances.
+
+* `Localize.Locale.get/3` reads the locale data and loads the locale only where that read does not resolve, rather than confirming it is loaded first: an already-loaded locale is by far the common case and the check cost more than the read. A key path that is genuinely absent pays one extra read.
+
+* Locale data files are about 81% smaller — `en.etf` is 121 KB where it was 655 KB — as they are compressed, and each carries its format tables' keys already tokenized for skeleton matching, which matching derived on every call. Loading a locale pays about 8% more for the one decode it does.
+
 
 ## [1.0.0-rc.4] — July 24th, 2026
 
