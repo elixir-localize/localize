@@ -18,6 +18,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
+* `Localize.Territory.Hemisphere.hemisphere/1` returns the half of the world a territory lies in — `:northern`, `:southern`, or `:ambiguous` for a territory the equator runs through, so that seasons can be reckoned from a locale: `hemisphere(:AU)` is `{:ok, :southern}` and `hemisphere(:BR)` is `{:ok, :ambiguous}`. It takes a territory code or a locale, whose territory comes from `Localize.Territory.territory_from_locale/1`, and answers a region from the territories it contains, so `:"053"` (Australasia) is southern while `:"005"` (South America) is ambiguous.
+
 * `Localize.Calendar.register_provider/1` registers the module that answers for the calendars an application supplies, which `calendar_provider/0` returns. A CLDR calendar type names no calendar module of its own and Localize ships `Calendar.ISO` alone, so a value in that calendar has no family to ask for the calendar a locale's `-u-ca-` names; the provider answers for it, and a value in another calendar is still asked first.
 
 * A calendar may name further calendars for its dates to be read in, with an optional `parsing_calendars/0` callback that returns calendar modules: a composite calendar writes the dates of each of its calendars with that calendar's formats, which the formats of its own CLDR type do not all read. `Localize.Date.parse/2`, `Localize.DateTime.parse/2` and `Localize.Interval.parse/2` read a date in each calendar named and convert it, keeping a reading only where the composite writes that day with the formats of the calendar it was read in.
