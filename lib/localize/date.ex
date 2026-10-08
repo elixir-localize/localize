@@ -141,7 +141,7 @@ defmodule Localize.Date do
     with {:ok, locale_id} <- resolve_locale_id(locale),
          effective = effective_format(date, format, locale_id),
          {:ok, pattern} <- find_format(date, effective, locale_id, options) do
-      overrides = number_system_overrides_for(date, effective, locale_id)
+      overrides = number_system_overrides_for(date, effective, locale)
 
       formatter_options =
         options

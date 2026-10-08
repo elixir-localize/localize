@@ -44,7 +44,7 @@ defmodule Localize.DateTime.Format do
   #
   # * `{:error, exception}`
   #
-  @spec date_formats(atom(), atom()) :: {:ok, map()} | {:error, Exception.t()}
+  @spec date_formats(Localize.locale(), atom()) :: {:ok, map()} | {:error, Exception.t()}
   def date_formats(locale_id, calendar_type \\ @default_calendar_type) do
     Localize.Locale.get(locale_id, [:dates, :calendars, calendar_type, :date_formats])
   end
@@ -53,7 +53,7 @@ defmodule Localize.DateTime.Format do
   #
   # Returns the standard time format skeletons for a locale.
   #
-  @spec time_formats(atom(), atom()) :: {:ok, map()} | {:error, Exception.t()}
+  @spec time_formats(Localize.locale(), atom()) :: {:ok, map()} | {:error, Exception.t()}
   def time_formats(locale_id, calendar_type \\ @default_calendar_type) do
     Localize.Locale.get(locale_id, [:dates, :calendars, calendar_type, :time_formats])
   end
@@ -65,7 +65,7 @@ defmodule Localize.DateTime.Format do
   # because `available_formats` may hold the locale's own `availableFormats`
   # entry for that skeleton instead.
   #
-  @spec date_format_patterns(atom(), atom()) :: {:ok, map()} | {:error, Exception.t()}
+  @spec date_format_patterns(Localize.locale(), atom()) :: {:ok, map()} | {:error, Exception.t()}
   def date_format_patterns(locale_id, calendar_type \\ @default_calendar_type) do
     Localize.Locale.get(locale_id, [:dates, :calendars, calendar_type, :date_format_patterns])
   end
@@ -114,7 +114,7 @@ defmodule Localize.DateTime.Format do
   # These are patterns like `"{1}, {0}"` that combine
   # date and time parts.
   #
-  @spec date_time_formats(atom(), atom()) :: {:ok, map()} | {:error, Exception.t()}
+  @spec date_time_formats(Localize.locale(), atom()) :: {:ok, map()} | {:error, Exception.t()}
   def date_time_formats(locale_id, calendar_type \\ @default_calendar_type) do
     Localize.Locale.get(locale_id, [:dates, :calendars, calendar_type, :date_time_formats])
   end
@@ -134,7 +134,7 @@ defmodule Localize.DateTime.Format do
   # Keys are format skeleton atoms (e.g., `:yMMMd`),
   # values are format pattern strings (e.g., `"MMM d, y"`).
   #
-  @spec available_formats(atom(), atom()) :: {:ok, map()} | {:error, Exception.t()}
+  @spec available_formats(Localize.locale(), atom()) :: {:ok, map()} | {:error, Exception.t()}
   def available_formats(locale_id, calendar_type \\ @default_calendar_type) do
     Localize.Locale.get(locale_id, [:dates, :calendars, calendar_type, :available_formats])
   end
@@ -169,7 +169,7 @@ defmodule Localize.DateTime.Format do
   #
   # Returns the interval format patterns for a locale.
   #
-  @spec interval_formats(atom(), atom()) :: {:ok, map()} | {:error, Exception.t()}
+  @spec interval_formats(Localize.locale(), atom()) :: {:ok, map()} | {:error, Exception.t()}
   def interval_formats(locale_id, calendar_type \\ @default_calendar_type) do
     Localize.Locale.get(locale_id, [:dates, :calendars, calendar_type, :interval_formats])
   end
@@ -223,7 +223,7 @@ defmodule Localize.DateTime.Format do
   @spec resolve_format(
           :date | :time | :date_time,
           atom() | String.t(),
-          atom(),
+          Localize.locale(),
           atom(),
           Keyword.t()
         ) ::
@@ -323,7 +323,7 @@ defmodule Localize.DateTime.Format do
   @spec number_system_overrides(
           :date | :time | :date_time,
           atom() | String.t(),
-          atom(),
+          Localize.locale(),
           atom()
         ) :: %{String.t() => atom()}
   def number_system_overrides(format_type, format_name, locale_id, calendar_type)
