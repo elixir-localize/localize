@@ -308,24 +308,8 @@ defmodule Localize.Time.Parser do
   # "h:mm a", 23:59, not "HH:mm v" in a zone "PTG", and "11:59:59 PM" is
   # not read by a `B` pattern whose locale names no flexible day periods.
   defp try_locale_patterns(input, locale, cldr_calendars, as) do
-    with {:ok, available} <- available_formats(locale, cldr_calendars),
+    with {:ok, patterns} <- candidate_patterns(locale, cldr_calendars),
          {:ok, day_periods} <- calendar_day_periods(locale, cldr_calendars) do
-      standard =
-        cldr_calendars
-        |> Enum.flat_map(&Format.standard_format_entries(locale, &1))
-        |> collect_patterns()
-
-      standard_patterns = MapSet.new(standard, fn {_skeleton, pattern} -> pattern end)
-
-      patterns =
-        standard
-        |> Enum.concat(collect_patterns(available))
-        |> Enum.uniq_by(fn {_skeleton, pattern} -> pattern end)
-        |> Enum.sort_by(fn {_skeleton, pattern} ->
-          pattern_specificity(pattern, standard_patterns)
-        end)
-        |> with_hour_cycle(locale)
-
       day_periods = Map.put(day_periods, :rules, day_period_rules(locale))
       lenient = load_lenient_date(locale)
       regexes = pattern_regexes(patterns, locale, cldr_calendars, day_periods, lenient)
@@ -430,6 +414,49 @@ defmodule Localize.Time.Parser do
   # keyed by locale and the calendars whose patterns are read. The regex and
   # tokens are pure functions of the patterns, the day-period names and the
   # lenient rules, so each set is built once.
+  # The patterns a time may be written with, in the order they are tried,
+  # cached beside the regexes compiled from them below and keyed the same way.
+  # Ranking the patterns runs a regex over each of them three times
+  # (`pattern_specificity/2`), and a date and time is read by trying its time
+  # half at each boundary the text allows, so the list was gathered, deduped
+  # and sorted again for every one of those attempts.
+  #
+  # The key carries the tag rather than its locale id because the order
+  # depends on the tag's `-u-hc-` hour cycle, which `with_hour_cycle/2`
+  # applies: `en` and `en-u-hc-h23` are not the same list.
+  defp candidate_patterns(locale, cldr_calendars) do
+    key = {__MODULE__, :candidate_patterns, locale, cldr_calendars}
+
+    case :persistent_term.get(key, nil) do
+      nil ->
+        with {:ok, available} <- available_formats(locale, cldr_calendars) do
+          patterns = build_candidate_patterns(available, locale, cldr_calendars)
+          Localize.LiteralMemory.cache(key, patterns)
+          {:ok, patterns}
+        end
+
+      patterns ->
+        {:ok, patterns}
+    end
+  end
+
+  defp build_candidate_patterns(available, locale, cldr_calendars) do
+    standard =
+      cldr_calendars
+      |> Enum.flat_map(&Format.standard_format_entries(locale, &1))
+      |> collect_patterns()
+
+    standard_patterns = MapSet.new(standard, fn {_skeleton, pattern} -> pattern end)
+
+    standard
+    |> Enum.concat(collect_patterns(available))
+    |> Enum.uniq_by(fn {_skeleton, pattern} -> pattern end)
+    |> Enum.sort_by(fn {_skeleton, pattern} ->
+      pattern_specificity(pattern, standard_patterns)
+    end)
+    |> with_hour_cycle(locale)
+  end
+
   defp pattern_regexes(patterns, locale, cldr_calendars, day_periods, lenient) do
     key = {__MODULE__, :pattern_regexes, locale, cldr_calendars}
 
