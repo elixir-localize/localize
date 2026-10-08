@@ -762,6 +762,8 @@ This release settles the `:format` / `:style` option naming across the library. 
 
 * A time half carrying no digit is refused before the locale's patterns are tried. A time is read from an hour, so no pattern can read text with no digit in it, where splitting a date from a time leaves halves like "AEST" to be read against every pattern the locale has before failing.
 
+* A date and time is read with each distinct time half read once, where a reading ran for every split that offered it. The splits a text allows share time halves — a date half with its trailing separator and one without leave the same text behind — and the time half is read first, so text that no split reads at all is about twice as fast to refuse.
+
 
 ## [1.0.0-rc.4] — July 24th, 2026
 
