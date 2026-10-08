@@ -71,8 +71,8 @@ defmodule Localize.Number.Symbol do
   @spec number_symbols_for(Localize.LanguageTag.t() | atom() | String.t()) ::
           {:ok, map()} | {:error, Exception.t()}
   def number_symbols_for(locale) do
-    with {:ok, locale_id} <- cldr_locale_id_from(locale) do
-      Localize.Locale.get(locale_id, [:number_symbols])
+    with {:ok, language_tag} <- Localize.validate_locale(locale) do
+      Localize.Locale.get(language_tag, [:number_symbols])
     end
   end
 
@@ -117,16 +117,20 @@ defmodule Localize.Number.Symbol do
   def number_symbols_for(locale, number_system) do
     system_name = to_system_atom(number_system)
 
-    with {:ok, locale_id} <- cldr_locale_id_from(locale),
-         {:ok, symbols} <- number_symbols_for(locale_id) do
-      case Map.get(symbols, system_name) || inherited_symbols(symbols, locale_id, system_name) do
+    with {:ok, language_tag} <- Localize.validate_locale(locale),
+         {:ok, symbols} <- number_symbols_for(language_tag) do
+      case Map.get(symbols, system_name) ||
+             inherited_symbols(symbols, language_tag, system_name) do
         nil ->
           {:error,
            Localize.InvalidValueError.exception(
              value: number_system,
              expected: :number_system,
              allowed_values: Map.keys(symbols),
-             context: locale_id
+             # `:context` is rendered with `inspect/1`, so it names the
+             # locale rather than carrying the tag that would print as the
+             # expression rebuilding it.
+             context: language_tag.cldr_locale_id
            )}
 
         symbol ->
@@ -150,8 +154,6 @@ defmodule Localize.Number.Symbol do
   end
 
   # ── Private helpers ──────────────────────────────────────────
-
-  defp cldr_locale_id_from(locale), do: Localize.Locale.cldr_locale_id_from(locale)
 
   defp to_system_atom(system) when is_atom(system), do: system
 

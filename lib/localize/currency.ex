@@ -608,8 +608,8 @@ defmodule Localize.Currency do
     do: {:error, Localize.Utils.Helpers.invalid_options(options)}
 
   defp resolve_currency_for_code(code, locale, fallback?) do
-    with {:ok, locale_id} <- Localize.Locale.cldr_locale_id_from(locale) do
-      case Localize.Locale.get(locale_id, [:currencies, code],
+    with {:ok, language_tag} <- Localize.validate_locale(locale) do
+      case Localize.Locale.get(language_tag, [:currencies, code],
              fallback: fallback?,
              fallback_to_default: fallback?
            ) do
@@ -617,7 +617,7 @@ defmodule Localize.Currency do
           {:ok, currency}
 
         {:error, %Localize.ItemNotFoundError{}} ->
-          {:error, currency_not_localized_error(code, locale_id)}
+          {:error, currency_not_localized_error(code, language_tag)}
 
         {:error, _} = error ->
           error
@@ -705,8 +705,8 @@ defmodule Localize.Currency do
   end
 
   defp do_currencies_for_locale(locale, only, except) do
-    with {:ok, locale_id} <- cldr_locale_id_from(locale),
-         {:ok, currencies} <- Localize.Locale.get(locale_id, [:currencies]),
+    with {:ok, language_tag} <- Localize.validate_locale(locale),
+         {:ok, currencies} <- Localize.Locale.get(language_tag, [:currencies]),
          %{} = filtered <- currency_filter(currencies, only, except) do
       {:ok, filtered}
     end
@@ -1567,8 +1567,6 @@ defmodule Localize.Currency do
   # ── Private helpers ──────────────────────────────────────────
 
   @rtl_mark "\u200F"
-
-  defp cldr_locale_id_from(locale), do: Localize.Locale.cldr_locale_id_from(locale)
 
   defp build_currency_strings(currencies) do
     currency_string_pairs =

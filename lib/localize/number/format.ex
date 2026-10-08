@@ -108,8 +108,8 @@ defmodule Localize.Number.Format do
   @spec all_formats_for(Localize.LanguageTag.t() | atom() | String.t()) ::
           {:ok, map()} | {:error, Exception.t()}
   def all_formats_for(locale) do
-    with {:ok, locale_id} <- cldr_locale_id_from(locale) do
-      Localize.Locale.get(locale_id, [:number_formats])
+    with {:ok, language_tag} <- Localize.validate_locale(locale) do
+      Localize.Locale.get(language_tag, [:number_formats])
     end
   end
 
@@ -294,8 +294,8 @@ defmodule Localize.Number.Format do
   @spec minimum_grouping_digits_for(Localize.LanguageTag.t() | atom() | String.t()) ::
           {:ok, non_neg_integer()} | {:error, Exception.t()}
   def minimum_grouping_digits_for(locale) do
-    with {:ok, locale_id} <- cldr_locale_id_from(locale) do
-      Localize.Locale.get(locale_id, [:minimum_grouping_digits])
+    with {:ok, language_tag} <- Localize.validate_locale(locale) do
+      Localize.Locale.get(language_tag, [:minimum_grouping_digits])
     end
   end
 
@@ -618,14 +618,12 @@ defmodule Localize.Number.Format do
   @spec misc_patterns_for(Localize.locale(), atom()) ::
           {:ok, map()} | {:error, Exception.t()}
   def misc_patterns_for(locale, number_system \\ :latn) do
-    with {:ok, locale_id} <- cldr_locale_id_from(locale) do
-      Localize.Locale.get(locale_id, [:number_formats, number_system, :other])
+    with {:ok, language_tag} <- Localize.validate_locale(locale) do
+      Localize.Locale.get(language_tag, [:number_formats, number_system, :other])
     end
   end
 
   # ── Private helpers ──────────────────────────────────────────
-
-  defp cldr_locale_id_from(locale), do: Localize.Locale.cldr_locale_id_from(locale)
 
   # Extract grouping from a standard format pattern string.
   # Parses patterns like "#,##0.###" or "#,##,##0.###".

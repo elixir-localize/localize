@@ -1004,16 +1004,13 @@ defmodule Localize.Number.Formatter.Decimal do
          locale: locale
        }) do
     if is_nil(min_digits) or min_digits == 0 do
-      locale_id =
-        case locale do
-          %Localize.LanguageTag{cldr_locale_id: id} when not is_nil(id) -> id
-          %Localize.LanguageTag{} -> :en
-          id -> id
-        end
-
-      case Localize.Number.Format.minimum_grouping_digits_for(locale_id) do
+      # The locale goes through as it came: reducing a tag to its id here
+      # only made `minimum_grouping_digits_for/1` resolve the locale again,
+      # and a tag that carries no id is better validated there than
+      # silently read as `:en`.
+      case Localize.Number.Format.minimum_grouping_digits_for(locale) do
         {:ok, digits} -> digits + group_size
-        _ -> 1 + group_size
+        _no_digits -> 1 + group_size
       end
     else
       min_digits + group_size

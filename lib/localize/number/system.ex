@@ -433,8 +433,8 @@ defmodule Localize.Number.System do
   def system_name_from(system_name, locale) do
     system_name = to_atom_key(system_name)
 
-    with {:ok, locale_id} <- cldr_locale_id_from(locale),
-         {:ok, number_systems} <- number_systems_for(locale_id) do
+    with {:ok, language_tag} <- Localize.validate_locale(locale),
+         {:ok, number_systems} <- number_systems_for(language_tag) do
       cond do
         # It's a type (default, native, etc.) — resolve to actual system name
         Map.has_key?(number_systems, system_name) ->
@@ -792,8 +792,6 @@ defmodule Localize.Number.System do
       systems
     end)
   end
-
-  defp cldr_locale_id_from(locale), do: Localize.Locale.cldr_locale_id_from(locale)
 
   defp to_atom_key(key) when is_atom(key), do: key
   # Use `existing_atom/1` so attacker-supplied binary system names

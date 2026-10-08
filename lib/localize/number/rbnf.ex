@@ -225,11 +225,11 @@ defmodule Localize.Number.Rbnf do
       true
 
   """
-  @spec rule_names_for_locale(atom() | String.t()) ::
+  @spec rule_names_for_locale(Localize.locale() | String.t()) ::
           {:ok, [String.t()]} | {:error, Exception.t()}
   def rule_names_for_locale(locale) do
-    with {:ok, locale_id} <- cldr_locale_id_from(locale),
-         {:ok, rbnf_data} <- load_rbnf_data(locale_id),
+    with {:ok, language_tag} <- Localize.validate_locale(locale),
+         {:ok, rbnf_data} <- load_rbnf_data(language_tag),
          {:ok, all_rule_sets} <- extract_rule_sets(rbnf_data) do
       names =
         all_rule_sets
