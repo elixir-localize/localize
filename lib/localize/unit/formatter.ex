@@ -308,9 +308,7 @@ defmodule Localize.Unit.Formatter do
   # ── Data loading ───────────────────────────────────────────
 
   defp load_unit_data(language_tag, style) do
-    locale_id = locale_id(language_tag)
-
-    with {:ok, all_units} <- Localize.Locale.get(locale_id, [:units]) do
+    with {:ok, all_units} <- Localize.Locale.get(language_tag, [:units]) do
       style_key = to_style_key(style)
 
       case Map.get(all_units, style_key) do
@@ -1241,9 +1239,6 @@ defmodule Localize.Unit.Formatter do
   end
 
   # ── Helpers ────────────────────────────────────────────────
-
-  defp locale_id(%Localize.LanguageTag{cldr_locale_id: id}) when not is_nil(id), do: id
-  defp locale_id(_), do: :en
 
   defp safe_to_atom(string) when is_binary(string), do: Helpers.existing_atom(string) || string
 

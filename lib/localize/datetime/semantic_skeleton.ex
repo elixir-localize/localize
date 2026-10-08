@@ -357,10 +357,10 @@ defmodule Localize.DateTime.SemanticSkeleton do
   def to_classical_skeleton(%__MODULE__{} = skeleton, options) when is_keyword_list(options) do
     locale = Keyword.get(options, :locale, Localize.get_locale())
 
-    with {:ok, locale_id} <- Localize.Locale.cldr_locale_id_from(locale),
+    with {:ok, language_tag} <- Localize.validate_locale(locale),
          {:ok, calendar} <- Localize.Date.Parser.calendar_option(options) do
       calendar_type = Localize.Date.Parser.cldr_calendar_type(calendar)
-      classical_skeleton(skeleton, locale_id, calendar_type, Keyword.get(options, :value))
+      classical_skeleton(skeleton, language_tag, calendar_type, Keyword.get(options, :value))
     end
   end
 

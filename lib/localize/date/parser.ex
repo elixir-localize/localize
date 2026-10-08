@@ -333,9 +333,11 @@ defmodule Localize.Date.Parser do
        when is_binary(format) do
     whole_date = whole_date(calendar_module, reference)
 
-    with {:ok, locale_id} <- Localize.Locale.cldr_locale_id_from(locale),
+    with {:ok, language_tag} <- Localize.validate_locale(locale),
          {:ok, written} <-
-           Localize.DateTime.Formatter.format(whole_date, format, locale_id, %{locale: locale}) do
+           Localize.DateTime.Formatter.format(whole_date, format, language_tag, %{
+             locale: language_tag
+           }) do
       if String.contains?(written, "�"),
         do:
           {:error,
@@ -347,9 +349,9 @@ defmodule Localize.Date.Parser do
   defp format_pattern(format, options, {locale, calendar_module, _own_calendar, reference}) do
     whole_date = whole_date(calendar_module, reference)
 
-    with {:ok, locale_id} <- Localize.Locale.cldr_locale_id_from(locale),
+    with {:ok, language_tag} <- Localize.validate_locale(locale),
          {:ok, pattern, numbers} <-
-           Localize.Date.resolve_pattern_and_numbers(whole_date, format, locale_id, options) do
+           Localize.Date.resolve_pattern_and_numbers(whole_date, format, language_tag, options) do
       if map_size(numbers) == 0, do: {:ok, pattern}, else: {:ok, {pattern, numbers}}
     end
   end
@@ -367,9 +369,9 @@ defmodule Localize.Date.Parser do
               format not in [:short, :medium, :long, :full] do
     first_day = %{calendar: own_calendar, year: reference.year, month: 1, day: 1}
 
-    with {:ok, locale_id} <- Localize.Locale.cldr_locale_id_from(locale),
+    with {:ok, language_tag} <- Localize.validate_locale(locale),
          {:ok, pattern, _numbers} <-
-           Localize.Date.resolve_pattern_and_numbers(first_day, format, locale_id, options) do
+           Localize.Date.resolve_pattern_and_numbers(first_day, format, language_tag, options) do
       [pattern]
     else
       _unresolved -> []
@@ -2893,11 +2895,11 @@ defmodule Localize.Date.Parser do
   defp weekday_of_week_patterns(locale, calendar_module) do
     first_day = %{calendar: calendar_module, year: 1, month: 1, day: 1}
 
-    case Localize.Locale.cldr_locale_id_from(locale) do
-      {:ok, locale_id} ->
+    case Localize.validate_locale(locale) do
+      {:ok, language_tag} ->
         for skeleton <- @weekday_of_week_skeletons,
             {:ok, pattern} <- [
-              Localize.Date.resolve_date_skeleton(first_day, skeleton, locale_id, [])
+              Localize.Date.resolve_date_skeleton(first_day, skeleton, language_tag, [])
             ],
             do: {skeleton, pattern}
 

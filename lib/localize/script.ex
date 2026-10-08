@@ -96,8 +96,8 @@ defmodule Localize.Script do
     with {:ok, style} <- LocaleDisplay.preference_from_options(options, @preferences),
          {:ok, fallback} <- validate_fallback(Keyword.get(options, :fallback, false)),
          {:ok, script_atom} <- normalize_script_code(script),
-         {:ok, locale_id} <- Localize.Locale.cldr_locale_id_from(locale) do
-      case lookup_script(script_atom, locale_id, style) do
+         {:ok, language_tag} <- Localize.validate_locale(locale) do
+      case lookup_script(script_atom, language_tag, style) do
         {:ok, _} = result ->
           result
 
@@ -110,10 +110,7 @@ defmodule Localize.Script do
   def display_name(_script, options), do: {:error, Helpers.invalid_options(options)}
 
   defp display_name_fallback(true, script_atom, style, _error) do
-    with {:ok, default_locale_id} <-
-           Localize.Locale.cldr_locale_id_from(Localize.default_locale()) do
-      lookup_script(script_atom, default_locale_id, style)
-    end
+    lookup_script(script_atom, Localize.default_locale(), style)
   end
 
   defp display_name_fallback(false, _script_atom, _style, error) do
@@ -194,8 +191,8 @@ defmodule Localize.Script do
   def scripts_for(options) when is_keyword_list(options) do
     locale = Keyword.get(options, :locale, Localize.get_locale())
 
-    with {:ok, locale_id} <- Localize.Locale.cldr_locale_id_from(locale),
-         {:ok, scripts} <- load_scripts(locale_id) do
+    with {:ok, language_tag} <- Localize.validate_locale(locale),
+         {:ok, scripts} <- load_scripts(language_tag) do
       {:ok, scripts |> Map.keys() |> Enum.sort()}
     end
   end
@@ -236,8 +233,8 @@ defmodule Localize.Script do
   def script_names_for(options) when is_keyword_list(options) do
     locale = Keyword.get(options, :locale, Localize.get_locale())
 
-    with {:ok, locale_id} <- Localize.Locale.cldr_locale_id_from(locale) do
-      load_scripts(locale_id)
+    with {:ok, language_tag} <- Localize.validate_locale(locale) do
+      load_scripts(language_tag)
     end
   end
 

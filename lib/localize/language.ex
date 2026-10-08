@@ -117,8 +117,8 @@ defmodule Localize.Language do
     with {:ok, style} <- LocaleDisplay.preference_from_options(options, @preferences),
          {:ok, fallback} <- validate_fallback(Keyword.get(options, :fallback, false)),
          {:ok, language_tag} <- Localize.validate_locale(language),
-         {:ok, locale_id} <- Localize.Locale.cldr_locale_id_from(locale) do
-      case lookup_language(language_tag, locale_id, style) do
+         {:ok, display_tag} <- Localize.validate_locale(locale) do
+      case lookup_language(language_tag, display_tag, style) do
         {:ok, _} = result -> result
         {:error, _} = error -> maybe_fallback_lookup(error, fallback, language_tag, style)
       end
@@ -131,10 +131,7 @@ defmodule Localize.Language do
   # When `:fallback` is enabled, retry the lookup against the default
   # locale; otherwise propagate the original error unchanged.
   defp maybe_fallback_lookup(_error, true, language_tag, style) do
-    with {:ok, default_locale_id} <-
-           Localize.Locale.cldr_locale_id_from(Localize.default_locale()) do
-      lookup_language(language_tag, default_locale_id, style)
-    end
+    lookup_language(language_tag, Localize.default_locale(), style)
   end
 
   defp maybe_fallback_lookup(error, false, _language_tag, _style), do: error
@@ -217,8 +214,8 @@ defmodule Localize.Language do
   def languages_for(options) when is_keyword_list(options) do
     locale = Keyword.get(options, :locale, Localize.get_locale())
 
-    with {:ok, locale_id} <- Localize.Locale.cldr_locale_id_from(locale),
-         {:ok, languages} <- Localize.Locale.get(locale_id, [:languages]) do
+    with {:ok, language_tag} <- Localize.validate_locale(locale),
+         {:ok, languages} <- Localize.Locale.get(language_tag, [:languages]) do
       {:ok, languages |> Map.keys() |> Enum.sort()}
     end
   end
@@ -263,8 +260,8 @@ defmodule Localize.Language do
   def language_names_for(options) when is_keyword_list(options) do
     locale = Keyword.get(options, :locale, Localize.get_locale())
 
-    with {:ok, locale_id} <- Localize.Locale.cldr_locale_id_from(locale) do
-      Localize.Locale.get(locale_id, [:languages])
+    with {:ok, language_tag} <- Localize.validate_locale(locale) do
+      Localize.Locale.get(language_tag, [:languages])
     end
   end
 

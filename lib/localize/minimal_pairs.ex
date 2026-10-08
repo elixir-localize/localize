@@ -232,8 +232,8 @@ defmodule Localize.MinimalPairs do
   # ── Private helpers ─────────────────────────────────────────
 
   defp category(locale, category) do
-    with {:ok, locale_id} <- Localize.Locale.cldr_locale_id_from(locale),
-         {:ok, pairs} <- Localize.Locale.get(locale_id, [:minimal_pairs]) do
+    with {:ok, language_tag} <- Localize.validate_locale(locale),
+         {:ok, pairs} <- Localize.Locale.get(language_tag, [:minimal_pairs]) do
       {:ok, Map.get(pairs || %{}, category, %{})}
     end
   end

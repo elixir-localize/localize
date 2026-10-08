@@ -733,7 +733,7 @@ defmodule Localize.DateTime.Timezone do
       {:ok, "Pacific Standard Time (Canada)"}
 
   """
-  @spec non_location_format(map(), atom(), Keyword.t()) ::
+  @spec non_location_format(map(), Localize.locale(), Keyword.t()) ::
           {:ok, String.t()} | {:error, Exception.t()}
   def non_location_format(datetime, locale_id, options \\ [])
 
@@ -1321,8 +1321,8 @@ defmodule Localize.DateTime.Timezone do
   # ── Localized GMT format, the locale's own spelling ──────────
 
   defp parse_localized_gmt_offset(zone, options, sign) do
-    with {:ok, locale_id} <- offset_locale(options),
-         {:ok, tz_data} <- Localize.Locale.get(locale_id, [:dates, :time_zone_names]),
+    with {:ok, language_tag} <- offset_locale(options),
+         {:ok, tz_data} <- Localize.Locale.get(language_tag, [:dates, :time_zone_names]),
          {:ok, place, remainder} <-
            strip_gmt_pattern(zone, tz_data[:gmt_format] || @default_gmt_format) do
       # TR35's parsing: "the absence of a numeric offset should be
@@ -1341,9 +1341,12 @@ defmodule Localize.DateTime.Timezone do
     end
   end
 
+  # Returns the validated tag rather than its id: its one caller reads locale
+  # data with it, and zone parsing asks for that data once per candidate
+  # pattern, so the resolution an id would repeat is paid many times over.
   defp offset_locale(options) do
     case Localize.validate_locale(Keyword.get(options, :locale) || Localize.get_locale()) do
-      {:ok, locale} -> {:ok, locale.cldr_locale_id}
+      {:ok, language_tag} -> {:ok, language_tag}
       _invalid_locale -> :error
     end
   end
@@ -1726,15 +1729,13 @@ defmodule Localize.DateTime.Timezone do
   # zone as the string read: its specific or generic name, long or short,
   # its location, its city or its ID.
   defp written_as?(%DateTime{time_zone: time_zone} = datetime, key, language_tag) do
-    locale_id = language_tag.cldr_locale_id
-
     [
-      fn -> non_location_format(datetime, locale_id, format: :long, type: :specific) end,
-      fn -> non_location_format(datetime, locale_id, format: :long, type: :generic) end,
-      fn -> generic_location_format(time_zone, locale_id) end,
-      fn -> non_location_format(datetime, locale_id, format: :short, type: :specific) end,
-      fn -> non_location_format(datetime, locale_id, format: :short, type: :generic) end,
-      fn -> location_exemplar_city(time_zone, locale_id) end,
+      fn -> non_location_format(datetime, language_tag, format: :long, type: :specific) end,
+      fn -> non_location_format(datetime, language_tag, format: :long, type: :generic) end,
+      fn -> generic_location_format(time_zone, language_tag) end,
+      fn -> non_location_format(datetime, language_tag, format: :short, type: :specific) end,
+      fn -> non_location_format(datetime, language_tag, format: :short, type: :generic) end,
+      fn -> location_exemplar_city(time_zone, language_tag) end,
       fn -> {:ok, time_zone} end,
       fn -> {:ok, short_zone_id(time_zone)} end
     ]

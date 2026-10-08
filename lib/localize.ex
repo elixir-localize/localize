@@ -83,7 +83,6 @@ defmodule Localize do
 
   import Localize.Utils.Helpers, only: [is_keyword_list: 1]
   require Logger
-  alias Localize.Locale
 
   @typedoc "A locale identifier. That is, known to CLDR"
   @type locale_id :: atom()
@@ -704,8 +703,8 @@ defmodule Localize do
     format = Keyword.get(options, :format, :default)
 
     with {:ok, format} <- validate_quote_format(format),
-         {:ok, locale_id} <- Locale.cldr_locale_id_from(locale),
-         {:ok, delimiters} <- Localize.Locale.get(locale_id, [:delimiters]) do
+         {:ok, language_tag} <- Localize.validate_locale(locale),
+         {:ok, delimiters} <- Localize.Locale.get(language_tag, [:delimiters]) do
       open = get_in(delimiters, [:quotation_start, format]) || ""
       close = get_in(delimiters, [:quotation_end, format]) || ""
       {:ok, open <> string <> close}
@@ -805,8 +804,8 @@ defmodule Localize do
     format = Keyword.get(options, :format, :sentence)
     location = Keyword.get(options, :location, default_ellipsis_location(string))
 
-    with {:ok, locale_id} <- Locale.cldr_locale_id_from(locale),
-         {:ok, ellipsis_chars} <- Localize.Locale.get(locale_id, [:ellipsis]) do
+    with {:ok, language_tag} <- Localize.validate_locale(locale),
+         {:ok, ellipsis_chars} <- Localize.Locale.get(language_tag, [:ellipsis]) do
       apply_ellipsis(string, ellipsis_chars, location, format)
     end
   end

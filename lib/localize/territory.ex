@@ -152,8 +152,8 @@ defmodule Localize.Territory do
   def territory_names_for(options) when is_keyword_list(options) do
     locale = Keyword.get(options, :locale, Localize.get_locale())
 
-    with {:ok, locale_id} <- Localize.Locale.cldr_locale_id_from(locale) do
-      Localize.Locale.get(locale_id, [:territories])
+    with {:ok, language_tag} <- Localize.validate_locale(locale) do
+      Localize.Locale.get(language_tag, [:territories])
     end
   end
 
@@ -211,8 +211,8 @@ defmodule Localize.Territory do
 
     with {:ok, territory_atom} <- resolve_territory(territory),
          {:ok, style_atom} <- validate_style(style),
-         {:ok, locale_id} <- Localize.Locale.cldr_locale_id_from(locale) do
-      case Localize.Locale.get(locale_id, [:territories]) do
+         {:ok, language_tag} <- Localize.validate_locale(locale) do
+      case Localize.Locale.get(language_tag, [:territories]) do
         {:ok, territories} ->
           territory_name_for_style(territories, territory_atom, style_atom, style)
 
@@ -412,8 +412,8 @@ defmodule Localize.Territory do
           {:ok, atom()} | {:error, Exception.t()}
   def to_territory_code(name, locale) when is_binary(name) do
     with :ok <- validate_name(name),
-         {:ok, locale_id} <- Localize.Locale.cldr_locale_id_from(locale),
-         {:ok, territories} <- Localize.Locale.get(locale_id, [:territories]) do
+         {:ok, language_tag} <- Localize.validate_locale(locale),
+         {:ok, territories} <- Localize.Locale.get(language_tag, [:territories]) do
       case code_for_name(territories, name) do
         nil -> {:error, Localize.UnknownTerritoryError.exception(territory: name)}
         code -> {:ok, code}

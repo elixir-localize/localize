@@ -83,8 +83,8 @@ defmodule Localize.Territory.Subdivision do
     locale = Keyword.get(options, :locale, Localize.get_locale())
     code = normalize_subdivision_code(subdivision)
 
-    with {:ok, locale_id} <- Localize.Locale.cldr_locale_id_from(locale),
-         {:ok, subdivisions} <- Localize.Locale.get(locale_id, [:subdivisions]) do
+    with {:ok, language_tag} <- Localize.validate_locale(locale),
+         {:ok, subdivisions} <- Localize.Locale.get(language_tag, [:subdivisions]) do
       case Map.get(subdivisions, code) do
         nil ->
           {:error, Localize.UnknownSubdivisionError.exception(subdivision: subdivision)}
@@ -185,8 +185,8 @@ defmodule Localize.Territory.Subdivision do
   def subdivision_names_for(options) when is_keyword_list(options) do
     locale = Keyword.get(options, :locale, Localize.get_locale())
 
-    with {:ok, locale_id} <- Localize.Locale.cldr_locale_id_from(locale) do
-      Localize.Locale.get(locale_id, [:subdivisions])
+    with {:ok, language_tag} <- Localize.validate_locale(locale) do
+      Localize.Locale.get(language_tag, [:subdivisions])
     end
   end
 
