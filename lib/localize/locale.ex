@@ -659,6 +659,12 @@ defmodule Localize.Locale do
   Delegates to the configured provider module to navigate the locale
   data map.
 
+  The provider is read first and the locale is loaded only if that read
+  does not resolve, since an already-loaded locale is by far the common
+  case and confirming that it is loaded costs more than the read. A
+  locale that is not yet loaded therefore pays one extra read, as does a
+  key path that is genuinely absent.
+
   ### Arguments
 
   * `locale` is a locale identifier atom or a `t:Localize.LanguageTag.t/0`.
@@ -720,15 +726,18 @@ defmodule Localize.Locale do
     {fallback_to_default, options} = Keyword.pop(options, :fallback_to_default, false)
 
     with {:ok, default_fallback_id} <- resolve_default_fallback(fallback_to_default),
-         :ok <- load_and_store(locale, provider: provider) do
+         :ok <- validate_provider(provider) do
+      # Read first and load only on a miss. The overwhelmingly common
+      # case is a locale that is already loaded, and checking that it is
+      # loaded costs more than the read itself.
       case provider.get(locale, keys, options) do
-        # Hot path: a successful lookup returns directly, paying no
-        # cost for the fallback dispatch.
+        # Hot path: a successful lookup returns directly, paying neither
+        # the load check nor the fallback dispatch.
         {:ok, _} = ok ->
           ok
 
-        {:error, _} = error ->
-          try_fallbacks(error, locale, keys, provider, options, fallback?, default_fallback_id)
+        {:error, _} ->
+          load_and_retry(locale, keys, provider, options, fallback?, default_fallback_id)
       end
     end
   end
@@ -779,6 +788,26 @@ defmodule Localize.Locale do
 
       {:error, other} ->
         raise ArgumentError, inspect(other)
+    end
+  end
+
+  # An error from the optimistic read in `get/3` is ambiguous: a provider
+  # reports a locale that is not loaded and a key path that is absent as
+  # the same `ItemNotFoundError`. Load the locale and read again before
+  # conceding the miss to the fallbacks. A locale that was already loaded
+  # makes the load a no-op and the second read returns the same error,
+  # which is the price of the cheaper hit path.
+  @spec load_and_retry(Provider.locale(), list(), module(), Keyword.t(), boolean(), atom() | nil) ::
+          {:ok, term()} | {:error, term()}
+  defp load_and_retry(locale, keys, provider, options, fallback?, default_fallback_id) do
+    with :ok <- load_and_store(locale, provider: provider) do
+      case provider.get(locale, keys, options) do
+        {:ok, _} = ok ->
+          ok
+
+        {:error, _} = error ->
+          try_fallbacks(error, locale, keys, provider, options, fallback?, default_fallback_id)
+      end
     end
   end
 
