@@ -456,10 +456,11 @@ defmodule Localize.List do
       [:or, :or_narrow, :or_short, :standard, :standard_narrow, :standard_short, :unit, :unit_narrow, :unit_short]
 
   """
-  @spec list_patterns_for(atom() | String.t()) :: {:ok, map()} | {:error, Exception.t()}
+  @spec list_patterns_for(Localize.locale() | String.t()) ::
+          {:ok, map()} | {:error, Exception.t()}
   def list_patterns_for(locale) do
-    with {:ok, locale_id} <- resolve_locale_id(locale),
-         {:ok, formats} <- Localize.Locale.get(locale_id, [:list_formats]) do
+    with {:ok, language_tag} <- Localize.validate_locale(locale),
+         {:ok, formats} <- Localize.Locale.get(language_tag, [:list_formats]) do
       patterns =
         formats
         |> Enum.map(fn {format_name, data} ->
@@ -491,10 +492,11 @@ defmodule Localize.List do
       {:ok, [:or, :or_narrow, :or_short, :standard, :standard_narrow, :standard_short, :unit, :unit_narrow, :unit_short]}
 
   """
-  @spec list_styles_for(atom() | String.t()) :: {:ok, [atom()]} | {:error, Exception.t()}
+  @spec list_styles_for(Localize.locale() | String.t()) ::
+          {:ok, [atom()]} | {:error, Exception.t()}
   def list_styles_for(locale) do
-    with {:ok, locale_id} <- resolve_locale_id(locale),
-         {:ok, formats} <- Localize.Locale.get(locale_id, [:list_formats]) do
+    with {:ok, language_tag} <- Localize.validate_locale(locale),
+         {:ok, formats} <- Localize.Locale.get(language_tag, [:list_formats]) do
       {:ok, formats |> Map.keys() |> Enum.sort()}
     end
   end
@@ -583,13 +585,11 @@ defmodule Localize.List do
     list_style = Keyword.get(options, :list_style, @default_list_style)
     middle_as_end? = !!Keyword.get(options, :treat_middle_as_end, false)
 
-    with {:ok, locale_id} <- resolve_locale_id(locale),
-         {:ok, pattern} <- resolve_list_style(locale_id, list_style) do
+    with {:ok, language_tag} <- Localize.validate_locale(locale),
+         {:ok, pattern} <- resolve_list_style(language_tag, list_style) do
       {:ok, pattern, middle_as_end?}
     end
   end
-
-  defp resolve_locale_id(locale), do: Localize.Locale.cldr_locale_id_from(locale)
 
   defp resolve_list_style(_locale_id, %Pattern{} = pattern) do
     {:ok, pattern}

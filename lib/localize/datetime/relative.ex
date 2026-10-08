@@ -172,12 +172,13 @@ defmodule Localize.DateTime.Relative do
     numeric = Keyword.get(options, :numeric, :auto)
     relative_to = Keyword.get_lazy(options, :relative_to, &DateTime.utc_now/0)
 
-    with {:ok, locale_id} <- resolve_locale_id(locale),
+    with {:ok, language_tag} <- Localize.validate_locale(locale),
          {:ok, unit} <- validate_unit(unit),
          {:ok, format} <- validate_format(format),
          {:ok, numeric} <- validate_numeric(numeric),
-         {:ok, {count, resolved_unit}} <- relative_count(relative, relative_to, unit, locale) do
-      {:ok, relative_parts(count, resolved_unit, format, locale, locale_id, numeric)}
+         {:ok, {count, resolved_unit}} <-
+           relative_count(relative, relative_to, unit, language_tag) do
+      {:ok, relative_parts(count, resolved_unit, format, language_tag, numeric)}
     end
   end
 
@@ -231,11 +232,11 @@ defmodule Localize.DateTime.Relative do
 
   # `to_string/2` joins these parts, so the two always agree. A unit the
   # locale has no data for formats as the number alone.
-  defp relative_parts(relative, unit, format, locale, locale_id, numeric) do
-    with {:ok, date_fields} <- Localize.Locale.get(locale_id, [:date_fields]),
+  defp relative_parts(relative, unit, format, locale, numeric) do
+    with {:ok, date_fields} <- Localize.Locale.get(locale, [:date_fields]),
          %{} = unit_data <- get_in(date_fields, [unit, format]) do
       case named_form(relative, unit_data, numeric) do
-        nil -> pattern_parts(relative, unit, unit_data, locale, locale_id)
+        nil -> pattern_parts(relative, unit, unit_data, locale)
         name -> [%{type: :literal, value: name}]
       end
     else
@@ -267,7 +268,7 @@ defmodule Localize.DateTime.Relative do
   # English and "dans 1,5 jour" `:one` in French. Zero takes the future
   # pattern ("in 0 days"), as ECMA-402 has it; TR35 does not say which
   # pattern zero takes (user, 2026-10-06, `plans/tr35-audit.md`).
-  defp pattern_parts(relative, unit, unit_data, locale, locale_id) do
+  defp pattern_parts(relative, unit, unit_data, locale) do
     direction = if relative < 0, do: :relative_past, else: :relative_future
     magnitude = abs(relative)
 
@@ -276,7 +277,7 @@ defmodule Localize.DateTime.Relative do
       category =
         magnitude
         |> Localize.Number.source_number(locale: locale)
-        |> Localize.Number.PluralRule.Cardinal.plural_rule(locale_id)
+        |> Localize.Number.PluralRule.Cardinal.plural_rule(locale)
 
       case Map.get(patterns, category) || Map.get(patterns, :other) do
         nil -> number_parts(relative, unit, locale)
@@ -727,6 +728,4 @@ defmodule Localize.DateTime.Relative do
        context: "Localize.DateTime.Relative"
      )}
   end
-
-  defp resolve_locale_id(locale), do: Localize.Locale.cldr_locale_id_from(locale)
 end

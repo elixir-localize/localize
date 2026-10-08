@@ -828,14 +828,21 @@ defmodule Localize.Interval do
     locale = Keyword.get(options, :locale, Localize.get_locale())
     {skeleton, calendar} = datetime_fields(from, options)
 
-    with {:ok, locale_id} <- resolve_locale_id(locale),
-         {:ok, halves} <- datetime_halves(options, skeleton, locale_id, calendar) do
+    with {:ok, language_tag} <- Localize.validate_locale(locale),
+         {:ok, halves} <- datetime_halves(options, skeleton, language_tag, calendar) do
       case halves do
         {:date_only, skeleton} ->
           format_date_interval(from, to, Keyword.put(options, :format, skeleton), output)
 
         halves ->
-          format_datetime_halves(from, to, {locale, locale_id, calendar}, halves, options, output)
+          format_datetime_halves(
+            from,
+            to,
+            {locale, language_tag, calendar},
+            halves,
+            options,
+            output
+          )
       end
     end
   end
@@ -1014,8 +1021,8 @@ defmodule Localize.Interval do
     locale = Keyword.get(options, :locale, Localize.get_locale())
     options_map = options |> Map.new() |> Map.put_new(:locale, locale)
 
-    with {:ok, locale_id} <- resolve_locale_id(locale) do
-      format_split(output, from, to, left, right, locale_id, options_map)
+    with {:ok, language_tag} <- Localize.validate_locale(locale) do
+      format_split(output, from, to, left, right, language_tag, options_map)
     end
   end
 
@@ -1163,12 +1170,13 @@ defmodule Localize.Interval do
       |> Keyword.take([:locale, :prefer])
       |> Keyword.put(:format, date_format)
 
-    with {:ok, locale_id} <- resolve_locale_id(locale),
+    with {:ok, language_tag} <- Localize.validate_locale(locale),
          {:ok, wrapper} <-
-           Localize.DateTime.date_time_wrapper(date_format, locale_id, style, calendar),
+           Localize.DateTime.date_time_wrapper(date_format, language_tag, style, calendar),
          {:ok, tokens, _end_line} <- Localize.DateTime.Format.Compiler.tokenize(wrapper),
          {:ok, date_value} <- date_half(output, from, date_options),
-         {:ok, time_value} <- format_split(output, from, to, left, right, locale_id, options_map) do
+         {:ok, time_value} <-
+           format_split(output, from, to, left, right, language_tag, options_map) do
       pieces =
         Enum.map(tokens, fn
           {:date, _line, _count} -> date_value
@@ -1544,8 +1552,8 @@ defmodule Localize.Interval do
     locale = Keyword.get(options, :locale, Localize.get_locale())
 
     with :ok <- Localize.Calendar.validate_value(value),
-         {:ok, locale_id} <- resolve_locale_id(locale),
-         {:ok, formats} <- interval_formats(locale_id, value),
+         {:ok, language_tag} <- Localize.validate_locale(locale),
+         {:ok, formats} <- interval_formats(language_tag, value),
          {:ok, pattern} <- get_fallback_pattern(formats),
          {:ok, formatted} <- format_single_value(value, options) do
       {a, b} =
@@ -2215,10 +2223,10 @@ defmodule Localize.Interval do
       when is_atom(format) and not is_nil(format) do
     calendar = Localize.Calendar.cldr_calendar_type(calendar_module)
 
-    with {:ok, locale_id} <- resolve_locale_id(locale),
+    with {:ok, language_tag} <- Localize.validate_locale(locale),
          {:ok, false} <- Localize.Calendar.own_notation?(calendar_module),
-         {:ok, formats} <- Localize.DateTime.Format.interval_formats(locale_id, calendar),
-         {:ok, item} <- written_item(format, {locale_id, calendar}, options) do
+         {:ok, formats} <- Localize.DateTime.Format.interval_formats(language_tag, calendar),
+         {:ok, item} <- written_item(format, {language_tag, calendar}, options) do
       {:ok, item_patterns(formats, item)}
     else
       {:ok, true} -> {:ok, {[], []}}
@@ -2268,8 +2276,6 @@ defmodule Localize.Interval do
   defp default_text(_other), do: []
 
   # ── Locale resolution ──────────────────────────────────────
-
-  defp resolve_locale_id(locale), do: Localize.Locale.cldr_locale_id_from(locale)
 
   # The canonical form of a validated locale is the tag, which is what the data
   # lookups are given: `Localize.Locale.get/3` reads the id out of a tag for

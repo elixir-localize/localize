@@ -197,7 +197,8 @@ defmodule Localize.DateTime.Format.Match do
   #
   # * `:error` when no entry carries the same fields.
   #
-  @spec best_interval_match(atom() | String.t(), atom(), atom()) :: {:ok, atom()} | :error
+  @spec best_interval_match(atom() | String.t(), Localize.locale(), atom()) ::
+          {:ok, atom()} | :error
   def best_interval_match(original_skeleton, locale_id, calendar_type \\ :gregorian) do
     skeleton =
       original_skeleton

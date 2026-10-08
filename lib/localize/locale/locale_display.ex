@@ -127,12 +127,12 @@ defmodule Localize.Locale.LocaleDisplay do
   defp canonical_display_tag(%Localize.LanguageTag{} = validated), do: validated
 
   defp do_display_name(%Localize.LanguageTag{} = language_tag, options) do
-    locale_id = resolve_locale_id(options)
+    display_locale = resolve_display_locale(options)
     standard_or_dialect = Keyword.get(options, :language_display, :standard)
 
     with {:ok, prefer} <- preference_from_options(options, @known_preferences),
          :ok <- validate_language_display(standard_or_dialect),
-         {:ok, display_names} <- load_display_names(locale_id),
+         {:ok, display_names} <- load_display_names(display_locale),
          {:ok, matched_tags, language_name} <-
            language_name(language_tag, display_names, prefer, standard_or_dialect) do
       language_tag = merge_extensions_and_private_use(language_tag)
@@ -146,7 +146,7 @@ defmodule Localize.Locale.LocaleDisplay do
 
       extension_names =
         language_tag
-        |> extension_display_names(locale_id, display_names, options)
+        |> extension_display_names(display_locale, display_names, options)
         |> join_subtags(display_names)
 
       {:ok, format_display_name(language_name, subtag_names, extension_names, display_names)}
@@ -801,16 +801,19 @@ defmodule Localize.Locale.LocaleDisplay do
      )}
   end
 
-  defp resolve_locale_id(options) do
-    # Route through the canonical CLDR locale resolver so user-supplied
-    # binary or atom locales are validated against CLDR before any
-    # atomisation. Falls back to `:en` if the locale is unresolvable so
-    # that display formatting itself never raises on bad input.
+  # Route through the canonical CLDR locale resolver so user-supplied
+  # binary or atom locales are validated against CLDR before any
+  # atomisation. Returns the validated tag, so every display-name read below
+  # costs no further locale resolution, and falls back to `:en` if the locale
+  # is unresolvable so that display formatting itself never raises on bad
+  # input. The fallback is the bare id: the reads take a locale in any form,
+  # and an input that did not resolve is not worth a second resolution.
+  defp resolve_display_locale(options) do
     locale = Keyword.get(options, :locale, Localize.get_locale())
 
-    case Localize.Locale.cldr_locale_id_from(locale) do
-      {:ok, id} -> id
-      {:error, _} -> :en
+    case Localize.validate_locale(locale) do
+      {:ok, language_tag} -> language_tag
+      {:error, _unresolvable} -> :en
     end
   end
 
