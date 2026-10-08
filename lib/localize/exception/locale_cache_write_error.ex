@@ -66,7 +66,7 @@ defmodule Localize.LocaleCacheWriteError do
     Localize.Exception.safe_message(
       "locale",
       "Cannot write locale {$locale_id} to {$path}: permission denied.",
-      locale_id: inspect(locale_id),
+      locale_id: Localize.Exception.locale_name(locale_id),
       path: path
     )
   end
@@ -75,7 +75,7 @@ defmodule Localize.LocaleCacheWriteError do
     Localize.Exception.safe_message(
       "locale",
       "Cannot write locale {$locale_id} to {$path}: parent directory does not exist.",
-      locale_id: inspect(locale_id),
+      locale_id: Localize.Exception.locale_name(locale_id),
       path: path
     )
   end
@@ -84,7 +84,7 @@ defmodule Localize.LocaleCacheWriteError do
     Localize.Exception.safe_message(
       "locale",
       "Cannot write locale {$locale_id} to {$path}: no space left on device.",
-      locale_id: inspect(locale_id),
+      locale_id: Localize.Exception.locale_name(locale_id),
       path: path
     )
   end
@@ -93,7 +93,7 @@ defmodule Localize.LocaleCacheWriteError do
     Localize.Exception.safe_message(
       "locale",
       "Cannot write locale {$locale_id} to {$path}: filesystem is read-only.",
-      locale_id: inspect(locale_id),
+      locale_id: Localize.Exception.locale_name(locale_id),
       path: path
     )
   end
@@ -102,7 +102,7 @@ defmodule Localize.LocaleCacheWriteError do
     Localize.Exception.safe_message(
       "locale",
       "Cannot write locale {$locale_id} to {$path}: file already exists.",
-      locale_id: inspect(locale_id),
+      locale_id: Localize.Exception.locale_name(locale_id),
       path: path
     )
   end
@@ -116,7 +116,7 @@ defmodule Localize.LocaleCacheWriteError do
     Localize.Exception.safe_message(
       "locale",
       "Cannot write locale {$locale_id} to {$path}: {$reason}.",
-      locale_id: inspect(locale_id),
+      locale_id: Localize.Exception.locale_name(locale_id),
       path: path,
       reason: inspect(posix)
     )
@@ -126,7 +126,7 @@ defmodule Localize.LocaleCacheWriteError do
     Localize.Exception.safe_message(
       "locale",
       "Cannot write locale {$locale_id} to {$path}: {$reason}.",
-      locale_id: inspect(locale_id),
+      locale_id: Localize.Exception.locale_name(locale_id),
       path: path,
       reason: inspect(posix)
     )

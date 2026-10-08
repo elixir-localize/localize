@@ -17,7 +17,7 @@ defmodule Localize.LocaleDisplayError do
     Localize.Exception.safe_message(
       "locale",
       "No locale display data for {$locale}.",
-      locale: inspect(locale)
+      locale: Localize.Exception.locale_name(locale)
     )
   end
 end

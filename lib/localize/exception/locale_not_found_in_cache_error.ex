@@ -26,7 +26,7 @@ defmodule Localize.LocaleNotFoundInCacheError do
         "Run `mix localize.download_locales {$locale_id_bare}` to download it, " <>
         "or set `config :localize, :allow_runtime_locale_download, true` to " <>
         "enable on-demand downloading.",
-      locale_id: inspect(locale_id),
+      locale_id: Localize.Exception.locale_name(locale_id),
       locale_id_bare: locale_id,
       path: inspect(path)
     )
@@ -36,7 +36,7 @@ defmodule Localize.LocaleNotFoundInCacheError do
     Localize.Exception.safe_message(
       "locale",
       "The locale {$locale_id} could not be read from the cache at {$path}: {$reason}.",
-      locale_id: inspect(locale_id),
+      locale_id: Localize.Exception.locale_name(locale_id),
       path: inspect(path),
       reason: inspect(posix)
     )

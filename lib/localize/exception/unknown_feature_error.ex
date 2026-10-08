@@ -18,7 +18,7 @@ defmodule Localize.UnknownFeatureError do
       "inflection",
       "The grammatical feature {$feature} is not defined for locale {$locale}.",
       feature: inspect(feature),
-      locale: inspect(locale)
+      locale: Localize.Exception.locale_name(locale)
     )
   end
 end

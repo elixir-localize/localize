@@ -19,7 +19,7 @@ defmodule Localize.UnknownPluralRulesError do
     Localize.Exception.safe_message(
       "plural_rules",
       "No{$type} plural rules available for the locale {$locale_id}.",
-      locale_id: inspect(locale_id),
+      locale_id: Localize.Exception.locale_name(locale_id),
       type: type_name
     )
   end

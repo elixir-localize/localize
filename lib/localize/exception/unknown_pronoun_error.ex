@@ -18,7 +18,7 @@ defmodule Localize.UnknownPronounError do
       "inflection",
       "The pronoun {$pronoun} is not in the pronoun table for locale {$locale}.",
       pronoun: inspect(pronoun),
-      locale: inspect(locale)
+      locale: Localize.Exception.locale_name(locale)
     )
   end
 end

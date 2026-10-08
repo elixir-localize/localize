@@ -17,7 +17,7 @@ defmodule Localize.LikelySubtagsError do
     Localize.Exception.safe_message(
       "language_tag",
       "No likely subtags data found for {$locale}",
-      locale: inspect(locale)
+      locale: Localize.Exception.locale_name(locale)
     )
   end
 end

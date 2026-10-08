@@ -18,7 +18,7 @@ defmodule Localize.UnknownNumberSystemError do
       "number",
       "The number system {$number_system} is not valid for locale {$locale}.",
       number_system: inspect(number_system),
-      locale: inspect(locale)
+      locale: Localize.Exception.locale_name(locale)
     )
   end
 

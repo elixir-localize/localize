@@ -17,7 +17,7 @@ defmodule Localize.InflectionDataNotAvailableError do
     Localize.Exception.safe_message(
       "inflection",
       "Inflection data for locale {$locale} has not been downloaded. Run mix localize.download_inflection or configure :inflection_data_dir.",
-      locale: inspect(locale)
+      locale: Localize.Exception.locale_name(locale)
     )
   end
 end

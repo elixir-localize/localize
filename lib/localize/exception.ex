@@ -116,4 +116,49 @@ defmodule Localize.Exception do
   def safe_message(_msgctxt, msgid, _bindings) when is_binary(msgid), do: msgid
 
   def safe_message(_msgctxt, msgid, _bindings), do: inspect(msgid)
+
+  @doc """
+  Renders a locale as a name fit for an exception message.
+
+  A validated locale is a `t:Localize.LanguageTag.t/0`, which inspects as
+  the expression that rebuilds it rather than as a locale name. A message
+  should name the locale, so a tag renders as its locale id and any other
+  value as itself.
+
+  ### Arguments
+
+  * `locale` is a locale identifier atom or string, or a
+    `t:Localize.LanguageTag.t/0` in any state of resolution.
+
+  ### Returns
+
+  * A string naming the locale, ready to interpolate into a message.
+
+  ### Examples
+
+      iex> Localize.Exception.locale_name(:en)
+      ":en"
+
+      iex> {:ok, language_tag} = Localize.validate_locale("en")
+      iex> Localize.Exception.locale_name(language_tag)
+      ":en"
+
+  """
+  @spec locale_name(Localize.locale() | String.t()) :: String.t()
+  def locale_name(%Localize.LanguageTag{cldr_locale_id: locale_id})
+      when not is_nil(locale_id) do
+    inspect(locale_id)
+  end
+
+  def locale_name(%Localize.LanguageTag{canonical_locale_id: locale_id})
+      when not is_nil(locale_id) do
+    inspect(locale_id)
+  end
+
+  def locale_name(%Localize.LanguageTag{requested_locale_id: locale_id})
+      when not is_nil(locale_id) do
+    inspect(locale_id)
+  end
+
+  def locale_name(locale), do: inspect(locale)
 end

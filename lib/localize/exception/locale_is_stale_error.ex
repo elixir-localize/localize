@@ -25,7 +25,7 @@ defmodule Localize.LocaleIsStaleError do
         "Run `mix localize.download_locales {$locale_id_bare}` to refresh it, " <>
         "or set `config :localize, :allow_runtime_locale_download, true` to " <>
         "enable on-demand downloading.",
-      locale_id: inspect(locale_id),
+      locale_id: Localize.Exception.locale_name(locale_id),
       locale_id_bare: locale_id,
       cached_version: version_string(cached_version),
       current_version: version_string(current_version)

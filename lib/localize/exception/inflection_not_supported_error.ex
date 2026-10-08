@@ -17,7 +17,7 @@ defmodule Localize.InflectionNotSupportedError do
     Localize.Exception.safe_message(
       "inflection",
       "The Unicode inflection data does not support locale {$locale}.",
-      locale: inspect(locale)
+      locale: Localize.Exception.locale_name(locale)
     )
   end
 end

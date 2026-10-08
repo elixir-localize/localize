@@ -18,7 +18,7 @@ defmodule Localize.CurrencyNoDisplayNameError do
       "currency",
       "The currency {$currency} has no display name in locale {$locale}.",
       currency: inspect(currency),
-      locale: inspect(locale)
+      locale: Localize.Exception.locale_name(locale)
     )
   end
 end

@@ -27,7 +27,7 @@ defmodule Localize.CurrencyNotLocalizedError do
       "currency",
       "The currency {$currency} has no localized data in locale {$locale}.",
       currency: inspect(currency),
-      locale: inspect(locale)
+      locale: Localize.Exception.locale_name(locale)
     )
   end
 end

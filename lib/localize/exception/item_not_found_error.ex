@@ -18,7 +18,7 @@ defmodule Localize.ItemNotFoundError do
       "locale",
       "The key path {$keys} was not found in locale {$locale}.",
       keys: inspect(keys),
-      locale: inspect(locale)
+      locale: Localize.Exception.locale_name(locale)
     )
   end
 end

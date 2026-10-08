@@ -17,7 +17,7 @@ defmodule Localize.NoParentError do
     Localize.Exception.safe_message(
       "locale",
       "The locale {$locale} has no parent locale",
-      locale: inspect(locale)
+      locale: Localize.Exception.locale_name(locale)
     )
   end
 end

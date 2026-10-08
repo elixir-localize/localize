@@ -76,7 +76,7 @@ defmodule Localize.LocaleDownloadError do
     Localize.Exception.safe_message(
       "locale",
       "The locale {$locale_id} at {$url} is unchanged since the last download.",
-      locale_id: inspect(locale_id),
+      locale_id: Localize.Exception.locale_name(locale_id),
       url: url
     )
   end
@@ -90,7 +90,7 @@ defmodule Localize.LocaleDownloadError do
     Localize.Exception.safe_message(
       "locale",
       "The locale {$locale_id} could not be downloaded from {$url}: HTTP {$status}.",
-      locale_id: inspect(locale_id),
+      locale_id: Localize.Exception.locale_name(locale_id),
       url: url,
       status: status
     )
@@ -100,7 +100,7 @@ defmodule Localize.LocaleDownloadError do
     Localize.Exception.safe_message(
       "locale",
       "The locale {$locale_id} could not be downloaded from {$url}: connection timed out.",
-      locale_id: inspect(locale_id),
+      locale_id: Localize.Exception.locale_name(locale_id),
       url: url
     )
   end
@@ -109,7 +109,7 @@ defmodule Localize.LocaleDownloadError do
     Localize.Exception.safe_message(
       "locale",
       "The locale {$locale_id} could not be downloaded from {$url}: request timed out.",
-      locale_id: inspect(locale_id),
+      locale_id: Localize.Exception.locale_name(locale_id),
       url: url
     )
   end
@@ -118,7 +118,7 @@ defmodule Localize.LocaleDownloadError do
     Localize.Exception.safe_message(
       "locale",
       "The locale {$locale_id} could not be downloaded from {$url}: host could not be resolved.",
-      locale_id: inspect(locale_id),
+      locale_id: Localize.Exception.locale_name(locale_id),
       url: url
     )
   end
@@ -127,7 +127,7 @@ defmodule Localize.LocaleDownloadError do
     Localize.Exception.safe_message(
       "locale",
       "The locale {$locale_id} could not be downloaded from {$url}: {$reason}.",
-      locale_id: inspect(locale_id),
+      locale_id: Localize.Exception.locale_name(locale_id),
       url: url,
       reason: inspect(cause)
     )
@@ -137,7 +137,7 @@ defmodule Localize.LocaleDownloadError do
     Localize.Exception.safe_message(
       "locale",
       "The locale {$locale_id} was downloaded from {$url} but failed safe decoding.",
-      locale_id: inspect(locale_id),
+      locale_id: Localize.Exception.locale_name(locale_id),
       url: url
     )
   end
@@ -146,7 +146,7 @@ defmodule Localize.LocaleDownloadError do
     Localize.Exception.safe_message(
       "locale",
       "The locale {$locale_id} downloaded from {$url} does not match the expected version.",
-      locale_id: inspect(locale_id),
+      locale_id: Localize.Exception.locale_name(locale_id),
       url: url
     )
   end
@@ -155,7 +155,7 @@ defmodule Localize.LocaleDownloadError do
     Localize.Exception.safe_message(
       "locale",
       "The locale {$locale_id} could not be downloaded from {$url}: {$reason}.",
-      locale_id: inspect(locale_id),
+      locale_id: Localize.Exception.locale_name(locale_id),
       url: url,
       reason: inspect(cause)
     )

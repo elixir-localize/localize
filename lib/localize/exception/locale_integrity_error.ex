@@ -32,7 +32,7 @@ defmodule Localize.LocaleIntegrityError do
     Localize.Exception.safe_message(
       "locale",
       "The locale {$locale_id} downloaded from {$url} has no entry in the locale hash manifest.",
-      locale_id: inspect(locale_id),
+      locale_id: Localize.Exception.locale_name(locale_id),
       url: url
     )
   end
@@ -47,7 +47,7 @@ defmodule Localize.LocaleIntegrityError do
     Localize.Exception.safe_message(
       "locale",
       "The locale {$locale_id} downloaded from {$url} failed integrity verification. Expected SHA-256 {$expected} but the content hashes to {$actual}.",
-      locale_id: inspect(locale_id),
+      locale_id: Localize.Exception.locale_name(locale_id),
       url: url,
       expected: expected,
       actual: actual

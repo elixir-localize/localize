@@ -28,7 +28,7 @@ defmodule Localize.NoMinimalPairError do
       "No {$category} minimal pair for the {$plural} category in {$locale}.",
       category: inspect(category),
       plural: inspect(plural_category),
-      locale: inspect(locale)
+      locale: Localize.Exception.locale_name(locale)
     )
   end
 end

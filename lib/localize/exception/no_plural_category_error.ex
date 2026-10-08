@@ -17,7 +17,7 @@ defmodule Localize.NoPluralCategoryError do
     Localize.Exception.safe_message(
       "inflection",
       "Quantifying for locale {$locale} needs a :plural category or a :number to derive one from.",
-      locale: inspect(locale)
+      locale: Localize.Exception.locale_name(locale)
     )
   end
 end

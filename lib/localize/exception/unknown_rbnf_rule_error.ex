@@ -18,7 +18,7 @@ defmodule Localize.UnknownRbnfRuleError do
       "number",
       "The RBNF rule {$rule_name} is not known for locale {$locale}.",
       rule_name: inspect(rule_name),
-      locale: inspect(locale)
+      locale: Localize.Exception.locale_name(locale)
     )
   end
 end

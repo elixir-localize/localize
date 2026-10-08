@@ -17,7 +17,7 @@ defmodule Localize.UnknownLocaleError do
     Localize.Exception.safe_message(
       "locale",
       "The locale {$locale_id} is not known.",
-      locale_id: inspect(locale_id)
+      locale_id: Localize.Exception.locale_name(locale_id)
     )
   end
 end
