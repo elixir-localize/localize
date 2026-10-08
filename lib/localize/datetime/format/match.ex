@@ -139,7 +139,7 @@ defmodule Localize.DateTime.Format.Match do
                       end
                     )
 
-  @spec best_match(atom() | String.t(), atom(), atom()) ::
+  @spec best_match(atom() | String.t(), Localize.locale(), atom()) ::
           {:ok, atom()} | {:ok, {atom(), atom()}} | {:error, Exception.t()}
   def best_match(original_skeleton, locale_id, calendar_type \\ :gregorian) do
     skeleton =
@@ -445,7 +445,7 @@ defmodule Localize.DateTime.Format.Match do
   #
   # A count of 0, a pattern without an unquoted seconds field, or a
   # non-binary pattern passes through unchanged.
-  @spec append_fractional_seconds(term(), non_neg_integer(), atom()) :: term()
+  @spec append_fractional_seconds(term(), non_neg_integer(), Localize.locale()) :: term()
   def append_fractional_seconds(pattern, 0, _locale_id), do: pattern
 
   def append_fractional_seconds(pattern, count, _locale_id) when is_binary(pattern) do
@@ -1172,8 +1172,26 @@ defmodule Localize.DateTime.Format.Match do
 
   @doc false
   # Locale -> territory -> root (:"001") fallback chain over the CLDR
-  # time-preference data, with atom/binary input normalisation.
-  # credo:disable-for-next-line Credo.Check.Refactor.CyclomaticComplexity
+  # time-preference data, with language tag / atom / binary input
+  # normalisation.
+
+  # A validated tag already carries the locale id, language and territory
+  # this needs, so it answers without resolving the locale again. Matching
+  # it explicitly also keeps a tag out of the normalisation below, where it
+  # would reduce to `nil` and take every locale to the `:"001"` default —
+  # h23 — rather than to its own hour cycle.
+  def time_preferences_for(%Localize.LanguageTag{territory: nil} = language_tag) do
+    lookup_time_preferences(language_tag.cldr_locale_id, nil, nil)
+  end
+
+  def time_preferences_for(%Localize.LanguageTag{} = language_tag) do
+    lookup_time_preferences(
+      language_tag.cldr_locale_id,
+      language_tag.language,
+      language_tag.territory
+    )
+  end
+
   def time_preferences_for(locale_id) do
     # `@time_preferences` keys are pre-atomised at compile time (CLDR
     # locale ids and territory codes), so `existing_atom/1` resolves
@@ -1186,10 +1204,6 @@ defmodule Localize.DateTime.Format.Match do
         true -> nil
       end
 
-    # Look up by locale name first, then by language and territory, then by
-    # territory. TR35 §Time Data lets `regions` name a locale as well as a
-    # region (`hi_IN` allows "hB h H" where `IN` allows "h H"), and CLDR's
-    # JSON keys those entries by the hyphenated locale, "hi-IN".
     {language, territory} =
       with true <- not is_nil(locale_atom),
            {:ok, %{language: language, territory: territory}} when not is_nil(territory) <-
@@ -1199,6 +1213,14 @@ defmodule Localize.DateTime.Format.Match do
         _no_territory -> {nil, nil}
       end
 
+    lookup_time_preferences(locale_atom, language, territory)
+  end
+
+  # Look up by locale name first, then by language and territory, then by
+  # territory. TR35 §Time Data lets `regions` name a locale as well as a
+  # region (`hi_IN` allows "hB h H" where `IN` allows "h H"), and CLDR's
+  # JSON keys those entries by the hyphenated locale, "hi-IN".
+  defp lookup_time_preferences(locale_atom, language, territory) do
     Map.get(@time_preferences, locale_atom) ||
       (territory && Map.get(@time_preferences, "#{language}-#{territory}")) ||
       (territory && Map.get(@time_preferences, territory)) ||

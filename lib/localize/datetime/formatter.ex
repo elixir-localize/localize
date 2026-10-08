@@ -184,7 +184,7 @@ defmodule Localize.DateTime.Formatter do
   #
   # * `{:ok, formatted_string}` or `{:error, exception}`.
   #
-  @spec format(map(), String.t(), atom(), map()) ::
+  @spec format(map(), String.t(), Localize.locale(), map()) ::
           {:ok, String.t()} | {:error, Exception.t()}
   def format(datetime, format_string, locale_id, options \\ %{}) do
     with {:ok, options} <- with_number_system(options, locale_id),
@@ -236,7 +236,7 @@ defmodule Localize.DateTime.Formatter do
   # with its field type; the `{0}`/`{1}` wrapper placeholders recurse
   # so combined date+time patterns decompose fully. The parts
   # concatenate to exactly the `format/4` result.
-  @spec format_to_parts(map(), String.t(), atom(), map()) ::
+  @spec format_to_parts(map(), String.t(), Localize.locale(), map()) ::
           {:ok, [%{type: atom(), value: String.t()}]} | {:error, Exception.t()}
   def format_to_parts(datetime, format_string, locale_id, options \\ %{}) do
     with {:ok, options} <- with_number_system(options, locale_id),

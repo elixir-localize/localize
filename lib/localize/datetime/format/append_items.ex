@@ -106,7 +106,7 @@ defmodule Localize.DateTime.Format.AppendItems do
   * `{:error, exception}` if the locale's data cannot be read.
 
   """
-  @spec augment(atom() | String.t(), atom(), atom(), Keyword.t()) ::
+  @spec augment(atom() | String.t(), Localize.locale(), atom(), Keyword.t()) ::
           {:ok, String.t()} | :error | {:error, Exception.t()}
   def augment(skeleton, locale_id, calendar_type, options \\ []) do
     case appendable_subset(skeleton, locale_id, calendar_type) do
@@ -266,7 +266,7 @@ defmodule Localize.DateTime.Format.AppendItems do
   * `{:error, exception}` if the locale's data cannot be read.
 
   """
-  @spec resolve_pattern(atom() | String.t(), atom(), atom(), Keyword.t()) ::
+  @spec resolve_pattern(atom() | String.t(), Localize.locale(), atom(), Keyword.t()) ::
           {:ok, String.t()} | :error | {:error, Exception.t()}
   def resolve_pattern(skeleton, locale_id, calendar_type, options \\ []) do
     # Three sources in TR35's order, the first two asked of each calendar
@@ -400,7 +400,13 @@ defmodule Localize.DateTime.Format.AppendItems do
   # time to a weekday when the date half is only a weekday. Each puts `{0}`
   # and `{1}` where its own template writes them and carries no `{2}`, so the
   # arguments are named for the template's placeholders, not for date/time.
-  @spec glue(:date_timezone | :time_day_of_week, String.t(), String.t(), atom(), atom()) ::
+  @spec glue(
+          :date_timezone | :time_day_of_week,
+          String.t(),
+          String.t(),
+          Localize.locale(),
+          atom()
+        ) ::
           {:ok, String.t()} | :error
   def glue(kind, zero, one, locale_id, calendar_type) do
     with {:ok, templates} <- Format.append_items(locale_id, calendar_type),

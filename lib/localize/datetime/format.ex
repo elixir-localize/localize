@@ -75,7 +75,8 @@ defmodule Localize.DateTime.Format do
   # Returns the standard time format patterns for a locale, keyed by format
   # name.
   #
-  @spec time_format_patterns(atom(), atom()) :: {:ok, map()} | {:error, Exception.t()}
+  @spec time_format_patterns(Localize.locale(), atom()) ::
+          {:ok, map()} | {:error, Exception.t()}
   def time_format_patterns(locale_id, calendar_type \\ @default_calendar_type) do
     Localize.Locale.get(locale_id, [:dates, :calendars, calendar_type, :time_format_patterns])
   end
@@ -147,7 +148,7 @@ defmodule Localize.DateTime.Format do
   # `{0}`, `{1}` and `{2}` placeholders and strings are literals, so `en`'s
   # `:day` is `[0, " (", 2, ": ", 1, ")"]`.
   #
-  @spec append_items(atom(), atom()) :: {:ok, map()} | {:error, Exception.t()}
+  @spec append_items(Localize.locale(), atom()) :: {:ok, map()} | {:error, Exception.t()}
   def append_items(locale_id, calendar_type \\ @default_calendar_type) do
     Localize.Locale.get(locale_id, [:dates, :calendars, calendar_type, :append_items])
   end

@@ -379,7 +379,7 @@ defmodule Localize.DateTime.SemanticSkeleton do
   @doc false
   # The formatters' entry point: they have the CLDR locale id and calendar
   # type in hand already, and the value being formatted.
-  @spec classical_skeleton(t(), atom(), atom(), term()) ::
+  @spec classical_skeleton(t(), Localize.locale(), atom(), term()) ::
           {:ok, atom()} | {:error, Exception.t()}
   def classical_skeleton(%__MODULE__{} = skeleton, locale_id, calendar_type, value) do
     with {:ok, skeleton} <- validate_skeleton(skeleton),
@@ -402,7 +402,7 @@ defmodule Localize.DateTime.SemanticSkeleton do
   # CLDR's `datetimeSkeleton` misdescribes its own pattern, as `be`'s medium
   # `yMMd` does for "d MMM y 'g'.". The result names the format and the
   # semantic skeleton of any time fields beside it.
-  @spec standard_date_format(t(), atom(), atom()) ::
+  @spec standard_date_format(t(), Localize.locale(), atom()) ::
           {:ok, :short | :medium | :long | :full, t() | nil} | :error
   def standard_date_format(%__MODULE__{} = skeleton, locale_id, calendar_type) do
     with {:ok, skeleton} <- validate_skeleton(skeleton),

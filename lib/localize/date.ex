@@ -138,18 +138,21 @@ defmodule Localize.Date do
     locale = Keyword.get(options, :locale, Localize.get_locale())
     format = Keyword.get(options, :format, @default_format)
 
-    with {:ok, locale_id} <- resolve_locale_id(locale),
-         effective = effective_format(date, format, locale_id),
-         {:ok, pattern} <- find_format(date, effective, locale_id, options) do
-      overrides = number_system_overrides_for(date, effective, locale)
+    # Validate once here and thread the tag down: every layer below reads
+    # locale data, and a lookup keyed by a tag skips the locale resolution
+    # that a lookup keyed by an id pays for on every call.
+    with {:ok, language_tag} <- Localize.validate_locale(locale),
+         effective = effective_format(date, format, language_tag),
+         {:ok, pattern} <- find_format(date, effective, language_tag, options) do
+      overrides = number_system_overrides_for(date, effective, language_tag)
 
       formatter_options =
         options
         |> Map.new()
-        |> Map.put_new(:locale, locale)
+        |> Map.put_new(:locale, language_tag)
         |> merge_number_system_overrides(overrides)
 
-      {:ok, pattern_variations(pattern, format), locale_id, formatter_options}
+      {:ok, pattern_variations(pattern, format), language_tag, formatter_options}
     end
   end
 
@@ -158,10 +161,10 @@ defmodule Localize.Date do
     locale = Keyword.get(options, :locale, Localize.get_locale())
     format = Keyword.get(options, :format)
 
-    with {:ok, locale_id} <- resolve_locale_id(locale) do
+    with {:ok, language_tag} <- Localize.validate_locale(locale) do
       resolved_format = resolve_partial_format(format, date)
-      options = Keyword.put_new(options, :locale, locale)
-      partial_formatting_plan(resolved_format, date, format, locale_id, options)
+      options = Keyword.put_new(options, :locale, language_tag)
+      partial_formatting_plan(resolved_format, date, format, language_tag, options)
     end
   end
 
@@ -193,14 +196,14 @@ defmodule Localize.Date do
     format
   end
 
-  defp partial_formatting_plan(resolved_format, date, format, locale_id, options) do
-    with {:ok, pattern} <- find_format(date, resolved_format, locale_id, options) do
-      overrides = number_system_overrides_for(date, resolved_format, locale_id)
+  defp partial_formatting_plan(resolved_format, date, format, language_tag, options) do
+    with {:ok, pattern} <- find_format(date, resolved_format, language_tag, options) do
+      overrides = number_system_overrides_for(date, resolved_format, language_tag)
 
       formatter_options =
         options |> Map.new() |> merge_number_system_overrides(overrides)
 
-      {:ok, pattern_variations(pattern, format), locale_id, formatter_options}
+      {:ok, pattern_variations(pattern, format), language_tag, formatter_options}
     end
   end
 
@@ -410,7 +413,7 @@ defmodule Localize.Date do
   # The pattern a skeleton of date fields resolves to for `date`, the
   # skeleton an atom or a string: `Localize.DateTime` resolves the date half
   # of a skeleton here.
-  @spec resolve_date_skeleton(map(), atom() | String.t(), atom(), Keyword.t()) ::
+  @spec resolve_date_skeleton(map(), atom() | String.t(), Localize.locale(), Keyword.t()) ::
           {:ok, String.t()} | {:error, Exception.t()}
   def resolve_date_skeleton(date, skeleton, locale_id, options) do
     {skeleton, calendar} = own_fields(date, skeleton)
@@ -751,8 +754,6 @@ defmodule Localize.Date do
   defp month_symbol(_long_or_full), do: "MMMM"
 
   # ── Locale resolution ──────────────────────────────────────
-
-  defp resolve_locale_id(locale), do: Localize.Locale.cldr_locale_id_from(locale)
 
   @doc """
   Parses a localized date string.

@@ -127,13 +127,12 @@ defmodule Localize.Time do
     format = Keyword.get(options, :format, @default_format)
 
     with {:ok, language_tag} <- Localize.validate_locale(locale),
-         locale_id = language_tag.cldr_locale_id,
          hc_format = apply_hc_override(format, language_tag),
          hc_skeleton = apply_hc_to_skeleton(hc_format, language_tag),
-         effective_format = strip_zone_for_time_struct(hc_skeleton, time, format, locale_id),
-         {:ok, pattern} <- find_format(time, effective_format, locale_id, options) do
+         effective_format = strip_zone_for_time_struct(hc_skeleton, time, format, language_tag),
+         {:ok, pattern} <- find_format(time, effective_format, language_tag, options) do
       formatter_options = options |> Map.new() |> Map.put_new(:locale, language_tag)
-      {:ok, hour_cycle_pattern(pattern, format, language_tag), locale_id, formatter_options}
+      {:ok, hour_cycle_pattern(pattern, format, language_tag), language_tag, formatter_options}
     end
   end
 
@@ -147,11 +146,10 @@ defmodule Localize.Time do
     format = Keyword.get(options, :format)
 
     with {:ok, language_tag} <- Localize.validate_locale(locale),
-         locale_id = language_tag.cldr_locale_id,
          hc_format = apply_hc_to_skeleton(partial_format(format, time), language_tag),
-         {:ok, pattern} <- find_format(time, hc_format, locale_id, options) do
+         {:ok, pattern} <- find_format(time, hc_format, language_tag, options) do
       formatter_options = options |> Map.new() |> Map.put_new(:locale, language_tag)
-      {:ok, hour_cycle_pattern(pattern, format, language_tag), locale_id, formatter_options}
+      {:ok, hour_cycle_pattern(pattern, format, language_tag), language_tag, formatter_options}
     end
   end
 
@@ -626,13 +624,13 @@ defmodule Localize.Time do
   # written with the time `to_string/2` writes for it.
   def resolve_pattern(time, format, locale, options) do
     with {:ok, language_tag} <- Localize.validate_locale(locale),
-         locale_id = language_tag.cldr_locale_id,
          hour_cycle_format =
            format
            |> apply_hc_override(language_tag)
            |> apply_hc_to_skeleton(language_tag),
-         effective_format = strip_zone_for_time_struct(hour_cycle_format, time, format, locale_id),
-         {:ok, pattern} <- find_format(time, effective_format, locale_id, options) do
+         effective_format =
+           strip_zone_for_time_struct(hour_cycle_format, time, format, language_tag),
+         {:ok, pattern} <- find_format(time, effective_format, language_tag, options) do
       {:ok, hour_cycle_pattern(pattern, format, language_tag)}
     end
   end

@@ -242,8 +242,8 @@ defmodule Localize.Calendar do
   def display_name(:calendar, calendar_type, options) when is_keyword_list(options) do
     locale = Keyword.get(options, :locale, Localize.get_locale())
 
-    with {:ok, locale_id} <- resolve_locale_id(locale),
-         {:ok, ldn} <- Localize.Locale.get(locale_id, [:locale_display_names]) do
+    with {:ok, language_tag} <- Localize.validate_locale(locale),
+         {:ok, ldn} <- Localize.Locale.get(language_tag, [:locale_display_names]) do
       calendar_names = get_in(ldn, [:types, :calendar]) || %{}
 
       case Map.get(calendar_names, calendar_type) do
@@ -258,8 +258,8 @@ defmodule Localize.Calendar do
     locale = Keyword.get(options, :locale, Localize.get_locale())
     style = map_field_style(Keyword.get(options, :style, :wide))
 
-    with {:ok, locale_id} <- resolve_locale_id(locale),
-         {:ok, date_fields} <- Localize.Locale.get(locale_id, [:date_fields]) do
+    with {:ok, language_tag} <- Localize.validate_locale(locale),
+         {:ok, date_fields} <- Localize.Locale.get(language_tag, [:date_fields]) do
       date_fields
       |> Map.get(field)
       |> get_in([style, :display_name])
@@ -379,8 +379,8 @@ defmodule Localize.Calendar do
     unwrap? = Keyword.get(defaults, :unwrap, false)
     variant? = Keyword.get(options, :day_period) == :variant
 
-    with {:ok, locale_id} <- resolve_locale_id(locale),
-         {:ok, data} <- get_calendar_data_raw(locale_id, calendar_type, data_key),
+    with {:ok, language_tag} <- Localize.validate_locale(locale),
+         {:ok, data} <- get_calendar_data_raw(language_tag, calendar_type, data_key),
          {:ok, styles} <- field_styles(data, data_key, options),
          {:ok, names} <- field_names(styles, style) do
       names
@@ -1009,10 +1009,10 @@ defmodule Localize.Calendar do
     locale = Keyword.get(options, :locale, Localize.get_locale())
     calendar_type = Keyword.get(options, :calendar_type, @default_calendar_type)
 
-    with {:ok, locale_id} <- resolve_locale_id(locale),
-         {:ok, months_data} <- get_calendar_data_raw(locale_id, calendar_type, :months),
-         {:ok, days_data} <- get_calendar_data_raw(locale_id, calendar_type, :days),
-         {:ok, periods_data} <- get_calendar_data_raw(locale_id, calendar_type, :day_periods) do
+    with {:ok, language_tag} <- Localize.validate_locale(locale),
+         {:ok, months_data} <- get_calendar_data_raw(language_tag, calendar_type, :months),
+         {:ok, days_data} <- get_calendar_data_raw(language_tag, calendar_type, :days),
+         {:ok, periods_data} <- get_calendar_data_raw(language_tag, calendar_type, :day_periods) do
       [
         am_pm_names: am_pm_callback(periods_data),
         month_names: month_callback(months_data, :wide),
@@ -1346,16 +1346,17 @@ defmodule Localize.Calendar do
   # ── Private helpers ─────────────────────────────────────────────
 
   defp get_calendar_data(locale, calendar_type, data_key) do
-    with {:ok, locale_id} <- resolve_locale_id(locale) do
-      get_calendar_data_raw(locale_id, calendar_type, data_key)
+    with {:ok, language_tag} <- Localize.validate_locale(locale) do
+      get_calendar_data_raw(language_tag, calendar_type, data_key)
     end
   end
 
-  defp get_calendar_data_raw(locale_id, calendar_type, data_key) do
-    Localize.Locale.get(locale_id, [:dates, :calendars, calendar_type, data_key])
+  # Takes a locale in any form `Localize.Locale.get/2` accepts, but callers
+  # should hand it a validated tag: an id costs a locale resolution on every
+  # read, a tag none.
+  defp get_calendar_data_raw(locale, calendar_type, data_key) do
+    Localize.Locale.get(locale, [:dates, :calendars, calendar_type, data_key])
   end
-
-  defp resolve_locale_id(locale), do: Localize.Locale.cldr_locale_id_from(locale)
 
   defp calendar_type_from(datetime), do: date_calendar_type(datetime)
 

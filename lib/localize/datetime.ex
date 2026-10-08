@@ -202,29 +202,32 @@ defmodule Localize.DateTime do
     style = Keyword.get(options, :style, :at)
     options = Keyword.put_new(options, :locale, locale)
 
-    with {:ok, locale_id} <- resolve_locale_id(locale) do
+    # Validate once and thread the tag: the date half, the time half and the
+    # wrapper each read locale data, and a tag spares every one of those
+    # reads the locale resolution an id pays for.
+    with {:ok, language_tag} <- Localize.validate_locale(locale) do
       cond do
         # Explicit pattern string — format directly
         is_binary(format) ->
-          invoke_formatter(output, datetime, format, locale_id, Map.new(options))
+          invoke_formatter(output, datetime, format, language_tag, Map.new(options))
 
         # Semantic skeleton — resolve to a classical skeleton, then take the
         # skeleton path from there.
         match?(%Localize.DateTime.SemanticSkeleton{}, format) ->
-          format_with_semantic_skeleton(datetime, options, locale_id, format, output, shape)
+          format_with_semantic_skeleton(datetime, options, language_tag, format, output, shape)
 
         # Standard or separate date and time formats on a partial value —
         # each half derives its own skeleton, then the wrapper joins them.
         shape == :partial and wrapped_format?(format, options) ->
-          format_partial_datetime(datetime, options, locale_id, style, output)
+          format_partial_datetime(datetime, options, language_tag, style, output)
 
         # Standard format with separate date/time formats — use wrapper
         wrapped_format?(format, options) ->
-          format_with_wrapper(datetime, options, locale_id, format, style, output)
+          format_with_wrapper(datetime, options, language_tag, format, style, output)
 
         # Skeleton atom — resolve to a pattern from available_formats
         is_atom(format) ->
-          format_with_skeleton(datetime, options, locale_id, format, output)
+          format_with_skeleton(datetime, options, language_tag, format, output)
 
         true ->
           {:error,
@@ -998,9 +1001,9 @@ defmodule Localize.DateTime do
   @spec numeric_separators(Localize.locale(), atom()) ::
           {:ok, map()} | {:error, Exception.t()}
   def numeric_separators(locale \\ Localize.get_locale(), calendar_type \\ :gregorian) do
-    with {:ok, locale_id} <- resolve_locale_id(locale) do
+    with {:ok, language_tag} <- Localize.validate_locale(locale) do
       Localize.Locale.get(
-        locale_id,
+        language_tag,
         [:dates, :calendars, calendar_type, :date_time_formats, :numeric_separators]
       )
     end
@@ -1085,8 +1088,6 @@ defmodule Localize.DateTime do
       true -> :short
     end
   end
-
-  defp resolve_locale_id(locale), do: Localize.Locale.cldr_locale_id_from(locale)
 
   @doc """
   Parses a localized date and time string.
