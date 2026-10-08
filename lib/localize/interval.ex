@@ -513,8 +513,8 @@ defmodule Localize.Interval do
     {format_key, requested_skeleton} = skeletons
     skeleton = requested_skeleton || format_key
 
-    with {:ok, locale_id} <- resolve_locale_id(locale),
-         {:ok, formats} <- interval_formats(locale_id, from) do
+    with {:ok, %{cldr_locale_id: locale_id} = language_tag} <- resolve_locale(locale),
+         {:ok, formats} <- interval_formats(language_tag, from) do
       options_map = options |> Map.new() |> Map.put_new(:locale, locale)
       lookup = {locale_id, cldr_calendar_for(from)}
 
@@ -625,8 +625,8 @@ defmodule Localize.Interval do
   # calendar of weeks' skeleton, whose month is the week, is among them, no
   # interval format being keyed by a week and a weekday.
   defp format_date_interval_fallback(from, to, format, locale, options, output) do
-    with {:ok, locale_id} <- resolve_locale_id(locale),
-         {:ok, formats} <- interval_formats(locale_id, from) do
+    with {:ok, %{cldr_locale_id: locale_id} = language_tag} <- resolve_locale(locale),
+         {:ok, formats} <- interval_formats(language_tag, from) do
       field_options = Keyword.put_new(options, :locale, locale)
       difference = calendar_difference(from, to)
 
@@ -689,8 +689,8 @@ defmodule Localize.Interval do
   # asked for, as `Localize.Time.to_string/2` writes it, and else with the
   # skeleton.
   defp format_time_interval_styled(from, to, {format_key, standard}, locale, options, output) do
-    with {:ok, locale_id} <- resolve_locale_id(locale),
-         {:ok, formats} <- interval_formats(locale_id, from) do
+    with {:ok, %{cldr_locale_id: locale_id} = language_tag} <- resolve_locale(locale),
+         {:ok, formats} <- interval_formats(language_tag, from) do
       difference = calendar_difference(from, to)
       formats_asked = {format_key, standard}
 
@@ -784,8 +784,8 @@ defmodule Localize.Interval do
   # Mirrors ex_cldr's `Cldr.Time.Interval.to_string/3` behaviour for
   # binary `:format`.
   defp format_time_interval_literal(from, to, time_format, locale, options, output) do
-    with {:ok, locale_id} <- resolve_locale_id(locale),
-         {:ok, formats} <- interval_formats(locale_id, from) do
+    with {:ok, language_tag} <- resolve_locale(locale),
+         {:ok, formats} <- interval_formats(language_tag, from) do
       if time_fields_differ?(time_format, {from, to}) do
         format_in_full(output, Localize.Time, {from, to}, time_format, formats, options)
       else
@@ -2239,4 +2239,10 @@ defmodule Localize.Interval do
   # ── Locale resolution ──────────────────────────────────────
 
   defp resolve_locale_id(locale), do: Localize.Locale.cldr_locale_id_from(locale)
+
+  # The canonical form of a validated locale is the tag, which is what the data
+  # lookups are given: `Localize.Locale.get/3` reads the id out of a tag for
+  # 299 ns where it derives one from an id for 1,582. The id is pattern matched
+  # out of the tag for the callers that key on it.
+  defp resolve_locale(locale), do: Localize.validate_locale(locale)
 end
