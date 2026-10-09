@@ -20,6 +20,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 * The formatter's day of the month (`d`) is the day the calendar names, through an optional `cardinal_day/3` of the date's calendar, so a calendar whose months are counted from the year's first day — Calendrical's Julian year-start variants — writes 25 March 1750 from its month 1 day 1. A calendar without it writes the day field, as before.
 
+* A date written that way reads back, through an optional `date_from_julian_date/3` of the calendar, which takes the calendar's own year with the month and day that name it and answers the date they named: "March 25, 1750" reads as month 1 day 1 again, for a single date, a date read as a map and each end of an interval.
+
 * The months between two dates of a month calendar are counted by its year and month fields, which follow the order of time, so a split year-start month (Calendrical's `March25` months 1 and 13, both named March) counts as the two months it is; a week calendar's months are still its `month_of_year/3` periods.
 
 * Text longer than `:max_parse_length`, 1,024 bytes by default, is refused by every parse function with a `Localize.DateTimeParseLengthError` rather than read. Reading a date and time tries each place the text could divide into a date half and a time half, which costs the square of the text's length, and the longest any locale writes is 666 bytes — a full Dzongkha interval of two zoned date-times.
