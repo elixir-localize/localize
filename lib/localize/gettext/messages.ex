@@ -27,6 +27,12 @@ defmodule Localize.Gettext.Messages do
       Gettext.Macros.dpgettext_noop_with_backend(
         Localize.Gettext,
         "localize",
+        "datetime",
+        "Text of {$input_length} bytes is longer than the {$max_length} bytes a date and time is read from."
+      ),
+      Gettext.Macros.dpgettext_noop_with_backend(
+        Localize.Gettext,
+        "localize",
         "currency",
         "The currency {$currency} has no display name in locale {$locale}."
       ),
