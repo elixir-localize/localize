@@ -1528,13 +1528,14 @@ defmodule Localize.CalendarCallbacksTest do
       assert {:ok, %{year: 0, month: 0, day: 0}} = Localize.Duration.new(from, from)
     end
 
-    # A month is known by the calendar's `month_of_year/3`, which the months
-    # between two dates are counted to.
-    test "is an error where a date's month of the year is asked for" do
+    # A month calendar's month is known by its year and month fields, so
+    # the months between two dates need no `month_of_year/3` of it: only
+    # a week calendar's months, its periods of weeks, are asked for.
+    test "is not asked for a month calendar's months between two dates" do
       from = %Date{year: 2026, month: 1, day: 31, calendar: Monthless}
       to = %Date{year: 2026, month: 3, day: 1, calendar: Monthless}
 
-      assert {:error, %Localize.InvalidValueError{value: :no_month}} =
+      assert {:ok, "in 2 months"} =
                Localize.DateTime.Relative.to_string(to, relative_to: from, unit: :month)
     end
   end

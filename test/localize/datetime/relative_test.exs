@@ -900,10 +900,12 @@ defmodule Localize.DateTime.RelativeTest do
       end
     end
 
-    # The same year turns within March, so a month is not known by its year
-    # and number: 24 March 2024 is the day before 25 March 2025, in the same
-    # month and the next year. From the year's first day, 25 March, to its
-    # last, the next 24 March, is twelve months on and the same year.
+    # The same year turns within March: 24 March 2024 is the day before
+    # 25 March 2025, in the next year. A month is known by its year and
+    # month fields, so the day before the new year and the new-year day
+    # are a month apart, though both fall in a March. From the year's
+    # first day, 25 March, to its last, the next 24 March, is twelve
+    # months on and the same year.
     test "a calendar whose year turns within a month" do
       last_day = Date.new!(2024, 3, 24, LadyDayCalendar)
       new_year = Date.new!(2025, 3, 25, LadyDayCalendar)
@@ -915,10 +917,10 @@ defmodule Localize.DateTime.RelativeTest do
 
       for {relative, relative_to, unit, expected} <- [
             {new_year, last_day, nil, "tomorrow"},
-            {new_year, last_day, :month, "this month"},
+            {new_year, last_day, :month, "next month"},
             {new_year, last_day, :quarter, "next quarter"},
             {new_year, last_day, :year, "next year"},
-            {last_day, new_year, :month, "this month"},
+            {last_day, new_year, :month, "last month"},
             {last_day, new_year, :quarter, "last quarter"},
             {last_day, new_year, :year, "last year"},
             {last_day, first_day, nil, "in 12 months"},

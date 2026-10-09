@@ -517,10 +517,27 @@ defmodule Localize.DateTime.Relative do
   # Months from one date to another in their calendar: how many months on
   # from `from`'s the month `to` is in lies, so a Hebrew leap year has
   # thirteen and a week calendar's months are its periods of weeks, which its
-  # week field does not count. A month is known by its `month_of_year/3`
-  # alone, as a year can turn within one: a Julian year reckoned from 25
-  # March begins part-way through March.
-  defp months_between(from, to), do: periods_between(from, to, :months, &month_of_year/2)
+  # week field does not count. A month calendar's month is its year and
+  # month fields, which count its months in the order of time — a Julian
+  # year reckoned from 25 March splits March into its months 1 and 13,
+  # which `month_of_year/3` names March alike; a week calendar's is the
+  # period its `month_of_year/3` places the week in.
+  defp months_between(from, to), do: periods_between(from, to, :months, &month_identity/2)
+
+  defp month_identity(calendar, {year, month, day}) do
+    if week_calendar?(calendar) do
+      month_of_year(calendar, {year, month, day})
+    else
+      {:ok, {year, month}}
+    end
+  end
+
+  defp week_calendar?(calendar) do
+    module = if calendar == Calendar.ISO, do: Localize.Calendar.ISO, else: calendar
+
+    Code.ensure_loaded?(module) and function_exported?(module, :calendar_base, 0) and
+      module.calendar_base() == :week
+  end
 
   defp month_of_year(calendar, {year, month, day}) do
     Localize.Calendar.ask(calendar, :month_of_year, [year, month, day], "a month of the year", fn
