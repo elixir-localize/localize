@@ -18,6 +18,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
+* The formatter's day of the month (`d`) is the day the calendar names, through an optional `cardinal_day/3` of the date's calendar, so a calendar whose months are counted from the year's first day — Calendrical's Julian year-start variants — writes 25 March 1750 from its month 1 day 1. A calendar without it writes the day field, as before.
+
+* The months between two dates of a month calendar are counted by its year and month fields, which follow the order of time, so a split year-start month (Calendrical's `March25` months 1 and 13, both named March) counts as the two months it is; a week calendar's months are still its `month_of_year/3` periods.
+
 * `Localize.Territory.Hemisphere.hemisphere/1` returns the half of the world a territory lies in — `:northern`, `:southern`, or `:ambiguous` for a territory the equator runs through, so that seasons can be reckoned from a locale: `hemisphere(:AU)` is `{:ok, :southern}` and `hemisphere(:BR)` is `{:ok, :ambiguous}`. It takes a territory code or a locale, whose territory comes from `Localize.Territory.territory_from_locale/1`, and answers a region from the territories it contains, so `:"053"` (Australasia) is southern while `:"005"` (South America) is ambiguous.
 
 * `Localize.Calendar.register_provider/1` registers the module that answers for the calendars an application supplies, which `calendar_provider/0` returns. A CLDR calendar type names no calendar module of its own and Localize ships `Calendar.ISO` alone, so a value in that calendar has no family to ask for the calendar a locale's `-u-ca-` names; the provider answers for it, and a value in another calendar is still asked first.

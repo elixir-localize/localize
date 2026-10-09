@@ -1351,17 +1351,18 @@ defmodule Localize.DateTime.Formatter do
   # ── Day of Month (d) ───────────────────────────────────────
 
   @doc false
-  def day_of_month(%{day: day}, 1, locale_id, options),
-    do: day |> apply_ns(locale_id, options, "d")
+  def day_of_month(%{day: _} = date, 1, locale_id, options),
+    do: date |> cardinal_day() |> apply_ns(locale_id, options, "d")
 
-  def day_of_month(%{day: day}, 2, locale_id, options),
-    do: pad(day, 2) |> apply_ns(locale_id, options, "d")
+  def day_of_month(%{day: _} = date, 2, locale_id, options),
+    do: date |> cardinal_day() |> pad(2) |> apply_ns(locale_id, options, "d")
 
   # CLDR 49 ordinal dates: `ddd` is the day as a date ordinal ("3rd"), from
   # the `dayOfMonths` pattern the locale's ordinal plural category selects.
   # A locale without that data formats the plain day, as CLDR asks of
   # locales that never use ordinals in dates.
-  def day_of_month(%{day: day} = date, 3, locale_id, options) do
+  def day_of_month(%{day: _} = date, 3, locale_id, options) do
+    day = cardinal_day(date)
     number = apply_ns(day, locale_id, options, "d")
 
     case ordinal_day_pattern(date, day, locale_id) do
@@ -1371,6 +1372,24 @@ defmodule Localize.DateTime.Formatter do
   end
 
   def day_of_month(_date, _count, _locale_id, _options), do: ""
+
+  # The day of the month that names a date's day, where its calendar
+  # renumbers them: a calendar whose months are counted from the year's
+  # first day, as Calendrical's Julian year-start variants are, can begin
+  # a month within the month that names it, and its `cardinal_day/3`
+  # answers the named day. Any other calendar's day is its own name.
+  defp cardinal_day(%{day: day} = date) do
+    calendar = Map.get(date, :calendar, Calendar.ISO)
+    year = Map.get(date, :year)
+    month = Map.get(date, :month)
+
+    if is_integer(year) and is_integer(month) and is_integer(day) and
+         Code.ensure_loaded?(calendar) and function_exported?(calendar, :cardinal_day, 3) do
+      calendar.cardinal_day(year, month, day)
+    else
+      day
+    end
+  end
 
   defp ordinal_day_pattern(date, day, locale_id) do
     path = [:dates, :calendars, cldr_calendar_for_datetime(date), :day_of_months]
