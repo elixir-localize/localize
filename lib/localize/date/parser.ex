@@ -1469,9 +1469,13 @@ defmodule Localize.Date.Parser do
   # the Date construction, so the endpoint is checked against
   # the calendar instead and an impossible one does not match.
   defp partial_to_map(side, inherit_from, calendar_module, reference_year) do
-    year = side.year || inherit_from.year
-    month = named_month(side.month || inherit_from.month, year, calendar_module)
-    day = side.day || inherit_from.day
+    {year, month, day} =
+      calendar_date(
+        side.year || inherit_from.year,
+        side.month || inherit_from.month,
+        side.day || inherit_from.day,
+        calendar_module
+      )
 
     if month != :invalid and
          possible?(date_fields(year, month, day, calendar_module), reference_year) do
@@ -2213,8 +2217,10 @@ defmodule Localize.Date.Parser do
     if is_nil(year) or is_nil(month) or is_nil(day) do
       :error
     else
-      with month when is_integer(month) <- named_month(month, year, calendar_module),
-           {:ok, date} <- build_date(year, month, day, calendar_module) do
+      {own_year, own_month, own_day} = calendar_date(year, month, day, calendar_module)
+
+      with month when is_integer(month) <- own_month,
+           {:ok, date} <- build_date(own_year, month, own_day, calendar_module) do
         {:ok, date}
       else
         _ -> :error
@@ -4748,10 +4754,12 @@ defmodule Localize.Date.Parser do
 
     with {:ok, calendar_year} <-
            extract_calendar_year(caps, "", year_fallback, era_index, ctx, {month, day}) do
+      {year, month, day} = calendar_date(calendar_year, month, day, calendar_module)
+
       reject_invalid(%{
-        year: calendar_year,
+        year: year,
         year_of_week: year_of_week(caps, calendar_year, ctx),
-        month: named_month(month, calendar_year, calendar_module),
+        month: month,
         day: day,
         quarter: extract_optional_quarter(caps),
         week_of_year: extract_optional_int(caps, "week_of_year"),
@@ -4831,6 +4839,50 @@ defmodule Localize.Date.Parser do
 
   defp cldr_month_number({month, :leap}), do: month
   defp cldr_month_number(month), do: month
+
+  # The date in its calendar's own fields, from the date as it was written.
+  #
+  # A calendar that counts its months from the year's first day — Calendrical's
+  # Julian year-start variants do — can begin a month part-way through the
+  # month that names it, so a date's month and day fields are its position in
+  # the counted month and not the month and day the Julian calendar names.
+  # `cardinal_month/1` and `cardinal_day/3` write the names, and the inverse of
+  # the two together is the calendar's own `date_from_julian_date/3`, which
+  # takes the year, month and day as written and answers the date it named.
+  #
+  # Every other calendar keeps its year and day as written and has its month
+  # placed in its year by `named_month/3`; a calendar whose answer is no date
+  # of three integers leaves the month `:invalid`, which `reject_invalid/1`
+  # and the interval paths report rather than build a date from.
+  defp calendar_date(year, month, day, calendar_module) do
+    named = named_month_number(month)
+
+    if is_integer(year) and is_integer(named) and is_integer(day) and
+         names_julian_dates?(calendar_module) do
+      julian_date(calendar_module, year, named, day)
+    else
+      {year, named_month(month, year, calendar_module), day}
+    end
+  end
+
+  defp julian_date(calendar_module, year, month, day) do
+    case calendar_module.date_from_julian_date(year, month, day) do
+      {named_year, named_month, named_day}
+      when is_integer(named_year) and is_integer(named_month) and is_integer(named_day) ->
+        {named_year, named_month, named_day}
+
+      _no_date ->
+        {year, :invalid, day}
+    end
+  end
+
+  defp names_julian_dates?(calendar_module) do
+    Code.ensure_loaded?(calendar_module) and
+      function_exported?(calendar_module, :date_from_julian_date, 3)
+  end
+
+  defp named_month_number({:named, month}), do: cldr_month_number(month)
+  defp named_month_number(month), do: month
 
   # The month of the year whose CLDR month, as its calendar answers, is
   # the one written.
