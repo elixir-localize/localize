@@ -50,6 +50,28 @@ defmodule Localize.Calendar.ISO do
   @spec cardinal_month(Calendar.month()) :: Calendar.month()
   def cardinal_month(month), do: month
 
+  @doc false
+  @spec days_in_week() :: 7
+  def days_in_week, do: 7
+
+  @doc false
+  @spec date_to_iso_days(Calendar.year(), Calendar.month(), Calendar.day()) :: integer()
+  def date_to_iso_days(year, month, day) do
+    {iso_days, _day_fraction} =
+      Calendar.ISO.naive_datetime_to_iso_days(year, month, day, 0, 0, 0, {0, 0})
+
+    iso_days
+  end
+
+  @doc false
+  @spec date_from_iso_days(integer()) :: {Calendar.year(), Calendar.month(), Calendar.day()}
+  def date_from_iso_days(iso_days) when is_integer(iso_days) do
+    {year, month, day, _hour, _minute, _second, _microsecond} =
+      Calendar.ISO.naive_datetime_from_iso_days({iso_days, {0, 86_400_000_000}})
+
+    {year, month, day}
+  end
+
   # The year as the calendar shows it: the proleptic year, which
   # `Localize.Calendar.displayed_year/1` counts back from the era below 1.
   @doc false
