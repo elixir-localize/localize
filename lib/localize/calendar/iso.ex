@@ -60,6 +60,37 @@ defmodule Localize.Calendar.ISO do
   @spec numeric_month(Calendar.year(), Calendar.month(), Calendar.day()) :: Calendar.month()
   def numeric_month(_year, month, _day), do: month
 
+  # The twelve months are their own numbering, and no year has a leap month.
+  @doc false
+  @spec lunar_month_of_year(Calendar.year(), Calendar.month()) ::
+          Calendar.month() | {:error, :invalid_month}
+  def lunar_month_of_year(year, month) when is_integer(year) and month in 1..12, do: month
+  def lunar_month_of_year(_year, _month), do: {:error, :invalid_month}
+
+  @doc false
+  @spec ordinal_month_from_traditional(Calendar.year(), term()) ::
+          {:ok, Calendar.month()} | {:error, :invalid_month | :invalid_leap_month}
+  def ordinal_month_from_traditional(year, month) when is_integer(year) and month in 1..12,
+    do: {:ok, month}
+
+  def ordinal_month_from_traditional(year, {_month, :leap}) when is_integer(year),
+    do: {:error, :invalid_leap_month}
+
+  def ordinal_month_from_traditional(_year, _month), do: {:error, :invalid_month}
+
+  @doc false
+  @spec leap_month(Calendar.year()) :: nil
+  def leap_month(_year), do: nil
+
+  @doc false
+  @spec traditional_leap_month(Calendar.year()) :: nil
+  def traditional_leap_month(_year), do: nil
+
+  @doc false
+  @spec traditional_months(Calendar.year()) :: [Calendar.month()]
+  def traditional_months(year) when is_integer(year), do: Enum.to_list(1..12)
+  def traditional_months(_year), do: []
+
   @doc false
   @spec days_in_week() :: 7
   def days_in_week, do: 7

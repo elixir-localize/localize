@@ -26,6 +26,11 @@ defmodule Localize.CalendarISOTest do
     cardinal_month: 1,
     cardinal_day: 3,
     numeric_month: 3,
+    lunar_month_of_year: 2,
+    ordinal_month_from_traditional: 2,
+    leap_month: 1,
+    traditional_leap_month: 1,
+    traditional_months: 1,
     week_of_year: 3,
     iso_week_of_year: 3,
     week_of_month: 3,
@@ -77,7 +82,7 @@ defmodule Localize.CalendarISOTest do
             not function_exported?(ISO, name, arity),
             do: {name, arity}
 
-      assert Enum.count(@calendrical_callbacks) == 29
+      assert Enum.count(@calendrical_callbacks) == 34
       assert missing == []
     end
 
@@ -97,6 +102,25 @@ defmodule Localize.CalendarISOTest do
       assert ISO.cldr_calendar_type() == :gregorian
       assert ISO.era_calendar_type() == :gregorian
       assert ISO.parsing_calendar() == Calendar.ISO
+    end
+
+    test "its twelve months are their own numbering, and no year has a leap month" do
+      for year <- @years do
+        assert ISO.traditional_months(year) == Enum.to_list(1..12)
+        assert ISO.leap_month(year) == nil
+        assert ISO.traditional_leap_month(year) == nil
+
+        for month <- 1..12 do
+          assert ISO.lunar_month_of_year(year, month) == month
+          assert ISO.ordinal_month_from_traditional(year, month) == {:ok, month}
+        end
+
+        assert ISO.lunar_month_of_year(year, 13) == {:error, :invalid_month}
+        assert ISO.ordinal_month_from_traditional(year, 0) == {:error, :invalid_month}
+
+        assert ISO.ordinal_month_from_traditional(year, {2, :leap}) ==
+                 {:error, :invalid_leap_month}
+      end
     end
 
     test "a date's day names it, and its month is written with its own number" do
