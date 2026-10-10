@@ -176,6 +176,17 @@ Writes `priv/localize/locales/<locale>.etf` (only `en.etf`/`und.etf` are committ
 
 **Attributing churn.** ETF files are binary; a byte diff tells you nothing. To distinguish real data changes from encoding noise, compare decoded terms: load old and new ETFs with `:erlang.binary_to_term/1` and diff the terms (a ~10-line script; the technique is called a *semantic diff* in past changelogs). From the October 2026 cycle onwards ETFs are encoded deterministically, so byte-identical means term-identical and this distinction matters less — but the semantic diff remains the tool for reviewing *what the new CLDR version actually changed*.
 
+**Documentation that hard-codes the data version.** The data version appears verbatim in documentation, and some of it is executed, so a bump turns the test suite red for a reason that is not a defect. Update these in the same change:
+
+| File | What to update | Executed? |
+| --- | --- | --- |
+| `guides/self_hosting_locale_data.md` | The `version_segment/0` and `data_version/0` examples, the sample `verify_locales` header, the two `cdn.example.com` URLs and the `49.0.0` in the prose | Yes — `test/guides_examples_test.exs` runs every `iex>` example in `guides/*.md` |
+| `lib/mix/tasks/localize.verify_locales.ex` | The sample report in the moduledoc (CLDR version, repo tag, reference CDN) | No — goes stale silently |
+| `lib/localize/inflection/provider.ex` | The `data_version/0` and `file_url/1` doctests | Yes — `doctest Localize.Inflection.Provider` |
+| `lib/localize/inflection/data_dir.ex` | The example cache path in the moduledoc | No |
+
+The inflection rows move on the inflection data version, which has its own cadence and changes independently of a CLDR release — so an inflection refresh breaks those two doctests without any of this phase running.
+
 **Gate:** full `mix test` (the test helper downloads its 39 working locales from the freshly generated set in dev/test — they are generated on the fly, not downloaded, when the pipeline is newer).
 
 ### Phase 4 — Conformance code updates
