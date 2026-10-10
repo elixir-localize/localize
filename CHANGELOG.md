@@ -84,6 +84,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 * The `g` pattern symbol formats the modified Julian day and the deprecated `l` is ignored, as TR35 specifies, where both returned a tokenize error.
 
+* `mix localize.verify_locales` checks a directory of locale `.etf` files against the SHA-256 manifest bundled with the release and names the ones that differ, exiting non-zero so it can gate a build. It reports the CLDR repository tag the reference files were generated from, which is the only way out of a mismatch: the hashes pin the data to the shape the release's accessors expect, so they are not overridable.
+
+* `Localize.cldr_repo_ref/0` returns the CLDR repository tag the bundled data was generated from, such as `"release-49-beta3"`, and the tag now ships in the hex package. Together with `Localize.version/0` it traces a locale file to the source it came from.
+
 ### Changed
 
 * `Localize.Interval.parse/2` takes `:format` as the interval's own format, and reads the text as `Localize.Interval.to_string/3` writes two dates at it: with the patterns of the format's interval format ("Jun 16 – 20, 2026" at `:medium`, which was an error), as two dates written whole with it, or as one date, read as the range of that date alone. Each end was read with the format, so only two dates written whole were read.

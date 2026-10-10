@@ -97,6 +97,7 @@ defmodule Localize do
   @locale_cache_table :localize_locale_cache
 
   @version_key {:localize, :version}
+  @cldr_repo_ref_key {:localize, :cldr_repo_ref}
 
   # Lazily-built string→atom maps cached in `:persistent_term` so
   # that validating a caller-supplied string never interns a new atom
@@ -211,6 +212,53 @@ defmodule Localize do
     case File.read(path) do
       {:ok, content} -> String.trim(content)
       {:error, _} -> default
+    end
+  end
+
+  @doc """
+  Returns the CLDR repository tag the bundled locale data was generated from.
+
+  The tag is read from `priv/localize/cldr_repo_ref`, written by
+  `mix localize.update_cldr` when the data pipeline last ran. It names the
+  `unicode-org/cldr` ref — a release tag such as `"release-49-beta3"`, or a
+  commit SHA when the checkout was not on a tag — that produced both the
+  bundled data and the locale files published to the CDN.
+
+  Together with `version/0` it identifies the data this build was made from,
+  so a locale file can be traced to the source it came from. The value is read
+  once on first access and cached in `:persistent_term`.
+
+  ### Returns
+
+  * The ref as a string.
+
+  * `nil` when the ref was not recorded, which is the case for a build from a
+    source tree whose pipeline has not been run.
+
+  ### Examples
+
+      iex> ref = Localize.cldr_repo_ref()
+      iex> is_nil(ref) or is_binary(ref)
+      true
+
+  """
+  @spec cldr_repo_ref() :: String.t() | nil
+  def cldr_repo_ref do
+    case :persistent_term.get(@cldr_repo_ref_key, :not_set) do
+      :not_set ->
+        ref = read_cldr_repo_ref()
+        :persistent_term.put(@cldr_repo_ref_key, ref)
+        ref
+
+      ref ->
+        ref
+    end
+  end
+
+  defp read_cldr_repo_ref do
+    case "localize/cldr_repo_ref" |> Localize.Priv.path() |> read_trimmed(nil) do
+      "" -> nil
+      ref -> ref
     end
   end
 

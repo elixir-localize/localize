@@ -82,6 +82,7 @@ defmodule Localize.MixProject do
         "c_src/*.cpp",
         "priv/localize/*.etf",
         "priv/localize/version",
+        "priv/localize/cldr_repo_ref",
         "priv/localize/localize_patch_version",
         "priv/localize/localize_inflection_sha",
         "priv/localize/supplemental_data",
