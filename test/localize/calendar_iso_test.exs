@@ -38,6 +38,7 @@ defmodule Localize.CalendarISOTest do
     month_numbers: 1,
     day_numbers: 2,
     years_in_cycle: 0,
+    solar_term: 2,
     week_of_year: 3,
     iso_week_of_year: 3,
     week_of_month: 3,
@@ -89,7 +90,7 @@ defmodule Localize.CalendarISOTest do
             not function_exported?(ISO, name, arity),
             do: {name, arity}
 
-      assert Enum.count(@calendrical_callbacks) == 41
+      assert Enum.count(@calendrical_callbacks) == 42
       assert missing == []
     end
 
@@ -150,6 +151,11 @@ defmodule Localize.CalendarISOTest do
 
       assert ISO.date_from_day_of_year(nil, 1) == {:error, :invalid_date}
       assert ISO.date_from_day_of_year(2026, "1") == {:error, :invalid_date}
+    end
+
+    test "a solar term is not answered, since Localize has no astronomy" do
+      assert ISO.solar_term(5, 2025) == {:error, :undefined}
+      assert ISO.solar_term(99, nil) == {:error, :undefined}
     end
 
     test "its years repeat after 400, their days and their weekdays alike" do

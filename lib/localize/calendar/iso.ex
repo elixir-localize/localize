@@ -97,6 +97,12 @@ defmodule Localize.Calendar.ISO do
   @spec years_in_cycle() :: 400
   def years_in_cycle, do: 400
 
+  # A solar term is the sun's place in the sky on a day, which is astronomy:
+  # Localize has none, and no question it puts to a calendar asks for one.
+  @doc false
+  @spec solar_term(term(), term()) :: {:error, :undefined}
+  def solar_term(_index, _gregorian_year), do: {:error, :undefined}
+
   # Every year has the months 1 to 12, and every month its days from 1.
   @doc false
   @spec month_numbers(Calendar.year()) :: [Range.t()]
