@@ -91,6 +91,12 @@ defmodule Localize.Calendar.ISO do
   def traditional_months(year) when is_integer(year), do: Enum.to_list(1..12)
   def traditional_months(_year), do: []
 
+  # The Gregorian calendar's years repeat, their days and their weekdays
+  # alike, after 400: 146,097 days, which are 20,871 weeks.
+  @doc false
+  @spec years_in_cycle() :: 400
+  def years_in_cycle, do: 400
+
   # Every year has the months 1 to 12, and every month its days from 1.
   @doc false
   @spec month_numbers(Calendar.year()) :: [Range.t()]

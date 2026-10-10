@@ -37,6 +37,7 @@ defmodule Localize.CalendarISOTest do
     month_week: 3,
     month_numbers: 1,
     day_numbers: 2,
+    years_in_cycle: 0,
     week_of_year: 3,
     iso_week_of_year: 3,
     week_of_month: 3,
@@ -88,7 +89,7 @@ defmodule Localize.CalendarISOTest do
             not function_exported?(ISO, name, arity),
             do: {name, arity}
 
-      assert Enum.count(@calendrical_callbacks) == 40
+      assert Enum.count(@calendrical_callbacks) == 41
       assert missing == []
     end
 
@@ -149,6 +150,19 @@ defmodule Localize.CalendarISOTest do
 
       assert ISO.date_from_day_of_year(nil, 1) == {:error, :invalid_date}
       assert ISO.date_from_day_of_year(2026, "1") == {:error, :invalid_date}
+    end
+
+    test "its years repeat after 400, their days and their weekdays alike" do
+      assert ISO.years_in_cycle() == 400
+
+      for year <- [1, 1900, 2000, 2024, 2026] do
+        assert Date.diff(Date.new!(year + 400, 1, 1), Date.new!(year, 1, 1)) == 146_097
+
+        assert Date.day_of_week(Date.new!(year + 400, 1, 1)) ==
+                 Date.day_of_week(Date.new!(year, 1, 1))
+
+        assert Calendar.ISO.leap_year?(year + 400) == Calendar.ISO.leap_year?(year)
+      end
     end
 
     test "a year has the months 1 to 12, and a month its days from 1" do
