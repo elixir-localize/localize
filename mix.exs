@@ -210,6 +210,7 @@ defmodule Localize.MixProject do
       Advanced: [
         "guides/architecture.md",
         "guides/supervision.md",
+        "guides/self_hosting_locale_data.md",
         "guides/conformance.md",
         "guides/icu_divergences.md",
         "guides/performance.md"
