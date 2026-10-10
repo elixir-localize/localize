@@ -296,15 +296,64 @@ defmodule Localize.Data.CldrJson do
       if running >= required do
         :ok
       else
-        {:error,
-         """
-         CLDR's tools at #{repository} need JDK #{required} or later, and Maven runs JDK #{running}.
-         Point JAVA_HOME at JDK #{required}, for example:
-
-             JAVA_HOME=$(/usr/libexec/java_home -v #{required}) mix localize.build_cldr_json
-         """}
+        {:error, java_version_error(repository, required, running)}
       end
     end
+  end
+
+  defp java_version_error(repository, required, running) do
+    """
+    CLDR's tools at #{repository} need JDK #{required} or later, and Maven runs JDK #{running}.
+
+    Maven takes its JDK from JAVA_HOME, not from `java` on the PATH, so point
+    JAVA_HOME at a JDK #{required} and verify it before trusting it: a path holding an
+    older JDK, or a JRE with no compiler at all, fails the build minutes in with a
+    Maven error that never mentions the JDK.
+
+    #{java_home_hint(:os.type(), required)}\
+    """
+  end
+
+  # The advice differs enough per platform to be worth branching on, and the
+  # macOS shortcut is actively misleading: `java_home -v` answers with whatever
+  # JVM it has when the one asked for is absent.
+  defp java_home_hint({:unix, :darwin}, required) do
+    """
+    List the JDKs actually installed, then set one and check it:
+
+        /usr/libexec/java_home -V
+        export JAVA_HOME=/Library/Java/JavaVirtualMachines/temurin-#{required}.jdk/Contents/Home
+        "$JAVA_HOME/bin/javac" -version   # must print #{required} or later
+
+    Do not use `JAVA_HOME=$(/usr/libexec/java_home -v #{required})` as a shortcut: with no
+    JDK #{required} installed it does not fail, it answers with whatever JVM it does have.
+    Homebrew's keg names mislead too — `openjdk@21` has resolved to JDK 23 here.
+    """
+  end
+
+  defp java_home_hint({:win32, _}, required) do
+    """
+    Set JAVA_HOME and check it, in PowerShell:
+
+        $env:JAVA_HOME = "C:\\Program Files\\Eclipse Adoptium\\jdk-#{required}"
+        & "$env:JAVA_HOME\\bin\\javac.exe" -version   # must print #{required} or later
+
+    In cmd.exe the first line is `set JAVA_HOME=C:\\Program Files\\Eclipse Adoptium\\jdk-#{required}`.
+    Adjust the path to the JDK you installed; `where javac` finds one already on the PATH.
+    """
+  end
+
+  defp java_home_hint(_unix, required) do
+    """
+    Find an installed JDK, then set one and check it:
+
+        ls /usr/lib/jvm                   # or: update-alternatives --list javac
+        export JAVA_HOME=/usr/lib/jvm/java-#{required}-openjdk-amd64
+        "$JAVA_HOME/bin/javac" -version   # must print #{required} or later
+
+    Install one first if none is present, for example `apt install openjdk-#{required}-jdk`
+    or `dnf install java-#{required}-openjdk-devel`.
+    """
   end
 
   defp required_java(repository) do
