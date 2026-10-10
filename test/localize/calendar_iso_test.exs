@@ -31,6 +31,8 @@ defmodule Localize.CalendarISOTest do
     leap_month: 1,
     traditional_leap_month: 1,
     traditional_months: 1,
+    named_month: 2,
+    date_from_day_of_year: 2,
     week_of_year: 3,
     iso_week_of_year: 3,
     week_of_month: 3,
@@ -82,7 +84,7 @@ defmodule Localize.CalendarISOTest do
             not function_exported?(ISO, name, arity),
             do: {name, arity}
 
-      assert Enum.count(@calendrical_callbacks) == 34
+      assert Enum.count(@calendrical_callbacks) == 36
       assert missing == []
     end
 
@@ -121,6 +123,28 @@ defmodule Localize.CalendarISOTest do
         assert ISO.ordinal_month_from_traditional(year, {2, :leap}) ==
                  {:error, :invalid_leap_month}
       end
+    end
+
+    test "the days of a named month are the month's, and a day of a year is counted from 1 January" do
+      for year <- @years do
+        for month <- 1..12 do
+          first = Date.new!(year, month, 1)
+          assert ISO.named_month(year, month) == [Date.range(first, Date.end_of_month(first))]
+        end
+
+        assert ISO.named_month(year, 13) == []
+        assert ISO.named_month(year, 0) == []
+
+        last = if Calendar.ISO.leap_year?(year), do: 366, else: 365
+        assert ISO.date_from_day_of_year(year, 1) == Date.new!(year, 1, 1)
+        assert ISO.date_from_day_of_year(year, 60) == Date.add(Date.new!(year, 1, 1), 59)
+        assert ISO.date_from_day_of_year(year, last) == Date.new!(year, 12, 31)
+        assert ISO.date_from_day_of_year(year, last + 1) == {:error, :invalid_date}
+        assert ISO.date_from_day_of_year(year, 0) == {:error, :invalid_date}
+      end
+
+      assert ISO.date_from_day_of_year(nil, 1) == {:error, :invalid_date}
+      assert ISO.date_from_day_of_year(2026, "1") == {:error, :invalid_date}
     end
 
     test "a date's day names it, and its month is written with its own number" do

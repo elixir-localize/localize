@@ -91,6 +91,33 @@ defmodule Localize.Calendar.ISO do
   def traditional_months(year) when is_integer(year), do: Enum.to_list(1..12)
   def traditional_months(_year), do: []
 
+  # A month is named by its own number, so the days of a named month are
+  # the month's.
+  @doc false
+  @spec named_month(Calendar.year(), Calendar.month()) :: [Date.Range.t()]
+  def named_month(year, named_month) do
+    case month(year, named_month) do
+      %Date.Range{} = days -> [days]
+      {:error, _no_such_month} -> []
+    end
+  end
+
+  # The days of a year are counted from 1 January.
+  @doc false
+  @spec date_from_day_of_year(Calendar.year(), pos_integer()) ::
+          Date.t() | {:error, :invalid_date}
+  def date_from_day_of_year(year, day_of_year)
+      when is_integer(year) and is_integer(day_of_year) and day_of_year >= 1 do
+    with {:ok, first} <- Date.new(year, 1, 1),
+         true <- day_of_year <= days_in_year(year) do
+      Date.add(first, day_of_year - 1)
+    else
+      _no_such_day -> {:error, :invalid_date}
+    end
+  end
+
+  def date_from_day_of_year(_year, _day_of_year), do: {:error, :invalid_date}
+
   @doc false
   @spec days_in_week() :: 7
   def days_in_week, do: 7
