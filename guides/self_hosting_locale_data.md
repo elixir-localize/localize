@@ -12,27 +12,7 @@ Two different goals are easy to conflate, and only one of them is a supported pa
 
 If you reached this guide because a rebuild produced different hashes, the answer is almost certainly to mirror the published bytes rather than to reproduce them.
 
-## 1. Add the dependency
-
-For a released version:
-
-```elixir
-{:localize, "~> 1.3"}
-```
-
-To track the development branch, a shallow clone is enough and avoids fetching the full history:
-
-```elixir
-{:localize, github: "elixir-localize/localize", branch: "main", depth: 1}
-```
-
-Mix's `:depth` option requires a `:branch`, a `:tag`, or a full 40-character `:ref`; a short ref is refused.
-
-```bash
-mix deps.get
-```
-
-## 2. Configure where the data lives — before downloading
+## 1. Configure where the data lives — before downloading
 
 Order matters here. The download target is whatever the configuration resolves to, so configuring after downloading puts the files somewhere you did not intend.
 
@@ -48,7 +28,7 @@ config :localize,
 
 Two further forms — `:otp_app` with a relative `:locale_cache_dir`, and an absolute `:locale_cache_dir` — are described under [Architecture](https://hexdocs.pm/localize/architecture.html). A relative `:locale_cache_dir` with no `:otp_app` anchor is refused at application start, because a path with no anchor resolves differently in a mix task, under `mix test`, and in a release.
 
-## 3. Download the data
+## 2. Download the data
 
 ```bash
 mix localize.download_locales
@@ -62,13 +42,13 @@ In CI or a Dockerfile, where there is no terminal to answer a prompt, add `--for
 mix localize.download_locales --force
 ```
 
-## 4. Verify the data
+## 3. Verify the data
 
 ```bash
 mix localize.verify_locales
 ```
 
-With no argument the task checks the directory configured in step 2. Pass a path to check a different one. The report opens with the provenance of the manifest it is checking against:
+With no argument the task checks the directory configured in step 1. Pass a path to check a different one. The report opens with the provenance of the manifest it is checking against:
 
 ```
 Localize version:  1.4.0
@@ -89,9 +69,9 @@ Each file is reported as `ok`, `MISMATCH` (the locale is known but the bytes dif
 
 Verification covers locale data. Inflection data carries its own manifest and is verified on download, but is not part of this check.
 
-## 5. Serve the data from your own CDN
+## 4. Serve the data from your own CDN
 
-Mirror the files downloaded in step 3, preserving the version segment in the path. Print the segments rather than hard-coding them:
+Mirror the files downloaded in step 2, preserving the version segment in the path. Print the segments rather than hard-coding them:
 
 ```elixir
 iex> Localize.Locale.Provider.version_segment()
@@ -123,7 +103,7 @@ Downloads are verified against the bundled hash manifest regardless of where the
 
 ### The CDN is only a fallback once the cache is populated
 
-With step 3 done, a locale already in the cache is never fetched over the network. `:locale_base_url` matters only for a locale outside `:supported_locales`, and that fallback additionally needs `allow_runtime_locale_download: true`, which defaults to `false`. A deployment that pre-provisions every locale it uses can leave both keys unset and make no network call at all.
+With step 2 done, a locale already in the cache is never fetched over the network. `:locale_base_url` matters only for a locale outside `:supported_locales`, and that fallback additionally needs `allow_runtime_locale_download: true`, which defaults to `false`. A deployment that pre-provisions every locale it uses can leave both keys unset and make no network call at all.
 
 ## The version segment tracks the data, not the package
 
