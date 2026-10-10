@@ -137,6 +137,48 @@ defmodule Localize.CalendarISOWeeksTest do
     end
   end
 
+  describe "weeks_in_month/2 and month_week/3" do
+    # With ISO 8601's weeks a week is of the month its Thursday is in, so a
+    # month has as many weeks as it has Thursdays, each from the Monday
+    # before its Thursday to the Sunday after.
+    test "are the weeks whose Thursdays are in the month" do
+      for year <- 2019..2028, month <- 1..12 do
+        first = Date.new!(year, month, 1)
+
+        thursdays =
+          first
+          |> Date.range(Date.end_of_month(first))
+          |> Enum.filter(&(Date.day_of_week(&1) == 4))
+
+        assert ISO.weeks_in_month(year, month) == length(thursdays)
+
+        for {thursday, week} <- Enum.with_index(thursdays, 1) do
+          assert ISO.month_week(year, month, week) ==
+                   Date.range(Date.add(thursday, -3), Date.add(thursday, 3))
+        end
+
+        assert ISO.month_week(year, month, length(thursdays) + 1) == {:error, :invalid_date}
+      end
+    end
+
+    test "hold each day in the week of the month week_of_month/3 gives it" do
+      for year <- 2019..2028, month <- 1..12, week <- 1..ISO.weeks_in_month(year, month) do
+        for date <- ISO.month_week(year, month, week) do
+          assert ISO.week_of_month(date.year, date.month, date.day) == {month, week}
+        end
+      end
+    end
+
+    test "are errors for what is no month or no week, never raises" do
+      assert ISO.weeks_in_month(2026, 13) == {:error, :invalid_date}
+      assert ISO.weeks_in_month(2026, 0) == {:error, :invalid_date}
+      assert ISO.weeks_in_month(nil, 1) == {:error, :invalid_date}
+      assert ISO.month_week(2026, 13, 1) == {:error, :invalid_date}
+      assert ISO.month_week(2026, 5, 0) == {:error, :invalid_date}
+      assert ISO.month_week(2026, "5", 1) == {:error, :invalid_date}
+    end
+  end
+
   describe "values that are no date" do
     test "are errors, never raises" do
       for {year, month, day} <- [

@@ -463,6 +463,47 @@ defmodule Localize.Calendar.ISO do
 
   def week_of_month(_year, _month, _day, _week_data), do: {:error, :invalid_date}
 
+  # The weeks of a month are those `week_of_month/3` names for it, with ISO
+  # 8601's weeks: from the first week holding four days of the month to the
+  # week before the next month's first.
+  @doc false
+  @spec weeks_in_month(Calendar.year(), Calendar.month()) ::
+          pos_integer() | {:error, :invalid_date}
+  def weeks_in_month(year, month) do
+    with {:ok, first_week, next_first_week} <- weeks_of_month(year, month),
+         do: div(next_first_week - first_week, 7)
+  end
+
+  @doc false
+  @spec month_week(Calendar.year(), Calendar.month(), pos_integer()) ::
+          Date.Range.t() | {:error, :invalid_date}
+  def month_week(year, month, week) when is_integer(week) and week >= 1 do
+    with {:ok, first_week, next_first_week} <- weeks_of_month(year, month),
+         first = first_week + (week - 1) * 7,
+         true <- first < next_first_week do
+      Date.range(Date.from_gregorian_days(first), Date.from_gregorian_days(first + 6))
+    else
+      _not_a_week -> {:error, :invalid_date}
+    end
+  end
+
+  def month_week(_year, _month, _week), do: {:error, :invalid_date}
+
+  # The first day of a month's week 1 and of the next month's.
+  defp weeks_of_month(year, month) when is_integer(year) and is_integer(month) do
+    case Date.new(year, month, 1) do
+      {:ok, date} ->
+        first = Date.to_gregorian_days(date)
+        next_first = first + Calendar.ISO.days_in_month(year, month)
+        {:ok, week_one(first, @iso_8601_weeks), week_one(next_first, @iso_8601_weeks)}
+
+      {:error, _reason} ->
+        {:error, :invalid_date}
+    end
+  end
+
+  defp weeks_of_month(_year, _month), do: {:error, :invalid_date}
+
   defp week_of_month_before(first, year, month, days, week_data) do
     {year_before, month_before} = if month == 1, do: {year - 1, 12}, else: {year, month - 1}
     first_before = first - Calendar.ISO.days_in_month(year_before, month_before)

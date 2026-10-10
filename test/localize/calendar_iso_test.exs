@@ -33,6 +33,8 @@ defmodule Localize.CalendarISOTest do
     traditional_months: 1,
     named_month: 2,
     date_from_day_of_year: 2,
+    weeks_in_month: 2,
+    month_week: 3,
     week_of_year: 3,
     iso_week_of_year: 3,
     week_of_month: 3,
@@ -84,7 +86,7 @@ defmodule Localize.CalendarISOTest do
             not function_exported?(ISO, name, arity),
             do: {name, arity}
 
-      assert Enum.count(@calendrical_callbacks) == 36
+      assert Enum.count(@calendrical_callbacks) == 38
       assert missing == []
     end
 
