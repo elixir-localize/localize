@@ -20,10 +20,12 @@ defmodule Localize.CalendarISOTest do
   alias Localize.Calendar.ISO
 
   # The callbacks of the Calendrical behaviour, as Calendrical 1.4 declares
-  # them, `months_in_year/0` being optional there.
+  # them.
   @calendrical_callbacks [
     month_of_year: 3,
     cardinal_month: 1,
+    cardinal_day: 3,
+    numeric_month: 3,
     week_of_year: 3,
     iso_week_of_year: 3,
     week_of_month: 3,
@@ -75,7 +77,7 @@ defmodule Localize.CalendarISOTest do
             not function_exported?(ISO, name, arity),
             do: {name, arity}
 
-      assert Enum.count(@calendrical_callbacks) == 27
+      assert Enum.count(@calendrical_callbacks) == 29
       assert missing == []
     end
 
@@ -95,6 +97,13 @@ defmodule Localize.CalendarISOTest do
       assert ISO.cldr_calendar_type() == :gregorian
       assert ISO.era_calendar_type() == :gregorian
       assert ISO.parsing_calendar() == Calendar.ISO
+    end
+
+    test "a date's day names it, and its month is written with its own number" do
+      for %Date{year: year, month: month, day: day} <- @dates do
+        assert ISO.cardinal_day(year, month, day) == day
+        assert ISO.numeric_month(year, month, day) == month
+      end
     end
   end
 

@@ -50,6 +50,16 @@ defmodule Localize.Calendar.ISO do
   @spec cardinal_month(Calendar.month()) :: Calendar.month()
   def cardinal_month(month), do: month
 
+  # The day that names a date and the number its month is written with in
+  # figures are its own day and month.
+  @doc false
+  @spec cardinal_day(Calendar.year(), Calendar.month(), Calendar.day()) :: Calendar.day()
+  def cardinal_day(_year, _month, day), do: day
+
+  @doc false
+  @spec numeric_month(Calendar.year(), Calendar.month(), Calendar.day()) :: Calendar.month()
+  def numeric_month(_year, month, _day), do: month
+
   @doc false
   @spec days_in_week() :: 7
   def days_in_week, do: 7
