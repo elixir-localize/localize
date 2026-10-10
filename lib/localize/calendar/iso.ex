@@ -116,12 +116,6 @@ defmodule Localize.Calendar.ISO do
 
   def day_numbers(_year, _month), do: []
 
-  # So its months and its days are numbered from 1 with none missing, in
-  # every year.
-  @doc false
-  @spec counted_from_one?() :: true
-  def counted_from_one?, do: true
-
   # A month is named by its own number, so the days of a named month are
   # the month's.
   @doc false

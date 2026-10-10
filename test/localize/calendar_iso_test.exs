@@ -37,7 +37,6 @@ defmodule Localize.CalendarISOTest do
     month_week: 3,
     month_numbers: 1,
     day_numbers: 2,
-    counted_from_one?: 0,
     years_in_cycle: 0,
     solar_term: 2,
     week_of_year: 3,
@@ -91,7 +90,7 @@ defmodule Localize.CalendarISOTest do
             not function_exported?(ISO, name, arity),
             do: {name, arity}
 
-      assert Enum.count(@calendrical_callbacks) == 43
+      assert Enum.count(@calendrical_callbacks) == 42
       assert missing == []
     end
 
@@ -187,9 +186,6 @@ defmodule Localize.CalendarISOTest do
 
       assert ISO.month_numbers(nil) == []
       assert ISO.day_numbers(nil, 1) == []
-
-      # Which is to say that they are counted from 1, with no year asked.
-      assert ISO.counted_from_one?()
     end
 
     test "a date's day names it, and its month is written with its own number" do
