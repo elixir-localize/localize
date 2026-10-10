@@ -91,6 +91,19 @@ defmodule Localize.Calendar.ISO do
   def traditional_months(year) when is_integer(year), do: Enum.to_list(1..12)
   def traditional_months(_year), do: []
 
+  # Every year has the months 1 to 12, and every month its days from 1.
+  @doc false
+  @spec month_numbers(Calendar.year()) :: [Range.t()]
+  def month_numbers(year) when is_integer(year), do: [1..12//1]
+  def month_numbers(_year), do: []
+
+  @doc false
+  @spec day_numbers(Calendar.year(), Calendar.month()) :: [Range.t()]
+  def day_numbers(year, month) when is_integer(year) and month in 1..12,
+    do: [1..Calendar.ISO.days_in_month(year, month)//1]
+
+  def day_numbers(_year, _month), do: []
+
   # A month is named by its own number, so the days of a named month are
   # the month's.
   @doc false

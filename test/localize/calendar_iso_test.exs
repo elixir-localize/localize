@@ -35,6 +35,8 @@ defmodule Localize.CalendarISOTest do
     date_from_day_of_year: 2,
     weeks_in_month: 2,
     month_week: 3,
+    month_numbers: 1,
+    day_numbers: 2,
     week_of_year: 3,
     iso_week_of_year: 3,
     week_of_month: 3,
@@ -86,7 +88,7 @@ defmodule Localize.CalendarISOTest do
             not function_exported?(ISO, name, arity),
             do: {name, arity}
 
-      assert Enum.count(@calendrical_callbacks) == 38
+      assert Enum.count(@calendrical_callbacks) == 40
       assert missing == []
     end
 
@@ -147,6 +149,23 @@ defmodule Localize.CalendarISOTest do
 
       assert ISO.date_from_day_of_year(nil, 1) == {:error, :invalid_date}
       assert ISO.date_from_day_of_year(2026, "1") == {:error, :invalid_date}
+    end
+
+    test "a year has the months 1 to 12, and a month its days from 1" do
+      for year <- @years do
+        assert ISO.month_numbers(year) == [1..12]
+
+        for month <- 1..12 do
+          last = Date.new!(year, month, 1) |> Date.end_of_month()
+          assert ISO.day_numbers(year, month) == [1..last.day]
+        end
+
+        assert ISO.day_numbers(year, 13) == []
+        assert ISO.day_numbers(year, 0) == []
+      end
+
+      assert ISO.month_numbers(nil) == []
+      assert ISO.day_numbers(nil, 1) == []
     end
 
     test "a date's day names it, and its month is written with its own number" do
