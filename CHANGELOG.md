@@ -170,6 +170,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 * **Breaking.** A zero offset is spelled out wherever a localized GMT format is used, `"GMT+00:00"` long and `"GMT+0"` short, as TR35's examples and ICU give it. `Localize.DateTime.Timezone.gmt_format/3` drops its `:zero_format` option, which selected between the two.
 
+* `Localize.Currency.currency_strings/2` caches its map per locale and filter in `Localize.FormatCache`, so a repeated call takes about 5 µs where it took about 600 µs. `Localize.Locale.store/3` clears the cache.
+
 ### Fixed
 
 * A display name is the name of the code it is keyed by, not of a code CLDR retired in that code's favour: `ak` is "Akan" where it was "Twi", and `fil` is "Filipino" in every locale rather than only on some toolchains. CLDR names both a canonical code and its deprecated aliases, which normalize onto one key, and the winner was decided by map iteration order — so the same CLDR sources generated different locale data on different OTP releases (#59).
