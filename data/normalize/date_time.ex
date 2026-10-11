@@ -291,9 +291,18 @@ defmodule Localize.Data.Normalize.DateTime do
     {key, formats}
   end
 
+  # The `-count-`, `-alt-ascii` and `-alt-variant` suffixes are stripped below,
+  # so several source keys can arrive as one key for `Enum.group_by/3` to
+  # collect. A pair of them is resolved by the clauses that match both orders,
+  # but three or more fall through to `merge_map_list/1`, which takes the last.
+  # Sorting first means that order is the data's and not the iteration order of
+  # the source map, which differs between OTP releases — the defect behind the
+  # alias collision in `Normalize.Helpers.group_alt_content/2` (#59). CLDR 49
+  # has no such triple here, so this changes nothing it generates today.
   defp group_available_formats({"available_formats" = key, formats}) do
     formats =
       formats
+      |> Enum.sort()
       |> Enum.map(fn {name, format} ->
         case String.split(name, "-count-") do
           [_no_count] -> {name, format}
@@ -349,8 +358,13 @@ defmodule Localize.Data.Normalize.DateTime do
     {key, formats}
   end
 
+  # Sorted for the same reason as `group_available_formats/1` above: stripping
+  # `-alt-variant` can land two names on one key, and the merge below takes the
+  # last of them.
   defp map_interval_formats(interval_formats) when is_map(interval_formats) do
-    Enum.map(interval_formats, fn
+    interval_formats
+    |> Enum.sort()
+    |> Enum.map(fn
       {name, format} ->
         case String.split(name, "-alt-variant") do
           [_no_count] -> {name, format}

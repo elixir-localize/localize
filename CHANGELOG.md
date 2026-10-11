@@ -172,6 +172,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+* A display name is the name of the code it is keyed by, not of a code CLDR retired in that code's favour: `ak` is "Akan" where it was "Twi", and `fil` is "Filipino" in every locale rather than only on some toolchains. CLDR names both a canonical code and its deprecated aliases, which normalize onto one key, and the winner was decided by map iteration order — so the same CLDR sources generated different locale data on different OTP releases (#59).
+
 * Inflection artifacts are addressed under their data version, so an artifact of an earlier version is never read in place of a current one: a `zh` artifact predating the Traditional Chinese pronoun table resolved `zh-TW` to the Simplified table, where the download task skipped any file already on disk. `mix localize.download_inflection --prune` removes the directories of superseded versions.
 
 * A locale the VM's literal memory has no room for is not loaded, and the call that needed it returns a `Localize.LiteralMemoryError` naming the VM's flag, `+MIscs`, where keeping it stopped the VM: `:persistent_term` keeps its terms in an area of a fixed size, a gigabyte by default, and all of CLDR's locales take about 814 MB of it. A parser's compiled patterns and the supplemental data are not kept where there is no room, an inflection lexicon is the same error and the collation table is logged, and the performance guide's "Memory" section gives the sizes.

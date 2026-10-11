@@ -59,33 +59,44 @@ defmodule Localize.Data.Normalize.Helpers do
   def group_alt_content(map, normalizer_fun \\ & &1) do
     map
     |> default([])
-    |> Enum.map(fn {code, value} ->
-      case String.split(code, ~r/(_alt_|_menu_)/, include_captures: true) do
-        [lang] ->
-          {[normalizer_fun.(lang)], value}
-
-        [lang, "_alt_", "menu"] ->
-          {[normalizer_fun.(lang), "_menu_", "alt"], value}
-
-        [lang, alt, alt_value] ->
-          {[normalizer_fun.(lang), alt, alt_value], value}
-      end
-    end)
-    |> Enum.group_by(fn {k, _v} -> hd(k) end, fn {k, v} ->
-      case k do
-        [_lang] ->
-          %{"default" => v}
-
-        [_lang, "_alt_", alt] ->
-          %{alt => v}
-
-        [_lang, "_menu_", menu] ->
-          %{"menu" => %{menu => v}}
-      end
-    end)
-    |> Enum.map(fn {k, v} -> {k, LMap.merge_map_list(v)} end)
+    |> Enum.map(&alt_path(&1, normalizer_fun))
+    |> Enum.sort_by(&merge_precedence/1)
+    |> Enum.group_by(fn {path, _code, _value} -> hd(path) end, &alt_content/1)
+    |> Enum.map(fn {key, contents} -> {key, LMap.merge_map_list(contents)} end)
     |> Map.new()
   end
+
+  defp alt_path({code, value}, normalizer_fun) do
+    case String.split(code, ~r/(_alt_|_menu_)/, include_captures: true) do
+      [lang] ->
+        {[normalizer_fun.(lang)], lang, value}
+
+      [lang, "_alt_", "menu"] ->
+        {[normalizer_fun.(lang), "_menu_", "alt"], lang, value}
+
+      [lang, alt, alt_value] ->
+        {[normalizer_fun.(lang), alt, alt_value], lang, value}
+    end
+  end
+
+  # Several source codes can normalize onto one key: CLDR names `fil` and its
+  # deprecated alias `tl`, and `ak` and `tw`, and all four are display names in
+  # every locale. `merge_map_list/1` takes the last of them, so the arrival
+  # order picks the winner — and mapping straight over the source map left that
+  # to the map's internal order, which differs between OTP releases. A 668-key
+  # language map is a hashmap, so the same CLDR data gave `fil` the alias's
+  # "Tagalog" on OTP 28 and "Filipino" on OTP 29, while `ak` took `tw`'s "Twi"
+  # on both and shipped that way.
+  #
+  # Sorting makes the order the data's rather than the runtime's, and ordering
+  # the entry whose own code is the key last makes that one win: `fil` is
+  # "Filipino" and `ak` is "Akan", not the names of the codes CLDR retired in
+  # their favour.
+  defp merge_precedence({[key | _rest], code, _value}), do: {code == key, code}
+
+  defp alt_content({[_key], _code, value}), do: %{"default" => value}
+  defp alt_content({[_key, "_alt_", alt], _code, value}), do: %{alt => value}
+  defp alt_content({[_key, "_menu_", menu], _code, value}), do: %{"menu" => %{menu => value}}
 
   @doc """
   Groups prefixed content with alt variants.
