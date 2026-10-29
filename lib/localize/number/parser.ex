@@ -195,7 +195,7 @@ defmodule Localize.Number.Parser do
           | {:error, Exception.t()}
   def scan(string, options \\ []) do
     with :ok <- validate_arguments(string, :string, options),
-         locale = Keyword.get(options, :locale, Localize.get_locale()),
+         locale = Keyword.get_lazy(options, :locale, &Localize.get_locale/0),
          {:ok, language_tag} <- parsing_locale(locale),
          {:ok, _number_type} <- number_type(Keyword.get(options, :number)),
          {:ok, number_system} <- Lexicon.number_system(language_tag, string, options),
@@ -272,6 +272,9 @@ defmodule Localize.Number.Parser do
   ### Arguments
 
   * `string` is any string.
+    An underscore between two digits is Elixir's digit separator and
+    is ignored, as in `"1_000_000.34"`; anywhere else it makes the text
+    no number.
 
   * `options` is a keyword list of options.
 
@@ -366,7 +369,7 @@ defmodule Localize.Number.Parser do
   end
 
   defp do_parse(string, options) do
-    locale = Keyword.get(options, :locale, Localize.get_locale())
+    locale = Keyword.get_lazy(options, :locale, &Localize.get_locale/0)
 
     with {:ok, language_tag} <- parsing_locale(locale),
          {:ok, number_type} <- number_type(Keyword.get(options, :number)),
@@ -609,7 +612,7 @@ defmodule Localize.Number.Parser do
   def parse_currency_amount(string, options \\ []) do
     with :ok <- validate_arguments(string, :string, options),
          :ok <- validate_amount_size(string),
-         locale = Keyword.get(options, :locale, Localize.get_locale()),
+         locale = Keyword.get_lazy(options, :locale, &Localize.get_locale/0),
          {:ok, language_tag} <- parsing_locale(locale) do
       Amount.read(string, language_tag, options)
     end
@@ -624,15 +627,22 @@ defmodule Localize.Number.Parser do
   # normalized, never a number, where NFKC would make the footnote of "$5²" a
   # digit.
   defp find_currency(string, options, reading) do
-    locale = Keyword.get(options, :locale, Localize.get_locale())
+    locale = Keyword.get_lazy(options, :locale, &Localize.get_locale/0)
+
+    with {:ok, language_tag} <- parsing_locale(locale) do
+      find_currency_in(language_tag, string, options, reading)
+    end
+  end
+
+  # The same with a language tag the public entry has validated.
+  defp find_currency_in(language_tag, string, options, reading) do
     only_filter = Keyword.get(options, :only, [:all])
     except_filter = Keyword.get(options, :except, [])
     fuzzy = Keyword.get(options, :fuzzy, nil)
 
     filters = [only: only_filter, except: except_filter]
 
-    with {:ok, language_tag} <- parsing_locale(locale),
-         {:ok, currency_strings} <- reading_strings(language_tag, filters, reading),
+    with {:ok, currency_strings} <- reading_strings(language_tag, filters, reading),
          {:ok, currency} <-
            found_currency(
              currency_strings,
@@ -691,6 +701,16 @@ defmodule Localize.Number.Parser do
   # fit and no locale of another claimant is as near. So "$" is the
   # Canadian dollar in `fr`, as it is in `fr-CA`, and stays unknown in
   # `es`, which Mexico, the United States and Argentina are as near.
+  # A currency amount's text is one currency string or none, so it is
+  # looked up rather than searched for: the string as it is, or a string
+  # CLDR writes with a closing period ("kr.", "ج.م.") followed by that
+  # period. `find_and_replace/3` finds the same two whole-text cases, but
+  # otherwise scans every string of the locale for a part of the text, which
+  # an amount never wants and which cost half a millisecond per miss.
+  defp find_or_resolve_currency(currency_strings, string, nil, language_tag, _filters, :amount) do
+    whole_currency(currency_strings, string, language_tag)
+  end
+
   defp find_or_resolve_currency(currency_strings, string, fuzzy, language_tag, filters, reading) do
     case find_and_replace_currency(currency_strings, string, fuzzy, language_tag) do
       {:ok, _found} = found when reading == :amount and is_float(fuzzy) ->
@@ -705,6 +725,37 @@ defmodule Localize.Number.Parser do
       {:error, _not_found} = error ->
         error
     end
+  end
+
+  defp whole_currency(currency_strings, string, language_tag) do
+    case Map.fetch(currency_strings, string) do
+      {:ok, currency} -> {:ok, [currency]}
+      :error -> period_currency(currency_strings, string, language_tag)
+    end
+  end
+
+  defp period_currency(currency_strings, string, language_tag) do
+    if String.ends_with?(string, ".") do
+      key = binary_part(string, 0, byte_size(string) - 1)
+      period_key_currency(currency_strings, key, language_tag)
+    else
+      no_whole_match()
+    end
+  end
+
+  defp period_key_currency(currency_strings, key, language_tag) do
+    if MapSet.member?(period_strings(language_tag), key) do
+      case Map.fetch(currency_strings, key) do
+        {:ok, currency} -> {:ok, [currency]}
+        :error -> no_whole_match()
+      end
+    else
+      no_whole_match()
+    end
+  end
+
+  defp no_whole_match do
+    {:error, parse_error("No match was found")}
   end
 
   # A fuzzy match names an amount's currency only when no other currency's
@@ -902,7 +953,7 @@ defmodule Localize.Number.Parser do
           list(per() | String.t()) | {:error, Exception.t()}
   def resolve_per(string, options \\ []) do
     with :ok <- validate_arguments(string, :string, options),
-         locale = Keyword.get(options, :locale, Localize.get_locale()),
+         locale = Keyword.get_lazy(options, :locale, &Localize.get_locale/0),
          {:ok, language_tag} <- parsing_locale(locale),
          {:ok, number_system} <- Lexicon.number_system(language_tag, string, options),
          {:ok, symbol} <- Lexicon.number_symbols(language_tag, number_system, []) do
@@ -1035,13 +1086,14 @@ defmodule Localize.Number.Parser do
   # A currency amount's text names a currency only where one alone takes it:
   # "$" in `fr`, which the Canadian, US and other dollars share, is refused
   # rather than read as the Canadian dollar. `[currency]` when the text is
-  # one currency string, as `find_and_replace/3` reports it; for
-  # `Localize.Number.Parser.Amount`.
-  @spec find_amount_currency(String.t(), Keyword.t()) :: list() | {:error, Exception.t()}
-  def find_amount_currency(text, filters) do
-    with :ok <- validate_arguments(text, :string, filters) do
-      find_currency(text, filters, :amount)
-    end
+  # one currency string, as `find_and_replace/3` reports it. For
+  # `Localize.Number.Parser.Amount`, with the language tag
+  # `parse_currency_amount/2` validated and text out of the string it
+  # validated, so nothing is checked again here.
+  @spec find_amount_currency(String.t(), Localize.LanguageTag.t(), Keyword.t()) ::
+          list() | {:error, Exception.t()}
+  def find_amount_currency(text, %Localize.LanguageTag{} = language_tag, filters) do
+    find_currency_in(language_tag, text, filters, :amount)
   end
 
   defp find_and_replace_currency(string_map, string, fuzzy, language_tag) do
@@ -1282,9 +1334,8 @@ defmodule Localize.Number.Parser do
   # with English data `en-AU` "$5" is US dollars and `zh` "¥1.00" yen.
   defp parsing_locale(locale) do
     with {:ok, language_tag} <- Localize.validate_locale(locale),
-         locale_id = locale_id(language_tag),
-         {:ok, data_locale_id} <- Localize.Locale.get(locale_id, [:name]) do
-      own_locale_data(language_tag, locale_id, data_locale_id)
+         {:ok, data_locale_id} <- Localize.Locale.get(language_tag, [:name]) do
+      own_locale_data(language_tag, locale_id(language_tag), data_locale_id)
     end
   end
 

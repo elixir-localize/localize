@@ -24,7 +24,7 @@ defmodule Localize.MixProject do
       compilers: maybe_elixir_make() ++ [:yecc, :leex] ++ Mix.compilers(),
       make_makefile: "c_src/Makefile",
       dialyzer: [
-        plt_add_apps: ~w(gettext inets mix sweet_xml nimble_parsec xmerl)a,
+        plt_add_apps: ~w(gettext inets mix sweet_xml nimble_parsec unicode xmerl)a,
         ignore_warnings: ".dialyzer_ignore.exs",
         flags: [
           :error_handling,
@@ -117,7 +117,9 @@ defmodule Localize.MixProject do
       groups_for_extras: groups_for_extras(),
       # `tz` hides its database module from its docs, and it is the name a
       # consumer configures, so it is written as code and not linked.
-      skip_code_autolink_to: ["Tz.TimeZoneDatabase"],
+      # `Localize.Number.Lexer.Categories` is generated and hidden; the task
+      # that generates it names it.
+      skip_code_autolink_to: ["Tz.TimeZoneDatabase", "Localize.Number.Lexer.Categories"],
       skip_undefined_reference_warnings_on:
         [
           "CHANGELOG.md"

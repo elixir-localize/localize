@@ -143,10 +143,17 @@ defmodule Localize.Number.Lexer do
     lex(rest, lexicon, push(tokens, kind, value, character))
   end
 
-  # The lexicon's own sets first, since they settle the characters that
-  # matter most and cost a lookup each. A space is read before the marks,
-  # because a locale that groups with a space has that space in its group
-  # set.
+  # ASCII first, with no lookups: in every locale "-" and "+" are a sign,
+  # the only ASCII characters in a separator family are "'", "," and ".",
+  # which are marks regardless, and nothing else of ASCII is in any set
+  # (checked across all 657 locales, 2026-10-29). Then the lexicon's own
+  # sets, since they settle the characters that matter most. A space is
+  # read before the marks, because a locale that groups with a space has
+  # that space in its group set.
+  defp classify(codepoint, character, _lexicon) when codepoint < 128 do
+    {ascii_kind(codepoint), character}
+  end
+
   defp classify(codepoint, character, lexicon) do
     cond do
       codepoint in @bidi_controls -> {:bidi, character}
@@ -156,25 +163,44 @@ defmodule Localize.Number.Lexer do
       MapSet.member?(lexicon.dashes, character) -> {:dash, character}
       Categories.space?(codepoint) -> {:space, character}
       MapSet.member?(lexicon.marks, character) -> {:mark, character}
-      true -> {fixed_kind(codepoint), character}
+      true -> {category_kind(codepoint), character}
     end
   end
 
-  # What the lexicon does not settle: the parentheses and the underscore,
-  # then ASCII, and Unicode's categories only for what is left.
-  defp fixed_kind(codepoint) do
-    cond do
-      codepoint == ?( -> :open
-      codepoint == ?) -> :close
-      codepoint == ?_ -> :underscore
-      codepoint == ?\t -> :tab
-      codepoint < 128 -> ascii_kind(codepoint)
-      true -> category_kind(codepoint)
-    end
+  defp ascii_kind(codepoint) when codepoint in ?0..?9 do
+    :digits
   end
 
   defp ascii_kind(codepoint) when codepoint in @ascii_marks do
     :mark
+  end
+
+  defp ascii_kind(?-) do
+    :minus
+  end
+
+  defp ascii_kind(?+) do
+    :plus
+  end
+
+  defp ascii_kind(?\s) do
+    :space
+  end
+
+  defp ascii_kind(?() do
+    :open
+  end
+
+  defp ascii_kind(?)) do
+    :close
+  end
+
+  defp ascii_kind(?_) do
+    :underscore
+  end
+
+  defp ascii_kind(?\t) do
+    :tab
   end
 
   defp ascii_kind(_codepoint) do

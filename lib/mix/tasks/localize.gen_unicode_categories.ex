@@ -22,6 +22,10 @@ defmodule Mix.Tasks.Localize.GenUnicodeCategories do
 
   use Mix.Task
 
+  # The `unicode` dependency is a development one, so the modules are
+  # absent in other environments; `run/1` checks for them.
+  @compile {:no_warn_undefined, [Unicode, Unicode.GeneralCategory]}
+
   @output "lib/localize/number/lexer/categories.ex"
 
   # Each predicate the lexer calls, and the categories it covers.

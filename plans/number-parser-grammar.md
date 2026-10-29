@@ -1,6 +1,6 @@
 # Number parser grammar
 
-**Status:** in progress, 2026-10-29
+**Status:** implemented (v1.5.0), 2026-10-29
 
 `Localize.Number.Parser.parse_currency_amount/2` and `parse/2` are correct within the rules settled in October 2026 (`plans/tr35-audit.md`), and that correctness is pinned by 6,886 corpus rows, 1,450 lines of tests and ex_money's 35,040-input comparison. The code that gets there is not something to keep: 2,680 lines, 197 private functions and 28 regular expressions, with the rules spread across folds, regexes and string surgery rather than stated once. It is also slow, 145 µs for `Money.parse("USD 100")` against 22 µs in ex_money 6.2.1, 9.6 ms with an `:only` filter, and 82 µs for `Money.new(:USD, "1234.56")` against 6 µs. The profile is a long tail of about sixty `String.replace/3` calls per number, one per lenient fold, plus a dozen regex runs and a currency index rebuilt on every filtered call.
 
@@ -135,6 +135,8 @@ with at most one `currency`, and the semantic rules as named functions in the or
 
 * **Benchmarks** before and after, in the table below, measured with `:timer.tc/1` over 2,000 calls.
 
+The first table was measured through ex_money with interpreted closures; the second, filled on 2026-10-29, through Localize directly from a compiled benchmark (`scratchpad/bench_parser.exs`, 5,000 calls each), reference and new in one VM.
+
 | Call | 6.2.1 | Reference | Target |
 |---|---|---|---|
 | `Money.parse("USD 100")` | 22 µs | 145 µs | 30 µs |
@@ -142,6 +144,19 @@ with at most one `currency`, and the semantic rules as named functions in the or
 | `Money.parse("USD 100", only: [:USD, :EUR])` | 79 µs | 9,560 µs | 35 µs |
 | `Money.new(:USD, "1234.56")` | 6 µs | 82 µs | 15 µs |
 | First parse in a locale | 20 ms | 41 ms | 5 ms after data load |
+
+| Localize call | Reference | New | Target |
+|---|---|---|---|
+| `parse_currency_amount("USD 100", locale: :en)` | 130 µs | 27 µs | 30 µs |
+| `parse_currency_amount("1.234,56 €", locale: :de)` | 145 µs | 46 µs | 35 µs |
+| `parse_currency_amount("USD 100", only: [:USD, :EUR])` | 8,225 µs | 27 µs | 35 µs |
+| `parse_currency_amount("USD 100", caller_currency: f)` | 125 µs | 35 µs | |
+| `parse_currency_amount("١٬٢٣٤٫٥٦ ج.م.‏", locale: :"ar-EG")` | 640 µs | 65 µs | |
+| `parse("1,234.56", locale: :en)` | 78 µs | 21 µs | 30 µs |
+| `parse("1234.56", number: :decimal, grouping: :sizes, currency: :USD)` | 76 µs | 16 µs | 15 µs |
+| `parse("1.234,56", locale: :de, root_separators: true)` | 126 µs | 24 µs | |
+
+Where the time went, and what moved it: the lenient folds (sixty `String.replace/3` calls) and the regexes are gone with the lexer; the filtered currency index is cached; the currency lookup for an amount checks the whole text and the period form rather than scanning every string for a part of it (`whole_currency/3`, 500 µs per miss before); the locale is validated once at the public entry and trusted inside (user, 2026-10-29); `Localize.get_locale/0` is no longer evaluated as an eager default; the caller-word search runs only with a `:caller_currency`; `nfkc/1` has an ASCII fast path and strips bidi marks by recursion. The `de` amount misses its target because `Grammar.read/3` costs 12 µs for an eight-character number, in a dozen list passes of one rule each; a single-pass grammar would close it at some cost to the one-rule-one-function layout, and is left for the `scan/2` sprint, which reworks the grammar's entry anyway.
 
 ## Tasks
 
@@ -159,10 +174,10 @@ Each task is one turn: build, run that task's tests, stop for the user to commit
 
 * [x] **Amount grammar** — `Localize.Number.Parser.Amount.read/3`: the split into currency text and number on tokens (decorations, closing marks, caller words), the semantic rules moved across as named functions, `decimal_mark?/4` on the lexicon's readings; `Parser` keeps `find_amount_currency/2` for the index lookup it shares with `resolve_currency/2`. 62 clauses and 9 regex attributes left `Parser` (now 1,672 lines). The lexer gained `:tab` and stopped classing initial quotation marks as marks, to match the reference's character classes. Differential green on 295,215 amounts and 99,342 numbers; `currency_amount_test.exs` and the corpus unchanged. 2026-10-29.
 
-* [ ] **Unicode categories from the `unicode` library** — the lexer classes a character outside every lexicon set with one `\p{Cf}|\p{Nd}|\p{Po}\p{Pf}\p{Pi}` regex call; replace it with a generated range table (`Localize.Number.Lexer.Categories` or similar) produced by a mix task from `~/Development/unicode/unicode`, which tracks each Unicode release (user, 2026-10-29). The task is rerun when that library updates; the differential test verifies the swap.
+* [x] **Unicode categories from the `unicode` library** — `mix localize.gen_unicode_categories` generates `Localize.Number.Lexer.Categories` (`format?/1`, `digit?/1`, `mark?/1`, `space?/1`, each a guard over the category's ranges, plus `unicode_version/0`) from `{:unicode, "~> 2.2", only: :dev, runtime: false}`; generated from Unicode 18.0.0 and checked in. The lexer's regex and hand-written space list are gone. Rerun the task when the library updates (user, 2026-10-29). Differential unchanged at 0 differences. 2026-10-29.
 
 * [x] **Remove the superseded code** — `scan/2` and `resolve_per/2` now take their number system, symbols, lenient families and grouping sizes from the lexicon, and transliterate with `Localize.Number.Transliterate.transliterate_digits/2` and the lexicon's digit map (user, 2026-10-29: reuse the existing function); 19 more clauses left `Parser`, now 1,489 lines. Credo and dialyzer clean (a binary guard on `Lexicon.nfkc/1`). 2026-10-29.
 
-* [ ] **Benchmarks and documentation** — fill the table, write the EBNF moduledocs, a CHANGELOG line (internal rewrite, no API change, the speed), delete the reference copy, run the gates, ex_money's comparison and the downstream suites.
+* [x] **Benchmarks and documentation** — tables above; EBNF in the `Grammar` and `Parser.Amount` moduledocs; CHANGELOG entries for the rewrite, the underscore rule and the `he` symbol; guide sentence on underscores. The reference copy and the differential moved to the scratchpad (`reference/`; recoverable from commit `b573f0fc` for the `scan/2` sprint). Gates, the ex_money comparison and the downstream suites: see the session notes for the final run. 2026-10-29.
 
 * [ ] **Next sprint: `scan/2` on the lexer** — a token-level scan with the same results as the regex scanner, verified the same way.

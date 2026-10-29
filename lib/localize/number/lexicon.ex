@@ -30,6 +30,7 @@ defmodule Localize.Number.Lexicon do
     :dashes,
     :period,
     :marks,
+    :period_separator?,
     :readings
   ]
 
@@ -46,6 +47,9 @@ defmodule Localize.Number.Lexicon do
   * `:space_group?` is `true` where the group separator is a space, in
     which case every space character groups.
 
+  * `:period?` is `true` where a period is one of the two separators,
+    so a period in a number is never foreign to this reading.
+
   * `:sizes` are the primary and secondary grouping sizes.
 
   """
@@ -54,6 +58,7 @@ defmodule Localize.Number.Lexicon do
           decimal: MapSet.t(String.t()),
           group: MapSet.t(String.t()),
           space_group?: boolean(),
+          period?: boolean(),
           sizes: {pos_integer(), pos_integer()}
         }
 
@@ -80,6 +85,9 @@ defmodule Localize.Number.Lexicon do
     or folds onto a period: what the lexer reads as a mark without
     consulting Unicode's categories.
 
+  * `:period_separator?` is `true` where a period is a separator of
+    some reading.
+
   * `:readings` are the separator sets, the locale's own first.
 
   """
@@ -92,6 +100,7 @@ defmodule Localize.Number.Lexicon do
           dashes: MapSet.t(String.t()),
           period: MapSet.t(String.t()),
           marks: MapSet.t(String.t()),
+          period_separator?: boolean(),
           readings: [reading(), ...]
         }
 
@@ -119,7 +128,8 @@ defmodule Localize.Number.Lexicon do
   @format_characters ~r/\p{Cf}/u
 
   # Unicode's Bidi_Control characters, as `Localize.Number.Lexer` knows them.
-  @bidi_controls ~r/[\x{061C}\x{200E}\x{200F}\x{202A}-\x{202E}\x{2066}-\x{2069}]/u
+  @bidi_controls [0x061C, 0x200E, 0x200F, 0x202A, 0x202B, 0x202C, 0x202D, 0x202E] ++
+                   [0x2066, 0x2067, 0x2068, 0x2069]
 
   @single_space ~r/^\p{Zs}$/u
 
@@ -225,11 +235,15 @@ defmodule Localize.Number.Lexicon do
   @spec number_system(Localize.LanguageTag.t(), String.t(), Keyword.t()) ::
           {:ok, atom()} | {:error, Exception.t()}
   def number_system(%Localize.LanguageTag{} = language_tag, string, options) do
-    number_system =
-      Keyword.get_lazy(options, :number_system, fn ->
-        written_number_system(language_tag, string)
-      end)
+    case Keyword.fetch(options, :number_system) do
+      {:ok, number_system} -> known_number_system(number_system)
+      :error -> {:ok, written_number_system(language_tag, string)}
+    end
+  end
 
+  # A system the caller names must have digits; the one the locale and the
+  # text choose always does.
+  defp known_number_system(number_system) do
     case System.number_system_digits(number_system) do
       {:ok, _digits} -> {:ok, number_system}
       {:error, _reason} = error -> error
@@ -403,13 +417,58 @@ defmodule Localize.Number.Lexicon do
   # not valid Unicode is matched as it is, and found in no index.
   @spec nfkc(String.t()) :: String.t()
   def nfkc(string) when is_binary(string) do
-    case :unicode.characters_to_nfkc_binary(string) do
-      normalized when is_binary(normalized) ->
-        String.downcase(String.replace(normalized, @bidi_controls, ""))
-
-      _invalid ->
-        string
+    if ascii?(string) do
+      String.downcase(string)
+    else
+      nfkc_without_bidi(string)
     end
+  end
+
+  # ASCII is its own NFKC form and has no bidi controls, so only other
+  # text pays for the normalization.
+  defp ascii?(<<byte, rest::binary>>) when byte < 128 do
+    ascii?(rest)
+  end
+
+  defp ascii?(<<>>) do
+    true
+  end
+
+  defp ascii?(_other) do
+    false
+  end
+
+  defp nfkc_without_bidi(string) do
+    case :unicode.characters_to_nfkc_binary(string) do
+      normalized when is_binary(normalized) -> String.downcase(strip_bidi(normalized))
+      _invalid -> string
+    end
+  end
+
+  defp strip_bidi(<<codepoint::utf8, rest::binary>>) when codepoint in @bidi_controls do
+    strip_bidi(rest)
+  end
+
+  defp strip_bidi(<<codepoint::utf8, rest::binary>>) do
+    <<codepoint::utf8, strip_bidi(rest)::binary>>
+  end
+
+  defp strip_bidi(<<>>) do
+    <<>>
+  end
+
+  @doc false
+  # The decimal places a currency is written with, the larger of CLDR's
+  # and ISO 4217's, cached per currency; `:error` for a code CLDR does not
+  # know.
+  @spec currency_places(atom()) :: {:ok, non_neg_integer()} | :error
+  def currency_places(currency) when is_atom(currency) do
+    cached({:currency_places, currency}, fn ->
+      case Localize.Currency.currency_for_code(currency) do
+        {:ok, %{digits: digits, iso_digits: iso_digits}} -> {:ok, max(digits, iso_digits || 0)}
+        {:error, _not_iso} -> :error
+      end
+    end)
   end
 
   # ── Building ──────────────────────────────────────────────────
@@ -433,6 +492,7 @@ defmodule Localize.Number.Lexicon do
          dashes: MapSet.difference(MapSet.new(@zero_fraction_dashes), minus),
          period: period,
          marks: marks(readings, period),
+         period_separator?: Enum.any?(readings, & &1.period?),
          readings: readings
        }}
     end
@@ -458,12 +518,15 @@ defmodule Localize.Number.Lexicon do
   defp reading({tag, symbols}, number_system) do
     sets = lenient_sets(tag)
     group = separator(symbols.group)
+    decimal_family = symbols.decimal |> separator() |> family(sets) |> MapSet.new()
+    group_family = group |> family(sets) |> MapSet.new()
 
     %{
       tag: tag,
-      decimal: symbols.decimal |> separator() |> family(sets) |> MapSet.new(),
-      group: group |> family(sets) |> MapSet.new(),
+      decimal: decimal_family,
+      group: group_family,
       space_group?: String.match?(group, @single_space),
+      period?: MapSet.member?(decimal_family, ".") or MapSet.member?(group_family, "."),
       sizes: grouping_sizes(tag, number_system)
     }
   end
@@ -594,25 +657,37 @@ defmodule Localize.Number.Lexicon do
   # refused "1,234.56". The locale's Latin separators are the ones such
   # text is written with.
   defp written_number_system(language_tag, string) do
-    case System.number_system_from_locale(language_tag) do
-      {:ok, system} -> system_for_digits(system, string)
-      _no_system -> :latn
+    case own_number_system(language_tag) do
+      {system, nil} -> system
+      {system, digits} -> native_or_latin(system, digits, string)
     end
   end
 
-  defp system_for_digits(:latn, _string) do
-    :latn
+  # The locale's own number system and, where it is not Latin and has
+  # digits, those digits, found once per locale. A `-u-nu-` extension
+  # names the system too and is no part of the CLDR locale id, so it is
+  # part of the key: `und-u-nu-arab` is not `und`.
+  defp own_number_system(language_tag) do
+    extension = Map.get(language_tag.locale, :nu)
+
+    cached({:own_number_system, language_tag.cldr_locale_id, extension}, fn ->
+      case System.number_system_from_locale(language_tag) do
+        {:ok, :latn} -> {:latn, nil}
+        {:ok, system} -> {system, system_digits(system)}
+        _no_system -> {:latn, nil}
+      end
+    end)
   end
 
-  defp system_for_digits(system, string) do
+  defp system_digits(system) do
     case System.number_system_digits(system) do
-      {:ok, digits} -> native_or_latin(system, digits, string)
-      {:error, _not_numeric} -> system
+      {:ok, digits} -> String.graphemes(digits)
+      {:error, _not_numeric} -> nil
     end
   end
 
   defp native_or_latin(system, digits, string) do
-    if String.contains?(string, String.graphemes(digits)) do
+    if String.contains?(string, digits) do
       system
     else
       :latn

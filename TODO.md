@@ -14,8 +14,6 @@ Outstanding work on Localize. The design detail behind these items lives under [
 
 ## In progress
 
-* [ ] **Rebuild the number and currency amount parser as a lexer, a grammar and a per-locale lexicon** — the current parser is the reference model; same results, five to ten times faster, and the rules stated once. Localize 1.5.0 waits for it. Design in [plans/number-parser-grammar.md](plans/number-parser-grammar.md).
-
 * [ ] **CLDR 49 upgrade** — the plan's items are closed bar item 11; the data is built from the final `release-49` (below). [plans/cldr-49.md](plans/cldr-49.md).
 
 ## Blocked
@@ -67,6 +65,8 @@ Outstanding work on Localize. The design detail behind these items lives under [
 * [ ] **`localize_emoji` sibling library** — plan item 11, a separate package on its own schedule. A Phoenix LiveView picker (`localize_emoji_live`) is out of scope for its 0.1.0.
 
 ## Done
+
+* [x] **Rebuild the number and currency amount parser as a lexer, a grammar and a per-locale lexicon** — same results on 400,000 inputs, three to five times faster, the rules one named function each; `scan/2` moves onto the lexer next. [plans/number-parser-grammar.md](plans/number-parser-grammar.md). 2026-10-29, v1.5.0.
 
 * [x] **`localize_mf1` sibling library** — ICU MessageFormat 1 (`plural`, `select`, `selectordinal`) for applications migrating from `ex_cldr_messages`, as asked in #60; completed, not yet released. Recorded 2026-10-28.
 

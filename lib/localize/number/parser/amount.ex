@@ -54,7 +54,7 @@ defmodule Localize.Number.Parser.Amount do
 
   """
 
-  alias Localize.Number.{Lexer, Lexicon, Parser}
+  alias Localize.Number.{Grammar, Lexer, Lexicon, Parser}
 
   # A sign or parenthesis that opens or closes text with no digits: "(USD)"
   # and "-" are a number's decorations with no number, not currency text.
@@ -205,8 +205,13 @@ defmodule Localize.Number.Parser.Amount do
   # last, which a space separates from the number. Each such word the
   # caller's `:caller_currency` function names gives a reading.
   defp caller_word_amounts(tokens, string, options) do
-    resolver = Keyword.get(options, :caller_currency)
+    case Keyword.get(options, :caller_currency) do
+      nil -> []
+      resolver -> caller_word_amounts(tokens, string, options, resolver)
+    end
+  end
 
+  defp caller_word_amounts(tokens, string, options, resolver) do
     tokens
     |> caller_words()
     |> Enum.flat_map(fn parts ->
@@ -360,8 +365,10 @@ defmodule Localize.Number.Parser.Amount do
   # Matched exactly, never fuzzily, since a fuzzy match would take "$." for
   # a currency of its own.
   defp written_with_mark?(text, options) do
-    filters = Keyword.take(options, [:locale, :only, :except])
-    match?([currency] when is_atom(currency), Parser.find_amount_currency(text, filters))
+    language_tag = Keyword.fetch!(options, :locale)
+    filters = Keyword.take(options, [:only, :except])
+    found = Parser.find_amount_currency(text, language_tag, filters)
+    match?([currency] when is_atom(currency), found)
   end
 
   defp marked_number(parts, unmarked, currency, separators_of, string, options) do
@@ -406,7 +413,7 @@ defmodule Localize.Number.Parser.Amount do
   # A closing period is tried off as well as on, so "100 USD." is dollars as
   # it is in the text of a sentence.
   defp text_currency(text, options) do
-    filters = Keyword.take(options, [:locale, :only, :except, :fuzzy])
+    filters = Keyword.take(options, [:only, :except, :fuzzy])
 
     [text, String.trim_trailing(text, ".")]
     |> Enum.uniq()
@@ -414,7 +421,9 @@ defmodule Localize.Number.Parser.Amount do
   end
 
   defp first_text_currency([candidate | rest], text, filters, options) do
-    case Parser.find_amount_currency(candidate, filters) do
+    language_tag = Keyword.fetch!(options, :locale)
+
+    case Parser.find_amount_currency(candidate, language_tag, filters) do
       [currency] when is_atom(currency) ->
         unclaimed_currency(currency, candidate, options)
 
@@ -501,17 +510,30 @@ defmodule Localize.Number.Parser.Amount do
 
   # ── The number ────────────────────────────────────────────────
 
+  # The number is read as `Localize.Number.Parser.parse/2` reads it, with
+  # the lexicon and grammar directly: the string and the locale were
+  # validated at the public entry, so the number's text and the language
+  # tag are trusted here.
   defp amount_number(%{lead: lead, rest: rest}, currency, separators_of, options) do
     number = String.trim(lead <> rest)
+    language_tag = Keyword.fetch!(options, :locale)
 
-    parse_options =
+    lexicon_options =
       options
-      |> Keyword.take([:locale, :number_system, :separators])
-      |> Keyword.put(:number, :decimal)
-      |> Keyword.put(:grouping, :sizes)
+      |> Keyword.take([:separators])
       |> put_separators_currency(separators_of)
 
-    case Parser.parse(number, parse_options) do
+    read =
+      with {:ok, number_system} <- Lexicon.number_system(language_tag, number, options),
+           {:ok, lexicon} <- Lexicon.fetch(language_tag, number_system, lexicon_options) do
+        Grammar.read(number, lexicon,
+          number: :decimal,
+          grouping: :sizes,
+          max_decimal_exponent: Parser.max_decimal_exponent()
+        )
+      end
+
+    case read do
       {:ok, decimal} -> unambiguous_fraction(decimal, number, currency)
       {:error, exception} -> {:error, invalid_amount(currency, number, exception)}
     end
@@ -539,14 +561,14 @@ defmodule Localize.Number.Parser.Amount do
   end
 
   defp three_fraction_digits?(number, decimal) do
-    String.match?(number, @group_shape) and decimal.exp < 0 and
-      Decimal.compare(Decimal.abs(decimal), 1) != :lt
+    decimal.exp < 0 and Decimal.compare(Decimal.abs(decimal), 1) != :lt and
+      String.match?(number, @group_shape)
   end
 
   defp fewer_digits?(currency, places) when is_atom(currency) do
-    case Localize.Currency.currency_for_code(currency) do
-      {:ok, %{digits: digits, iso_digits: iso_digits}} -> max(digits, iso_digits || 0) < places
-      {:error, _not_iso} -> false
+    case Lexicon.currency_places(currency) do
+      {:ok, currency_places} -> currency_places < places
+      :error -> false
     end
   end
 

@@ -167,9 +167,9 @@ defmodule Localize.Number.Grammar do
   # ── The number of one reading ─────────────────────────────────
 
   defp number_string(tokens, reading, lexicon, grouping) do
-    tokens = zero_fraction(tokens, reading, grouping)
+    reversed = tokens |> Enum.reverse() |> zero_fraction(reading, grouping)
 
-    with {:ok, body, negative?} <- signed_body(tokens, reading),
+    with {:ok, body, negative?} <- signed_body(reversed, reading),
          :ok <- no_interior_space(body, reading),
          {integer, decimal, fraction} = split_decimal(body, reading),
          :ok <- no_grouped_fraction(fraction, reading),
@@ -213,18 +213,19 @@ defmodule Localize.Number.Grammar do
   # fraction, one dash or two of the same kind. CLDR has no data for the
   # convention (CLDR-3394), so it is read only leniently. The dashes end
   # the number, which may be followed by the closing parenthesis of an
-  # accounting format: "(CHF 5.–)".
-  defp zero_fraction(tokens, reading, grouping) when grouping in [:lenient, :sizes] do
-    {closing, before} = split_closing(Enum.reverse(tokens))
+  # accounting format: "(CHF 5.–)". Read from the end, on the reversed
+  # tokens, which `trail/1` then takes up.
+  defp zero_fraction(reversed, reading, grouping) when grouping in [:lenient, :sizes] do
+    {closing, before} = split_closing(reversed)
 
     case drop_zero_dashes(before, reading) do
-      {:ok, whole} -> Enum.reverse(closing ++ whole)
-      :none -> tokens
+      {:ok, whole} -> closing ++ whole
+      :none -> reversed
     end
   end
 
-  defp zero_fraction(tokens, _reading, :strict) do
-    tokens
+  defp zero_fraction(reversed, _reading, :strict) do
+    reversed
   end
 
   # The spaces, closing parenthesis and spaces that may end a number, taken
@@ -279,9 +280,9 @@ defmodule Localize.Number.Grammar do
   # which make it negative, so "(5)" is -5. TR35's heuristics for parsing
   # a number take a sign as a prefix or a suffix. A sign and parentheses
   # together are refused: "(-5)" is read as -5 by some and as 5 by others.
-  defp signed_body(tokens, reading) do
-    {before_open, open, after_open, tokens} = lead(tokens)
-    {after_close, close, before_close, body} = trail(tokens)
+  defp signed_body(reversed, reading) do
+    {after_close, close, before_close, tokens} = trail(reversed)
+    {before_open, open, after_open, body} = lead(tokens)
     signs = Enum.reject([before_open, after_open, before_close, after_close], &is_nil/1)
 
     cond do
@@ -303,9 +304,10 @@ defmodule Localize.Number.Grammar do
     {first_sign, open != [], second_sign, drop_spaces(tokens)}
   end
 
-  # The same at the end, read from the reversed tokens.
-  defp trail(tokens) do
-    {last_sign, reversed} = tokens |> Enum.reverse() |> drop_spaces() |> take_sign()
+  # The same at the end, read from the reversed tokens, which it hands back
+  # in order.
+  defp trail(reversed) do
+    {last_sign, reversed} = reversed |> drop_spaces() |> take_sign()
     {close, reversed} = reversed |> drop_spaces() |> take_kind(:close)
     {inner_sign, reversed} = reversed |> drop_spaces() |> take_sign()
     {last_sign, close != [], inner_sign, reversed |> drop_spaces() |> Enum.reverse()}
@@ -457,18 +459,12 @@ defmodule Localize.Number.Grammar do
   # "1.5" is 1.5, but "1.234" is refused.
   defp no_stray_period(body, reading, lexicon) do
     cond do
-      MapSet.member?(reading.group, ".") or MapSet.member?(reading.decimal, ".") -> :ok
+      reading.period? -> :ok
       not Enum.any?(body, &period?(&1, lexicon)) -> :ok
-      period_separator?(lexicon) -> {:error, :stray_period}
+      lexicon.period_separator? -> {:error, :stray_period}
       foreign_decimal_point?(body, reading, lexicon) -> :ok
       true -> {:error, :stray_period}
     end
-  end
-
-  defp period_separator?(lexicon) do
-    Enum.any?(lexicon.readings, fn reading ->
-      MapSet.member?(reading.group, ".") or MapSet.member?(reading.decimal, ".")
-    end)
   end
 
   # Exactly one period, between digits, and no decimal mark of the
