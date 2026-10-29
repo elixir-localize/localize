@@ -29,6 +29,23 @@ defmodule Localize.Data.Supplemental do
   end
 
   @doc """
+  Generates the list of CLDR locales that have RBNF rules of their own,
+  from the `<locale>.json` files in the JSON's `cldr-rbnf/rbnf/` directory.
+
+  Returns a sorted list of locale name atoms, `und` among them. A locale
+  absent from it, such as `nb`, takes its rules from a parent that is in
+  it, `no`.
+
+  """
+  def generate_rbnf_locales do
+    Localize.Data.rbnf_source_dir()
+    |> Path.join("*.json")
+    |> Path.wildcard()
+    |> Enum.map(&String.to_atom(Path.basename(&1, ".json")))
+    |> Enum.sort()
+  end
+
+  @doc """
   Generates day period rules from `dayPeriods.json`.
 
   Returns a map with `:format` and `:selection` keys, each mapping a

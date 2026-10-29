@@ -26,6 +26,27 @@ defmodule Localize.SupplementalDataTest do
     end
   end
 
+  describe "rbnf_locales/0" do
+    test "is the sorted list of CLDR locales with RBNF rules of their own" do
+      locales = SupplementalData.rbnf_locales()
+
+      assert locales == Enum.sort(locales)
+      assert Enum.all?(locales, &is_atom/1)
+      assert Enum.all?(locales, &(&1 in SupplementalData.all_locale_ids()))
+    end
+
+    test "has root and the parents whose rules other locales take, not those locales" do
+      locales = SupplementalData.rbnf_locales()
+
+      assert :und in locales
+      assert :en in locales
+      assert :no in locales
+      assert :nn in locales
+      refute :nb in locales
+      refute :"en-GB" in locales
+    end
+  end
+
   describe "all_locale_ids/0" do
     test "returns a list of atoms" do
       ids = SupplementalData.all_locale_ids()

@@ -27,7 +27,9 @@ defmodule Localize.Number.Rbnf do
   are reached only when the parent is a supported locale, since
   only a supported locale's data is installed. An application
   whose `supported_locales` names `nb` or `en-GB` lists `no` or
-  `en` as well to spell numbers out in them.
+  `en` as well to spell numbers out in them. Until it does, the
+  `Localize.UnknownRbnfRuleError` names that parent in its
+  `:rules_in` field and its message.
 
   """
 
@@ -153,10 +155,61 @@ defmodule Localize.Number.Rbnf do
          Localize.UnknownRbnfRuleError.exception(
            rule_name: rule_name,
            locale: requested_id,
-           available: available_rule_names(requested_id)
+           available: available_rule_names(requested_id),
+           rules_in: unlisted_rules_locale(language_tag, requested_id)
          )}
       )
     end
+  end
+
+  # The nearest ancestor of the locale with RBNF rules of its own, where
+  # that ancestor is not a supported locale and so was not read: `no` for
+  # `nb`, `en` for `en-GB`. `nil` where the locale has rules of its own,
+  # where the ancestor was read, or where no ancestor has rules.
+  defp unlisted_rules_locale(language_tag, requested_id) do
+    language_tag
+    |> nearest_rules_ancestor()
+    |> unlisted(requested_id)
+  end
+
+  defp unlisted(nil, _requested_id) do
+    nil
+  end
+
+  defp unlisted(requested_id, requested_id) do
+    nil
+  end
+
+  defp unlisted(ancestor, _requested_id) do
+    if ancestor in Localize.supported_locales() do
+      nil
+    else
+      ancestor
+    end
+  end
+
+  # Each parent is named by its own subtags, not by the supported locale
+  # its tag resolves to, which is what hides an unlisted parent.
+  defp nearest_rules_ancestor(language_tag) do
+    case Localize.Locale.parent(language_tag) do
+      {:ok, parent} -> rules_locale_or_next(parent)
+      {:error, _no_parent} -> nil
+    end
+  end
+
+  defp rules_locale_or_next(parent) do
+    rules_locale = own_rules_locale(parent)
+
+    if is_nil(rules_locale) do
+      nearest_rules_ancestor(parent)
+    else
+      rules_locale
+    end
+  end
+
+  defp own_rules_locale(%{language: language, script: script, territory: territory} = tag) do
+    name = Localize.Locale.locale_id_from(language, script, territory, tag.language_variants)
+    Enum.find(Localize.SupplementalData.rbnf_locales(), &(Atom.to_string(&1) == name))
   end
 
   defp format_in(number, rule_name, locale_id, requested_id) do

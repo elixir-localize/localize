@@ -90,6 +90,15 @@ defmodule Localize.SupplementalData do
     load_supplemental("parent_locales.etf")
   end
 
+  # The CLDR locales with RBNF rules of their own, `und` among them, as a
+  # sorted list of locale atoms. A locale absent from it takes its rules
+  # from a parent that is in it: `nb` from `no`, `en-GB` from `en`.
+  @doc false
+  @spec rbnf_locales() :: [atom()]
+  def rbnf_locales do
+    load_supplemental("rbnf_locales.etf")
+  end
+
   # Day-period rules from CLDR dayPeriods.xml, keyed by rule-set type
   # (:format for the B/b format symbols, :selection for name
   # selection), then by language code string. Times are minutes since

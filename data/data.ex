@@ -106,6 +106,7 @@ defmodule Localize.Data do
     {"likely_subtags.etf", &Localize.Data.Supplemental.generate_likely_subtags/0},
     {"number_systems.etf", &Localize.Data.Supplemental.generate_number_systems/0},
     {"parent_locales.etf", &Localize.Data.Supplemental.generate_parent_locales/0},
+    {"rbnf_locales.etf", &Localize.Data.Supplemental.generate_rbnf_locales/0},
     {"day_periods.etf", &Localize.Data.Supplemental.generate_day_periods/0},
     {"territories.etf", &Localize.Data.Supplemental.generate_territories/0},
     {"territory_codes.etf", &Localize.Data.Supplemental.generate_territory_codes/0},
@@ -239,7 +240,22 @@ defmodule Localize.Data do
   """
   @spec rbnf_source_path(String.t()) :: String.t()
   def rbnf_source_path(locale) do
-    Path.join([cldr_source_dir(), "cldr-rbnf", "rbnf", "#{locale}.json"])
+    Path.join([rbnf_source_dir(), "#{locale}.json"])
+  end
+
+  @doc """
+  Returns the directory of the RBNF JSON sources, `cldr-rbnf/rbnf/`, which
+  holds one `<locale>.json` for each CLDR locale with rules of its own and
+  the rule files they name.
+
+  ### Returns
+
+  * The path, whether or not the directory exists.
+
+  """
+  @spec rbnf_source_dir() :: String.t()
+  def rbnf_source_dir do
+    Path.join([cldr_source_dir(), "cldr-rbnf", "rbnf"])
   end
 
   @doc """

@@ -188,6 +188,42 @@ defmodule Localize.Locale.SupportedLocalesTest do
       Localize.put_supported_locales(context.original_supported)
     end
 
+    test "the error names an unlisted parent whose rules the locale takes", context do
+      Localize.put_supported_locales([:en, :nb])
+
+      assert {:error, %Localize.UnknownRbnfRuleError{locale: :nb, rules_in: :no} = error} =
+               Localize.Number.to_string(3, format: :spellout, locale: :nb)
+
+      assert Exception.message(error) =~ "whose rules are those of :no, which is not a supported"
+
+      Localize.put_supported_locales([:fr, :"en-GB"])
+
+      assert {:error, %Localize.UnknownRbnfRuleError{locale: :"en-GB", rules_in: :en}} =
+               Localize.Number.Rbnf.to_string(3, :spellout_cardinal, locale: :"en-GB")
+
+      Localize.put_supported_locales(context.original_supported)
+    end
+
+    test "the error names no parent where the locale has rules of its own", context do
+      Localize.put_supported_locales([:en, :ru])
+
+      assert {:error, %Localize.UnknownRbnfRuleError{locale: :ru, rules_in: nil} = error} =
+               Localize.Number.Rbnf.to_string(2_000_000, :spellout_cardinal, locale: :ru)
+
+      refute Exception.message(error) =~ "supported locale"
+
+      Localize.put_supported_locales(context.original_supported)
+    end
+
+    test "the error names no parent that was read", context do
+      Localize.put_supported_locales([:en, :nb, :no])
+
+      assert {:error, %Localize.UnknownRbnfRuleError{locale: :nb, rules_in: nil}} =
+               Localize.Number.Rbnf.to_string(3, :spellout_cardinal_locative, locale: :nb)
+
+      Localize.put_supported_locales(context.original_supported)
+    end
+
     test "a parent's rules are reached once the parent is supported", context do
       Localize.put_supported_locales([:en, :nb])
 

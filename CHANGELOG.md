@@ -66,6 +66,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 * The root locale `:und` is always a supported locale, named in `supported_locales` or not, and `Localize.put_supported_locales/1` clears RBNF's cached locale chains. Without it every parent chain ended at the default locale, so `Localize.Number.Rbnf.to_string(2_000_000, :spellout_cardinal, locale: :ru)` was "two million" rather than an `UnknownRbnfRuleError`; closes #68, and the RBNF docs say a parent's rules (`nb` in `no`, `en-GB` in `en`) need the parent listed.
 
+* `Localize.UnknownRbnfRuleError` has a `:rules_in` field naming the nearest parent whose RBNF rules the locale takes when that parent is not a supported locale, `:no` for `nb` and `:en` for `en-GB`, and its message says so. The CLDR locales with rules of their own are new supplemental data, `Localize.SupplementalData.rbnf_locales/0`.
+
 ## [1.4.3] — October 27th, 2026
 
 ### Changed

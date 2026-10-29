@@ -359,6 +359,12 @@ defmodule Localize.Gettext.Messages do
         "number",
         "The RBNF rule {$rule_name} is not known for locale {$locale}."
       ),
+      Gettext.Macros.dpgettext_noop_with_backend(
+        Localize.Gettext,
+        "localize",
+        "number",
+        "The RBNF rule {$rule_name} is not known for locale {$locale}, whose rules are those of {$rules_in}, which is not a supported locale."
+      ),
 
       # Plural rules
       Gettext.Macros.dpgettext_noop_with_backend(
