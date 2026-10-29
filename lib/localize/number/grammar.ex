@@ -22,9 +22,12 @@ defmodule Localize.Number.Grammar do
   ```
 
   `decimal` and `group` are the marks of the reading in hand, and a
-  space is a `group` where the reading groups with one. The rules a
-  number must also satisfy are the named functions below, each with
-  the TR35 passage or decision it comes from:
+  space is a `group` where the reading groups with one. The sign and
+  the parentheses are read from the two ends; the body between them
+  is walked once (`body_number/4`), building the string Elixir parses
+  and gathering what the rules need, which are checked at the end.
+  The rules a number must also satisfy are the named functions below,
+  each with the TR35 passage or decision it comes from:
 
   * one sign at most, before or after the digits, or parentheses,
     which make the number negative (`signed_body/2`);
@@ -36,9 +39,9 @@ defmodule Localize.Number.Grammar do
     (`zero_fraction/3`);
 
   * no space inside the number unless the reading groups with one
-    (`no_interior_space/2`);
+    (`interior_space/2`);
 
-  * no group separator in the fraction (`no_grouped_fraction/2`);
+  * no group separator in the fraction (`fraction_part/4`);
 
   * groups of the sizes the grouping mode allows
     (`integer_grouping/3`);
@@ -47,8 +50,8 @@ defmodule Localize.Number.Grammar do
     decimal point between digits and not a thousands group
     (`no_stray_period/3`);
 
-  * Elixir's digit separator `_` only between two digits
-    (`join_underscores/1`).
+  * Elixir's digit separator `_` only between two digits (the
+    underscore clauses of `integer_part/4` and `fraction_part/4`).
 
   """
 
@@ -156,11 +159,6 @@ defmodule Localize.Number.Grammar do
     grouping = Keyword.get(options, :grouping, :lenient)
     max_exponent = Keyword.get(options, :max_decimal_exponent)
 
-    tokens =
-      tokens
-      |> drop_format_characters()
-      |> join_underscores()
-
     lexicon.readings
     |> Enum.map(&read_with(tokens, &1, lexicon, string, number_type, grouping, max_exponent))
     |> agreed_reading(string)
@@ -214,46 +212,33 @@ defmodule Localize.Number.Grammar do
   # ── The number of one reading ─────────────────────────────────
 
   defp number_string(tokens, reading, lexicon, grouping) do
-    reversed = tokens |> Enum.reverse() |> zero_fraction(reading, grouping)
+    reversed = tokens |> reverse_without_format() |> zero_fraction(reading, grouping)
 
     with {:ok, body, negative?} <- signed_body(reversed, reading),
-         :ok <- no_interior_space(body, reading),
-         {integer, decimal, fraction} = split_decimal(body, reading),
-         :ok <- no_grouped_fraction(fraction, reading),
-         :ok <- integer_grouping(integer, reading, grouping),
-         :ok <- no_stray_period(body, reading, lexicon) do
-      number =
-        (integer ++ decimal ++ fraction)
-        |> Enum.map_join(&token_text(&1, reading))
-        |> complete_decimal_point()
-
+         {:ok, number} <- body_number(body, reading, lexicon, grouping) do
       {:ok, signed(number, negative?)}
     end
   end
 
   # Format characters are dropped anywhere in a number, as TR35's loose
   # matching says: CLDR puts bidi marks in the signs of nineteen locales.
-  defp drop_format_characters(tokens) do
-    Enum.reject(tokens, fn {kind, _value, _source} -> kind in [:bidi, :format] end)
+  # The tokens are reversed in the same pass, for `zero_fraction/3` and
+  # `trail/1`, which read a number from its end.
+  defp reverse_without_format(tokens) do
+    reverse_without_format(tokens, [])
   end
 
-  # Elixir writes `1_000_000`, with the underscore between two digits.
-  # Anywhere else it is not part of a number (decided 2026-10-29; the
-  # parser before this one dropped it anywhere).
-  defp join_underscores([
-         {:digits, a, a_source},
-         {:underscore, _, _},
-         {:digits, b, b_source} | rest
-       ]) do
-    join_underscores([{:digits, a <> b, a_source <> "_" <> b_source} | rest])
+  defp reverse_without_format([{kind, _value, _source} | rest], reversed)
+       when kind in [:bidi, :format] do
+    reverse_without_format(rest, reversed)
   end
 
-  defp join_underscores([token | rest]) do
-    [token | join_underscores(rest)]
+  defp reverse_without_format([token | rest], reversed) do
+    reverse_without_format(rest, [token | reversed])
   end
 
-  defp join_underscores([]) do
-    []
+  defp reverse_without_format([], reversed) do
+    reversed
   end
 
   # Swiss "5.–" and Dutch "5,-" write a whole amount with a dash for its
@@ -367,113 +352,247 @@ defmodule Localize.Number.Grammar do
     :minus in [before_open, after_open] and decimal?(first, reading)
   end
 
-  # A number is digits joined by the locale's separators. Where the
-  # reading groups with a space, every space is a separator; anywhere
-  # else a space inside the number parts two numbers, as `scan/2` reads
-  # them, so `en` "1 2" is not 12 (user, 2026-10-28). A space beside a
-  # sign is not inside the number.
-  defp no_interior_space(_body, %{space_group?: true}) do
-    :ok
-  end
+  # ── The body, in one pass ─────────────────────────────────────
+  #
+  # The body, from its first token to its last, is walked once. The walk
+  # builds the string Elixir parses (digits as Latin digits, the decimal
+  # mark as a period, a group separator as nothing, a sign as itself and
+  # anything else as its text, which the parse then refuses) and gathers
+  # what the rules need as it goes: the length of each group of the
+  # integer part, whether a space stands inside the number, and where
+  # the periods are. The rules are then checked once at the end.
+  defp body_number(body, reading, lexicon, grouping) do
+    walk = %{
+      number: [],
+      last: :none,
+      group: 0,
+      groups: [],
+      separators: 0,
+      decimal?: false,
+      periods: 0,
+      period_between?: false,
+      period_group?: period_group?(body, lexicon)
+    }
 
-  defp no_interior_space(body, _reading) do
-    if interior_space?(body) do
-      {:error, :interior_space}
-    else
-      :ok
+    with {:ok, walk} <- integer_part(body, reading, lexicon, walk),
+         :ok <- integer_grouping(walk, reading, grouping),
+         :ok <- no_stray_period(walk, reading, lexicon) do
+      number =
+        walk.number
+        |> Enum.reverse()
+        |> IO.iodata_to_binary()
+        |> complete_decimal_point()
+
+      {:ok, number}
     end
   end
 
-  defp interior_space?([sign, space | rest])
-       when elem(sign, 0) in [:minus, :plus] and elem(space, 0) == :space do
-    interior_space?(rest)
+  # The integer part, up to the decimal mark: digits, Elixir's digit
+  # separator between two digits (decided 2026-10-29; the parser before
+  # this one dropped it anywhere), group separators, and whatever else is
+  # there, which the parse refuses.
+  defp integer_part([{:digits, digits, _source} | rest], reading, lexicon, walk) do
+    walk = %{
+      walk
+      | number: [digits | walk.number],
+        last: :digits,
+        group: add_digits(walk.group, digits)
+    }
+
+    integer_part(rest, reading, lexicon, walk)
   end
 
-  defp interior_space?([space, sign | rest])
-       when elem(space, 0) == :space and elem(sign, 0) in [:minus, :plus] do
-    interior_space?([sign | rest])
+  defp integer_part(
+         [{:underscore, _value, _source}, {:digits, _digits, _digits_source} = digits | rest],
+         reading,
+         lexicon,
+         %{last: :digits} = walk
+       ) do
+    integer_part([digits | rest], reading, lexicon, walk)
   end
 
-  defp interior_space?([{:space, _, _} | _rest]) do
+  defp integer_part([{:mark, _value, _source} = mark | rest], reading, lexicon, walk) do
+    walk = note_period(walk, mark, rest, lexicon)
+
+    cond do
+      decimal?(mark, reading) -> fraction_part(rest, reading, lexicon, first_decimal_mark(walk))
+      group?(mark, reading) -> integer_part(rest, reading, lexicon, group_separator(walk))
+      true -> integer_part(rest, reading, lexicon, other_token(walk, mark))
+    end
+  end
+
+  defp integer_part([{:space, _value, _source} | rest] = tokens, reading, lexicon, walk) do
+    if reading.space_group? do
+      integer_part(rest, reading, lexicon, group_separator(walk))
+    else
+      case interior_space(tokens, walk) do
+        {:ok, walk} -> integer_part(rest, reading, lexicon, walk)
+        {:error, _rule} = error -> error
+      end
+    end
+  end
+
+  defp integer_part([{kind, _value, _source} = sign | rest], reading, lexicon, walk)
+       when kind in [:minus, :plus] do
+    integer_part(rest, reading, lexicon, sign_token(walk, sign))
+  end
+
+  defp integer_part([token | rest], reading, lexicon, walk) do
+    integer_part(rest, reading, lexicon, other_token(walk, token))
+  end
+
+  defp integer_part([], _reading, _lexicon, walk) do
+    {:ok, close_group(walk)}
+  end
+
+  # The fraction, after the decimal mark. Digits there are never grouped,
+  # so a group separator means the text is not a number of this reading:
+  # `de` "1,234.56" is not 1.23456, nor `fr` "1,5 6" 1.56.
+  defp fraction_part([{:digits, digits, _source} | rest], reading, lexicon, walk) do
+    fraction_part(rest, reading, lexicon, %{walk | number: [digits | walk.number], last: :digits})
+  end
+
+  defp fraction_part(
+         [{:underscore, _value, _source}, {:digits, _digits, _digits_source} = digits | rest],
+         reading,
+         lexicon,
+         %{last: :digits} = walk
+       ) do
+    fraction_part([digits | rest], reading, lexicon, walk)
+  end
+
+  defp fraction_part([{:mark, _value, _source} = mark | rest], reading, lexicon, walk) do
+    walk = note_period(walk, mark, rest, lexicon)
+
+    cond do
+      group?(mark, reading) -> {:error, :grouping}
+      decimal?(mark, reading) -> fraction_part(rest, reading, lexicon, decimal_mark(walk))
+      true -> fraction_part(rest, reading, lexicon, other_token(walk, mark))
+    end
+  end
+
+  defp fraction_part([{:space, _value, _source} | rest] = tokens, reading, lexicon, walk) do
+    if reading.space_group? do
+      {:error, :grouping}
+    else
+      case interior_space(tokens, walk) do
+        {:ok, walk} -> fraction_part(rest, reading, lexicon, walk)
+        {:error, _rule} = error -> error
+      end
+    end
+  end
+
+  defp fraction_part([{kind, _value, _source} = sign | rest], reading, lexicon, walk)
+       when kind in [:minus, :plus] do
+    fraction_part(rest, reading, lexicon, sign_token(walk, sign))
+  end
+
+  defp fraction_part([token | rest], reading, lexicon, walk) do
+    fraction_part(rest, reading, lexicon, other_token(walk, token))
+  end
+
+  defp fraction_part([], _reading, _lexicon, walk) do
+    {:ok, walk}
+  end
+
+  # A space inside the number parts two numbers, as `scan/2` reads them,
+  # so `en` "1 2" is not 12 (user, 2026-10-28). A space beside a sign,
+  # an exponent's for instance, is not inside the number.
+  defp interior_space([_space | _rest], %{last: :sign} = walk) do
+    {:ok, %{walk | last: :space}}
+  end
+
+  defp interior_space([_space, {kind, _value, _source} | _rest], walk)
+       when kind in [:minus, :plus] do
+    {:ok, %{walk | last: :space}}
+  end
+
+  defp interior_space(_tokens, _walk) do
+    {:error, :interior_space}
+  end
+
+  # The open group grows with each run of digits, and is no group at all
+  # once it holds anything else.
+  defp add_digits(nil, _digits) do
+    nil
+  end
+
+  defp add_digits(count, digits) do
+    count + byte_size(digits)
+  end
+
+  defp close_group(walk) do
+    %{walk | groups: [walk.group | walk.groups], group: 0}
+  end
+
+  # The first decimal mark closes the integer part's last group; a second
+  # one, in the fraction, is a period the parse then refuses, unless it
+  # ends the number: "1,234.56." is 1234.56 (`complete_decimal_point/1`).
+  defp first_decimal_mark(walk) do
+    walk
+    |> close_group()
+    |> decimal_mark()
+  end
+
+  defp decimal_mark(walk) do
+    %{walk | number: ["." | walk.number], last: :mark, decimal?: true}
+  end
+
+  defp group_separator(walk) do
+    walk = close_group(walk)
+    %{walk | separators: walk.separators + 1, last: :mark}
+  end
+
+  defp sign_token(walk, {:minus, _value, _source}) do
+    %{walk | number: ["-" | walk.number], last: :sign, group: nil}
+  end
+
+  defp sign_token(walk, {:plus, _value, _source}) do
+    %{walk | number: ["+" | walk.number], last: :sign, group: nil}
+  end
+
+  defp other_token(walk, {_kind, _value, source}) do
+    %{walk | number: [source | walk.number], last: :other, group: nil}
+  end
+
+  # Where the periods are, for `no_stray_period/3`: how many, and whether
+  # one stands between two runs of digits.
+  defp note_period(walk, {:mark, _value, source}, rest, lexicon) do
+    if MapSet.member?(lexicon.period, source) do
+      between? = walk.period_between? or (walk.last == :digits and digits_next?(rest))
+      %{walk | periods: walk.periods + 1, period_between?: between?}
+    else
+      walk
+    end
+  end
+
+  defp digits_next?([{:digits, _value, _source} | _rest]) do
     true
   end
 
-  defp interior_space?([_token | rest]) do
-    interior_space?(rest)
-  end
-
-  defp interior_space?([]) do
+  defp digits_next?(_tokens) do
     false
   end
 
-  # The integer part, the first decimal mark and what follows it.
-  defp split_decimal(body, reading) do
-    case Enum.split_while(body, &(not decimal?(&1, reading))) do
-      {integer, [decimal | fraction]} -> {integer, [decimal], fraction}
-      {integer, []} -> {integer, [], []}
-    end
-  end
-
-  # Digits after the decimal mark are never grouped, so a group separator
-  # there means the text is not a number of this reading: `de` "1,234.56"
-  # is not 1.23456, nor `fr` "1,5 6" 1.56.
-  defp no_grouped_fraction(fraction, reading) do
-    if Enum.any?(fraction, &group?(&1, reading)) do
-      {:error, :grouping}
-    else
-      :ok
-    end
-  end
-
   # Grouping is optional in input, so an integer with no separator is
-  # taken as it is. With separators, every group is digits, and of a size
-  # the mode allows. An exponent's sign is not part of the integer.
-  defp integer_grouping(integer, reading, grouping) do
-    integer = Enum.reject(integer, &sign?/1)
-
-    case split_groups(integer, reading) do
-      [_ungrouped] -> :ok
-      groups -> validate_groups(groups, reading.sizes, grouping)
-    end
+  # taken as it is. With separators, every group is digits alone, and of
+  # a size the mode allows.
+  defp integer_grouping(%{separators: 0}, _reading, _grouping) do
+    :ok
   end
 
-  defp split_groups(tokens, reading) do
-    tokens
-    |> Enum.chunk_by(&group?(&1, reading))
-    |> Enum.reject(fn [token | _] -> group?(token, reading) end)
-    |> pad_empty_groups(tokens, reading)
-  end
+  defp integer_grouping(walk, reading, grouping) do
+    lengths = Enum.reverse(walk.groups)
 
-  # `chunk_by/2` drops nothing, but two separators side by side, or one
-  # at either end, leave an empty group the reference's `String.split/2`
-  # would report; count the separators to find them.
-  defp pad_empty_groups(groups, tokens, reading) do
-    separators = Enum.count(tokens, &group?(&1, reading))
-
-    if length(groups) == separators + 1 do
-      groups
-    else
-      groups ++ [[]]
-    end
-  end
-
-  defp validate_groups(groups, sizes, grouping) do
-    lengths = Enum.map(groups, &group_length/1)
-
-    if Enum.all?(lengths, &is_integer/1) and grouped?(lengths, sizes, grouping) do
+    if Enum.all?(lengths, &group_length?/1) and grouped?(lengths, reading.sizes, grouping) do
       :ok
     else
       {:error, :grouping}
     end
   end
 
-  # A group that is not all digits is not a group at all.
-  defp group_length([{:digits, digits, _source}]) do
-    byte_size(digits)
-  end
-
-  defp group_length(_other) do
-    nil
+  defp group_length?(length) do
+    is_integer(length) and length > 0
   end
 
   defp grouped?([leading | rest], {primary, secondary}, :lenient) do
@@ -504,39 +623,28 @@ defmodule Localize.Number.Grammar do
   # take "1.23 EUR" for 1.23. Elsewhere one period between digits is a
   # decimal point, unless it has the shape of a thousands group: `fr`
   # "1.5" is 1.5, but "1.234" is refused.
-  defp no_stray_period(body, reading, lexicon) do
+  defp no_stray_period(walk, reading, lexicon) do
     cond do
       reading.period? -> :ok
-      not Enum.any?(body, &period?(&1, lexicon)) -> :ok
+      walk.periods == 0 -> :ok
       lexicon.period_separator? -> {:error, :stray_period}
-      foreign_decimal_point?(body, reading, lexicon) -> :ok
+      foreign_decimal_point?(walk) -> :ok
       true -> {:error, :stray_period}
     end
   end
 
   # Exactly one period, between digits, and no decimal mark of the
   # reading; not one to three digits, the period and three digits.
-  defp foreign_decimal_point?(body, reading, lexicon) do
-    not Enum.any?(body, &decimal?(&1, reading)) and
-      Enum.count(body, &period?(&1, lexicon)) == 1 and
-      period_between_digits?(body, lexicon) and
-      not period_group?(body, lexicon)
+  defp foreign_decimal_point?(walk) do
+    not walk.decimal? and walk.periods == 1 and walk.period_between? and not walk.period_group?
   end
 
-  defp period_between_digits?([{:digits, _, _}, period, {:digits, _, _} = next | rest], lexicon) do
-    period?(period, lexicon) or period_between_digits?([next | rest], lexicon)
-  end
-
-  defp period_between_digits?([_token | rest], lexicon) do
-    period_between_digits?(rest, lexicon)
-  end
-
-  defp period_between_digits?([], _lexicon) do
-    false
-  end
-
-  defp period_group?([{:digits, leading, _}, period, {:digits, group, _} | _rest], lexicon) do
-    byte_size(leading) in 1..3 and period?(period, lexicon) and byte_size(group) == 3
+  defp period_group?(
+         [{:digits, leading, _}, {:mark, _, source}, {:digits, group, _} | _],
+         lexicon
+       ) do
+    byte_size(leading) in 1..3 and MapSet.member?(lexicon.period, source) and
+      byte_size(group) == 3
   end
 
   defp period_group?(_body, _lexicon) do
@@ -544,37 +652,6 @@ defmodule Localize.Number.Grammar do
   end
 
   # ── The number string ─────────────────────────────────────────
-
-  # What each token contributes to the number Elixir parses: digits their
-  # Latin value, a decimal mark a period, a group separator nothing, a sign
-  # itself, and anything else its text, which the parse then refuses.
-  defp token_text({:digits, digits, _source}, _reading) do
-    digits
-  end
-
-  defp token_text({:minus, _value, _source}, _reading) do
-    "-"
-  end
-
-  defp token_text({:plus, _value, _source}, _reading) do
-    "+"
-  end
-
-  defp token_text({:space, _value, _source}, _reading) do
-    ""
-  end
-
-  defp token_text({:mark, _value, source} = token, reading) do
-    cond do
-      decimal?(token, reading) -> "."
-      group?(token, reading) -> ""
-      true -> source
-    end
-  end
-
-  defp token_text({_kind, _value, source}, _reading) do
-    source
-  end
 
   # A decimal point may open or close a number, ".5" or "5.". Elixir's
   # float and integer parsers refuse both and its decimal parser takes
@@ -692,20 +769,8 @@ defmodule Localize.Number.Grammar do
     false
   end
 
-  defp period?({:mark, _value, source}, lexicon) do
-    MapSet.member?(lexicon.period, source)
-  end
-
-  defp period?(_token, _lexicon) do
-    false
-  end
-
   defp space?({kind, _value, _source}) do
     kind == :space
-  end
-
-  defp sign?({kind, _value, _source}) do
-    kind in [:minus, :plus]
   end
 
   defp dash?({kind, _value, _source}) do

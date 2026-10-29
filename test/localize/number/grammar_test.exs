@@ -29,6 +29,38 @@ defmodule Localize.Number.GrammarTest do
     end
   end
 
+  describe "the body in one pass" do
+    test "an underscore joins digits in the fraction too, and an exponent may take a spaced sign" do
+      assert {:ok, 1.55} = read("1.5_5", :en)
+      assert {:ok, 1.0e-5} = read("1e -5", :en)
+      assert {:ok, 1.0e-5} = read("1e- 5", :en)
+      assert {:error, _} = read("1 2", :en)
+    end
+
+    test "an empty group refuses the number" do
+      for string <- ["1,,234", "1,234,", ",234", "1,234,.5"] do
+        assert {:error, %Localize.InvalidValueError{}} = read(string, :en), string
+      end
+    end
+
+    test "a second decimal mark is refused unless it ends the number" do
+      assert {:ok, 1234.56} = read("1,234.56.", :en)
+      assert {:ok, 1234} = read("1,234.", :en)
+      assert {:error, _} = read("1,234.5.6", :en)
+    end
+
+    test "a format character between the digits of a grouped number is dropped" do
+      assert {:ok, 12_345} = read("1‎2,345", :en)
+      assert {:ok, 1234.5} = read("1,234.‎5", :en)
+    end
+
+    test "a group that holds anything but digits refuses the number" do
+      assert {:error, _} = read("1,2x4", :en)
+      assert {:error, _} = read("1,234e5", :en)
+      assert {:ok, 1.2e6} = read("12e5", :en)
+    end
+  end
+
   describe "every reading must agree" do
     test "the locale's separators and the root's" do
       assert {:ok, 1234} = read("1.234", :de)
