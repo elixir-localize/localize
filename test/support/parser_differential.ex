@@ -401,11 +401,24 @@ defmodule Localize.Number.ParserDifferential do
     new = call(@parser, function, string, options)
     reference = call(@reference, function, string, options)
 
-    if same?(new, reference) do
+    if same?(new, reference) or expected_difference?(input, reference, new) do
       []
     else
       [{input, reference, new}]
     end
+  end
+
+  # The gaps the rewrite closes on purpose (`plans/number-parser-grammar.md`,
+  # decided 2026-10-29): an underscore anywhere but between two digits,
+  # which the reference dropped and the new parser refuses.
+  @stray_underscore ~r/(?<!\p{Nd})_|_(?!\p{Nd})/u
+
+  defp expected_difference?({:parse, string, _options}, {:ok, _value}, {:error, _exception}) do
+    String.match?(string, @stray_underscore)
+  end
+
+  defp expected_difference?(_input, _reference, _new) do
+    false
   end
 
   # A parser that raises is a defect, but one the report should name the

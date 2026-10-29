@@ -17,7 +17,7 @@ defmodule Localize.Number.Parser do
 
   """
 
-  alias Localize.Number.{Symbol, System}
+  alias Localize.Number.{Grammar, Lexicon, Symbol, System}
 
   @type per :: :percent | :permille
 
@@ -62,25 +62,6 @@ defmodule Localize.Number.Parser do
   # matches.
   @zero_fraction "[" <> @dash_class <> "][" <> @dash_class <> "]?(?![0-9])"
 
-  # TR35's loose matching for lenient parsing says to "ignore all characters in
-  # [:Zs:] unless they occur between letters", and separately to normalize to
-  # NFKC, "thus no-break space will map to space". Both make the whole space
-  # category equivalent here, so a number typed with an ordinary keyboard space
-  # parses under a locale that groups with U+202F, and one copied out of
-  # formatted output — carrying U+00A0, U+2009 or U+202F — parses in any locale
-  # that groups with a space.
-  #
-  # One departure: where the locale does not group with a space, a space
-  # between digits is not ignored. There it parts two numbers, as `scan/2`
-  # reads them, so `en` "1 2" is refused rather than read as 12 (user,
-  # 2026-10-28; `plans/tr35-audit.md`, "Departs from TR35's sentence by the
-  # user's decision"). A space at either end of a number, or beside its sign,
-  # is ignored as TR35 says.
-  #
-  # `[:Zs:]` rather than a full NFKC fold: NFKC also maps superscripts onto
-  # digits, so it would silently read "5²" as 52.
-  @spaces ~r/\p{Zs}/u
-
   # The same passage says to ignore all format characters, "in particular, ...
   # any RLM, LRM or ALM used to control BIDI formatting". This is not a
   # hypothetical: CLDR embeds those marks in the number symbols of 19 locales —
@@ -97,37 +78,11 @@ defmodule Localize.Number.Parser do
   # sign rather than a character, so there is nothing to fold them to.
   @compound_pattern ~r/\{.*?\}/u
 
-  @digits_only ~r/^[0-9]+$/
-
   @single_space ~r/^\p{Zs}$/u
-
-  # A number with one period, between digits, and the shape of a thousands
-  # group written with a period: one to three digits, the period, three
-  # digits. Digits are ASCII by the time these are matched.
-  @foreign_decimal_point ~r/\A[^.]*[0-9]\.[0-9][^.]*\z/
-  @period_group ~r/\A[0-9]{1,3}\.[0-9]{3}(?![0-9])/
 
   # A number of two runs of digits, one to three and then three, parted by
   # one mark: "73,460" or "1.599", in any script's digits, signed or not.
   @group_shape ~r/\A[^\p{Nd}]*\p{Nd}{1,3}[^\p{Nd}]\p{Nd}{3}[^\p{Nd}]*\z/u
-
-  # A decimal point that opens or closes a number, beside a digit.
-  @opening_point ~r/\A\.(?=[0-9])/
-  @closing_point ~r/(?<=[0-9])\.\z/
-
-  # A folded number as its sign before an opening parenthesis, the
-  # parenthesis, a sign after it, the digits, a sign before the closing
-  # parenthesis, the parenthesis and a sign after it. Every part but the
-  # digits may be empty, so it matches any string.
-  @signed_number ~r/\A\p{Zs}*([_+]?)\p{Zs}*(\(?)\p{Zs}*([_+]?)\p{Zs}*(.*?)\p{Zs}*([_+]?)\p{Zs}*(\)?)\p{Zs}*([_+]?)\p{Zs}*\z/us
-
-  # Whatever follows the last digit of a number in an accounting format:
-  # spaces and a closing parenthesis, all optional, so it matches any string.
-  @closing_parenthesis ~r/\p{Zs}*\)?\p{Zs}*\z/u
-
-  # Spaces at either end of a number, or beside its sign once folded: "_" is
-  # the minus family's sample.
-  @edge_spaces ~r/\A\p{Zs}+|\p{Zs}+\z|(?<=[_+])\p{Zs}+|\p{Zs}+(?=[_+])/u
 
   # A run of the Bidi_Control characters in `@bidi_controls`, at the start or
   # the end of a string.
@@ -157,15 +112,6 @@ defmodule Localize.Number.Parser do
   # A word with a letter and a digit, as a digital token's identifier
   # "Q9PB7XDNF" is.
   @letters_and_digits ~r/\A(?=.*\p{L})(?=.*\p{Nd})/us
-
-  @ends_in_digit ~r/\p{Nd}\z/u
-
-  # The same dashes as `parse/2` sees them, one or two, once folded: the
-  # minus family folds to its sample "_", and the dashes CLDR leaves out of
-  # it for a locale stay as they are.
-  @zero_fraction_dashes for dash <- ["_" | @zero_fraction_dash_characters],
-                            count <- [2, 1],
-                            do: String.duplicate(dash, count)
 
   # The three places in `@number_format` that `localize_format_string/3` fills
   # in with the locale: the sign class, the grouping separator and the decimal.
@@ -458,24 +404,14 @@ defmodule Localize.Number.Parser do
 
     with {:ok, language_tag} <- parsing_locale(locale),
          {:ok, number_type} <- number_type(Keyword.get(options, :number)),
-         {:ok, number_system} <- digits_number_system_from(language_tag, string, options),
+         {:ok, number_system} <- Lexicon.number_system(language_tag, string, options),
          {:ok, grouping} <- grouping_mode(options),
-         {:ok, symbol_sets} <- symbol_sets(language_tag, number_system, options) do
-      period_separator = period_separator?(symbol_sets)
-
-      readings =
-        Enum.map(symbol_sets, fn {reading_tag, symbols} ->
-          read_number(
-            string,
-            number_type,
-            number_system,
-            symbols,
-            {reading_tag, period_separator},
-            grouping
-          )
-        end)
-
-      agreed_reading(readings, string)
+         {:ok, lexicon} <- Lexicon.fetch(language_tag, number_system, options) do
+      Grammar.read(string, lexicon,
+        number: number_type,
+        grouping: grouping,
+        max_decimal_exponent: max_decimal_exponent()
+      )
     end
   end
 
@@ -536,50 +472,6 @@ defmodule Localize.Number.Parser do
     this.group == that.group and this.decimal == that.decimal
   end
 
-  # A number is the one every valid reading gives. Where two readings are
-  # valid and differ, the text is ambiguous and refused rather than one
-  # guessed: with `root_separators: true`, `de` "1.234" is 1234 with the
-  # locale's separators and 1.234 with the root locale's.
-  defp agreed_reading(readings, string) do
-    values = for {:ok, value} <- readings, do: value
-
-    case values do
-      [] -> hd(readings)
-      [value | others] -> same_reading(value, others, string)
-    end
-  end
-
-  defp same_reading(value, others, string) do
-    case Enum.reject(others, &same_value?(&1, value)) do
-      [] -> {:ok, value}
-      [other | _] -> {:error, ambiguous_number(string, value, other)}
-    end
-  end
-
-  defp same_value?(%Decimal{} = this, %Decimal{} = that) do
-    Decimal.equal?(this, that)
-  end
-
-  defp same_value?(this, that) do
-    this == that
-  end
-
-  defp ambiguous_number(string, value, other) do
-    Localize.ParseError.exception(
-      input: string,
-      reason: :unexpected_input,
-      detail: "it is ambiguous, #{number_text(value)} or #{number_text(other)}"
-    )
-  end
-
-  defp number_text(%Decimal{} = decimal) do
-    Decimal.to_string(decimal, :normal)
-  end
-
-  defp number_text(number) do
-    to_string(number)
-  end
-
   # How a grouping separator's position is checked: `:sizes` when asked for,
   # otherwise as `:lenient` says.
   defp grouping_mode(options) do
@@ -597,64 +489,6 @@ defmodule Localize.Number.Parser do
   defp lenient_grouping(_lenient) do
     :lenient
   end
-
-  # Text that is not a number of this locale is a parse error naming the
-  # text, not whichever step of the reading first refused it.
-  # A period that is a separator of any set the number is read with is not
-  # foreign to the locale: `de-AT` groups the euro with it, so its plain-number
-  # set, which does not, must not take "1.23 EUR" for 1.23.
-  defp period_separator?(symbol_sets) do
-    Enum.any?(symbol_sets, fn {reading_tag, symbols} ->
-      lenient = lenient_replacements(reading_tag)
-
-      Enum.any?([symbols.decimal, symbols.group], fn separator ->
-        separator
-        |> extract_separator()
-        |> apply_lenient(lenient)
-        |> Kernel.==(".")
-      end)
-    end)
-  end
-
-  defp read_number(string, number_type, number_system, symbol, reading, grouping) do
-    case normalized_value(string, number_type, number_system, symbol, reading, grouping) do
-      {:ok, _value} = success -> bound_decimal_exponent(success, string)
-      _unreadable -> {:error, parse_error(string)}
-    end
-  end
-
-  defp normalized_value(string, number_type, number_system, symbol, reading, grouping) do
-    {language_tag, period_separator} = reading
-
-    with {:ok, normalized} <-
-           string
-           |> transliterate_digits(number_system)
-           |> normalize_number_string(
-             symbol,
-             language_tag,
-             number_system,
-             grouping,
-             period_separator
-           ) do
-      normalized |> String.trim() |> parse_number(number_type)
-    end
-  end
-
-  # If the parsed value is a `Decimal` with an exponent magnitude that
-  # would make downstream operations expensive, reject the parse
-  # rather than return a value that will misbehave under multiplication
-  # or formatting. Integers and floats are bounded by their own range
-  # checks and do not need this guard.
-  defp bound_decimal_exponent({:ok, %Decimal{exp: exp}} = ok, _string)
-       when is_integer(exp) do
-    if abs(exp) > max_decimal_exponent() do
-      {:error, parse_error("Decimal exponent #{exp} exceeds limit of ±#{max_decimal_exponent()}")}
-    else
-      ok
-    end
-  end
-
-  defp bound_decimal_exponent(other, _string), do: other
 
   @doc """
   Resolves currencies from strings within a list.
@@ -1946,189 +1780,6 @@ defmodule Localize.Number.Parser do
     end
   end
 
-  defp parse_number(string, nil) do
-    with {:error, _} <- parse_number(string, :integer),
-         {:error, _} <- parse_number(string, :float) do
-      {:error, string}
-    end
-  end
-
-  defp parse_number(string, :integer) do
-    case Integer.parse(string) do
-      {integer, ""} -> {:ok, integer}
-      _ -> {:error, string}
-    end
-  end
-
-  defp parse_number(string, :float) do
-    case Float.parse(string) do
-      {float, ""} -> {:ok, float}
-      _ -> {:error, string}
-    end
-  end
-
-  defp parse_number(string, :decimal) do
-    case Localize.Utils.Decimal.parse(string) do
-      {:error, _} -> {:error, string}
-      {decimal, ""} -> {:ok, decimal}
-      _ -> {:error, string}
-    end
-  end
-
-  defp normalize_number_string(
-         string,
-         symbols,
-         language_tag,
-         number_system,
-         grouping,
-         period_separator
-       ) do
-    lenient = lenient_replacements(language_tag)
-
-    # TR35 is explicit that loose matching applies "to both the input text and
-    # to each of the field elements used in matching". Folding only the input
-    # would break the locales whose own separator is one of the characters
-    # being folded: `de-CH` groups with an ASCII apostrophe, which the general
-    # scope maps onto U+2019, and `ar`'s `arab` decimal separator U+066B is in
-    # the comma set. Folding both sides keeps them matching each other.
-    group_sep = symbols.group |> extract_separator() |> apply_lenient(lenient)
-    decimal_sep = symbols.decimal |> extract_separator() |> apply_lenient(lenient)
-
-    folded =
-      string
-      # Elixir's own numeric literal separator, dropped before the minus fold
-      # below can introduce one of its own.
-      |> String.replace("_", "")
-      |> String.replace(@format_characters, "")
-      |> apply_lenient(lenient)
-      # Before the signs are read, so the dash of "5.-" is not a minus.
-      |> drop_zero_fraction(decimal_sep, grouping)
-
-    with {:ok, body, negative?} <- signed_body(folded, decimal_sep),
-         body = normalize_spaces(body, group_sep),
-         :ok <-
-           validate_grouping(body, group_sep, decimal_sep, language_tag, number_system, grouping),
-         :ok <- no_stray_period(body, group_sep, decimal_sep, period_separator) do
-      number =
-        body
-        |> String.replace(group_sep, "")
-        |> String.replace(@spaces, "")
-        |> String.replace(decimal_sep, ".")
-        |> complete_decimal_point()
-        # CLDR names the minus set by the sample "_", so folding it yields
-        # that placeholder rather than a sign. What remains of one here is an
-        # exponent's.
-        |> String.replace("_", "-")
-
-      {:ok, signed_number(number, negative?)}
-    end
-  end
-
-  # The number is handed to Elixir with "." as its decimal point, so a period
-  # that is neither of the locale's separators would pass for one. It is read
-  # as one only where it can be nothing else: a single period between digits,
-  # in text without the locale's own decimal mark, and not in the shape of a
-  # thousands group. `fr` "100.00" is 100, but "1.234" is refused, since one
-  # who groups with a period means 1234 by it. Where another set the number is
-  # read with has the period, this one leaves it to that set.
-  defp no_stray_period(body, group_sep, decimal_sep, period_separator) do
-    cond do
-      "." in [group_sep, decimal_sep] -> :ok
-      not String.contains?(body, ".") -> :ok
-      period_separator -> {:error, :stray_period}
-      foreign_decimal_point?(body, decimal_sep) -> :ok
-      true -> {:error, :stray_period}
-    end
-  end
-
-  defp foreign_decimal_point?(body, decimal_sep) do
-    not String.contains?(body, decimal_sep) and String.match?(body, @foreign_decimal_point) and
-      not String.match?(body, @period_group)
-  end
-
-  # A number's sign or accounting parentheses, as a money amount writes
-  # them: one sign at most, before or after the digits, or parentheses,
-  # which make it negative, so "(5)" is -5. TR35's heuristics for parsing a
-  # number take a sign as a prefix or a suffix. A sign and parentheses
-  # together are refused: "(-5)" is read as -5 by some and as 5 by others.
-  # So is a minus before a decimal mark with no digit ahead of it: Swiss
-  # "Fr. –.15" and Dutch "€ -,50" write a dash for the zero, so "-.15" may be
-  # 0.15 or -0.15. Spaces between them and the digits are not part of the
-  # number.
-  defp signed_body(folded, decimal_sep) do
-    [_whole, before_open, open, after_open, body, before_close, close, after_close] =
-      Regex.run(@signed_number, folded)
-
-    signs = Enum.reject([before_open, after_open, before_close, after_close], &(&1 == ""))
-
-    cond do
-      body == "" -> {:error, :no_digits}
-      match?([_, _ | _], signs) -> {:error, :signs}
-      open == "(" != (close == ")") -> {:error, :parentheses}
-      open == "(" and match?([_ | _], signs) -> {:error, :signs}
-      dash_for_zero?(before_open, after_open, body, decimal_sep) -> {:error, :dash_for_zero}
-      true -> {:ok, body, signs == ["_"] or open == "("}
-    end
-  end
-
-  defp dash_for_zero?(before_open, after_open, body, decimal_sep) do
-    "_" in [before_open, after_open] and decimal_sep != "" and
-      String.starts_with?(body, decimal_sep)
-  end
-
-  # A decimal mark may open or close a number, ".5" or "5.". Elixir's float
-  # and integer parsers refuse both and its decimal parser takes them, so the
-  # point is completed here and every number type reads them alike.
-  defp complete_decimal_point(number) do
-    number
-    |> String.replace(@opening_point, "0.")
-    |> String.replace(@closing_point, "")
-  end
-
-  defp signed_number(number, true) do
-    "-" <> number
-  end
-
-  defp signed_number(number, false) do
-    number
-  end
-
-  # Swiss "5.–" and Dutch "5,-" write a whole amount with a dash for its
-  # fraction. CLDR has no data for the convention (CLDR-3394), so it is read
-  # only leniently, after the folds.
-  defp drop_zero_fraction(string, decimal_sep, grouping)
-       when grouping in [:lenient, :sizes] and decimal_sep != "" do
-    # The dash ends the number, which may be followed by the closing
-    # parenthesis of an accounting format: "(CHF 5.–)".
-    [{start, _length}] = Regex.run(@closing_parenthesis, string, return: :index)
-    number = binary_part(string, 0, start)
-    closing = binary_part(string, start, byte_size(string) - start)
-
-    Enum.find_value(@zero_fraction_dashes, string, fn dashes ->
-      whole = String.replace_suffix(number, decimal_sep <> dashes, "")
-
-      if whole != number and String.match?(whole, @ends_in_digit) do
-        whole <> closing
-      end
-    end)
-  end
-
-  defp drop_zero_fraction(string, _decimal_sep, _strict) do
-    string
-  end
-
-  # Where the locale groups with a space, every space folds onto that separator
-  # so the grouping check below can see it. Deleting them instead would erase
-  # the very characters whose positions are being validated. Elsewhere a space
-  # inside the number is refused by `interior_space?/2`.
-  defp normalize_spaces(string, group_sep) do
-    if String.match?(group_sep, @single_space) do
-      String.replace(string, @spaces, group_sep)
-    else
-      string
-    end
-  end
-
   # ── Grouping shape ─────────────────────────────────────────────
   #
   # TR35's heuristics for parsing a number, which "may be helpful", have a
@@ -2152,97 +1803,6 @@ defmodule Localize.Number.Parser do
   # The lenient floor of two is what keeps a space usable as a grouping
   # separator without swallowing adjacent small numbers: "3 4 5" is three
   # numbers in any locale, and no mode reads it as 345.
-
-  defp validate_grouping(string, group_sep, decimal_sep, language_tag, number_system, grouping) do
-    [integer_part | fraction] = String.split(string, decimal_sep, parts: 2)
-    integer_part = String.replace(integer_part, ["_", "+"], "")
-
-    # Digits after the decimal mark are never grouped, so a grouping
-    # separator there means the text is not a number of this locale: `de`
-    # "1,234.56" is not 1.23456, nor `fr` "1,5 6" 1.56.
-    cond do
-      interior_space?(string, group_sep) ->
-        {:error, :grouping}
-
-      grouped_fraction?(fraction, group_sep) ->
-        {:error, :grouping}
-
-      true ->
-        validate_integer_grouping(integer_part, group_sep, language_tag, number_system, grouping)
-    end
-  end
-
-  # A number is digits joined by the locale's separators. Where the locale
-  # groups with a space, `normalize_spaces/2` has already made every space
-  # that separator; anywhere else a space inside the number parts two
-  # numbers, as `scan/2` reads them, so `en` "1 2" is not 12. A space before
-  # or after the number, or beside its sign, is not inside it.
-  defp interior_space?(string, group_sep) do
-    if String.match?(group_sep, @single_space) do
-      false
-    else
-      string
-      |> String.replace(@edge_spaces, "")
-      |> String.match?(@spaces)
-    end
-  end
-
-  defp grouped_fraction?([fraction], group_sep) when group_sep != "" do
-    String.contains?(fraction, group_sep)
-  end
-
-  defp grouped_fraction?(_no_fraction, _group_sep) do
-    false
-  end
-
-  defp validate_integer_grouping(integer_part, group_sep, language_tag, number_system, grouping) do
-    case String.split(integer_part, group_sep) do
-      # No grouping separator at all: grouping is optional in input.
-      [_ungrouped] -> :ok
-      groups -> validate_groups(groups, grouping_sizes(language_tag, number_system), grouping)
-    end
-  end
-
-  defp validate_groups(groups, sizes, grouping) do
-    # A group that is not all digits is not a group at all.
-    digits? = Enum.all?(groups, &(&1 != "" and String.match?(&1, @digits_only)))
-
-    if digits? and grouped?(groups, sizes, grouping) do
-      :ok
-    else
-      {:error, :grouping}
-    end
-  end
-
-  defp grouped?([leading | rest], {primary, secondary}, :lenient) do
-    lenient_groups?(leading, rest, max(primary, secondary))
-  end
-
-  # Each group is one the locale writes: the last of the primary size, the
-  # ones before it of the primary or secondary size, and the first no longer
-  # than either. So `de` refuses "1.23", which a two-digit floor reads as
-  # 123 though it may well be 1.23, and `en-IN` takes both "12,34,567" and
-  # "1,234,567".
-  defp grouped?([leading | rest], {primary, secondary}, :sizes) do
-    {last, middle} = List.pop_at(rest, -1)
-
-    String.length(leading) <= max(primary, secondary) and
-      String.length(last) == primary and
-      Enum.all?(middle, &(String.length(&1) in [primary, secondary]))
-  end
-
-  defp grouped?([leading | rest], {primary, secondary}, :strict) do
-    {last, middle} = List.pop_at(rest, -1)
-
-    String.length(last) == primary and
-      Enum.all?(middle, &(String.length(&1) == secondary)) and
-      String.length(leading) <= secondary
-  end
-
-  defp lenient_groups?(leading, rest, longest) do
-    String.length(leading) <= longest and
-      Enum.all?(rest, &(String.length(&1) in @lenient_group_floor..longest//1))
-  end
 
   # The primary group is the rightmost run in the locale's standard pattern and
   # the secondary the one before it. They differ in the Indian system —

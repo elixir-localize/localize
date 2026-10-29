@@ -153,11 +153,13 @@ Each task is one turn: build, run that task's tests, stop for the user to commit
 
 * [x] **Lexer** — `Localize.Number.Lexer.tokens/2`: one pass, `{kind, value, source}` tokens, nothing dropped (bidi controls, format characters and underscores are tokens the grammars decide on), one regex call only for a non-ASCII character outside every lexicon set. Snapshots for bidi marks, Arabic digits, no-break spaces, "5.–" in `en` and `de-CH`, apostrophes, fullwidth and superscript characters. 2026-10-29.
 
-* [ ] **Number grammar** — `Localize.Number.Grammar` and `parse/2` on it; the differential test on numbers all green; `parser_test.exs` unchanged.
+* [x] **Number grammar** — `Localize.Number.Grammar.read/3`, one named function per rule, and `parse/2` on it; 37 superseded clauses and 11 regex attributes deleted from `Parser` (2,680 → 2,365 lines). Differential green on 99,342 numbers and 132,215 amounts, the underscore closure listed as the one expected difference; `parser_test.exs` unchanged; 14 grammar tests. The number string Elixir parses is still built, since it is one short string and keeps `Integer`, `Float` and `Decimal` parsing identical. 2026-10-29.
 
 * [ ] **Currency index** — the lexicon's `currencies` map with claimant lists and filters at lookup, equal to today's filtered `amount_strings/3` for every locale and for a sample of filters.
 
 * [ ] **Amount grammar** — `Localize.Number.Parser.Amount` and `parse_currency_amount/2` on it; the differential test on amounts all green; `currency_amount_test.exs` and the corpus unchanged.
+
+* [ ] **Unicode categories from the `unicode` library** — the lexer classes a character outside every lexicon set with one `\p{Cf}|\p{Nd}|\p{Po}\p{Pf}\p{Pi}` regex call; replace it with a generated range table (`Localize.Number.Lexer.Categories` or similar) produced by a mix task from `~/Development/unicode/unicode`, which tracks each Unicode release (user, 2026-10-29). The task is rerun when that library updates; the differential test verifies the swap.
 
 * [ ] **Remove the superseded code** — delete the private functions the new path replaces, leaving `scan/2`, `resolve_*` and `find_and_replace/3` working on the lexicon's shared data; credo and dialyzer clean.
 
