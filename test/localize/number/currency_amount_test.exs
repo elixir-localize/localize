@@ -228,6 +228,17 @@ defmodule Localize.Number.CurrencyAmountTest do
       # Only a caller reads such a word.
       assert %Localize.ParseError{reason: :unexpected_input} = amount("Q9PB7XDNF 5")
     end
+
+    # CLDR writes a few currency symbols with bidi marks in them; `he`
+    # writes the yuan "‎CN¥‎". The marks are removed from the text and from
+    # the index alike, so the symbol reads, and what `he` formats reads back.
+    test "a currency symbol CLDR writes with bidi marks" do
+      assert {:CNY, "5"} = amount("CN¥5", locale: :he)
+      assert {:CNY, "5"} = amount("‎CN¥‎5", locale: :he)
+
+      {:ok, formatted} = Localize.Number.to_string(5, locale: :he, currency: :CNY)
+      assert {:CNY, "5.00"} = amount(formatted, locale: :he)
+    end
   end
 
   describe "what Localize formats" do

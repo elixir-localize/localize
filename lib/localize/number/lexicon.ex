@@ -117,6 +117,9 @@ defmodule Localize.Number.Lexicon do
 
   @format_characters ~r/\p{Cf}/u
 
+  # Unicode's Bidi_Control characters, as `Localize.Number.Lexer` knows them.
+  @bidi_controls ~r/[\x{061C}\x{200E}\x{200F}\x{202A}-\x{202E}\x{2066}-\x{2069}]/u
+
   @single_space ~r/^\p{Zs}$/u
 
   @default_grouping_sizes {3, 3}
@@ -301,6 +304,110 @@ defmodule Localize.Number.Lexicon do
     |> Enum.zip(0..9)
     |> Map.new()
     |> Map.merge(Map.new(Enum.zip(@latin_digits, 0..9)))
+  end
+
+  @doc false
+  # The currency index a currency amount is read with: every string that
+  # names one currency of the locale under the `:only` and `:except`
+  # filters, NFKC-normalized and downcased, to its code. Built once per
+  # locale and filter set and cached, since a filter changes which strings
+  # are unambiguous ("kr" names the krone alone among `only: [:NOK]`) and
+  # the build walks every currency.
+  #
+  # A currency amount reads a narrow symbol of another currency than the
+  # locale's own only when it is a currency sign that names that currency
+  # alone: CLDR writes a narrow symbol where the context makes the currency
+  # clear, and elsewhere a letter abbreviation may be another thing. `de-CH`
+  # gives the rupiah the narrow symbol "Rp", but a Swiss "15 Rp." is 15
+  # Rappen, while `en-AU` "€5" is the euro. A historic currency is read only
+  # by its code or its name, since its symbols are reused: a Russian
+  # "6 300 Р" is not the ruble of 1991–1998.
+  @spec currencies(Localize.LanguageTag.t(), Keyword.t()) ::
+          {:ok, %{String.t() => atom()}} | {:error, Exception.t()}
+  def currencies(%Localize.LanguageTag{} = language_tag, filters) do
+    only = filters |> Keyword.get(:only, :all) |> List.wrap() |> Enum.sort()
+    except = filters |> Keyword.get(:except, []) |> List.wrap() |> Enum.sort()
+    key = {__MODULE__, {:currencies, language_tag.cldr_locale_id, only, except}}
+
+    case :persistent_term.get(key, nil) do
+      nil -> cache_currencies(key, language_tag, filters)
+      strings -> {:ok, strings}
+    end
+  end
+
+  defp cache_currencies(key, language_tag, filters) do
+    with {:ok, strings} <- amount_strings(language_tag, own_currency(language_tag), filters) do
+      Localize.LiteralMemory.cache(key, strings)
+      {:ok, strings}
+    end
+  end
+
+  defp amount_strings(language_tag, own, filters) do
+    locale_id = language_tag.cldr_locale_id
+
+    with {:ok, strings} <- Localize.Currency.currency_strings(locale_id, filters),
+         {:ok, narrow} <- Localize.Currency.narrow_symbol_strings(locale_id, filters),
+         {:ok, signs} <- Localize.Currency.currency_sign_strings(locale_id, filters),
+         {:ok, unclaimed} <- Localize.Currency.unclaimed_sign_strings(locale_id, filters),
+         {:ok, historic} <- Localize.Currency.historic_symbol_strings(locale_id, filters) do
+      foreign =
+        for {string, code} <- narrow,
+            code != own,
+            not Map.has_key?(signs, string),
+            do: string
+
+      amount_strings =
+        strings
+        |> Map.drop(foreign ++ Map.keys(historic))
+        |> Map.merge(unclaimed)
+        |> nfkc_strings()
+
+      {:ok, amount_strings}
+    end
+  end
+
+  # Two strings that normalize alike but name different currencies name
+  # neither, as a string two currencies share names neither.
+  defp nfkc_strings(strings) do
+    strings
+    |> Enum.group_by(fn {string, _code} -> nfkc(string) end, fn {_string, code} -> code end)
+    |> Enum.flat_map(fn {string, codes} -> single_claimant(string, Enum.uniq(codes)) end)
+    |> Map.new()
+  end
+
+  defp single_claimant(string, [code]) do
+    [{string, code}]
+  end
+
+  defp single_claimant(_string, _codes) do
+    []
+  end
+
+  @doc false
+  # The locale's own currency, or `nil` where it has none.
+  @spec own_currency(Localize.LanguageTag.t()) :: atom() | nil
+  def own_currency(%Localize.LanguageTag{} = language_tag) do
+    case Localize.Currency.currency_from_locale(language_tag) do
+      {:ok, currency} -> currency
+      {:error, _no_currency} -> nil
+    end
+  end
+
+  @doc false
+  # Currency text as it is matched: NFKC-normalized and downcased, as
+  # TR35's loose matching asks, with the bidi controls CLDR writes into a
+  # few currency symbols removed (`he` writes the yuan "‎CN¥‎"), since the
+  # text they are matched against has had its own removed. Text that is
+  # not valid Unicode is matched as it is, and found in no index.
+  @spec nfkc(String.t()) :: String.t()
+  def nfkc(string) do
+    case :unicode.characters_to_nfkc_binary(string) do
+      normalized when is_binary(normalized) ->
+        String.downcase(String.replace(normalized, @bidi_controls, ""))
+
+      _invalid ->
+        string
+    end
   end
 
   # ── Building ──────────────────────────────────────────────────

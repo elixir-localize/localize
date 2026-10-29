@@ -70,7 +70,7 @@ Everything the lexer and the grammar need to know about a locale, computed once 
 
 * **`readings`** — a list of one to three separator sets, each with the `MapSet` of graphemes that fold onto its decimal separator, the set for its group separator, whether the group separator is a space, the grouping sizes, and the tag of the locale it belongs to. This is today's `symbol_sets/3` and `lenient_replacements/1` collapsed into lookups.
 
-* **`currencies`** — the amount reading's currency index for the locale: a map from NFKC string to a list of claimants, each a currency code with the kind of string it is (`:code`, `:name`, `:symbol`, `:narrow`, `:sign`, `:unclaimed`, `:historic`). Built unfiltered once per locale; `:only` and `:except` are applied to the claimant list at lookup, which gives the same answer as building a filtered index and costs a list filter instead of 9.6 ms.
+* **`currencies`** — the amount reading's currency index for the locale, a map from NFKC string to currency code, built as the reference builds it and cached per `{locale, only, except}` (`Lexicon.currencies/2`). The plan first had filters applied to a claimant list at lookup; that was dropped (2026-10-29) because `Localize.Currency.build_currency_strings/1` resolves a string two currencies share pairwise, in the order the currency map yields them, so a lookup-time filter would have to mimic that fold to be exact. Caching the filtered index is exact by construction, and the filters in application code are constants, so the 9.6 ms is paid once per filter set. A caller that varies its filters per request pays the build each time and fills the literal area with indexes; the docs say so.
 
 The lexicon is where the first-parse cost lives. It is built from the same `Localize.Locale.get/3` calls as today, and the target is under 5 ms per locale after the locale data is loaded.
 
@@ -155,7 +155,7 @@ Each task is one turn: build, run that task's tests, stop for the user to commit
 
 * [x] **Number grammar** — `Localize.Number.Grammar.read/3`, one named function per rule, and `parse/2` on it; 37 superseded clauses and 11 regex attributes deleted from `Parser` (2,680 → 2,365 lines). Differential green on 99,342 numbers and 132,215 amounts, the underscore closure listed as the one expected difference; `parser_test.exs` unchanged; 14 grammar tests. The number string Elixir parses is still built, since it is one short string and keeps `Integer`, `Float` and `Decimal` parsing identical. 2026-10-29.
 
-* [ ] **Currency index** — the lexicon's `currencies` map with claimant lists and filters at lookup, equal to today's filtered `amount_strings/3` for every locale and for a sample of filters.
+* [x] **Currency index** — `Lexicon.currencies/2`, the reference's `amount_strings/3` moved and cached per filter set, with bidi marks stripped from its keys (`he` "CN¥" reads, the one key that changed across 657 locales); `nfkc/1` and `own_currency/1` moved with it. The differential gained four filtered option sets per formatted amount: 295,215 amount inputs, 0 differences. 2026-10-29.
 
 * [ ] **Amount grammar** — `Localize.Number.Parser.Amount` and `parse_currency_amount/2` on it; the differential test on amounts all green; `currency_amount_test.exs` and the corpus unchanged.
 

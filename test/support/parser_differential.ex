@@ -191,9 +191,22 @@ defmodule Localize.Number.ParserDifferential do
   end
 
   defp formatted_inputs(locales) do
-    for {locale, text, _currency} <- formatted(locales, @currencies, @amounts, @styles),
-        options <- [[locale: locale], [locale: locale, caller_currency: &token/1]],
+    for {locale, text, currency} <- formatted(locales, @currencies, @amounts, @styles),
+        options <- amount_option_sets(locale, currency),
         do: {:parse_currency_amount, text, options}
+  end
+
+  # Plain, with a caller's currencies, and under filters that keep the
+  # currency, drop it, or narrow the index to a few.
+  defp amount_option_sets(locale, currency) do
+    [
+      [locale: locale],
+      [locale: locale, caller_currency: &token/1],
+      [locale: locale, only: [currency, :EUR]],
+      [locale: locale, except: [currency]],
+      [locale: locale, only: [:USD, :EUR, :GBP, :JPY]],
+      [locale: locale, only: :current]
+    ]
   end
 
   defp perturbed_inputs(locales) do
@@ -415,6 +428,17 @@ defmodule Localize.Number.ParserDifferential do
 
   defp expected_difference?({:parse, string, _options}, {:ok, _value}, {:error, _exception}) do
     String.match?(string, @stray_underscore)
+  end
+
+  # And a currency string CLDR writes with a bidi mark, which the reference
+  # could never match once the mark was stripped from the text: `he` writes
+  # the yuan "‎CN¥‎".
+  defp expected_difference?(
+         {:parse_currency_amount, _string, _options},
+         {:error, %Localize.UnknownCurrencyError{currency: currency}},
+         {:ok, {:CNY, _amount}}
+       ) do
+    Localize.Number.Lexicon.nfkc(currency) == "cn¥"
   end
 
   defp expected_difference?(_input, _reference, _new) do

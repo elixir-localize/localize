@@ -143,6 +143,51 @@ defmodule Localize.Number.LexiconTest do
     end
   end
 
+  describe "currencies/2" do
+    defp currencies(locale, filters \\ []) do
+      {:ok, language_tag} = Localize.validate_locale(locale)
+      {:ok, strings} = Lexicon.currencies(language_tag, filters)
+      strings
+    end
+
+    test "every string that names one currency, normalized and downcased" do
+      en = currencies(:en)
+
+      assert en["usd"] == :USD
+      assert en["$"] == :USD
+      assert en["us dollars"] == :USD
+      assert en["€"] == :EUR
+      # `en` writes the yen "¥" itself; in `fr` the yen and the yuan share
+      # it as a narrow symbol, and in `bg` the two wons share "₩".
+      assert en["¥"] == :JPY
+      refute Map.has_key?(currencies(:fr), "¥")
+      refute Map.has_key?(currencies(:fr), "$")
+      refute Map.has_key?(currencies(:bg), "₩")
+    end
+
+    test "a filter narrows the index, and each filter set is cached" do
+      assert currencies(:en, only: [:EUR])["€"] == :EUR
+      refute Map.has_key?(currencies(:en, only: [:EUR]), "usd")
+      refute Map.has_key?(currencies(:en, except: [:USD]), "usd")
+      assert currencies(:fr, only: [:CAD, :EUR]) == currencies(:fr, only: [:EUR, :CAD])
+      # A foreign narrow symbol stays out under a filter too.
+      assert nil == currencies(:fr, only: [:JPY])["¥"]
+    end
+
+    test "a foreign narrow abbreviation and a historic symbol are left out" do
+      refute Map.has_key?(currencies(:"de-CH"), "rp")
+      assert currencies(:"de-CH")["€"] == :EUR
+      refute Map.has_key?(currencies(:ru), "р")
+      assert currencies(:ru)["rur"] == :RUR
+    end
+
+    test "bidi marks are removed from the strings" do
+      assert currencies(:he)["cn¥"] == :CNY
+      assert Lexicon.nfkc("‎CN¥‎") == "cn¥"
+      assert Lexicon.nfkc("ＵＳＤ") == "usd"
+    end
+  end
+
   describe "errors" do
     test "an unknown currency" do
       {:ok, en} = Localize.validate_locale(:en)

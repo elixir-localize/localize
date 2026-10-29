@@ -766,86 +766,8 @@ defmodule Localize.Number.Parser do
     Localize.Currency.currency_strings(locale_id(language_tag), filters)
   end
 
-  # The unfiltered index is built once per locale and currency of the locale;
-  # a filtered one is built for each call, and so is its amount form.
-  defp reading_strings(language_tag, [only: only, except: except] = filters, :amount)
-       when only in [:all, [:all]] and except in [nil, []] do
-    own = own_currency(language_tag)
-    key = {__MODULE__, :amount_currency_strings, locale_id(language_tag), own}
-
-    case :persistent_term.get(key, nil) do
-      nil -> cache_amount_strings(key, language_tag, own, filters)
-      strings -> {:ok, strings}
-    end
-  end
-
   defp reading_strings(language_tag, filters, :amount) do
-    amount_strings(language_tag, own_currency(language_tag), filters)
-  end
-
-  defp cache_amount_strings(key, language_tag, own, filters) do
-    with {:ok, strings} <- amount_strings(language_tag, own, filters) do
-      Localize.LiteralMemory.cache(key, strings)
-      {:ok, strings}
-    end
-  end
-
-  # A currency amount reads a narrow symbol of another currency than the
-  # locale's own only when it is a currency sign that names that currency
-  # alone: CLDR writes a narrow symbol where the context makes the currency
-  # clear, and elsewhere a letter abbreviation may be another thing. `de-CH`
-  # gives the rupiah the narrow symbol "Rp", but a Swiss "15 Rp." is 15
-  # Rappen, while `en-AU` "€5" is the euro.
-  # A historic currency is read only by its code or its name, since its
-  # symbols are reused: a Russian "6 300 Р" is not the ruble of 1991–1998.
-  defp amount_strings(language_tag, own, filters) do
-    locale_id = locale_id(language_tag)
-
-    with {:ok, strings} <- Localize.Currency.currency_strings(locale_id, filters),
-         {:ok, narrow} <- Localize.Currency.narrow_symbol_strings(locale_id, filters),
-         {:ok, signs} <- Localize.Currency.currency_sign_strings(locale_id, filters),
-         {:ok, unclaimed} <- Localize.Currency.unclaimed_sign_strings(locale_id, filters),
-         {:ok, historic} <- Localize.Currency.historic_symbol_strings(locale_id, filters) do
-      foreign =
-        for {string, code} <- narrow,
-            code != own,
-            not Map.has_key?(signs, string),
-            do: string
-
-      dropped = foreign ++ Map.keys(historic)
-
-      amount_strings =
-        strings
-        |> Map.drop(dropped)
-        |> Map.merge(unclaimed)
-        |> nfkc_strings()
-
-      {:ok, amount_strings}
-    end
-  end
-
-  defp own_currency(language_tag) do
-    case Localize.Currency.currency_from_locale(language_tag) do
-      {:ok, currency} -> currency
-      {:error, _no_currency} -> nil
-    end
-  end
-
-  # Two strings that normalize alike but name different currencies name
-  # neither, as a string two currencies share names neither.
-  defp nfkc_strings(strings) do
-    strings
-    |> Enum.group_by(fn {string, _code} -> nfkc(string) end, fn {_string, code} -> code end)
-    |> Enum.flat_map(fn {string, codes} -> single_claimant(string, Enum.uniq(codes)) end)
-    |> Map.new()
-  end
-
-  defp single_claimant(string, [code]) do
-    [{string, code}]
-  end
-
-  defp single_claimant(_string, _codes) do
-    []
+    Lexicon.currencies(language_tag, filters)
   end
 
   defp reading_text(string, :nearest) do
@@ -853,15 +775,7 @@ defmodule Localize.Number.Parser do
   end
 
   defp reading_text(string, :amount) do
-    nfkc(string)
-  end
-
-  # Text that is not valid Unicode is matched as it is, and found in no index.
-  defp nfkc(string) do
-    case :unicode.characters_to_nfkc_binary(string) do
-      normalized when is_binary(normalized) -> String.downcase(normalized)
-      _invalid -> string
-    end
+    Lexicon.nfkc(string)
   end
 
   # A string several of the locale's currencies share ("$" in `fr`) names
@@ -1584,7 +1498,8 @@ defmodule Localize.Number.Parser do
 
     case Localize.Currency.narrow_symbol_strings(Keyword.get(options, :locale), filters) do
       {:ok, narrow} ->
-        Map.get(narrow, nfkc(text)) || Map.get(narrow, nfkc(String.trim_trailing(text, ".")))
+        Map.get(narrow, Lexicon.nfkc(text)) ||
+          Map.get(narrow, Lexicon.nfkc(String.trim_trailing(text, ".")))
 
       {:error, _no_data} ->
         nil
@@ -1615,7 +1530,7 @@ defmodule Localize.Number.Parser do
   end
 
   defp own_or_ambiguous(currency, other, text, options) do
-    if own_currency(Keyword.get(options, :locale)) == currency do
+    if Lexicon.own_currency(Keyword.get(options, :locale)) == currency do
       {:ok, currency, currency}
     else
       {:error, ambiguous_currency(text, currency, other)}
