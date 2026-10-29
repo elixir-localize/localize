@@ -30,8 +30,8 @@ defmodule Localize.Number.Lexer do
   * `:other_digits` — a run of digits of a number system the lexicon
     does not read.
 
-  * `:mark` — a punctuation character, or one that is a separator in
-    some reading.
+  * `:mark` — a punctuation mark, a final quotation mark, or a
+    character that is a separator in some reading.
 
   * `:space` — a space character (`[:Zs:]`).
 
@@ -43,6 +43,9 @@ defmodule Localize.Number.Lexer do
   * `:open` and `:close` — a parenthesis.
 
   * `:underscore` — Elixir's digit separator.
+
+  * `:tab` — a tab, which may decorate a currency amount but is no
+    space inside a number.
 
   * `:bidi` — a Unicode bidi control character.
 
@@ -62,6 +65,7 @@ defmodule Localize.Number.Lexer do
           | :open
           | :close
           | :underscore
+          | :tab
           | :bidi
           | :format
           | :text
@@ -89,9 +93,10 @@ defmodule Localize.Number.Lexer do
 
   # A character the lexicon does not know and ASCII does not settle is
   # classed by Unicode's categories: a format character, a digit of some
-  # other number system, or a punctuation mark. One regular expression, so
-  # the lookup is one call.
-  @categories ~r/\A(?:(\p{Cf})|(\p{Nd})|([\p{Po}\p{Pf}\p{Pi}]))\z/u
+  # other number system, or a punctuation mark (`Po` or a final quotation
+  # mark, which may close a number; an initial one may not). One regular
+  # expression, so the lookup is one call.
+  @categories ~r/\A(?:(\p{Cf})|(\p{Nd})|([\p{Po}\p{Pf}]))\z/u
 
   @doc """
   Returns the tokens of a string.
@@ -169,6 +174,7 @@ defmodule Localize.Number.Lexer do
       codepoint == ?( -> :open
       codepoint == ?) -> :close
       codepoint == ?_ -> :underscore
+      codepoint == ?\t -> :tab
       codepoint < 128 -> ascii_kind(codepoint)
       true -> category_kind(character)
     end

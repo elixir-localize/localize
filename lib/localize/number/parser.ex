@@ -18,6 +18,7 @@ defmodule Localize.Number.Parser do
   """
 
   alias Localize.Number.{Grammar, Lexicon, Symbol, System}
+  alias Localize.Number.Parser.Amount
 
   @type per :: :percent | :permille
 
@@ -80,39 +81,10 @@ defmodule Localize.Number.Parser do
 
   @single_space ~r/^\p{Zs}$/u
 
-  # A number of two runs of digits, one to three and then three, parted by
-  # one mark: "73,460" or "1.599", in any script's digits, signed or not.
-  @group_shape ~r/\A[^\p{Nd}]*\p{Nd}{1,3}[^\p{Nd}]\p{Nd}{3}[^\p{Nd}]*\z/u
-
   # A run of the Bidi_Control characters in `@bidi_controls`, at the start or
   # the end of a string.
   @leading_bidi_controls Regex.compile!("\\A[" <> @bidi_control_class <> "]+", "u")
   @trailing_bidi_controls Regex.compile!("[" <> @bidi_control_class <> "]+\\z", "u")
-  @any_bidi_controls Regex.compile!("[" <> @bidi_control_class <> "]", "u")
-
-  # The digits of a currency amount, from the first to the last, and what may
-  # stand between them: spaces and the punctuation of separators, which
-  # `parse/2` judges.
-  @digit_run ~r/\p{Nd}(?:.*\p{Nd})?/us
-
-  # A sign or parenthesis that opens or closes text with no digits: "(USD)"
-  # and "-" are a number's decorations with no number, not currency text.
-  @number_decoration ~r/\A[(+\-\x{2212}]|[)+\-\x{2212}]\z/u
-  @number_core ~r/\A[\p{Nd}\p{Zs}\p{Po}\p{Pf}]*\z/u
-
-  # A currency text's closing punctuation mark, split from the rest.
-  @closing_mark_split ~r/\A(.*?)(\p{Po})\z/us
-
-  # The first word of an amount and the rest, and the rest and its last word
-  # where it has more than one, for a caller's currency text with digits in
-  # it, which a space separates from the number.
-  @first_word ~r/\A(\S+)((?:\s.*)?)\z/us
-  @last_word ~r/\A(.*\s)(\S+)\z/us
-
-  # A word with a letter and a digit, as a digital token's identifier
-  # "Q9PB7XDNF" is.
-  @letters_and_digits ~r/\A(?=.*\p{L})(?=.*\p{Nd})/us
-
   # The three places in `@number_format` that `localize_format_string/3` fills
   # in with the locale: the sign class, the grouping separator and the decimal.
   @format_placeholders ~r/-\+|,|\\\./
@@ -415,63 +387,6 @@ defmodule Localize.Number.Parser do
     end
   end
 
-  # The symbols a number is read with. An amount of a currency is read with
-  # the separators the currency is formatted with and, in the two locales
-  # that write plain numbers otherwise (`de-AT`, `fr-CH`), with those too: a
-  # price may be typed either way.
-  #
-  # With `root_separators: true` it is read with the root locale's as well,
-  # the locale-neutral form `1,234.56`, for an amount of something CLDR has no
-  # data for, such as a digital token, which is commonly written that way.
-  #
-  # Each set comes with the locale whose grouping sizes and folds it is read
-  # with.
-  defp symbol_sets(language_tag, number_system, options) do
-    with {:ok, symbols} <- number_symbols(language_tag, number_system, options),
-         {:ok, sets} <- with_plain_symbols([{language_tag, symbols}], number_system, options) do
-      with_root_symbols(sets, number_system, options)
-    end
-  end
-
-  defp with_plain_symbols(sets, number_system, options) do
-    if is_nil(options[:currency]) do
-      {:ok, sets}
-    else
-      [{language_tag, _currency_symbols}] = sets
-      plain_options = Keyword.delete(options, :currency)
-
-      with {:ok, plain} <- number_symbols(language_tag, number_system, plain_options) do
-        {:ok, add_symbol_set(sets, {language_tag, plain})}
-      end
-    end
-  end
-
-  defp with_root_symbols(sets, number_system, options) do
-    if options[:root_separators] == true do
-      plain_options = Keyword.drop(options, [:currency, :separators])
-
-      with {:ok, root} <- Localize.validate_locale(:und),
-           {:ok, symbols} <- number_symbols(root, number_system, plain_options) do
-        {:ok, add_symbol_set(sets, {root, symbols})}
-      end
-    else
-      {:ok, sets}
-    end
-  end
-
-  # A set whose separators another already has adds no reading of its own.
-  defp add_symbol_set(sets, {_tag, symbols} = set) do
-    if Enum.any?(sets, fn {_other_tag, other} -> same_separators?(other, symbols) end) do
-      sets
-    else
-      sets ++ [set]
-    end
-  end
-
-  defp same_separators?(this, that) do
-    this.group == that.group and this.decimal == that.decimal
-  end
-
   # How a grouping separator's position is checked: `:sizes` when asked for,
   # otherwise as `:lenient` says.
   defp grouping_mode(options) do
@@ -702,10 +617,7 @@ defmodule Localize.Number.Parser do
          :ok <- validate_amount_size(string),
          locale = Keyword.get(options, :locale, Localize.get_locale()),
          {:ok, language_tag} <- parsing_locale(locale) do
-      options = Keyword.put(options, :locale, language_tag)
-      reading = text_amount(string, language_tag, options)
-      word_readings = caller_word_amounts(string, language_tag, options)
-      one_reading(reading, word_readings, string)
+      Amount.read(string, language_tag, options)
     end
   end
 
@@ -1125,515 +1037,17 @@ defmodule Localize.Number.Parser do
     end
   end
 
-  defp text_amount(string, language_tag, options) do
-    with {:ok, parts} <- amount_parts(string, language_tag) do
-      parts_amount(parts, string, options)
-    end
-  end
-
-  defp parts_amount(parts, string, options) do
-    with {:ok, currency, separators_of, parts} <- amount_currency(parts, string, options),
-         {:ok, number} <- amount_number(parts, currency, separators_of, options) do
-      {:ok, {currency, number}}
-    end
-  end
-
-  # A caller's currency text may have digits in it, as a digital token's
-  # identifier "Q9PB7XDNF" does, and is then the amount's first word or its
-  # last, which a space separates from the number. Each such word the
-  # caller's `:caller_currency` function names gives a reading.
-  defp caller_word_amounts(string, language_tag, options) do
-    resolver = Keyword.get(options, :caller_currency)
-
-    string
-    |> caller_words(language_tag)
-    |> Enum.flat_map(fn parts ->
-      claim = caller_claim(resolver, parts.currency)
-      caller_word_amount(claim, parts, string, options)
-    end)
-  end
-
-  defp caller_word_amount({:ok, currency}, parts, string, options) do
-    [{currency, parts_amount(parts, string, options)}]
-  end
-
-  defp caller_word_amount(:none, _parts, _string, _options) do
-    []
-  end
-
-  defp caller_word_amount({:error, _invalid_option} = error, _parts, _string, _options) do
-    [{nil, error}]
-  end
-
-  defp caller_words(string, language_tag) do
-    text = String.trim(String.replace(string, @any_bidi_controls, ""))
-    {prefix_pattern, suffix_pattern} = amount_patterns(language_tag)
-
-    [first_word(text, prefix_pattern), last_word(text, suffix_pattern)]
-    |> Enum.reject(&is_nil/1)
-    |> Enum.filter(&String.match?(&1.currency, @letters_and_digits))
-  end
-
-  defp first_word(text, pattern) do
-    case Regex.run(@first_word, text) do
-      [_text, word, rest] ->
-        {lead, currency, trailing} = decorations(pattern, word)
-        %{currency: currency, mark: "", lead: lead, rest: trailing <> rest}
-
-      nil ->
-        nil
-    end
-  end
-
-  defp last_word(text, pattern) do
-    case Regex.run(@last_word, text) do
-      [_text, rest, word] ->
-        {lead, currency, trailing} = decorations(pattern, word)
-        %{currency: currency, mark: "", lead: "", rest: rest <> lead <> trailing}
-
-      nil ->
-        nil
-    end
-  end
-
-  # A caller's word is read only where the amount has no other reading:
-  # `fr` "USD1 234" is 1 234 US dollars as well as 234 of a token named
-  # "USD1", so it is neither. Two such words are not one amount.
-  defp one_reading(reading, [], _string) do
-    reading
-  end
-
-  defp one_reading(_reading, [{nil, {:error, _invalid_option} = error} | _last], _string) do
-    error
-  end
-
-  defp one_reading({:ok, {currency, _amount}}, [{word_currency, _word_reading}], string) do
-    {:error, two_readings(string, currency, word_currency)}
-  end
-
-  defp one_reading(_reading, [{_word_currency, word_reading}], _string) do
-    word_reading
-  end
-
-  defp one_reading(_reading, [_first, _last], string) do
-    {:error, not_an_amount(string)}
-  end
-
-  # `fr` "LUNA2 234" is 234 of a token whose names are "LUNA" and "LUNA2",
-  # and 2 234 of it.
-  defp two_readings(string, currency, currency) do
-    Localize.ParseError.exception(
-      input: string,
-      reason: :unexpected_input,
-      detail: "it is two amounts of #{inspect(currency)}"
-    )
-  end
-
-  defp two_readings(string, currency, other) do
-    ambiguous_currency(string, currency, other)
-  end
-
-  # Splits an amount into its currency text and the text of its number,
-  # which is everything else: the digits from the first to the last, with
-  # the signs, parentheses, spaces and marks around them, all of which
-  # `parse/2` reads. The currency text stands before the number or after
-  # it, inside those.
-  defp amount_parts(string, language_tag) do
-    text = String.replace(string, @any_bidi_controls, "")
-
-    case Regex.run(@digit_run, text, return: :index) do
-      [{start, length}] ->
-        before = binary_part(text, 0, start)
-        digits = binary_part(text, start, length)
-        rest = binary_part(text, start + length, byte_size(text) - start - length)
-        split_amount(before, digits, rest, language_tag, string)
-
-      nil ->
-        currency_without_number(text, string)
-    end
-  end
-
-  # Text with no digits is currency text with no number: "" names no
-  # currency, as "100" names none, and "USD" names one whose amount cannot
-  # be read, as "USD abc" does. A form's empty field is so reported as a
-  # missing amount rather than as text that is not money. Text a sign or a
-  # parenthesis opens or closes, "(USD)", is not an amount.
-  defp currency_without_number(text, string) do
-    currency = String.trim(text)
-
-    if String.match?(currency, @number_decoration) do
-      {:error, not_an_amount(string)}
-    else
-      {:ok, %{currency: currency, mark: "", lead: "", rest: ""}}
-    end
-  end
-
-  defp split_amount(before, digits, rest, language_tag, string) do
-    {prefix_pattern, suffix_pattern} = amount_patterns(language_tag)
-    {lead, prefix, between, mark} = prefix_parts(prefix_pattern, before)
-    {after_digits, suffix, trailing} = decorations(suffix_pattern, rest)
-
-    if String.match?(digits, @number_core) and (prefix == "" or suffix == "") do
-      {:ok,
-       %{
-         currency: prefix <> suffix,
-         mark: mark,
-         lead: lead,
-         rest: between <> digits <> after_digits <> trailing
-       }}
-    else
-      {:error, not_an_amount(string)}
-    end
-  end
-
-  # The text before the digits as its leading decorations, the currency
-  # text, the decorations between it and the digits, and a mark the
-  # currency text ends in where nothing stands between it and the digits.
-  # A mark after a space, a sign or "(" is the number's, as in "USD .5".
-  defp prefix_parts(pattern, before) do
-    {lead, prefix, between} = decorations(pattern, before)
-
-    case Regex.run(@closing_mark_split, prefix) do
-      [_prefix, unmarked, mark] when between == "" ->
-        prefix_mark(pattern, lead, prefix, unmarked, mark)
-
-      _no_touching_mark ->
-        {lead, prefix, between, ""}
-    end
-  end
-
-  defp prefix_mark(pattern, lead, prefix, unmarked, mark) do
-    case decorations(pattern, unmarked) do
-      {_lead, currency, ""} when currency != "" -> {lead, prefix, "", mark}
-      {_lead, currency, spacing} -> {lead, currency, spacing <> mark, ""}
-    end
-  end
-
-  # `text` as its leading decorations, the text between them and its
-  # trailing decorations.
-  defp decorations(pattern, text) do
-    case Regex.run(pattern, text) do
-      [_text, leading, middle, trailing] -> {leading, middle, trailing}
-      _no_decorations -> {"", text, ""}
-    end
-  end
-
-  # The decorations around a currency text: spaces, the locale's signs and
-  # parentheses, and after the digits the marks that may close a number, as
-  # in "5.USD" and "5.– CHF".
-  defp amount_patterns(language_tag) do
-    cached({:amount_patterns, language_tag.cldr_locale_id}, fn ->
-      signs = sign_characters(lenient_sets(language_tag))
-      decoration = "\\p{Zs}\\t()" <> class_characters(signs)
-      closing = decoration <> "\\p{Po}\\p{Pf}" <> @dash_class
-
-      {
-        Regex.compile!("\\A([" <> decoration <> "]*)(.*?)([" <> decoration <> "]*)\\z", "us"),
-        Regex.compile!("\\A([" <> closing <> "]*)(.*?)([" <> decoration <> "]*)\\z", "us")
-      }
-    end)
-  end
-
-  # The currency an amount names, and the currency whose separators its
-  # number is read with: none for one the caller's `:caller_currency`
-  # function named, which Localize has no separators for.
-  defp amount_currency(%{currency: ""} = parts, string, options) do
-    default = Keyword.get(options, :default_currency)
-
-    if is_nil(default) do
-      {:error, Localize.ParseError.exception(input: string, reason: :missing_currency)}
-    else
-      default
-      |> default_currency(options)
-      |> with_parts(parts)
-    end
-  end
-
-  defp amount_currency(%{currency: text, mark: ""} = parts, _string, options) do
-    text
-    |> text_currency(options)
-    |> with_parts(parts)
-  end
-
-  # A mark between the currency and the digits, as in "$.50" or "kr.5". It
-  # is the currency's when CLDR writes the currency with it (`da` "kr.",
-  # `de-CH` "Fr."), and the number's when it is the currency's decimal mark
-  # in the locale, so "$.50" is fifty cents, not fifty dollars. Anything
-  # else is ambiguous and refused: `nb` writes the krone "kr" and its decimal
-  # with a comma, so "kr.5" could be 5 or 0.5.
-  defp amount_currency(%{currency: text, mark: mark} = parts, string, options) do
-    if written_with_mark?(text, options) do
-      text
-      |> text_currency(options)
-      |> with_parts(parts)
-    else
-      unmarked = String.replace_suffix(text, mark, "")
-
-      case text_currency(unmarked, options) do
-        {:ok, currency, separators_of} ->
-          marked_number(parts, unmarked, currency, separators_of, string, options)
-
-        {:error, _not_a_currency} ->
-          text
-          |> text_currency(options)
-          |> with_parts(parts)
-      end
-    end
-  end
-
-  defp with_parts({:ok, currency, separators_of}, parts) do
-    {:ok, currency, separators_of, parts}
-  end
-
-  defp with_parts({:error, _reason} = error, _parts) do
-    error
-  end
-
-  # Matched exactly, never fuzzily, since a fuzzy match would take "$." for
-  # a currency of its own.
-  defp written_with_mark?(text, options) do
-    filters = Keyword.take(options, [:locale, :only, :except])
-    match?([currency] when is_atom(currency), amount_currency_text(text, filters))
-  end
-
-  defp marked_number(parts, unmarked, currency, separators_of, string, options) do
-    %{mark: mark, lead: lead, rest: rest} = parts
-
-    if decimal_mark?(mark, rest, separators_of, options) do
-      {:ok, currency, separators_of, %{parts | currency: unmarked, lead: lead <> mark}}
-    else
-      {:error, not_an_amount(string)}
-    end
-  end
-
-  defp decimal_mark?(mark, number, separators_of, options) do
-    language_tag = Keyword.fetch!(options, :locale)
-
-    symbol_options =
-      options
-      |> Keyword.take([:separators])
-      |> put_separators_currency(separators_of)
-
-    case mark_symbols(language_tag, number, options, symbol_options) do
-      {:ok, symbol_sets} ->
-        lenient = lenient_replacements(language_tag)
-        folded_mark = apply_lenient(mark, lenient)
-
-        Enum.any?(symbol_sets, fn {_tag, symbols} ->
-          apply_lenient(extract_separator(symbols.decimal), lenient) == folded_mark
-        end)
-
-      {:error, _no_symbols} ->
-        false
-    end
-  end
-
-  # Every set the number is read with, so a mark is the number's when it is
-  # the decimal mark of any of them, as `fr-CH` "CHF,5" is.
-  defp mark_symbols(language_tag, number, options, symbol_options) do
-    with {:ok, number_system} <- digits_number_system_from(language_tag, number, options) do
-      symbol_sets(language_tag, number_system, symbol_options)
-    end
-  end
-
-  defp default_currency(default, options) when is_atom(default) do
-    text_currency(Atom.to_string(default), options)
-  end
-
-  defp default_currency(default, options) when is_binary(default) do
-    text_currency(default, options)
-  end
-
-  defp default_currency(default, _options) do
-    {:error, Localize.Utils.Helpers.invalid_value(default, "a currency code or name")}
-  end
-
-  # A closing period is tried off as well as on, so "100 USD." is dollars as
-  # it is in the text of a sentence.
-  defp text_currency(text, options) do
-    filters = Keyword.take(options, [:locale, :only, :except, :fuzzy])
-
-    [text, String.trim_trailing(text, ".")]
-    |> Enum.uniq()
-    |> first_text_currency(text, filters, options)
-  end
-
-  defp first_text_currency([candidate | rest], text, filters, options) do
-    case amount_currency_text(candidate, filters) do
-      [currency] when is_atom(currency) ->
-        unclaimed_currency(currency, candidate, options)
-
-      {:error, %Localize.UnknownCurrencyError{}} ->
-        first_text_currency(rest, text, filters, options)
-
-      {:error, _invalid_option} = error ->
-        error
-
-      _part_of_the_text ->
-        first_text_currency(rest, text, filters, options)
-    end
-  end
-
-  defp first_text_currency([], text, _filters, options) do
-    case caller_claim(Keyword.get(options, :caller_currency), text) do
-      {:ok, currency} -> uncontested_caller_currency(currency, text, options)
-      :none -> {:error, Localize.UnknownCurrencyError.exception(currency: text)}
-      {:error, _invalid_option} = error -> error
-    end
-  end
-
-  # The narrow symbol of a currency other than the locale's own is not read
-  # as that currency, but it still names it, so a caller's currency that
-  # claims the same text is refused rather than read: `en` "₮5" is neither the
-  # tugrik, whose narrow symbol "₮" is, nor Tether, whose symbol it is too.
-  defp uncontested_caller_currency(currency, text, options) do
-    case narrow_symbol_currency(text, options) do
-      nil -> {:ok, currency, nil}
-      code -> {:error, ambiguous_currency(text, code, currency)}
-    end
-  end
-
-  defp narrow_symbol_currency(text, options) do
-    filters = Keyword.take(options, [:only, :except])
-
-    case Localize.Currency.narrow_symbol_strings(Keyword.get(options, :locale), filters) do
-      {:ok, narrow} ->
-        Map.get(narrow, Lexicon.nfkc(text)) ||
-          Map.get(narrow, Lexicon.nfkc(String.trim_trailing(text, ".")))
-
-      {:error, _no_data} ->
-        nil
-    end
-  end
-
+  @doc false
   # A currency amount's text names a currency only where one alone takes it:
   # "$" in `fr`, which the Canadian, US and other dollars share, is refused
-  # rather than read as the Canadian dollar.
-  defp amount_currency_text(text, filters) do
+  # rather than read as the Canadian dollar. `[currency]` when the text is
+  # one currency string, as `find_and_replace/3` reports it; for
+  # `Localize.Number.Parser.Amount`.
+  @spec find_amount_currency(String.t(), Keyword.t()) :: list() | {:error, Exception.t()}
+  def find_amount_currency(text, filters) do
     with :ok <- validate_arguments(text, :string, filters) do
       find_currency(text, filters, :amount)
     end
-  end
-
-  # Text that names a CLDR currency names it only if the caller's
-  # `:caller_currency` does not name another for the same text: `₮` is the
-  # tugrik in CLDR and Tether's symbol as a digital token, so `en` "₮5" is
-  # refused rather than read as either. In a locale whose own currency the
-  # text names, that currency takes it: `mn` "₮5" is the tugrik.
-  defp unclaimed_currency(currency, text, options) do
-    case caller_claim(Keyword.get(options, :caller_currency), text) do
-      {:ok, ^currency} -> {:ok, currency, currency}
-      {:ok, other} -> own_or_ambiguous(currency, other, text, options)
-      :none -> {:ok, currency, currency}
-      {:error, _invalid_option} = error -> error
-    end
-  end
-
-  defp own_or_ambiguous(currency, other, text, options) do
-    if Lexicon.own_currency(Keyword.get(options, :locale)) == currency do
-      {:ok, currency, currency}
-    else
-      {:error, ambiguous_currency(text, currency, other)}
-    end
-  end
-
-  defp caller_claim(nil, _text) do
-    :none
-  end
-
-  defp caller_claim(resolver, text) when is_function(resolver, 1) do
-    case resolver.(text) do
-      {:ok, currency} -> {:ok, currency}
-      _not_the_callers -> :none
-    end
-  end
-
-  defp caller_claim(resolver, _text) do
-    {:error, Localize.Utils.Helpers.invalid_value(resolver, "a function of one argument")}
-  end
-
-  defp ambiguous_currency(text, currency, other) do
-    Localize.ParseError.exception(
-      input: text,
-      reason: :unexpected_input,
-      detail: "it names two currencies, #{inspect(currency)} and #{inspect(other)}"
-    )
-  end
-
-  defp amount_number(%{lead: lead, rest: rest}, currency, separators_of, options) do
-    number = String.trim(lead <> rest)
-
-    parse_options =
-      options
-      |> Keyword.take([:locale, :number_system, :separators])
-      |> Keyword.put(:number, :decimal)
-      |> Keyword.put(:grouping, :sizes)
-      |> put_separators_currency(separators_of)
-
-    case parse(number, parse_options) do
-      {:ok, decimal} -> unambiguous_fraction(decimal, number, currency)
-      {:error, exception} -> {:error, invalid_amount(currency, number, exception)}
-    end
-  end
-
-  # One to three digits, a decimal mark and three more are a thousands group
-  # where the text was written with other separators, and three fraction
-  # digits are unusual for a currency with fewer: German "1,599 €" is a fuel
-  # price, but a shop writing English separators means 1599. Such an amount is
-  # refused, as is the same shape with a period in `fr`. An amount under one,
-  # or in a currency of three decimal places or more, has one reading.
-  defp unambiguous_fraction(decimal, number, currency) do
-    if three_fraction_digits?(number, decimal) and fewer_digits?(currency, 3) do
-      cause =
-        Localize.ParseError.exception(
-          input: number,
-          reason: :unexpected_input,
-          detail: "it may be a whole amount written with a group separator"
-        )
-
-      {:error, invalid_amount(currency, number, cause)}
-    else
-      {:ok, decimal}
-    end
-  end
-
-  defp three_fraction_digits?(number, decimal) do
-    String.match?(number, @group_shape) and decimal.exp < 0 and
-      Decimal.compare(Decimal.abs(decimal), 1) != :lt
-  end
-
-  defp fewer_digits?(currency, places) when is_atom(currency) do
-    case Localize.Currency.currency_for_code(currency) do
-      {:ok, %{digits: digits, iso_digits: iso_digits}} -> max(digits, iso_digits || 0) < places
-      {:error, _not_iso} -> false
-    end
-  end
-
-  defp fewer_digits?(_caller_currency, _places) do
-    false
-  end
-
-  # A currency the caller's `:caller_currency` named has no separators in
-  # CLDR, so its amount is read with the locale's plain-number ones and the
-  # root locale's, and refused where they differ.
-  defp put_separators_currency(options, nil) do
-    Keyword.put(options, :root_separators, true)
-  end
-
-  defp put_separators_currency(options, currency) do
-    Keyword.put(options, :currency, currency)
-  end
-
-  defp not_an_amount(string) do
-    Localize.ParseError.exception(
-      input: string,
-      reason: :unexpected_input,
-      detail: "not a currency amount"
-    )
-  end
-
-  defp invalid_amount(currency, number, cause) do
-    Localize.InvalidAmountError.exception(currency: currency, amount: number, cause: cause)
   end
 
   defp find_and_replace_currency(string_map, string, fuzzy, language_tag) do
@@ -1760,22 +1174,6 @@ defmodule Localize.Number.Parser do
     end
   end
 
-  # The character folds CLDR's `parseLenients` data prescribes for this locale,
-  # as {compiled pattern, replacement} pairs. The number scope covers the
-  # minus, plus and comma families; the general scope adds the full stop, the
-  # apostrophe and the currency symbols.
-  #
-  # Compiled once per locale and memoized. Assembling this walks a dozen set
-  # strings, which costs an order of magnitude more than the parse it serves,
-  # and the compiled patterns then match without rescanning per character.
-  defp lenient_replacements(language_tag) do
-    cached({:lenient_parse, language_tag.cldr_locale_id}, fn ->
-      for {sample, characters} <- lenient_sets(language_tag) do
-        {:binary.compile_pattern(characters), sample}
-      end
-    end)
-  end
-
   # The same folds as {sample, characters} pairs, for building the scanner's
   # character classes.
   defp lenient_sets(language_tag) do
@@ -1805,12 +1203,6 @@ defmodule Localize.Number.Parser do
       end)
 
     Enum.uniq([character | family])
-  end
-
-  defp apply_lenient(string, replacements) do
-    Enum.reduce(replacements, string, fn {pattern, replacement}, acc ->
-      String.replace(acc, pattern, replacement)
-    end)
   end
 
   @compile {:inline, cached: 2}
@@ -1988,7 +1380,7 @@ defmodule Localize.Number.Parser do
   # than reading it as a sign. Format characters in a locale's sign are not
   # part of the sign here. The scanner and the currency amount splitter both
   # take their signs from here.
-  defp sign_characters(sets, extra_signs \\ []) do
+  defp sign_characters(sets, extra_signs) do
     for sign <- ["-", "+" | extra_signs],
         sign = String.replace(extract_separator(sign), @format_characters, ""),
         character <- lenient_equivalents(sign, sets),

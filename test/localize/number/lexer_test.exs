@@ -102,5 +102,12 @@ defmodule Localize.Number.LexerTest do
     assert kinds("5؟", :en) == [{:digits, "5"}, {:mark, "؟"}]
     assert kinds("$5", :en) == [{:text, "$"}, {:digits, "5"}]
     assert kinds("[5]", :en) == [{:text, "["}, {:digits, "5"}, {:text, "]"}]
+    # A final quotation mark may close a number, an initial one may not.
+    assert kinds("5»", :en) == [{:digits, "5"}, {:mark, "»"}]
+    assert kinds("«5", :en) == [{:text, "«"}, {:digits, "5"}]
+  end
+
+  test "a tab is its own token" do
+    assert kinds("USD\t5", :en) == [{:text, "USD"}, {:tab, "\t"}, {:digits, "5"}]
   end
 end
