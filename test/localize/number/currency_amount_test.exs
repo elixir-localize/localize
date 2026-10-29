@@ -166,6 +166,68 @@ defmodule Localize.Number.CurrencyAmountTest do
         assert detail =~ "ambiguous"
       end
     end
+
+    # A digital token's identifier has digits in it, so it is read as a
+    # word: first or last, and separated from the number by a space.
+    test "a caller's currency text with digits in it" do
+      token = fn text ->
+        if text in ["Q9PB7XDNF", "4H95J0R2X", "USD1"] do
+          {:ok, text}
+        else
+          :error
+        end
+      end
+
+      for {string, locale, currency, value} <- [
+            {"Q9PB7XDNF 5", :en, "Q9PB7XDNF", "5"},
+            {"5 Q9PB7XDNF", :en, "Q9PB7XDNF", "5"},
+            {"4H95J0R2X 1,234.5", :en, "4H95J0R2X", "1234.5"},
+            {"4H95J0R2X 1,5", :de, "4H95J0R2X", "1.5"},
+            {"5 Q9PB7XDNF", :fr, "Q9PB7XDNF", "5"},
+            {"Q9PB7XDNF 5", :en, "Q9PB7XDNF", "5"},
+            {"(Q9PB7XDNF 5)", :en, "Q9PB7XDNF", "-5"},
+            {"-Q9PB7XDNF 5", :en, "Q9PB7XDNF", "-5"},
+            {"Q9PB7XDNF -5", :en, "Q9PB7XDNF", "-5"},
+            {"USD1 234", :en, "USD1", "234"}
+          ] do
+        assert {^currency, ^value} = amount(string, locale: locale, caller_currency: token),
+               "#{locale} #{inspect(string)}"
+      end
+
+      # Without a space the identifier's digits run on into the number's.
+      for string <- ["Q9PB7XDNF5", "5Q9PB7XDNF", "Q9PB7XDNF 5 4H95J0R2X"] do
+        assert %Localize.ParseError{reason: :unexpected_input} =
+                 amount(string, caller_currency: token)
+      end
+
+      assert %Localize.InvalidAmountError{currency: "Q9PB7XDNF", amount: ""} =
+               amount("Q9PB7XDNF", caller_currency: token)
+
+      # `fr` "USD1 234" is also 1 234 US dollars, so it is neither.
+      assert {:USD, "1234"} = amount("USD1 234", locale: :fr)
+
+      assert %Localize.ParseError{detail: detail} =
+               amount("USD1 234", locale: :fr, caller_currency: token)
+
+      assert detail =~ "two currencies"
+
+      # Two names of one currency make two amounts of it.
+      terra = fn text ->
+        if text in ["LUNA", "LUNA2"] do
+          {:ok, "NGXHD2ZFQ"}
+        else
+          :error
+        end
+      end
+
+      assert %Localize.ParseError{detail: "it is two amounts of \"NGXHD2ZFQ\""} =
+               amount("LUNA2 234", locale: :fr, caller_currency: terra)
+
+      assert {"NGXHD2ZFQ", "234"} = amount("LUNA2 234", caller_currency: terra)
+
+      # Only a caller reads such a word.
+      assert %Localize.ParseError{reason: :unexpected_input} = amount("Q9PB7XDNF 5")
+    end
   end
 
   describe "what Localize formats" do
@@ -556,6 +618,9 @@ defmodule Localize.Number.CurrencyAmountTest do
       assert {:error, _} = Parser.parse_currency_amount("100 eurosports", fuzzy: 2.0)
       assert {:error, _} = Parser.parse_currency_amount("100", default_currency: 12)
       assert {:error, _} = Parser.parse_currency_amount("100 BTC", caller_currency: :nope)
+
+      assert {:error, %Localize.InvalidValueError{value: :nope}} =
+               Parser.parse_currency_amount("Q9PB7XDNF 5", caller_currency: :nope)
     end
 
     test "an over-long string" do

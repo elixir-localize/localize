@@ -613,7 +613,7 @@ An amount is money, so an amount that could be read as two amounts is refused ra
 
 * **A mark between currency and digits** — it is the currency's where CLDR writes the currency with it, as `da` writes `kr.`, and the number's where it is the decimal mark, so `$.50` is fifty cents; otherwise the amount is refused.
 
-* **Currencies of the caller's own** — the `:caller_currency` option names them, such as digital tokens. Their amounts are read with the locale's separators and the root locale's, and text that names both a CLDR currency and one of the caller's, as `₮` names the tugrik and Tether, is refused.
+* **Currencies of the caller's own** — the `:caller_currency` option names them, such as digital tokens. Their amounts are read with the locale's separators and the root locale's, and text that names both a CLDR currency and one of the caller's, as `₮` names the tugrik and Tether, is refused. A caller's currency text may have digits in it, as a digital token identifier such as `"Q9PB7XDNF"` does; it is then the first word or the last, separated from the number by a space, and an amount that also reads another way is refused.
 
 ```elixir
 iex> {:error, error} = Localize.Number.parse_currency_amount("1.23 EUR", locale: :de)

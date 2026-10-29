@@ -12,6 +12,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 * `parse_currency_amount/2` refuses one to three digits, a decimal mark and three more in a currency of fewer decimal places, as `de` "1,599 €" may be 1599, and reads a historic currency only by its code or name, so `ru` "6 300 Р" is not the ruble of 1991–1998. A `:fuzzy` match is refused where two currencies are equally close.
 
+* `parse_currency_amount/2` reads a `:caller_currency` text with digits in it, such as a digital token identifier ("Q9PB7XDNF 5"), as the first or last word, and refuses an amount it also reads another way (`fr` "USD1 234").
+
 * `parse_currency_amount/2` refuses currency text that a `:caller_currency` names differently from CLDR, except in a locale whose own currency the text names: `mn` "₮5" is the tugrik even where Tether claims "₮".
 
 * `Localize.ParseError` has the reason `:missing_currency`, for a currency amount that names no currency.

@@ -148,6 +148,16 @@ defmodule Localize.Number.Parser do
   # A currency text's closing punctuation mark, split from the rest.
   @closing_mark_split ~r/\A(.*?)(\p{Po})\z/us
 
+  # The first word of an amount and the rest, and the rest and its last word
+  # where it has more than one, for a caller's currency text with digits in
+  # it, which a space separates from the number.
+  @first_word ~r/\A(\S+)((?:\s.*)?)\z/us
+  @last_word ~r/\A(.*\s)(\S+)\z/us
+
+  # A word with a letter and a digit, as a digital token's identifier
+  # "Q9PB7XDNF" is.
+  @letters_and_digits ~r/\A(?=.*\p{L})(?=.*\p{Nd})/us
+
   @ends_in_digit ~r/\p{Nd}\z/u
 
   # The same dashes as `parse/2` sees them, one or two, once folded: the
@@ -804,7 +814,11 @@ defmodule Localize.Number.Parser do
     the caller has such currencies, since it is called for every amount.
     Their amounts are read with the locale's separators and the root
     locale's (`root_separators: true` of `parse/2`), and refused where
-    the two differ.
+    the two differ. A caller's currency text may have digits in it, as a
+    digital token's identifier "Q9PB7XDNF" does. It is then the first
+    word of the amount or the last, which a space separates from the
+    number, and it is read only where the amount has no other reading:
+    `fr` "USD1 234" is also 1 234 US dollars, so it is neither.
 
   ### Returns
 
@@ -841,6 +855,10 @@ defmodule Localize.Number.Parser do
       iex> Localize.Number.Parser.parse_currency_amount("kr-127,54", locale: :da)
       {:ok, {:DKK, Decimal.new("-127.54")}}
 
+      iex> token = fn "Q9PB7XDNF" -> {:ok, "Q9PB7XDNF"}; _other -> :error end
+      iex> Localize.Number.Parser.parse_currency_amount("Q9PB7XDNF 5", locale: :en, caller_currency: token)
+      {:ok, {"Q9PB7XDNF", Decimal.new("5")}}
+
   """
   @spec parse_currency_amount(String.t(), Keyword.t()) ::
           {:ok, {Localize.Currency.currency_code() | term(), Decimal.t()}}
@@ -849,12 +867,11 @@ defmodule Localize.Number.Parser do
     with :ok <- validate_arguments(string, :string, options),
          :ok <- validate_amount_size(string),
          locale = Keyword.get(options, :locale, Localize.get_locale()),
-         {:ok, language_tag} <- parsing_locale(locale),
-         options = Keyword.put(options, :locale, language_tag),
-         {:ok, parts} <- amount_parts(string, language_tag),
-         {:ok, currency, separators_of, parts} <- amount_currency(parts, string, options),
-         {:ok, number} <- amount_number(parts, currency, separators_of, options) do
-      {:ok, {currency, number}}
+         {:ok, language_tag} <- parsing_locale(locale) do
+      options = Keyword.put(options, :locale, language_tag)
+      reading = text_amount(string, language_tag, options)
+      word_readings = caller_word_amounts(string, language_tag, options)
+      one_reading(reading, word_readings, string)
     end
   end
 
@@ -1358,6 +1375,114 @@ defmodule Localize.Number.Parser do
     else
       :ok
     end
+  end
+
+  defp text_amount(string, language_tag, options) do
+    with {:ok, parts} <- amount_parts(string, language_tag) do
+      parts_amount(parts, string, options)
+    end
+  end
+
+  defp parts_amount(parts, string, options) do
+    with {:ok, currency, separators_of, parts} <- amount_currency(parts, string, options),
+         {:ok, number} <- amount_number(parts, currency, separators_of, options) do
+      {:ok, {currency, number}}
+    end
+  end
+
+  # A caller's currency text may have digits in it, as a digital token's
+  # identifier "Q9PB7XDNF" does, and is then the amount's first word or its
+  # last, which a space separates from the number. Each such word the
+  # caller's `:caller_currency` function names gives a reading.
+  defp caller_word_amounts(string, language_tag, options) do
+    resolver = Keyword.get(options, :caller_currency)
+
+    string
+    |> caller_words(language_tag)
+    |> Enum.flat_map(fn parts ->
+      claim = caller_claim(resolver, parts.currency)
+      caller_word_amount(claim, parts, string, options)
+    end)
+  end
+
+  defp caller_word_amount({:ok, currency}, parts, string, options) do
+    [{currency, parts_amount(parts, string, options)}]
+  end
+
+  defp caller_word_amount(:none, _parts, _string, _options) do
+    []
+  end
+
+  defp caller_word_amount({:error, _invalid_option} = error, _parts, _string, _options) do
+    [{nil, error}]
+  end
+
+  defp caller_words(string, language_tag) do
+    text = String.trim(String.replace(string, @any_bidi_controls, ""))
+    {prefix_pattern, suffix_pattern} = amount_patterns(language_tag)
+
+    [first_word(text, prefix_pattern), last_word(text, suffix_pattern)]
+    |> Enum.reject(&is_nil/1)
+    |> Enum.filter(&String.match?(&1.currency, @letters_and_digits))
+  end
+
+  defp first_word(text, pattern) do
+    case Regex.run(@first_word, text) do
+      [_text, word, rest] ->
+        {lead, currency, trailing} = decorations(pattern, word)
+        %{currency: currency, mark: "", lead: lead, rest: trailing <> rest}
+
+      nil ->
+        nil
+    end
+  end
+
+  defp last_word(text, pattern) do
+    case Regex.run(@last_word, text) do
+      [_text, rest, word] ->
+        {lead, currency, trailing} = decorations(pattern, word)
+        %{currency: currency, mark: "", lead: "", rest: rest <> lead <> trailing}
+
+      nil ->
+        nil
+    end
+  end
+
+  # A caller's word is read only where the amount has no other reading:
+  # `fr` "USD1 234" is 1 234 US dollars as well as 234 of a token named
+  # "USD1", so it is neither. Two such words are not one amount.
+  defp one_reading(reading, [], _string) do
+    reading
+  end
+
+  defp one_reading(_reading, [{nil, {:error, _invalid_option} = error} | _last], _string) do
+    error
+  end
+
+  defp one_reading({:ok, {currency, _amount}}, [{word_currency, _word_reading}], string) do
+    {:error, two_readings(string, currency, word_currency)}
+  end
+
+  defp one_reading(_reading, [{_word_currency, word_reading}], _string) do
+    word_reading
+  end
+
+  defp one_reading(_reading, [_first, _last], string) do
+    {:error, not_an_amount(string)}
+  end
+
+  # `fr` "LUNA2 234" is 234 of a token whose names are "LUNA" and "LUNA2",
+  # and 2 234 of it.
+  defp two_readings(string, currency, currency) do
+    Localize.ParseError.exception(
+      input: string,
+      reason: :unexpected_input,
+      detail: "it is two amounts of #{inspect(currency)}"
+    )
+  end
+
+  defp two_readings(string, currency, other) do
+    ambiguous_currency(string, currency, other)
   end
 
   # Splits an amount into its currency text and the text of its number,
