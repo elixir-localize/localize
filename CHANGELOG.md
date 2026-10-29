@@ -30,6 +30,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 * `Localize.Number.Parser` reads numbers and currency amounts with a lexer and a token grammar (`Localize.Number.Lexicon`, `Localize.Number.Lexer`, `Localize.Number.Grammar`, `Localize.Number.Parser.Amount`), three to five times faster, with the same results on 400,000 inputs across 68 locales. A filtered currency index (`:only`, `:except`) is built once per filter set and cached, so a filtered amount costs microseconds rather than milliseconds.
 
+* `Localize.Number.Parser.scan/2` scans on the same lexer, through `Localize.Number.Scanner`, which hands each run with the shape of a number to the grammar once, rather than through a regular expression and `parse/2`; the same pieces on 525,000 strings across 68 locales. It now reads an exponent after a one-digit integer, so "5e5" is 500000.0 as "12e5" already was, and a run with an underscore anywhere but between two digits, "5_", is text.
+
 * `Localize.Number.Parser.parse/2` reads an underscore only between two digits, as Elixir writes `1_000_000`; "_5", "5_" and "1__000" were read as numbers.
 
 * `parse_currency_amount/2` reads a currency symbol CLDR writes with bidi marks, such as `he`'s "‎CN¥‎", which could never match once the marks were removed from the text; `he` now reads "CN¥5" and the yuan amounts it formats.

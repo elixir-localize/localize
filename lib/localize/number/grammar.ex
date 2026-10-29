@@ -104,13 +104,60 @@ defmodule Localize.Number.Grammar do
   @spec read(String.t(), Lexicon.t(), Keyword.t()) ::
           {:ok, number() | Decimal.t()} | {:error, Exception.t()}
   def read(string, %Lexicon{} = lexicon, options) do
+    string
+    |> Lexer.tokens(lexicon)
+    |> read_tokens(string, lexicon, options)
+  end
+
+  @doc """
+  Reads a number from the tokens of a string, already read by
+  `Localize.Number.Lexer.tokens/2` with the same lexicon.
+
+  `Localize.Number.Scanner` reads a whole string into tokens once and
+  hands each run with the shape of a number here, so that no run is
+  read twice.
+
+  ### Arguments
+
+  * `tokens` are the tokens of `string`.
+
+  * `string` is the text the tokens were read from, which an error
+    names.
+
+  * `lexicon` is the `t:Localize.Number.Lexicon.t/0` the tokens were
+    read with.
+
+  * `options` are the options of `read/3`.
+
+  ### Returns
+
+  * `{:ok, number}`, or
+
+  * `{:error, %Localize.InvalidValueError{}}` when the text is not a
+    number of the lexicon's locale, or
+
+  * `{:error, %Localize.ParseError{reason: :unexpected_input}}` when
+    two readings give different numbers.
+
+  ### Examples
+
+      iex> {:ok, en} = Localize.validate_locale(:en)
+      iex> {:ok, lexicon} = Localize.Number.Lexicon.fetch(en, :latn, [])
+      iex> tokens = Localize.Number.Lexer.tokens("1,234.5", lexicon)
+      iex> Localize.Number.Grammar.read_tokens(tokens, "1,234.5", lexicon, [])
+      {:ok, 1234.5}
+
+  """
+  @spec read_tokens([Lexer.token()], String.t(), Lexicon.t(), Keyword.t()) ::
+          {:ok, number() | Decimal.t()} | {:error, Exception.t()}
+  def read_tokens(tokens, string, %Lexicon{} = lexicon, options)
+      when is_list(tokens) and is_binary(string) do
     number_type = Keyword.get(options, :number)
     grouping = Keyword.get(options, :grouping, :lenient)
     max_exponent = Keyword.get(options, :max_decimal_exponent)
 
     tokens =
-      string
-      |> Lexer.tokens(lexicon)
+      tokens
       |> drop_format_characters()
       |> join_underscores()
 
@@ -617,23 +664,31 @@ defmodule Localize.Number.Grammar do
 
   # ── Tokens ────────────────────────────────────────────────────
 
-  defp decimal?({:mark, _value, source}, reading) do
+  @doc false
+  # Whether a token is the decimal separator of a reading. For the
+  # scanner, which shares the grammar's view of a mark.
+  @spec decimal?(Lexer.token(), Lexicon.reading()) :: boolean()
+  def decimal?({:mark, _value, source}, reading) do
     MapSet.member?(reading.decimal, source)
   end
 
-  defp decimal?(_token, _reading) do
+  def decimal?(_token, _reading) do
     false
   end
 
-  defp group?({:mark, _value, source}, reading) do
+  @doc false
+  # Whether a token is a group separator of a reading: one of its group
+  # marks, or any space where the reading groups with one.
+  @spec group?(Lexer.token(), Lexicon.reading()) :: boolean()
+  def group?({:mark, _value, source}, reading) do
     MapSet.member?(reading.group, source)
   end
 
-  defp group?({:space, _value, _source}, reading) do
+  def group?({:space, _value, _source}, reading) do
     reading.space_group?
   end
 
-  defp group?(_token, _reading) do
+  def group?(_token, _reading) do
     false
   end
 

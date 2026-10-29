@@ -1,6 +1,6 @@
 # Number parser grammar
 
-**Status:** implemented (v1.5.0), 2026-10-29
+**Status:** implemented (v1.5.0), 2026-10-30
 
 `Localize.Number.Parser.parse_currency_amount/2` and `parse/2` are correct within the rules settled in October 2026 (`plans/tr35-audit.md`), and that correctness is pinned by 6,886 corpus rows, 1,450 lines of tests and ex_money's 35,040-input comparison. The code that gets there is not something to keep: 2,680 lines, 197 private functions and 28 regular expressions, with the rules spread across folds, regexes and string surgery rather than stated once. It is also slow, 145 µs for `Money.parse("USD 100")` against 22 µs in ex_money 6.2.1, 9.6 ms with an `:only` filter, and 82 µs for `Money.new(:USD, "1234.56")` against 6 µs. The profile is a long tail of about sixty `String.replace/3` calls per number, one per lenient fold, plus a dozen regex runs and a currency index rebuilt on every filtered call.
 
@@ -158,6 +158,21 @@ The first table was measured through ex_money with interpreted closures; the sec
 
 Where the time went, and what moved it: the lenient folds (sixty `String.replace/3` calls) and the regexes are gone with the lexer; the filtered currency index is cached; the currency lookup for an amount checks the whole text and the period form rather than scanning every string for a part of it (`whole_currency/3`, 500 µs per miss before); the locale is validated once at the public entry and trusted inside (user, 2026-10-29); `Localize.get_locale/0` is no longer evaluated as an eager default; the caller-word search runs only with a `:caller_currency`; `nfkc/1` has an ASCII fast path and strips bidi marks by recursion. The `de` amount misses its target because `Grammar.read/3` costs 12 µs for an eight-character number, in a dozen list passes of one rule each; a single-pass grammar would close it at some cost to the one-rule-one-function layout, and is left for the `scan/2` sprint, which reworks the grammar's entry anyway.
 
+## `scan/2` on the lexer
+
+`Localize.Number.Scanner.scan/3` (2026-10-30) reads the whole string into tokens once and takes, at each token, the longest run with the shape of a number: bidi controls, a sign touching the digits, an integer of digits, underscores and group separators each followed by a plausible group (two digits leniently; the locale's primary size, or its secondary size with another separator after it, strictly), a fraction of digits or of a zero fraction's dashes (leniently only), and an exponent. Each run goes to `Grammar.read_tokens/4` with the scan's options, and is a number where the grammar reads one and a piece of text of its own where it does not; the text between runs comes back as written, consecutive pieces joined. The EBNF is in the module's doc. The regex scanner, its lookahead, its character classes and `parse_element/2` left `Parser`, now 1,346 lines.
+
+Verified against the regex scanner on 525,126 strings across the 68 sample locales (`scan_differential.ex`, kept in the scratchpad with the reference): 0 differences but for two decided ones. An exponent now follows a one-digit integer, so "5e5" is 500000.0, where the regex read 5, "e" and 5 while reading "12e5" whole, an accident of its backtracking; and a run with an underscore anywhere but between two digits, "5_", is text, as the number grammar already decided, where the reference's `parse/2` dropped the underscore. The regex's strict check of a secondary-size group wanted the literal group symbol after it; the scanner takes any of the symbol's lenient family, as the folds already applied in strict mode elsewhere, and no input in the differential tells the two apart. `resolve_currency/2`, `resolve_per/2` and `find_and_replace/3` match currency and per-cent text, not numbers, and keep their string code.
+
+| Scan | Regex scanner | Token scanner |
+|---|---|---|
+| "The prize is 23", `en` | 227 µs | 22 µs |
+| three numbers in a sentence, `en` | 647 µs | 69 µs |
+| "−1 234,56 kr", `sv` | 259 µs | 27 µs |
+| an Arabic sentence with an amount, `ar-EG` | 439 µs | 57 µs |
+| "chambres 12 14 16", `fr`, strict | 402 µs | 34 µs |
+| 60 words with 20 numbers, `en` | 2,800 µs | 283 µs |
+
 ## Tasks
 
 Each task is one turn: build, run that task's tests, stop for the user to commit.
@@ -180,4 +195,6 @@ Each task is one turn: build, run that task's tests, stop for the user to commit
 
 * [x] **Benchmarks and documentation** — tables above; EBNF in the `Grammar` and `Parser.Amount` moduledocs; CHANGELOG entries for the rewrite, the underscore rule and the `he` symbol; guide sentence on underscores. The reference copy and the differential moved to the scratchpad (`reference/`; recoverable from commit `b573f0fc` for the `scan/2` sprint). Gates, the ex_money comparison and the downstream suites: see the session notes for the final run. 2026-10-29.
 
-* [ ] **Next sprint: `scan/2` on the lexer** — a token-level scan with the same results as the regex scanner, verified the same way.
+* [x] **`scan/2` on the lexer** — `Localize.Number.Scanner`, the shape of a number as a token grammar, and `Grammar.read_tokens/4` so a run is lexed once; the regex scanner and `parse_element/2` gone from `Parser`. Differential on 525,126 strings, 0 differences but the two decided above; 14 scanner tests; `scan/2` ten times faster (table above). 2026-10-30.
+
+* [ ] **Single-pass number grammar** — `Grammar.read/3` costs 12 µs on an eight-character number in a dozen list passes of one rule each, which is why the `de` amount is 46 µs against its 35 µs target. A single pass over the tokens would close it, at some cost to the one-rule-one-function layout.

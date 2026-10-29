@@ -17,7 +17,7 @@ defmodule Localize.Number.Parser do
 
   """
 
-  alias Localize.Number.{Grammar, Lexicon}
+  alias Localize.Number.{Grammar, Lexicon, Scanner}
   alias Localize.Number.Parser.Amount
 
   @type per :: :percent | :permille
@@ -31,63 +31,11 @@ defmodule Localize.Number.Parser do
   # text as written. Not all of `\p{Cf}`: that includes the zero-width joiner
   # that emoji sequences in the surrounding text are built with.
   @bidi_control_class "\\x{061C}\\x{200E}\\x{200F}\\x{202A}-\\x{202E}\\x{2066}-\\x{2069}"
-  @bidi_controls "[" <> @bidi_control_class <> "]*"
 
-  @number_format @bidi_controls <>
-                   "([-+]" <>
-                   @bidi_controls <>
-                   ")?[0-9]([0-9_]|[,](?=[0-9]))*(\\.ZERO_FRACTION|\\.?[0-9_]+([eE][-+]?[0-9]+)?)?"
-
-  # The dashes that may stand for a zero fraction, "5.–": the hyphen-minus,
-  # U+2010 to U+2015 (the hyphens, figure dash, en and em dashes and the
-  # horizontal bar), the minus sign and the small and fullwidth forms. The
-  # scanner, the currency amount splitter and `parse/2` all read this one
-  # list, so they cannot disagree about which dash is which.
-  @zero_fraction_dash_characters [
-    "-",
-    "\u2010",
-    "\u2011",
-    "\u2012",
-    "\u2013",
-    "\u2014",
-    "\u2015",
-    "\u2212",
-    "\uFE58",
-    "\uFE63",
-    "\uFF0D"
-  ]
-  @dash_class Enum.map_join(@zero_fraction_dash_characters, &Regex.escape/1)
-
-  # A zero fraction for a lenient scan: one or two of those dashes, with no
-  # digit after them. A strict scan puts a pattern in its place that never
-  # matches.
-  @zero_fraction "[" <> @dash_class <> "][" <> @dash_class <> "]?(?![0-9])"
-
-  # The same passage says to ignore all format characters, "in particular, ...
-  # any RLM, LRM or ALM used to control BIDI formatting". This is not a
-  # hypothetical: CLDR embeds those marks in the number symbols of 19 locales —
-  # `ar` writes `minusSign` as LRM followed by "-", and even `root` does — so a
-  # negative number copied out of Arabic, Hebrew or Persian text carries one.
-  #
-  # Safe to strip wholesale here because no locale puts a format character in
-  # its `group` or `decimal` symbol, which are the only symbols this function
-  # matches on. The percent and per-mille signs do carry them, but those are
-  # matched by `resolve_per/2` against the raw string, not through here.
-  @format_characters ~r/\p{Cf}/u
-
-  @single_space ~r/^\p{Zs}$/u
-
-  # A run of the Bidi_Control characters in `@bidi_controls`, at the start or
-  # the end of a string.
+  # A run of the Bidi_Control characters in `@bidi_control_class`, at the
+  # start or the end of a string.
   @leading_bidi_controls Regex.compile!("\\A[" <> @bidi_control_class <> "]+", "u")
   @trailing_bidi_controls Regex.compile!("[" <> @bidi_control_class <> "]+\\z", "u")
-  # The three places in `@number_format` that `localize_format_string/3` fills
-  # in with the locale: the sign class, the grouping separator and the decimal.
-  @format_placeholders ~r/-\+|,|\\\./
-
-  # Smallest group a lenient parse will accept after a separator: two, the
-  # floor that keeps "3 4 5" three numbers (see "Grouping shape" below).
-  @lenient_group_floor 2
 
   # Maximum byte length accepted by `parse/2`. A 1 KB cap fits even
   # very long localised group/decimal-separated representations of a
@@ -126,6 +74,15 @@ defmodule Localize.Number.Parser do
 
       iex> Localize.Number.Parser.scan("chambres 12 14 16", locale: "fr", lenient: false)
       ["chambres ", 12, " ", 14, " ", 16]
+
+  A number in the text has the shape `Localize.Number.Scanner` reads:
+  a sign before the digits and touching them, the locale's group and
+  decimal separators, an exponent, and leniently a zero fraction
+  written as a dash, `"5.–"`. Each such run is read by `parse/2` with
+  these options and is a number where that succeeds; otherwise it is
+  text, as written. An underscore between two digits is Elixir's
+  digit separator, so `"1_000"` is 1000, and anywhere else it makes
+  the run text, so `"5_"` stays `"5_"`.
 
   ### Arguments
 
@@ -197,28 +154,17 @@ defmodule Localize.Number.Parser do
     with :ok <- validate_arguments(string, :string, options),
          locale = Keyword.get_lazy(options, :locale, &Localize.get_locale/0),
          {:ok, language_tag} <- parsing_locale(locale),
-         {:ok, _number_type} <- number_type(Keyword.get(options, :number)),
+         {:ok, number_type} <- number_type(Keyword.get(options, :number)),
          {:ok, number_system} <- Lexicon.number_system(language_tag, string, options),
-         {:ok, symbol} <- Lexicon.number_symbols(language_tag, number_system, options) do
-      lenient? = Keyword.get(options, :lenient, true)
-
-      scanner =
-        @number_format
-        |> localize_format_string(symbol, language_tag)
-        |> group_lookahead(language_tag, number_system, symbol, lenient?)
-        |> zero_fraction(lenient?)
-        |> Regex.compile!([:unicode])
-
-      normalized_string =
-        Localize.Number.Transliterate.transliterate_digits(string, Lexicon.digits(number_system))
-
-      # The pieces carry Latin digits now, so `parse/2` is told the number
-      # system the scan chose rather than choosing again from those digits.
-      element_options = Keyword.put(options, :number_system, number_system)
-
-      scanner
-      |> Regex.split(normalized_string, include_captures: true, trim: true)
-      |> Enum.map(&parse_element(&1, element_options))
+         {:ok, grouping} <- grouping_mode(options),
+         {:ok, lexicon} <- Lexicon.fetch(language_tag, number_system, options) do
+      Scanner.scan(string, lexicon,
+        number: number_type,
+        grouping: grouping,
+        lenient: Keyword.get(options, :lenient, true),
+        max_number_bytes: max_number_bytes(),
+        max_decimal_exponent: max_decimal_exponent()
+      )
     end
   end
 
@@ -1148,37 +1094,6 @@ defmodule Localize.Number.Parser do
     Enum.filter([currency.name, currency.symbol, currency.narrow_symbol | counts], &is_binary/1)
   end
 
-  defp parse_element(element, options) do
-    case parse(element, options) do
-      {:ok, number} -> number
-      {:error, _} -> element
-    end
-  end
-
-  # ── Grouping shape ─────────────────────────────────────────────
-  #
-  # TR35's heuristics for parsing a number, which "may be helpful", have a
-  # grouping separator ignored wherever it stands, and leave it to the
-  # implementation "to disambiguate the sets of characters that might serve in
-  # more than one position, based on context". A space is such a character: it
-  # groups digits in many locales and parts numbers in all of them. So a
-  # grouping separator is held to a plausible position, in both modes, which
-  # differ only in how strict "plausible" is (user, 2026-10-06,
-  # `plans/tr35-audit.md`; ICU holds it so too, with the same floor):
-  #
-  #   * strict  — every group is exactly the locale's grouping size, so `fr`
-  #     takes "1 234 567" and refuses "1 23".
-  #
-  #   * lenient — every group is at least two digits, so "1 23" is taken but
-  #     "3 4" is not, and no longer than the locale's longest group, so `de`
-  #     refuses "1234.56" rather than reading it as 123456. The longest
-  #     rather than each position's own size, so `en-IN` still takes
-  #     "1,234,567" written with Western grouping.
-  #
-  # The lenient floor of two is what keeps a space usable as a grouping
-  # separator without swallowing adjacent small numbers: "3 4 5" is three
-  # numbers in any locale, and no mode reads it as 345.
-
   @compile {:inline, cached: 2}
   defp cached(key, build_fn) do
     pt_key = {__MODULE__, key}
@@ -1192,116 +1107,6 @@ defmodule Localize.Number.Parser do
       value ->
         value
     end
-  end
-
-  defp extract_separator(%{standard: value}) do
-    value
-  end
-
-  defp extract_separator(value) when is_binary(value) do
-    value
-  end
-
-  defp extract_separator(_other) do
-    ""
-  end
-
-  # `parse/2` folds each piece the scanner hands it with CLDR's `parseLenients`
-  # sets, so the scanner must accept every character those folds would accept.
-  # Matching only the locale's literal symbols splits a number at a folded
-  # variant: `de-CH` text grouped with U+2019 rather than its own ASCII
-  # apostrophe, or `sv` text signed with U+2212, came back in pieces.
-  #
-  # A character that folds onto both separators' families is left to the
-  # separator it is literally, so the classes never overlap.
-  defp localize_format_string(string, symbols, language_tag) do
-    sets = Lexicon.lenient_sets(language_tag)
-    group_sep = extract_separator(symbols.group)
-    decimal_sep = extract_separator(symbols.decimal)
-    group_family = Lexicon.family(group_sep, sets)
-    decimal_family = Lexicon.family(decimal_sep, sets)
-
-    group = Enum.uniq([group_sep | group_family -- decimal_family])
-    decimal = Enum.uniq([decimal_sep | decimal_family -- group_family])
-
-    replacements = %{
-      "-+" => sign_class(symbols, sets),
-      "," => group_class(group_sep, group),
-      "\\." => "[" <> class_characters(decimal) <> "]"
-    }
-
-    # One pass, so a replacement's own characters are never replaced again.
-    Regex.replace(@format_placeholders, string, &Map.fetch!(replacements, &1))
-  end
-
-  # The signs `parse/2` reads: ASCII, the locale's own, and their folds. The
-  # minus family's sample "_" is left out, because `parse/2` drops an
-  # underscore as a digit separator rather than reading it as a sign. Format
-  # characters in a locale's sign are not part of the sign here.
-  defp sign_class(symbols, sets) do
-    sets
-    |> sign_characters([symbols.minus_sign, symbols.plus_sign])
-    |> class_characters()
-  end
-
-  # The signs `parse/2` folds: ASCII's, any `extra_signs` such as the
-  # locale's own, and their folds. The minus family's sample "_" is left
-  # out, because `parse/2` drops an underscore as a digit separator rather
-  # than reading it as a sign. Format characters in a locale's sign are not
-  # part of the sign here. The scanner and the currency amount splitter both
-  # take their signs from here.
-  defp sign_characters(sets, extra_signs) do
-    for sign <- ["-", "+" | extra_signs],
-        sign = String.replace(extract_separator(sign), @format_characters, ""),
-        character <- Lexicon.family(sign, sets),
-        character != "_",
-        uniq: true,
-        do: character
-  end
-
-  # What counts as a grouping separator inside the scanner's character class.
-  # Where the locale groups with a space, the whole space category counts, so a
-  # number typed with an ordinary keyboard space is found in text that a locale
-  # would format with U+202F. The grouping-shape lookahead below is what keeps
-  # that from joining unrelated numbers.
-  defp group_class(group_sep, group) do
-    if String.match?(group_sep, @single_space) do
-      "\\p{Zs}"
-    else
-      class_characters(group)
-    end
-  end
-
-  defp class_characters(characters) do
-    characters
-    |> Enum.reject(&(&1 == ""))
-    |> Enum.map_join(&Regex.escape/1)
-  end
-
-  defp zero_fraction(pattern, true) do
-    String.replace(pattern, "ZERO_FRACTION", @zero_fraction)
-  end
-
-  defp zero_fraction(pattern, _strict) do
-    String.replace(pattern, "ZERO_FRACTION", "(?!)")
-  end
-
-  # `@number_format` admits a grouping separator whenever a digit follows. That
-  # is too permissive once the separator can be a space: it would read "3 4 5"
-  # as one number. Requiring a plausible group instead, two digits leniently
-  # or an exact group size strictly, is what makes the wider class safe.
-  defp group_lookahead(pattern, language_tag, number_system, symbols, lenient?) do
-    {primary, secondary} = Lexicon.grouping_sizes(language_tag, number_system)
-
-    lookahead =
-      if lenient? do
-        "(?=[0-9]{#{@lenient_group_floor}})"
-      else
-        separator = symbols.group |> extract_separator() |> Regex.escape()
-        "(?=[0-9]{#{primary}}(?![0-9])|[0-9]{#{secondary}}#{separator})"
-      end
-
-    String.replace(pattern, "(?=[0-9])", lookahead)
   end
 
   defp build_per_strings(symbols) do
