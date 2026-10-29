@@ -19,4 +19,5 @@
   "stream_data": {:hex, :stream_data, "1.4.0", "026f929db613aabea6208012ae9b8970d3fd5f88b3bdf26831bc536f98c42036", [:mix], [], "hexpm", "2b0ee3a340dcce1c8cf6302a763ee757d1e01c54d6e16d9069062509d68b1dc9"},
   "sweet_xml": {:hex, :sweet_xml, "0.7.5", "803a563113981aaac202a1dbd39771562d0ad31004ddbfc9b5090bdcd5605277", [:mix], [], "hexpm", "193b28a9b12891cae351d81a0cead165ffe67df1b73fe5866d10629f4faefb12"},
   "tz": {:hex, :tz, "0.28.4", "f5433914dcf8619d593979ec65bbe878158cad818bc2b53b44d9e4bda509753f", [:mix], [{:castore, "~> 0.1 or ~> 1.0", [hex: :castore, repo: "hexpm", optional: true]}, {:mint, "~> 1.6", [hex: :mint, repo: "hexpm", optional: true]}], "hexpm", "72fe8d526cf30fcc4e07cec4ceb583ba5f2d69c6334c9533419c836a6acd1c56"},
+  "unicode": {:hex, :unicode, "2.2.0", "164536a79c7703abfe8e32797560abf7cc17e8336cb4c98a4888e4412cfc2cd5", [:mix], [], "hexpm", "6ea1f194e51de63e05397d79284fa8b88062b26a841394fa99d6e6eac1527a94"},
 }

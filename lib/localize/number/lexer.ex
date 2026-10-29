@@ -7,7 +7,10 @@ defmodule Localize.Number.Lexer do
   character with the `t:Localize.Number.Lexicon.t/0` it is given:
   digits of the lexicon's number system and Latin digits read as
   digits, the characters of the minus and plus families as signs,
-  the separator families as marks, and so on. It drops nothing and
+  the separator families as marks, and so on. A character the
+  lexicon does not know is classed by its Unicode general category,
+  from a table `mix localize.gen_unicode_categories` generates from
+  the `unicode` library. It drops nothing and
   decides nothing: a format character, an underscore and a space are
   each a token of their own, and whether a mark is a decimal separator
   depends on the reading, which is the grammar's business. Every
@@ -20,6 +23,7 @@ defmodule Localize.Number.Lexer do
 
   """
 
+  alias Localize.Number.Lexer.Categories
   alias Localize.Number.Lexicon
 
   @typedoc """
@@ -83,20 +87,9 @@ defmodule Localize.Number.Lexer do
   @bidi_controls [0x061C, 0x200E, 0x200F, 0x202A, 0x202B, 0x202C, 0x202D, 0x202E] ++
                    [0x2066, 0x2067, 0x2068, 0x2069]
 
-  # The space separators, `[:Zs:]`.
-  @spaces [0x0020, 0x00A0, 0x1680] ++
-            Enum.to_list(0x2000..0x200A) ++ [0x202F, 0x205F, 0x3000]
-
   # ASCII's punctuation marks (`Po`): the rest of ASCII's punctuation is a
   # sign, a parenthesis, a bracket or a symbol, none of them a mark.
   @ascii_marks ~c[!"#%&'*,./:;?@\\]
-
-  # A character the lexicon does not know and ASCII does not settle is
-  # classed by Unicode's categories: a format character, a digit of some
-  # other number system, or a punctuation mark (`Po` or a final quotation
-  # mark, which may close a number; an initial one may not). One regular
-  # expression, so the lookup is one call.
-  @categories ~r/\A(?:(\p{Cf})|(\p{Nd})|([\p{Po}\p{Pf}]))\z/u
 
   @doc """
   Returns the tokens of a string.
@@ -161,22 +154,22 @@ defmodule Localize.Number.Lexer do
       MapSet.member?(lexicon.minus, character) -> {:minus, character}
       MapSet.member?(lexicon.plus, character) -> {:plus, character}
       MapSet.member?(lexicon.dashes, character) -> {:dash, character}
-      codepoint in @spaces -> {:space, character}
+      Categories.space?(codepoint) -> {:space, character}
       MapSet.member?(lexicon.marks, character) -> {:mark, character}
-      true -> {fixed_kind(codepoint, character), character}
+      true -> {fixed_kind(codepoint), character}
     end
   end
 
   # What the lexicon does not settle: the parentheses and the underscore,
   # then ASCII, and Unicode's categories only for what is left.
-  defp fixed_kind(codepoint, character) do
+  defp fixed_kind(codepoint) do
     cond do
       codepoint == ?( -> :open
       codepoint == ?) -> :close
       codepoint == ?_ -> :underscore
       codepoint == ?\t -> :tab
       codepoint < 128 -> ascii_kind(codepoint)
-      true -> category_kind(character)
+      true -> category_kind(codepoint)
     end
   end
 
@@ -188,12 +181,17 @@ defmodule Localize.Number.Lexer do
     :text
   end
 
-  defp category_kind(character) do
-    case Regex.run(@categories, character) do
-      [_character, format] when format != "" -> :format
-      [_character, "", digit] when digit != "" -> :other_digits
-      [_character, "", "", _mark] -> :mark
-      _not_classed -> :text
+  # A character the lexicon does not know and ASCII does not settle is
+  # classed by Unicode's general category, from the table
+  # `mix localize.gen_unicode_categories` generates: a format character, a
+  # digit of some other number system, or a punctuation mark (`Po`, or a
+  # final quotation mark, which may close a number; an initial one may not).
+  defp category_kind(codepoint) do
+    cond do
+      Categories.format?(codepoint) -> :format
+      Categories.digit?(codepoint) -> :other_digits
+      Categories.mark?(codepoint) -> :mark
+      true -> :text
     end
   end
 

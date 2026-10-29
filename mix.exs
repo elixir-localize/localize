@@ -329,6 +329,10 @@ defmodule Localize.MixProject do
       {:nimble_parsec, "~> 1.0", runtime: false},
       {:elixir_make, "~> 0.4", runtime: false, optional: true},
       {:sweet_xml, "~> 0.7", only: [:dev, :test], runtime: false},
+      # `mix localize.gen_unicode_categories` reads the general categories
+      # the number lexer classifies characters by; the generated module
+      # is checked in, so nothing needs the library at runtime.
+      {:unicode, "~> 2.2", only: :dev, runtime: false},
       {:dialyxir, "~> 1.4", only: :dev, runtime: false},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
       {:ex_slop, "~> 0.1", only: [:dev, :test], runtime: false},
