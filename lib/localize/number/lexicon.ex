@@ -21,7 +21,17 @@ defmodule Localize.Number.Lexicon do
 
   alias Localize.Number.{Symbol, System}
 
-  defstruct [:locale, :number_system, :digits, :minus, :plus, :dashes, :period, :readings]
+  defstruct [
+    :locale,
+    :number_system,
+    :digits,
+    :minus,
+    :plus,
+    :dashes,
+    :period,
+    :marks,
+    :readings
+  ]
 
   @typedoc """
   One set of separators a number is read with.
@@ -65,6 +75,10 @@ defmodule Localize.Number.Lexicon do
   * `:period` is the characters that fold onto a period, for telling a
     foreign decimal point from the locale's separators.
 
+  * `:marks` is every character that is a separator in some reading,
+    or folds onto a period: what the lexer reads as a mark without
+    consulting Unicode's categories.
+
   * `:readings` are the separator sets, the locale's own first.
 
   """
@@ -76,6 +90,7 @@ defmodule Localize.Number.Lexicon do
           plus: MapSet.t(String.t()),
           dashes: MapSet.t(String.t()),
           period: MapSet.t(String.t()),
+          marks: MapSet.t(String.t()),
           readings: [reading(), ...]
         }
 
@@ -297,6 +312,7 @@ defmodule Localize.Number.Lexicon do
 
     with {:ok, symbol_sets} <- symbol_sets(language_tag, number_system, options) do
       readings = Enum.map(symbol_sets, &reading(&1, number_system))
+      period = MapSet.new(family(".", sets))
 
       {:ok,
        %__MODULE__{
@@ -306,10 +322,19 @@ defmodule Localize.Number.Lexicon do
          minus: minus,
          plus: plus,
          dashes: MapSet.difference(MapSet.new(@zero_fraction_dashes), minus),
-         period: MapSet.new(family(".", sets)),
+         period: period,
+         marks: marks(readings, period),
          readings: readings
        }}
     end
+  end
+
+  defp marks(readings, period) do
+    Enum.reduce(readings, period, fn reading, marks ->
+      marks
+      |> MapSet.union(reading.decimal)
+      |> MapSet.union(reading.group)
+    end)
   end
 
   # The minus family's sample is "_", Elixir's digit separator, which is

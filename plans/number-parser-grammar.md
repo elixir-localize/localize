@@ -151,7 +151,7 @@ Each task is one turn: build, run that task's tests, stop for the user to commit
 
 * [x] **Lexicon** — `Localize.Number.Lexicon.fetch/3` and `number_system/3`, with digits, sign families, zero-fraction dashes, the period family and one to three readings, each a `MapSet` per separator with the lenient family folded in; cached per locale, system, currency and separator options. 19 tests. 2026-10-29.
 
-* [ ] **Lexer** — `Localize.Number.Lexer.tokens/2` with token snapshots for the hard inputs: bidi marks, Arabic and Devanagari digits, U+202F and U+00A0, "5.–", "−.5", `de-CH` apostrophes, fullwidth characters.
+* [x] **Lexer** — `Localize.Number.Lexer.tokens/2`: one pass, `{kind, value, source}` tokens, nothing dropped (bidi controls, format characters and underscores are tokens the grammars decide on), one regex call only for a non-ASCII character outside every lexicon set. Snapshots for bidi marks, Arabic digits, no-break spaces, "5.–" in `en` and `de-CH`, apostrophes, fullwidth and superscript characters. 2026-10-29.
 
 * [ ] **Number grammar** — `Localize.Number.Grammar` and `parse/2` on it; the differential test on numbers all green; `parser_test.exs` unchanged.
 
