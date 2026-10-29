@@ -86,12 +86,4 @@ defmodule Localize.Rfc5646.Parser do
   )
 
   # parsec:Localize.Rfc5646.Parser
-
-  def error_on_remaining("", context, _line, _offset) do
-    {[], context}
-  end
-
-  def error_on_remaining(_rest, _context, _line, _offset) do
-    {:error, "invalid language tag"}
-  end
 end

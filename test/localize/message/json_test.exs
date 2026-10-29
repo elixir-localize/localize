@@ -469,16 +469,22 @@ defmodule Localize.Message.JSONTest do
 
   describe "from_json/1 — errors" do
     test "invalid JSON string" do
-      assert JSON.from_json("{not json") == {:error, "invalid JSON"}
+      assert {:error, %Localize.ParseError{} = error} = JSON.from_json("{not json")
+      assert error.reason == :invalid_message_format
+      assert error.detail == "it is not JSON"
     end
 
     test "JSON string that is not an object" do
-      assert JSON.from_json("[1,2,3]") == {:error, "expected a JSON object"}
+      assert {:error, %Localize.InvalidValueError{} = error} = JSON.from_json("[1,2,3]")
+      assert error.expected == "a JSON object"
     end
 
     test "map without a recognised type" do
-      assert JSON.from_json(%{"foo" => "bar"}) ==
-               {:error, "expected a message or select object with type field"}
+      assert {:error, %Localize.InvalidValueError{} = error} =
+               JSON.from_json(%{"foo" => "bar"})
+
+      assert error.value == %{"foo" => "bar"}
+      assert error.expected == "a message or select object with a type field"
     end
   end
 

@@ -11,7 +11,16 @@ defmodule Localize.Credo.ErrorTuple do
 
       Matching an atom another library returns, such as
       `{:error, :incompatible_calendars} -> ...` from `Date.convert/2`, is
-      not reported: only an error tuple that is built is.
+      not reported: only an error tuple that is built is. Nor is a
+      typespec, which declares the shape a function returns rather than
+      building one — the return is reported where it is built.
+
+      The rule governs the error returns of the public API, so only a
+      `def` or a `defmacro` is read. An atom built in a `defp` is a
+      private sum type naming which rule or lookup failed, which one
+      boundary turns into the exception the caller sees:
+      `Localize.Number.Grammar.read_with/7` answers every rule of the
+      number grammar with one `Localize.InvalidValueError`.
 
       A site that must build an atom, because a contract outside this
       library requires one, says so with
@@ -20,9 +29,17 @@ defmodule Localize.Credo.ErrorTuple do
       """
     ]
 
-  # The forms whose first argument is a pattern or a head, not a value
-  # that is built.
-  @heads [:def, :defp, :defmacro, :defmacrop]
+  # The forms whose first argument is a head, not a value that is built.
+  # A public definition's body is read; a private one's is not, because
+  # the rule is about what the public API returns.
+  @public [:def, :defmacro]
+  @private [:defp, :defmacrop]
+
+  # The attributes that declare a type rather than build a value. A
+  # `@spec` naming `{:error, :invalid_date}` describes the return of the
+  # function below it, so reporting it as well as the return would ask
+  # for two disable comments at one site.
+  @declarations [:spec, :type, :typep, :opaque, :callback, :macrocallback]
 
   @doc false
   @impl true
@@ -52,8 +69,15 @@ defmodule Localize.Credo.ErrorTuple do
   defp walk({:=, meta, [_pattern, value]}, ctx), do: {{:=, meta, [nil, value]}, ctx}
   defp walk({:<-, meta, [_pattern, value]}, ctx), do: {{:<-, meta, [nil, value]}, ctx}
 
-  defp walk({head, meta, [_head, body]}, ctx) when head in @heads,
+  defp walk({head, meta, [_head, body]}, ctx) when head in @public,
     do: {{head, meta, [nil, body]}, ctx}
+
+  defp walk({head, meta, [_head, _body]}, ctx) when head in @private,
+    do: {{head, meta, [nil, nil]}, ctx}
+
+  defp walk({:@, meta, [{declaration, _meta, _args}]}, ctx)
+       when declaration in @declarations,
+       do: {{:@, meta, [nil]}, ctx}
 
   defp walk(
          {:__block__, meta, [{{:__block__, _, [:error]}, {:__block__, _, [reason]}}]} = ast,

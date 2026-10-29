@@ -68,6 +68,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 * `Localize.UnknownRbnfRuleError` has a `:rules_in` field naming the nearest parent whose RBNF rules the locale takes when that parent is not a supported locale, `:no` for `nb` and `:en` for `en-GB`, and its message says so. The CLDR locales with rules of their own are new supplemental data, `Localize.SupplementalData.rbnf_locales/0`.
 
+* `Localize.Message.JSON.from_json/1`, `Localize.Number.Format.Compiler.compile/1` and `format_to_metadata/1`, and the `Localize.Unit.Math` root and dimensionless functions return `{:error, exception}` where they returned a bare message string. `Localize.FormatError` has the reason `:invalid_number_pattern`, which a scientific pattern carrying a grouping separator is refused with.
+
 ## [1.4.3] — October 27th, 2026
 
 ### Changed

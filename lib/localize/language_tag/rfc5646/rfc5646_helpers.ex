@@ -87,8 +87,12 @@ defmodule Localize.Rfc5646.Helpers do
     {rest, List.flatten(args), context}
   end
 
-  # This is just to keep dialyzer quiet
+  # Unreachable, and here to keep dialyzer quiet: `flatten/5` is a
+  # NimbleParsec `post_traverse/2` callback, whose spec declares
+  # `reason: String.t()`, so a stopped parse carries a binary and not the
+  # exception the house rule asks for.
   def flatten(_rest, _args, _context, _line, _offset) do
+    # credo:disable-for-next-line Localize.Credo.ErrorTuple
     {:error, "Can't flatten a non-list"}
   end
 

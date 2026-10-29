@@ -278,11 +278,11 @@ defmodule Localize.Message.JSON do
       {:ok, [quoted_pattern: [text: "Hello!"]]}
 
   """
-  @spec from_json(map() | String.t()) :: {:ok, list()} | {:error, String.t()}
+  @spec from_json(map() | String.t()) :: {:ok, list()} | {:error, Exception.t()}
   def from_json(json) when is_binary(json) do
     case Localize.Utils.Helpers.run_isolated(fn -> decode_message(json) end) do
       {:ok, result} -> result
-      {:error, _exception} -> {:error, "invalid JSON"}
+      {:error, exception} -> {:error, not_json(json, exception)}
     end
   end
 
@@ -318,7 +318,14 @@ defmodule Localize.Message.JSON do
     {:ok, ast}
   end
 
-  def from_json(_), do: {:error, "expected a message or select object with type field"}
+  def from_json(json) do
+    {:error,
+     Localize.InvalidValueError.exception(
+       value: json,
+       expected: "a message or select object with a type field",
+       context: __MODULE__
+     )}
+  end
 
   # `:json.decode/1` raises on text that is not JSON, and the conversion
   # can raise on a malformed data model, so `from_json/1` runs both in a
@@ -326,8 +333,25 @@ defmodule Localize.Message.JSON do
   defp decode_message(json) do
     case :json.decode(json) do
       map when is_map(map) -> from_json(map)
-      _other -> {:error, "expected a JSON object"}
+      other -> {:error, not_an_object(other)}
     end
+  end
+
+  defp not_json(json, exception) do
+    Localize.ParseError.exception(
+      input: json,
+      reason: :invalid_message_format,
+      detail: "it is not JSON",
+      cause: exception
+    )
+  end
+
+  defp not_an_object(other) do
+    Localize.InvalidValueError.exception(
+      value: other,
+      expected: "a JSON object",
+      context: __MODULE__
+    )
   end
 
   # ── Parse declarations ──────────────────────────────────────────

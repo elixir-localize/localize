@@ -29,6 +29,7 @@ defmodule Localize.FormatError do
           | :variant_key_mismatch
           | :missing_fallback_variant
           | :unknown_function
+          | :invalid_number_pattern
 
   @type t :: %__MODULE__{
           value: term() | nil,
@@ -51,7 +52,8 @@ defmodule Localize.FormatError do
       :missing_selector_annotation,
       :variant_key_mismatch,
       :missing_fallback_variant,
-      :unknown_function
+      :unknown_function,
+      :invalid_number_pattern
     ]
 
   @impl true
@@ -60,6 +62,14 @@ defmodule Localize.FormatError do
   end
 
   @impl true
+  def message(%__MODULE__{reason: :invalid_number_pattern, detail: detail}) do
+    Localize.Exception.safe_message(
+      "number",
+      "Invalid number format pattern: {$detail}",
+      detail: detail
+    )
+  end
+
   def message(%__MODULE__{reason: :unbalanced_markup, detail: nil, value: value}) do
     Localize.Exception.safe_message(
       "message",

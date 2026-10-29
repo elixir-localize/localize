@@ -29,6 +29,16 @@ defmodule Localize.Calendar.ISO do
   # and to no other (`Localize.Calendar.answering/1`; user, 2026-10-02: "All
   # Calendrical behaviour callbacks must be implemented for Calendar.ISO and
   # done so in a specific, isolated, callback module").
+  #
+  # Every error this module returns is an atom because the Calendrical
+  # behaviour returns one: `Calendrical.Base.Month.month/3` and its
+  # neighbours answer `{:error, :invalid_date}`, and a value of this
+  # module is read beside a value of one of Calendrical's own calendars.
+  # An exception struct here would answer a question Calendrical asks in
+  # a shape it does not take, so the whole file is exempt from the house
+  # rule rather than each of its three dozen returns saying so.
+  #
+  # credo:disable-for-this-file Localize.Credo.ErrorTuple
 
   @behaviour Calendar
 

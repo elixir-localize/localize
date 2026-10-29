@@ -32,8 +32,10 @@ defmodule Localize.Unit.MathCoverageTest do
     end
 
     test "square root of an odd power is an error" do
-      assert {:error, "cannot take square root of meter with power 1"} =
-               Math.sqrt(unit!(9, "meter"))
+      assert {:error, %Localize.InvalidValueError{} = error} = Math.sqrt(unit!(9, "meter"))
+      assert error.value == "meter"
+      assert error.expected == "a unit with a power divisible by 2"
+      assert error.context == "square root"
     end
 
     test "sqrt/1 and cbrt/1 require a value" do
@@ -114,18 +116,26 @@ defmodule Localize.Unit.MathCoverageTest do
     end
 
     test "a dimensioned unit is rejected" do
-      assert {:error, "cos requires a dimensionless value, got unit with base: meter"} =
+      assert {:error, %Localize.InvalidValueError{} = error} =
                Math.apply_dimensionless(:cos, unit!(1, "meter"))
+
+      assert error.value == "meter"
+      assert error.expected == "a dimensionless unit"
+      assert error.context == :cos
     end
 
     test "a unit without a value is rejected" do
-      assert {:error, "function requires a unit with a value"} =
+      assert {:error, %Localize.UnitNoValueError{operation: :sin}} =
                Math.apply_dimensionless(:sin, Unit.new!("meter"))
     end
 
     test "an unknown function name is rejected" do
-      assert {:error, "unknown dimensionless function: bogus"} =
+      assert {:error, %Localize.InvalidValueError{} = error} =
                Math.apply_dimensionless(:bogus, unit!(1, "radian"))
+
+      assert error.value == :bogus
+      assert error.expected == :dimensionless_function
+      assert :sin in error.allowed_values
     end
   end
 

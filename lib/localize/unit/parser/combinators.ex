@@ -3,6 +3,15 @@ defmodule Localize.Unit.Parser.Combinator do
 
   import NimbleParsec
 
+  # A `post_traverse/2` callback stops the parse with `{:error, reason}`,
+  # and NimbleParsec's own spec declares `reason: String.t()` — the reason
+  # becomes the message of the `{:error, reason, rest, context, line,
+  # offset}` the generated parser answers. So `reject_categories/5` and
+  # `validate_prefixed_custom_unit/5` below build a binary rather than an
+  # exception, against the house rule, because the contract is
+  # NimbleParsec's. `Localize.Unit.Parser` turns the parse failure into
+  # the exception a caller sees.
+
   # ── Compile-time data ───────────────────────────────────────────────
 
   @si_prefix_names Localize.Unit.Data.si_prefix_names()
@@ -79,6 +88,7 @@ defmodule Localize.Unit.Parser.Combinator do
         end
 
       _ ->
+        # credo:disable-for-next-line Localize.Credo.ErrorTuple
         {:error, "no base unit found"}
     end
   end

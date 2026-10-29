@@ -33,11 +33,13 @@ defmodule Localize.InvalidUtf8Test do
       alias Localize.Number.Format.Compiler
 
       for input <- @invalid do
-        assert {:error, %Localize.InvalidValueError{value: ^input}, 1} = Compiler.tokenize(input)
-        assert {:error, message} = Compiler.parse(input)
-        assert message =~ "UTF-8"
-        assert {:error, ^message} = Compiler.compile(input)
-        assert {:error, ^message} = Compiler.format_to_metadata(input)
+        assert {:error, %Localize.InvalidValueError{value: ^input} = error, 1} =
+                 Compiler.tokenize(input)
+
+        assert Exception.message(error) =~ "UTF-8"
+        assert {:error, ^error} = Compiler.parse(input)
+        assert {:error, ^error} = Compiler.compile(input)
+        assert {:error, ^error} = Compiler.format_to_metadata(input)
 
         assert {:error, %Localize.InvalidValueError{}} =
                  Localize.Number.to_string(1234, format: input)

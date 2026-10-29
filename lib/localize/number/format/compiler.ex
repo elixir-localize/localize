@@ -140,7 +140,7 @@ defmodule Localize.Number.Format.Compiler do
   end
 
   def parse("") do
-    {:error, "empty format string cannot be compiled"}
+    {:error, invalid_value("", "a number format pattern that is not empty")}
   end
 
   # A pattern with characters no lexer rule accepts, such as a lone quote or
@@ -151,7 +151,7 @@ defmodule Localize.Number.Format.Compiler do
         :localize_decimal_formats_parser.parse(tokens)
 
       {:error, %{__exception__: true} = exception, _end_line} ->
-        {:error, Exception.message(exception)}
+        {:error, exception}
 
       {:error, descriptor, _end_line} ->
         {:error, descriptor}
@@ -159,11 +159,11 @@ defmodule Localize.Number.Format.Compiler do
   end
 
   def parse(nil) do
-    {:error, "no format string or token list provided"}
+    {:error, invalid_value(nil, "a format string or token list")}
   end
 
   def parse(definition) do
-    {:error, "a format string or token list was expected, got: #{inspect(definition)}"}
+    {:error, invalid_value(definition, "a format string or token list")}
   end
 
   # ── Compile ──────────────────────────────────────────────────
@@ -193,7 +193,7 @@ defmodule Localize.Number.Format.Compiler do
       %{integer: %{first: 3, rest: 3}, fraction: %{first: 0, rest: 0}}
 
   """
-  @spec compile(String.t()) :: {:ok, Meta.t()} | {:error, String.t()}
+  @spec compile(String.t()) :: {:ok, Meta.t()} | {:error, Exception.t()}
   def compile(definition) when is_binary(definition) do
     with {:ok, format} <- parsed_format(definition) do
       format_to_metadata(format)
@@ -201,7 +201,7 @@ defmodule Localize.Number.Format.Compiler do
   end
 
   def compile(definition),
-    do: {:error, "a format string was expected, got: #{inspect(definition)}"}
+    do: {:error, invalid_value(definition, "a format string")}
 
   # The parser reports a position and a token list, which reads as a message
   # naming the compiler.
@@ -211,10 +211,10 @@ defmodule Localize.Number.Format.Compiler do
         {:ok, format}
 
       {:error, {_line, _parser, [message, context]}} ->
-        {:error, "Decimal format compiler: #{message}#{Enum.join(context)}"}
+        {:error, unparseable(definition, "#{message}#{Enum.join(context)}")}
 
-      {:error, message} ->
-        {:error, message}
+      {:error, exception} ->
+        {:error, exception}
     end
   end
 
@@ -237,23 +237,23 @@ defmodule Localize.Number.Format.Compiler do
       %{min: 2, max: 2}
 
   """
-  @spec format_to_metadata(String.t() | Keyword.t()) :: {:ok, Meta.t()} | {:error, String.t()}
+  @spec format_to_metadata(String.t() | Keyword.t()) :: {:ok, Meta.t()} | {:error, Exception.t()}
   def format_to_metadata(format) when is_binary(format) do
     case parse(format) do
       {:ok, parsed} ->
         format_to_metadata(parsed)
 
       {:error, {_line, :localize_decimal_formats_lexer, {:illegal, chars}}} ->
-        {:error, "Decimal format compiler: illegal characters #{inspect(List.to_string(chars))}"}
+        {:error, unparseable(format, "illegal characters #{inspect(List.to_string(chars))}")}
 
       {:error, {_line, _parser, [message, context]}} ->
-        {:error, "Decimal format compiler: #{message}#{Enum.join(context)}"}
+        {:error, unparseable(format, "#{message}#{Enum.join(context)}")}
 
-      {:error, reason} when is_binary(reason) ->
-        {:error, reason}
+      {:error, %{__exception__: true} = exception} ->
+        {:error, exception}
 
       {:error, descriptor} ->
-        {:error, "Decimal format compiler: #{inspect(descriptor)}"}
+        {:error, unparseable(format, inspect(descriptor))}
     end
   end
 
@@ -266,14 +266,14 @@ defmodule Localize.Number.Format.Compiler do
   end
 
   def format_to_metadata(format),
-    do: {:error, "a format string or parsed format was expected, got: #{inspect(format)}"}
+    do: {:error, invalid_value(format, "a format string or parsed format")}
 
   # A literal-only format such as "mille" has no `:format` placeholder, so
   # only the `:positive` list itself is required.
   defp positive_format(format) do
     case Keyword.get(format, :positive) do
       positive when is_list(positive) -> {:ok, Keyword.get(positive, :format)}
-      _other -> {:error, "a parsed format was expected, got: #{inspect(format)}"}
+      _other -> {:error, invalid_value(format, "a parsed format")}
     end
   end
 
@@ -304,7 +304,7 @@ defmodule Localize.Number.Format.Compiler do
   def format_to_metadata!(format) do
     case format_to_metadata(format) do
       {:ok, metadata} -> metadata
-      {:error, reason} -> raise ArgumentError, reason
+      {:error, reason} -> raise ArgumentError, Exception.message(reason)
     end
   end
 
@@ -645,11 +645,15 @@ defmodule Localize.Number.Format.Compiler do
        })
        when e > 0 and first > 0 do
     {:error,
-     "Scientific number patterns must not contain a grouping separator. " <>
-       "TR35 disallows grouping in scientific patterns because the mantissa " <>
-       "never has enough integer digits to trigger a group; the separator is " <>
-       "silently ignored at output time and the result is misleading. " <>
-       "Remove the comma from the pattern, or use a non-scientific pattern."}
+     Localize.FormatError.exception(
+       reason: :invalid_number_pattern,
+       detail:
+         "scientific number patterns must not contain a grouping separator. " <>
+           "TR35 disallows grouping in scientific patterns because the mantissa " <>
+           "never has enough integer digits to trigger a group; the separator is " <>
+           "silently ignored at output time and the result is misleading. " <>
+           "Remove the comma from the pattern, or use a non-scientific pattern."
+     )}
   end
 
   defp validate_scientific_constraints(_meta), do: :ok
@@ -690,6 +694,20 @@ defmodule Localize.Number.Format.Compiler do
   end
 
   @doc false
+  defp invalid_value(value, expected) do
+    Localize.Utils.Helpers.invalid_value(value, expected)
+  end
+
+  # The yecc parser and the leex lexer report a position and a token list
+  # rather than an exception, which reads as a message naming the compiler.
+  defp unparseable(definition, detail) do
+    Localize.ParseError.exception(
+      input: definition,
+      reason: :unexpected_input,
+      detail: "Decimal format compiler: #{detail}"
+    )
+  end
+
   @spec precompile_regexes() :: :ok
   def precompile_regexes do
     Enum.each(@regex_sources, fn {key, source} ->

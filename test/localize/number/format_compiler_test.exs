@@ -127,9 +127,10 @@ defmodule Localize.Number.Format.CompilerTest do
   # error. Breaking change in 0.41.0.
   describe "scientific patterns reject grouping (TR35)" do
     test "primary grouping with E is refused" do
-      assert {:error, message} = Compiler.compile("#,##0.###E0")
-      assert message =~ "Scientific"
-      assert message =~ "grouping"
+      assert {:error, %Localize.FormatError{} = error} = Compiler.compile("#,##0.###E0")
+      assert error.reason == :invalid_number_pattern
+      assert Exception.message(error) =~ "scientific number patterns"
+      assert Exception.message(error) =~ "grouping"
     end
 
     test "Indian-style grouping with E is also refused" do
@@ -149,12 +150,13 @@ defmodule Localize.Number.Format.CompilerTest do
 
     test "format_to_metadata/1 surfaces the same error for parsed-list input" do
       {:ok, parsed} = Compiler.parse("#,##0.###E0")
-      assert {:error, message} = Compiler.format_to_metadata(parsed)
-      assert message =~ "Scientific"
+      assert {:error, %Localize.FormatError{} = error} = Compiler.format_to_metadata(parsed)
+      assert error.reason == :invalid_number_pattern
+      assert Exception.message(error) =~ "grouping separator"
     end
 
     test "format_to_metadata!/1 raises ArgumentError on the same input" do
-      assert_raise ArgumentError, ~r/Scientific.*grouping/, fn ->
+      assert_raise ArgumentError, ~r/scientific number patterns.*grouping/, fn ->
         Compiler.format_to_metadata!("#,##0.###E0")
       end
     end

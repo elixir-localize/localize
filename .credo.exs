@@ -25,10 +25,22 @@
 # Policy decision (October 2026):
 #
 # * `Localize.Credo.ErrorTuple` (`credo/checks/error_tuple.ex`) reports
-#   every error tuple built with an atom or a string in `lib/` and `data/`:
-#   an error is `{:error, exception}`. A site whose atom a contract outside
-#   Localize requires, such as Elixir's `Calendar` parse callbacks, carries
-#   an inline `credo:disable-for-next-line` with the reason.
+#   every error tuple built with an atom or a string by a public function
+#   of `lib/`: an error is `{:error, exception}`. A site whose atom a
+#   contract outside Localize requires, such as Elixir's `Calendar` parse
+#   callbacks, carries an inline `credo:disable-for-next-line` with the
+#   reason; `Localize.Calendar.ISO` answers the Calendrical behaviour
+#   throughout and is exempt for the whole file.
+#
+#   It reads neither `defp` nor `data/`. An atom built in a private
+#   function is a private sum type naming which rule or lookup failed,
+#   and one boundary turns it into the exception the caller sees:
+#   `Localize.Number.Grammar.read_with/7` answers the fifteen rules of
+#   the number grammar with one `Localize.InvalidValueError`, and
+#   `Localize.DateTime.Formatter`'s day-period lookups are each a reason
+#   to fall back to AM/PM. `data/` is the locale generation pipeline,
+#   which `mix.exs` does not ship, so its errors are read by a
+#   maintainer at a terminal and have no locale to be said in.
 #
 # Policy decision (September 2026):
 #
@@ -56,7 +68,7 @@
         extra:
           [
             {Localize.Credo.NoTryRescue, allowed_try_after: [{Localize, :with_locale, 2}]},
-            {Localize.Credo.ErrorTuple, files: %{included: ["lib/", "data/"]}}
+            {Localize.Credo.ErrorTuple, files: %{included: ["lib/"]}}
           ] ++ Enum.map(ExSlop.recommended_checks(), &{&1, []})
       }
     }

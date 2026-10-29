@@ -59,7 +59,7 @@ defmodule Localize.Number.Formatter.Decimal do
          Localize.InvalidValueError.exception(
            value: format,
            expected: "a valid number format",
-           context: reason
+           context: Exception.message(reason)
          )}
     end
   end
@@ -83,7 +83,7 @@ defmodule Localize.Number.Formatter.Decimal do
          Localize.InvalidValueError.exception(
            value: format,
            expected: "a valid number format",
-           context: reason
+           context: Exception.message(reason)
          )}
     end
   end
@@ -114,7 +114,7 @@ defmodule Localize.Number.Formatter.Decimal do
   def metadata!(format) do
     case metadata(format) do
       {:ok, meta} -> meta
-      {:error, reason} -> raise ArgumentError, reason
+      {:error, reason} -> raise ArgumentError, Exception.message(reason)
     end
   end
 

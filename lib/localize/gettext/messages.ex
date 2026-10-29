@@ -478,6 +478,12 @@ defmodule Localize.Gettext.Messages do
       Gettext.Macros.dpgettext_noop_with_backend(
         Localize.Gettext,
         "localize",
+        "number",
+        "Invalid number format pattern: {$detail}"
+      ),
+      Gettext.Macros.dpgettext_noop_with_backend(
+        Localize.Gettext,
+        "localize",
         "message",
         "Cannot format {$value}: unbalanced markup: close tag {$detail} does not match open"
       ),

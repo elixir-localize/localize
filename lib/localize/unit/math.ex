@@ -631,7 +631,7 @@ defmodule Localize.Unit.Math do
       "meter"
 
   """
-  @spec sqrt(Unit.t()) :: {:ok, Unit.t() | number()} | {:error, String.t()}
+  @spec sqrt(Unit.t()) :: {:ok, Unit.t() | number()} | {:error, Exception.t()}
 
   def sqrt(%Unit{value: value, parsed: {:unit, kw}} = _unit) when not is_nil(value) do
     root_unit(value, kw, 2, "square root")
@@ -672,7 +672,7 @@ defmodule Localize.Unit.Math do
       "meter"
 
   """
-  @spec cbrt(Unit.t()) :: {:ok, Unit.t() | number()} | {:error, String.t()}
+  @spec cbrt(Unit.t()) :: {:ok, Unit.t() | number()} | {:error, Exception.t()}
 
   def cbrt(%Unit{value: value, parsed: {:unit, kw}} = _unit) when not is_nil(value) do
     root_unit(value, kw, 3, "cube root")
@@ -715,7 +715,7 @@ defmodule Localize.Unit.Math do
       0.0
 
   """
-  @spec sin(Unit.t()) :: {:ok, number()} | {:error, String.t()}
+  @spec sin(Unit.t()) :: {:ok, number()} | {:error, Exception.t()}
   def sin(unit), do: apply_dimensionless(:sin, unit)
 
   @doc """
@@ -738,7 +738,7 @@ defmodule Localize.Unit.Math do
       {:ok, 1.0}
 
   """
-  @spec cos(Unit.t()) :: {:ok, number()} | {:error, String.t()}
+  @spec cos(Unit.t()) :: {:ok, number()} | {:error, Exception.t()}
   def cos(unit), do: apply_dimensionless(:cos, unit)
 
   @doc """
@@ -761,7 +761,7 @@ defmodule Localize.Unit.Math do
       {:ok, 0.0}
 
   """
-  @spec tan(Unit.t()) :: {:ok, number()} | {:error, String.t()}
+  @spec tan(Unit.t()) :: {:ok, number()} | {:error, Exception.t()}
   def tan(unit), do: apply_dimensionless(:tan, unit)
 
   @doc """
@@ -784,7 +784,7 @@ defmodule Localize.Unit.Math do
       {:ok, 0.0}
 
   """
-  @spec asin(Unit.t()) :: {:ok, number()} | {:error, String.t()}
+  @spec asin(Unit.t()) :: {:ok, number()} | {:error, Exception.t()}
   def asin(unit), do: apply_dimensionless(:asin, unit)
 
   @doc """
@@ -807,7 +807,7 @@ defmodule Localize.Unit.Math do
       {:ok, 0.0}
 
   """
-  @spec acos(Unit.t()) :: {:ok, number()} | {:error, String.t()}
+  @spec acos(Unit.t()) :: {:ok, number()} | {:error, Exception.t()}
   def acos(unit), do: apply_dimensionless(:acos, unit)
 
   @doc """
@@ -830,7 +830,7 @@ defmodule Localize.Unit.Math do
       {:ok, 0.0}
 
   """
-  @spec atan(Unit.t()) :: {:ok, number()} | {:error, String.t()}
+  @spec atan(Unit.t()) :: {:ok, number()} | {:error, Exception.t()}
   def atan(unit), do: apply_dimensionless(:atan, unit)
 
   @doc """
@@ -853,7 +853,7 @@ defmodule Localize.Unit.Math do
       {:ok, 0.0}
 
   """
-  @spec sinh(Unit.t()) :: {:ok, number()} | {:error, String.t()}
+  @spec sinh(Unit.t()) :: {:ok, number()} | {:error, Exception.t()}
   def sinh(unit), do: apply_dimensionless(:sinh, unit)
 
   @doc """
@@ -876,7 +876,7 @@ defmodule Localize.Unit.Math do
       {:ok, 1.0}
 
   """
-  @spec cosh(Unit.t()) :: {:ok, number()} | {:error, String.t()}
+  @spec cosh(Unit.t()) :: {:ok, number()} | {:error, Exception.t()}
   def cosh(unit), do: apply_dimensionless(:cosh, unit)
 
   @doc """
@@ -899,7 +899,7 @@ defmodule Localize.Unit.Math do
       {:ok, 0.0}
 
   """
-  @spec tanh(Unit.t()) :: {:ok, number()} | {:error, String.t()}
+  @spec tanh(Unit.t()) :: {:ok, number()} | {:error, Exception.t()}
   def tanh(unit), do: apply_dimensionless(:tanh, unit)
 
   @doc """
@@ -922,7 +922,7 @@ defmodule Localize.Unit.Math do
       {:ok, 0.0}
 
   """
-  @spec asinh(Unit.t()) :: {:ok, number()} | {:error, String.t()}
+  @spec asinh(Unit.t()) :: {:ok, number()} | {:error, Exception.t()}
   def asinh(unit), do: apply_dimensionless(:asinh, unit)
 
   @doc """
@@ -945,7 +945,7 @@ defmodule Localize.Unit.Math do
       {:ok, 0.0}
 
   """
-  @spec acosh(Unit.t()) :: {:ok, number()} | {:error, String.t()}
+  @spec acosh(Unit.t()) :: {:ok, number()} | {:error, Exception.t()}
   def acosh(unit), do: apply_dimensionless(:acosh, unit)
 
   @doc """
@@ -968,7 +968,7 @@ defmodule Localize.Unit.Math do
       {:ok, 0.0}
 
   """
-  @spec atanh(Unit.t()) :: {:ok, number()} | {:error, String.t()}
+  @spec atanh(Unit.t()) :: {:ok, number()} | {:error, Exception.t()}
   def atanh(unit), do: apply_dimensionless(:atanh, unit)
 
   @doc """
@@ -991,7 +991,7 @@ defmodule Localize.Unit.Math do
       {:ok, 1.0}
 
   """
-  @spec exp(Unit.t()) :: {:ok, number()} | {:error, String.t()}
+  @spec exp(Unit.t()) :: {:ok, number()} | {:error, Exception.t()}
   def exp(unit), do: apply_dimensionless(:exp, unit)
 
   @doc """
@@ -1014,7 +1014,7 @@ defmodule Localize.Unit.Math do
       {:ok, 0.0}
 
   """
-  @spec ln(Unit.t()) :: {:ok, number()} | {:error, String.t()}
+  @spec ln(Unit.t()) :: {:ok, number()} | {:error, Exception.t()}
   def ln(unit), do: apply_dimensionless(:ln, unit)
 
   @doc """
@@ -1037,7 +1037,7 @@ defmodule Localize.Unit.Math do
       {:ok, 2.0}
 
   """
-  @spec log(Unit.t()) :: {:ok, number()} | {:error, String.t()}
+  @spec log(Unit.t()) :: {:ok, number()} | {:error, Exception.t()}
   def log(unit), do: apply_dimensionless(:log, unit)
 
   @doc """
@@ -1060,7 +1060,7 @@ defmodule Localize.Unit.Math do
       {:ok, 3.0}
 
   """
-  @spec log2(Unit.t()) :: {:ok, number()} | {:error, String.t()}
+  @spec log2(Unit.t()) :: {:ok, number()} | {:error, Exception.t()}
   def log2(unit), do: apply_dimensionless(:log2, unit)
 
   # ── apply_dimensionless/2 ──
@@ -1095,7 +1095,7 @@ defmodule Localize.Unit.Math do
       0.0
 
   """
-  @spec apply_dimensionless(atom(), Unit.t()) :: {:ok, number()} | {:error, String.t()}
+  @spec apply_dimensionless(atom(), Unit.t()) :: {:ok, number()} | {:error, Exception.t()}
 
   def apply_dimensionless(name, %Unit{value: value, parsed: parsed} = _unit)
       when name in @dimensionless_fns and not is_nil(value) do
@@ -1111,20 +1111,16 @@ defmodule Localize.Unit.Math do
     end
   end
 
-  def apply_dimensionless(_name, %Unit{value: nil}) do
-    {:error, "function requires a unit with a value"}
+  def apply_dimensionless(name, %Unit{value: nil}) do
+    {:error, no_value_error(name)}
   end
 
   def apply_dimensionless(name, unit) when name in @dimensionless_fns or name in @log_fns do
-    {:error, "function #{name} requires a Localize.Unit, got: #{inspect(unit)}"}
-  end
-
-  def apply_dimensionless(name, _unit) when is_atom(name) do
-    {:error, "unknown dimensionless function: #{name}"}
+    {:error, invalid_unit(unit)}
   end
 
   def apply_dimensionless(name, _unit) do
-    {:error, "unknown dimensionless function: #{inspect(name)}"}
+    {:error, unknown_function(name)}
   end
 
   defp apply_math_fn(:sin, x), do: :math.sin(x)
@@ -1150,7 +1146,7 @@ defmodule Localize.Unit.Math do
         :ok
 
       {:ok, base} ->
-        {:error, "#{name} requires a dimensionless value, got unit with base: #{base}"}
+        {:error, not_dimensionless(name, base)}
 
       {:error, _} ->
         # If base unit resolution fails, allow it (might be a bare number)
@@ -1258,7 +1254,7 @@ defmodule Localize.Unit.Math do
         {:cont, {:ok, acc ++ [{:single_unit, new_opts}]}}
       else
         base = Keyword.get(opts, :base, "unknown")
-        {:halt, {:error, "cannot take #{label} of #{base} with power #{power}"}}
+        {:halt, {:error, indivisible_power(label, base, degree)}}
       end
     end)
   end
@@ -1275,5 +1271,29 @@ defmodule Localize.Unit.Math do
 
   defp no_value_error(operation) do
     Localize.UnitNoValueError.exception(operation: operation)
+  end
+
+  defp unknown_function(name) do
+    Localize.InvalidValueError.exception(
+      value: name,
+      expected: :dimensionless_function,
+      allowed_values: @all_dimensionless_fns
+    )
+  end
+
+  defp not_dimensionless(name, base) do
+    Localize.InvalidValueError.exception(
+      value: base,
+      expected: "a dimensionless unit",
+      context: name
+    )
+  end
+
+  defp indivisible_power(label, base, degree) do
+    Localize.InvalidValueError.exception(
+      value: base,
+      expected: "a unit with a power divisible by #{degree}",
+      context: label
+    )
   end
 end

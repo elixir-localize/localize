@@ -33,6 +33,11 @@ defmodule Localize.Exception.StructuralTest do
       reason: :mismatched_close,
       detail: "\"b\""
     ],
+    {Localize.FormatError, :invalid_number_pattern} => [
+      function: :to_string,
+      reason: :invalid_number_pattern,
+      detail: "scientific number patterns must not contain a grouping separator"
+    ],
     {Localize.FormatError, :formatter_failed} => [
       value: "{$x :number}",
       function: :format,
