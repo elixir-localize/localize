@@ -161,7 +161,7 @@ Each task is one turn: build, run that task's tests, stop for the user to commit
 
 * [ ] **Unicode categories from the `unicode` library** — the lexer classes a character outside every lexicon set with one `\p{Cf}|\p{Nd}|\p{Po}\p{Pf}\p{Pi}` regex call; replace it with a generated range table (`Localize.Number.Lexer.Categories` or similar) produced by a mix task from `~/Development/unicode/unicode`, which tracks each Unicode release (user, 2026-10-29). The task is rerun when that library updates; the differential test verifies the swap.
 
-* [ ] **Remove the superseded code** — delete the private functions the new path replaces, leaving `scan/2`, `resolve_*` and `find_and_replace/3` working on the lexicon's shared data; credo and dialyzer clean.
+* [x] **Remove the superseded code** — `scan/2` and `resolve_per/2` now take their number system, symbols, lenient families and grouping sizes from the lexicon, and transliterate with `Localize.Number.Transliterate.transliterate_digits/2` and the lexicon's digit map (user, 2026-10-29: reuse the existing function); 19 more clauses left `Parser`, now 1,489 lines. Credo and dialyzer clean (a binary guard on `Lexicon.nfkc/1`). 2026-10-29.
 
 * [ ] **Benchmarks and documentation** — fill the table, write the EBNF moduledocs, a CHANGELOG line (internal rewrite, no API change, the speed), delete the reference copy, run the gates, ex_money's comparison and the downstream suites.
 

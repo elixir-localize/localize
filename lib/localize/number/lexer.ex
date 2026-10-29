@@ -157,7 +157,7 @@ defmodule Localize.Number.Lexer do
   defp classify(codepoint, character, lexicon) do
     cond do
       codepoint in @bidi_controls -> {:bidi, character}
-      digit = Map.get(lexicon.digits, character) -> {:digits, <<?0 + digit>>}
+      digit = Map.get(lexicon.digits, character) -> {:digits, digit}
       MapSet.member?(lexicon.minus, character) -> {:minus, character}
       MapSet.member?(lexicon.plus, character) -> {:plus, character}
       MapSet.member?(lexicon.dashes, character) -> {:dash, character}

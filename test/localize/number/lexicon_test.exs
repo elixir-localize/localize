@@ -87,8 +87,8 @@ defmodule Localize.Number.LexiconTest do
     test "ar-EG in arab digits reads them and Latin digits, with the arab separators" do
       %{digits: digits, readings: [reading]} = lexicon(:"ar-EG", :arab)
 
-      assert digits["٠"] == 0 and digits["٩"] == 9
-      assert digits["0"] == 0 and digits["9"] == 9
+      assert digits["٠"] == "0" and digits["٩"] == "9"
+      assert digits["0"] == "0" and digits["9"] == "9"
       assert member?(reading.decimal, "٫")
       assert member?(reading.decimal, ",")
       assert member?(reading.group, "٬")

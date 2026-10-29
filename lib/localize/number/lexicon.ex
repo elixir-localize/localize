@@ -65,7 +65,8 @@ defmodule Localize.Number.Lexicon do
   * `:number_system` is the number system whose digits are read, with
     Latin digits always read too.
 
-  * `:digits` maps each digit character to its ASCII digit.
+  * `:digits` maps each digit character to its Latin digit, the map
+    `Localize.Number.Transliterate.transliterate_digits/2` reads.
 
   * `:minus` and `:plus` are the characters that read as a sign.
 
@@ -85,7 +86,7 @@ defmodule Localize.Number.Lexicon do
   @type t :: %__MODULE__{
           locale: Localize.LanguageTag.t(),
           number_system: atom(),
-          digits: %{String.t() => 0..9},
+          digits: %{String.t() => String.t()},
           minus: MapSet.t(String.t()),
           plus: MapSet.t(String.t()),
           dashes: MapSet.t(String.t()),
@@ -290,9 +291,10 @@ defmodule Localize.Number.Lexicon do
   end
 
   @doc false
-  # The digits of a number system mapped to their ASCII values, with the
-  # Latin digits, which are read in every system.
-  @spec digits(atom()) :: %{String.t() => 0..9}
+  # The digits of a number system mapped to the Latin digits, with the
+  # Latin digits themselves, which are read in every system: the map
+  # `Localize.Number.Transliterate.transliterate_digits/2` takes.
+  @spec digits(atom()) :: %{String.t() => String.t()}
   def digits(number_system) do
     native =
       case System.number_system_digits(number_system) do
@@ -301,9 +303,9 @@ defmodule Localize.Number.Lexicon do
       end
 
     native
-    |> Enum.zip(0..9)
+    |> Enum.zip(@latin_digits)
     |> Map.new()
-    |> Map.merge(Map.new(Enum.zip(@latin_digits, 0..9)))
+    |> Map.merge(Map.new(Enum.zip(@latin_digits, @latin_digits)))
   end
 
   @doc false
@@ -400,7 +402,7 @@ defmodule Localize.Number.Lexicon do
   # text they are matched against has had its own removed. Text that is
   # not valid Unicode is matched as it is, and found in no index.
   @spec nfkc(String.t()) :: String.t()
-  def nfkc(string) do
+  def nfkc(string) when is_binary(string) do
     case :unicode.characters_to_nfkc_binary(string) do
       normalized when is_binary(normalized) ->
         String.downcase(String.replace(normalized, @bidi_controls, ""))
@@ -517,7 +519,13 @@ defmodule Localize.Number.Lexicon do
     this.group == that.group and this.decimal == that.decimal
   end
 
-  defp number_symbols(language_tag, number_system, options) do
+  @doc false
+  # The number symbols a string is read with: the locale's for the number
+  # system, with the currency's separators under `:currency` and the set
+  # `:separators` names. For the lexicon's readings and for `scan/2`.
+  @spec number_symbols(Localize.LanguageTag.t(), atom(), Keyword.t()) ::
+          {:ok, Symbol.t()} | {:error, Exception.t()}
+  def number_symbols(%Localize.LanguageTag{} = language_tag, number_system, options) do
     with {:ok, symbols} <- symbols_for(language_tag, number_system, options[:currency]) do
       separators = Keyword.get(options, :separators, :standard)
 

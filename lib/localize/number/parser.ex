@@ -17,7 +17,7 @@ defmodule Localize.Number.Parser do
 
   """
 
-  alias Localize.Number.{Grammar, Lexicon, Symbol, System}
+  alias Localize.Number.{Grammar, Lexicon}
   alias Localize.Number.Parser.Amount
 
   @type per :: :percent | :permille
@@ -75,10 +75,6 @@ defmodule Localize.Number.Parser do
   # matched by `resolve_per/2` against the raw string, not through here.
   @format_characters ~r/\p{Cf}/u
 
-  # `{Rs}` and friends in CLDR's general lenient sets name a script's currency
-  # sign rather than a character, so there is nothing to fold them to.
-  @compound_pattern ~r/\{.*?\}/u
-
   @single_space ~r/^\p{Zs}$/u
 
   # A run of the Bidi_Control characters in `@bidi_controls`, at the start or
@@ -92,9 +88,6 @@ defmodule Localize.Number.Parser do
   # Smallest group a lenient parse will accept after a separator: two, the
   # floor that keeps "3 4 5" three numbers (see "Grouping shape" below).
   @lenient_group_floor 2
-
-  # {primary, secondary} for a locale whose pattern carries no grouping.
-  @default_grouping_sizes {3, 3}
 
   # Maximum byte length accepted by `parse/2`. A 1 KB cap fits even
   # very long localised group/decimal-separated representations of a
@@ -205,8 +198,8 @@ defmodule Localize.Number.Parser do
          locale = Keyword.get(options, :locale, Localize.get_locale()),
          {:ok, language_tag} <- parsing_locale(locale),
          {:ok, _number_type} <- number_type(Keyword.get(options, :number)),
-         {:ok, number_system} <- digits_number_system_from(language_tag, string, options),
-         {:ok, symbol} <- number_symbols(language_tag, number_system, options) do
+         {:ok, number_system} <- Lexicon.number_system(language_tag, string, options),
+         {:ok, symbol} <- Lexicon.number_symbols(language_tag, number_system, options) do
       lenient? = Keyword.get(options, :lenient, true)
 
       scanner =
@@ -216,7 +209,8 @@ defmodule Localize.Number.Parser do
         |> zero_fraction(lenient?)
         |> Regex.compile!([:unicode])
 
-      normalized_string = transliterate_digits(string, number_system)
+      normalized_string =
+        Localize.Number.Transliterate.transliterate_digits(string, Lexicon.digits(number_system))
 
       # The pieces carry Latin digits now, so `parse/2` is told the number
       # system the scan chose rather than choosing again from those digits.
@@ -910,8 +904,8 @@ defmodule Localize.Number.Parser do
     with :ok <- validate_arguments(string, :string, options),
          locale = Keyword.get(options, :locale, Localize.get_locale()),
          {:ok, language_tag} <- parsing_locale(locale),
-         {:ok, number_system} <- digits_number_system_from(language_tag, string, options),
-         {:ok, symbol} <- number_symbols(language_tag, number_system, []) do
+         {:ok, number_system} <- Lexicon.number_system(language_tag, string, options),
+         {:ok, symbol} <- Lexicon.number_symbols(language_tag, number_system, []) do
       per_strings =
         build_per_strings(symbol)
 
@@ -1133,78 +1127,6 @@ defmodule Localize.Number.Parser do
   # separator without swallowing adjacent small numbers: "3 4 5" is three
   # numbers in any locale, and no mode reads it as 345.
 
-  # The primary group is the rightmost run in the locale's standard pattern and
-  # the secondary the one before it. They differ in the Indian system —
-  # `en-IN` patterns as `#,##,##0.###`, grouping 12,34,567 — and are the same
-  # everywhere else, where a single run means the primary repeats.
-  defp grouping_sizes(language_tag, number_system) do
-    cached({:grouping_sizes, language_tag.cldr_locale_id, number_system}, fn ->
-      keys = [:number_formats, number_system, :standard]
-
-      case Localize.Locale.get(language_tag, keys, fallback: true) do
-        {:ok, pattern} -> sizes_from_pattern(pattern)
-        {:error, _reason} -> @default_grouping_sizes
-      end
-    end)
-  end
-
-  defp sizes_from_pattern(pattern) do
-    runs =
-      pattern
-      |> String.split(".")
-      |> hd()
-      |> String.split(",")
-
-    case runs do
-      [_ungrouped] ->
-        @default_grouping_sizes
-
-      runs ->
-        primary = runs |> List.last() |> String.length()
-
-        # With a single separator the leading run is the "#" wildcard rather
-        # than a group, so the primary size repeats; a second separator is what
-        # introduces a distinct secondary size, as in `en-IN`'s `#,##,##0`.
-        secondary =
-          if match?([_, _, _ | _], runs),
-            do: runs |> Enum.at(-2) |> String.length(),
-            else: primary
-
-        {primary, secondary}
-    end
-  end
-
-  # The same folds as {sample, characters} pairs, for building the scanner's
-  # character classes.
-  defp lenient_sets(language_tag) do
-    cached({:lenient_sets, language_tag.cldr_locale_id}, fn ->
-      for scope <- [:number, :general],
-          {:ok, sets} <-
-            [Localize.Locale.get(language_tag, [:lenient_parse, scope], fallback: true)],
-          {sample, set} <- sets,
-          characters = lenient_characters(set),
-          match?([_ | _], characters),
-          do: {sample, characters}
-    end)
-  end
-
-  # Every character that folds onto the same sample as `character`, itself
-  # included.
-  defp lenient_equivalents("", _sets) do
-    []
-  end
-
-  defp lenient_equivalents(character, sets) do
-    family =
-      Enum.find_value(sets, [], fn {sample, characters} ->
-        if character == sample or character in characters do
-          [sample | characters]
-        end
-      end)
-
-    Enum.uniq([character | family])
-  end
-
   @compile {:inline, cached: 2}
   defp cached(key, build_fn) do
     pt_key = {__MODULE__, key}
@@ -1220,121 +1142,17 @@ defmodule Localize.Number.Parser do
     end
   end
 
-  # The sets are flat character lists — no ranges, and the one literal hyphen is
-  # backslash-escaped precisely so it is not read as one — so they need
-  # unwrapping rather than a UnicodeSet parser. The general scope does carry a
-  # few `{Rs}`-style compound patterns, which name no single character and are
-  # dropped rather than split into their letters.
-  defp lenient_characters(set) do
-    set
-    |> String.replace(@compound_pattern, "")
-    |> String.trim_leading("[")
-    |> String.trim_trailing("]")
-    |> String.replace("\\", "")
-    |> String.graphemes()
-    |> Enum.reject(&(String.trim(&1) == ""))
+  defp extract_separator(%{standard: value}) do
+    value
   end
 
-  defp extract_separator(%{standard: value}), do: value
-  defp extract_separator(value) when is_binary(value), do: value
-  defp extract_separator(_), do: ""
-
-  defp transliterate_digits(string, :latn), do: string
-
-  defp transliterate_digits(string, number_system) do
-    case System.number_system_digits(number_system) do
-      {:ok, digits} ->
-        {:ok, latn_digits} = System.number_system_digits(:latn)
-        map = System.generate_transliteration_map(digits, latn_digits)
-        Localize.Number.Transliterate.transliterate_digits(string, map)
-
-      _ ->
-        string
-    end
+  defp extract_separator(value) when is_binary(value) do
+    value
   end
 
-  defp digits_number_system_from(language_tag, string, options) do
-    number_system =
-      Keyword.get_lazy(options, :number_system, fn ->
-        written_number_system(language_tag, string)
-      end)
-
-    case System.number_system_digits(number_system) do
-      {:ok, _digits} -> {:ok, number_system}
-      {:error, _} = error -> error
-    end
+  defp extract_separator(_other) do
+    ""
   end
-
-  # The locale's number system, unless the text is written in Latin digits
-  # alone. `ar-EG` writes `arab` digits with ٬ and ٫, and ٫ folds onto ",", so
-  # reading typed "100,00" with those separators made it 100.00 and refused
-  # "1,234.56". The locale's Latin separators are the ones such text is
-  # written with.
-  defp written_number_system(language_tag, string) do
-    case System.number_system_from_locale(language_tag) do
-      {:ok, system} -> system_for_digits(system, string)
-      _no_system -> :latn
-    end
-  end
-
-  defp system_for_digits(:latn, _string) do
-    :latn
-  end
-
-  defp system_for_digits(system, string) do
-    case System.number_system_digits(system) do
-      {:ok, digits} -> native_or_latin(system, digits, string)
-      {:error, _not_numeric} -> system
-    end
-  end
-
-  defp native_or_latin(system, digits, string) do
-    if String.contains?(string, String.graphemes(digits)) do
-      system
-    else
-      :latn
-    end
-  end
-
-  defp number_symbols(language_tag, number_system, options) do
-    with {:ok, symbols} <- symbols_for(language_tag, number_system, options[:currency]) do
-      separators = Keyword.get(options, :separators, :standard)
-
-      {:ok,
-       %{
-         symbols
-         | decimal: variant(symbols.decimal, separators),
-           group: variant(symbols.group, separators)
-       }}
-    end
-  end
-
-  # CLDR gives a few locales a second set of separators, such as the `:us` set
-  # of `en-ZA`. A locale without the requested set reads with its standard one.
-  defp variant(%{standard: standard} = separators, name), do: Map.get(separators, name, standard)
-  defp variant(separator, _name), do: separator
-
-  defp symbols_for(language_tag, number_system, nil) do
-    with {:ok, symbols} <- Symbol.number_symbols_for(language_tag) do
-      {:ok, Map.get(symbols, number_system) || Map.get(symbols, :latn)}
-    end
-  end
-
-  # A currency amount is read with the symbols `Localize.Number.to_string/2`
-  # formats it with, so what it formats parses back.
-  defp symbols_for(language_tag, number_system, currency) do
-    with {:ok, symbols} <- Symbol.number_symbols_for(language_tag, number_system),
-         {:ok, currency} <- currency_for(currency, language_tag) do
-      {:ok, Symbol.for_currency(symbols, currency)}
-    end
-  end
-
-  defp currency_for(%Localize.Currency{} = currency, _language_tag), do: {:ok, currency}
-
-  # Reading needs only the currency's separators, not its display names, so a
-  # currency the locale has no names for reads with its parent's data.
-  defp currency_for(code, language_tag),
-    do: Localize.Currency.currency_for_code(code, locale: language_tag, fallback: true)
 
   # `parse/2` folds each piece the scanner hands it with CLDR's `parseLenients`
   # sets, so the scanner must accept every character those folds would accept.
@@ -1345,11 +1163,11 @@ defmodule Localize.Number.Parser do
   # A character that folds onto both separators' families is left to the
   # separator it is literally, so the classes never overlap.
   defp localize_format_string(string, symbols, language_tag) do
-    sets = lenient_sets(language_tag)
+    sets = Lexicon.lenient_sets(language_tag)
     group_sep = extract_separator(symbols.group)
     decimal_sep = extract_separator(symbols.decimal)
-    group_family = lenient_equivalents(group_sep, sets)
-    decimal_family = lenient_equivalents(decimal_sep, sets)
+    group_family = Lexicon.family(group_sep, sets)
+    decimal_family = Lexicon.family(decimal_sep, sets)
 
     group = Enum.uniq([group_sep | group_family -- decimal_family])
     decimal = Enum.uniq([decimal_sep | decimal_family -- group_family])
@@ -1383,7 +1201,7 @@ defmodule Localize.Number.Parser do
   defp sign_characters(sets, extra_signs) do
     for sign <- ["-", "+" | extra_signs],
         sign = String.replace(extract_separator(sign), @format_characters, ""),
-        character <- lenient_equivalents(sign, sets),
+        character <- Lexicon.family(sign, sets),
         character != "_",
         uniq: true,
         do: character
@@ -1421,7 +1239,7 @@ defmodule Localize.Number.Parser do
   # as one number. Requiring a plausible group instead, two digits leniently
   # or an exact group size strictly, is what makes the wider class safe.
   defp group_lookahead(pattern, language_tag, number_system, symbols, lenient?) do
-    {primary, secondary} = grouping_sizes(language_tag, number_system)
+    {primary, secondary} = Lexicon.grouping_sizes(language_tag, number_system)
 
     lookahead =
       if lenient? do
