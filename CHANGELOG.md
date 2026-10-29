@@ -64,6 +64,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 * `Localize.Number.Parser.parse/2` refuses a grouping separator after the decimal mark, so `de` "1,234.56" is an error rather than 1.23456.
 
+* The root locale `:und` is always a supported locale, named in `supported_locales` or not, and `Localize.put_supported_locales/1` clears RBNF's cached locale chains. Without it every parent chain ended at the default locale, so `Localize.Number.Rbnf.to_string(2_000_000, :spellout_cardinal, locale: :ru)` was "two million" rather than an `UnknownRbnfRuleError`; closes #68, and the RBNF docs say a parent's rules (`nb` in `no`, `en-GB` in `en`) need the parent listed.
+
 ## [1.4.3] — October 27th, 2026
 
 ### Changed

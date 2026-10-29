@@ -965,12 +965,17 @@ defmodule Localize do
 
   * A list of locale ID atoms. The list is the configured
     supported set when `:supported_locales` is configured, or
-    the full CLDR locale list otherwise.
+    the full CLDR locale list otherwise. The root locale `:und`
+    is always in it, configured or not: its data ships with
+    Localize and every locale's parent chain ends at it.
 
   ### Examples
 
       iex> locales = Localize.supported_locales()
       iex> is_list(locales) and Enum.all?(locales, &is_atom/1)
+      true
+
+      iex> :und in Localize.supported_locales()
       true
 
   """
@@ -990,9 +995,23 @@ defmodule Localize do
     locales = Application.get_env(:localize, :supported_locales)
 
     if is_list(locales) do
-      expanded = Localize.Locale.expand_locale_list(locales, :supported_locales)
+      expanded = with_root(Localize.Locale.expand_locale_list(locales, :supported_locales))
       :persistent_term.put({:localize, :supported_locales}, expanded)
       expanded
+    end
+  end
+
+  # The root locale `und` is in every supported list, whether or not it is
+  # configured: its data ships with Localize, every parent chain ends at it
+  # and the defaults of a locale CLDR has no data for are its. Without it,
+  # validating `und` gave the default locale, so a parent chain ended in
+  # that locale's data and RBNF spelled a number in English words where the
+  # locale had no rules (#68).
+  defp with_root(locales) do
+    if :und in locales do
+      locales
+    else
+      locales ++ [:und]
     end
   end
 
@@ -1001,11 +1020,13 @@ defmodule Localize do
 
   This function does not modify the application configuration.
   It directly updates the runtime cache that `supported_locales/0`
-  reads from.
+  reads from, and clears the caches that depend on the supported
+  set: validated locales and RBNF locale chains.
 
   ### Arguments
 
-  * `locales` is a list of locale ID atoms.
+  * `locales` is a list of locale ID atoms. The root locale `:und`
+    is added when the list does not name it.
 
   ### Returns
 
@@ -1025,7 +1046,7 @@ defmodule Localize do
       iex> Localize.put_supported_locales([:en, :fr, :de])
       :ok
       iex> Localize.supported_locales()
-      [:en, :fr, :de]
+      [:en, :fr, :de, :und]
       iex> Localize.put_supported_locales(original)
       :ok
 
@@ -1033,8 +1054,9 @@ defmodule Localize do
   @spec put_supported_locales([atom()]) :: :ok | {:error, Exception.t()}
   def put_supported_locales(locales)
       when locales == [] or (is_list(locales) and is_atom(hd(locales))) do
-    :persistent_term.put({:localize, :supported_locales}, locales)
+    :persistent_term.put({:localize, :supported_locales}, with_root(locales))
     Localize.Locale.Loader.clear_locale_cache()
+    Localize.Number.Rbnf.clear_locale_chains()
   end
 
   def put_supported_locales(locales),

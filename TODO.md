@@ -66,6 +66,8 @@ Outstanding work on Localize. The design detail behind these items lives under [
 
 ## Done
 
+* [x] **`:und` is always a supported locale** — `supported_locales/0` and `put_supported_locales/1` add `:und` to any list, so every parent chain ends at root and RBNF returns `UnknownRbnfRuleError` for a rule set the locale lacks instead of English words; `put_supported_locales/1` clears the RBNF locale chains, and the docs say a parent's rules (`nb` in `no`, `en-GB` in `en`) need the parent listed. Issue #68 and PR #69 by MrYawe. 2026-10-30, v1.5.0.
+
 * [x] **Rebuild the number and currency amount parser as a lexer, a grammar and a per-locale lexicon** — same results on 400,000 inputs, three to five times faster, the rules one named function each; `scan/2` moves onto the lexer next. [plans/number-parser-grammar.md](plans/number-parser-grammar.md). 2026-10-29, v1.5.0.
 
 * [x] **`localize_mf1` sibling library** — ICU MessageFormat 1 (`plural`, `select`, `selectordinal`) for applications migrating from `ex_cldr_messages`, as asked in #60; completed, not yet released. Recorded 2026-10-28.

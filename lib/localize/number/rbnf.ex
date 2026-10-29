@@ -12,6 +12,23 @@ defmodule Localize.Number.Rbnf do
   by an internal rule processor. Parsed rule ASTs are cached in
   `:persistent_term` for performance.
 
+  ### Where a rule set is looked for
+
+  A rule set is looked for in the locale's own data, then in each
+  parent's in turn, and last in the root locale `und`, whose rules
+  write Roman, Hebrew and other numerals. A locale without a
+  spellout rule set gets an `Localize.UnknownRbnfRuleError` rather
+  than root's digit stubs, so a number is never spelled in another
+  language's words.
+
+  CLDR keeps some locales' rules in a parent: Norwegian's spellout
+  rules are in `no`, the parent of `nb` and `nn`, and `en-GB` has
+  none of its own and takes English's from `en`. A parent's rules
+  are reached only when the parent is a supported locale, since
+  only a supported locale's data is installed. An application
+  whose `supported_locales` names `nb` or `en-GB` lists `no` or
+  `en` as well to spell numbers out in them.
+
   """
 
   import Localize.Utils.Helpers, only: [is_keyword_list: 1]
@@ -295,6 +312,19 @@ defmodule Localize.Number.Rbnf do
       chain ->
         chain
     end
+  end
+
+  @doc false
+  # Forgets every cached locale chain. A chain names the CLDR locale each
+  # parent resolves to among the supported locales, so it is stale once the
+  # supported locales change; `Localize.put_supported_locales/1` calls this.
+  @spec clear_locale_chains() :: :ok
+  def clear_locale_chains do
+    :persistent_term.get()
+    |> Enum.each(fn
+      {{__MODULE__, :locale_chain, _locale_id} = key, _chain} -> :persistent_term.erase(key)
+      _other -> :ok
+    end)
   end
 
   defp parent_chain(language_tag, chain) do

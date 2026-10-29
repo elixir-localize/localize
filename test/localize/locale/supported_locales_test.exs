@@ -29,9 +29,19 @@ defmodule Localize.Locale.SupportedLocalesTest do
       Localize.put_supported_locales(context.original_supported)
     end
 
-    test "returns empty list when set to empty list", context do
+    test "returns root alone when set to empty list", context do
       Localize.put_supported_locales([])
-      assert Localize.supported_locales() == []
+      assert Localize.supported_locales() == [:und]
+      Localize.put_supported_locales(context.original_supported)
+    end
+
+    test "adds :und to a list that does not name it, and once only", context do
+      Localize.put_supported_locales([:en, :fr])
+      assert Localize.supported_locales() == [:en, :fr, :und]
+
+      Localize.put_supported_locales([:und, :en])
+      assert Localize.supported_locales() == [:und, :en]
+
       Localize.put_supported_locales(context.original_supported)
     end
   end
@@ -56,7 +66,7 @@ defmodule Localize.Locale.SupportedLocalesTest do
 
       result = Localize.supported_locales()
 
-      assert Enum.sort(result) == [:de, :en, :fr]
+      assert Enum.sort(result) == [:de, :en, :fr, :und]
       assert :persistent_term.get({:localize, :supported_locales}) == result
 
       Localize.put_supported_locales(context.original_supported)
@@ -71,7 +81,8 @@ defmodule Localize.Locale.SupportedLocalesTest do
       assert :"en-AU" in result
       assert :"en-GB" in result
       refute :en in result
-      assert Enum.all?(result, &(&1 |> Atom.to_string() |> String.starts_with?("en-")))
+      assert :und in result
+      assert Enum.all?(result -- [:und], &(&1 |> Atom.to_string() |> String.starts_with?("en-")))
       assert :persistent_term.get({:localize, :supported_locales}) == result
 
       Localize.put_supported_locales(context.original_supported)
@@ -132,5 +143,77 @@ defmodule Localize.Locale.SupportedLocalesTest do
       assert tag.cldr_locale_id == :"en-AU"
       Localize.put_supported_locales(context.original_supported)
     end
+  end
+
+  # Root is a supported locale whether or not it is configured, so `und`
+  # resolves to itself and every parent chain ends at it (#68).
+  describe "root with supported_locales that do not name it" do
+    test "und resolves to :und, not to the default locale", context do
+      Localize.put_supported_locales([:en, :ru, :nb])
+
+      {:ok, tag} = Localize.validate_locale(:und)
+      assert tag.cldr_locale_id == :und
+
+      Localize.put_supported_locales(context.original_supported)
+    end
+
+    test "every parent chain ends at :und", context do
+      Localize.put_supported_locales([:en, :da, :ru, :"zh-Hant"])
+
+      for locale <- [:da, :ru, :"en-AU", :"zh-Hant"] do
+        {:ok, tag} = Localize.validate_locale(locale)
+        assert List.last(cldr_chain(tag)) == :und, inspect(locale)
+      end
+
+      Localize.put_supported_locales(context.original_supported)
+    end
+
+    test "a spellout rule set the locale lacks is an error, not English words", context do
+      Localize.put_supported_locales([:en, :ru, :nb])
+
+      assert {:error, %Localize.UnknownRbnfRuleError{locale: :ru}} =
+               Localize.Number.Rbnf.to_string(2_000_000, :spellout_cardinal, locale: :ru)
+
+      assert {:error, %Localize.UnknownRbnfRuleError{locale: :nb}} =
+               Localize.Number.to_string(3, format: :spellout, locale: :nb)
+
+      Localize.put_supported_locales(context.original_supported)
+    end
+
+    test "root's own rule sets are still reached", context do
+      Localize.put_supported_locales([:en, :ru])
+
+      assert Localize.Number.Rbnf.to_string(1999, :roman_upper, locale: :ru) == {:ok, "MCMXCIX"}
+
+      Localize.put_supported_locales(context.original_supported)
+    end
+
+    test "a parent's rules are reached once the parent is supported", context do
+      Localize.put_supported_locales([:en, :nb])
+
+      assert {:error, %Localize.UnknownRbnfRuleError{}} =
+               Localize.Number.to_string(3, format: :spellout, locale: :nb)
+
+      Localize.put_supported_locales([:en, :nb, :no])
+      assert Localize.Number.to_string(3, format: :spellout, locale: :nb) == {:ok, "tre"}
+
+      Localize.put_supported_locales(context.original_supported)
+    end
+  end
+
+  # The CLDR locale of each ancestor of a tag, up to the root.
+  defp cldr_chain(tag) do
+    tag
+    |> Stream.unfold(fn tag ->
+      case Localize.Locale.parent(tag) do
+        {:ok, parent} ->
+          {:ok, locale_id} = Localize.Locale.cldr_locale_id_from(parent)
+          {locale_id, parent}
+
+        {:error, _reason} ->
+          nil
+      end
+    end)
+    |> Enum.to_list()
   end
 end
