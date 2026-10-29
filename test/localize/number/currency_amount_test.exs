@@ -111,20 +111,23 @@ defmodule Localize.Number.CurrencyAmountTest do
       caller = fn text ->
         case text do
           "₮" -> {:ok, "USDT"}
+          "S" -> {:ok, "SOME"}
+          "K" -> {:ok, "KCOIN"}
           "MNT" -> {:ok, :MNT}
           _other -> :error
         end
       end
 
       # "₮" is the tugrik's symbol in `mn`, and only its narrow symbol in `en`.
+      # In a locale whose own currency the text names, that currency takes it.
       assert {:MNT, "5"} = amount("₮5", locale: :mn)
+      assert {:MNT, "5"} = amount("₮5", locale: :mn, caller_currency: caller)
+      assert {:SOS, "5"} = amount("S5", locale: :so, caller_currency: caller)
+      assert {:MMK, "5"} = amount("K5", locale: :my, caller_currency: caller)
 
-      assert %Localize.ParseError{reason: :unexpected_input, detail: detail} =
-               amount("₮5", locale: :mn, caller_currency: caller)
-
-      assert detail =~ "two currencies"
-      # In `en` "₮" is only the tugrik's narrow symbol, which is not read, but
-      # it still names the tugrik, so the caller's Tether does not take it.
+      # Elsewhere "₮" names both, and neither is read: in `en` it is only the
+      # tugrik's narrow symbol, but it still names the tugrik, so the
+      # caller's Tether does not take it.
       assert %Localize.ParseError{detail: en_detail} = amount("₮5", caller_currency: caller)
       assert en_detail =~ "two currencies"
       assert {:MNT, "5"} = amount("MNT 5", caller_currency: caller)
@@ -209,15 +212,15 @@ defmodule Localize.Number.CurrencyAmountTest do
     end
 
     # CLDR writes a narrow symbol where the context makes the currency clear,
-    # so an amount reads one only for the locale's own currency: in Swiss text
-    # "15 Rp." is 15 Rappen, though `de-CH` gives the rupiah the narrow "Rp".
-    test "a narrow symbol is read only for the locale's own currency" do
+    # so an amount reads a letter abbreviation only for the locale's own
+    # currency: in Swiss text "15 Rp." is 15 Rappen, though `de-CH` gives the
+    # rupiah the narrow "Rp".
+    test "a narrow letter abbreviation is read only for the locale's own currency" do
       for {string, locale} <- [
             {"15 Rp.", :"de-CH"},
             {"Rp 15", :"de-CH"},
             {"K5", :en},
-            {"Kč 100", :en},
-            {"₮5", :en}
+            {"Kč 100", :en}
           ] do
         assert %Localize.UnknownCurrencyError{} = amount(string, locale: locale),
                "#{locale} #{inspect(string)}"
@@ -229,6 +232,44 @@ defmodule Localize.Number.CurrencyAmountTest do
       assert {:GBP, "5"} = amount("£5", locale: :en)
       assert {:EUR, "5"} = amount("€5", locale: :en)
       assert [:IDR] = Parser.resolve_currency("Rp", locale: :"de-CH")
+    end
+
+    # A currency sign means a currency and nothing else, so it is read outside
+    # the currency's own locales when it names that currency alone, in the
+    # locale and in CLDR's root data: `en-AU` writes the euro "EUR" and its
+    # narrow symbol "€", which Localize formats with `currency_symbol: :narrow`.
+    test "a currency sign naming one currency is read in any locale" do
+      assert {:EUR, "1.00"} = amount("€1.00", locale: :"en-AU")
+      assert {:EUR, "1.00"} = amount("€1.00", locale: :"es-MX")
+      assert {:INR, "100"} = amount("₹100", locale: :"en-AU")
+      assert {:MNT, "5"} = amount("₮5", locale: :en)
+      assert {:EUR, "15.40"} = amount("€ 15.40", locale: :"de-CH")
+      assert {:EUR, "15.40"} = amount("15.40 €", locale: :"de-CH")
+    end
+
+    # `bg` writes the South Korean won "KRW" and the yuan "CNY", so its data
+    # leaves "₩" to the North Korean won and "¥" to the yen; root gives each
+    # sign to two currencies, so neither is read. `en-AU` gives "₱" to the
+    # Philippine and the Cuban peso and "£" to the pound and five others.
+    test "a currency sign that several currencies share is refused" do
+      for {string, locale} <- [
+            {"₩100", :bg},
+            {"¥100", :bg},
+            {"¥100", :"en-AU"},
+            {"₱100", :"en-AU"},
+            {"£5", :"en-AU"},
+            {"¤5", :"de-CH"}
+          ] do
+        assert %Localize.UnknownCurrencyError{} = amount(string, locale: locale),
+               "#{locale} #{inspect(string)}"
+      end
+    end
+
+    test "a currency sign is read only among the currencies a filter leaves" do
+      assert %Localize.UnknownCurrencyError{} = amount("€1.00", locale: :"de-CH", only: [:CHF])
+      assert %Localize.UnknownCurrencyError{} = amount("€1.00", locale: :"en-AU", only: [:AUD])
+      assert %Localize.UnknownCurrencyError{} = amount("€1.00", locale: :"de-CH", except: [:EUR])
+      assert {:EUR, "1.00"} = amount("€1.00", locale: :"de-CH", only: [:EUR])
     end
 
     # TR35's loose matching normalizes to NFKC. Currency text is matched so,

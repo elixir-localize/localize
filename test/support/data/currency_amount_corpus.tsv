@@ -2622,7 +2622,7 @@ en-CA	-US$1,234.59	USD -1234.59		bojanz:TestFormatter_Format	USD -1234.59
 de-CH	$-1'234.59	USD -1234.59		bojanz:TestFormatter_Format	USD -1234.59		
 sr	-1.234,59\u{00A0}US$	USD -1234.59		bojanz:TestFormatter_Format	USD -1234.59		
 en	€1,234.00	EUR 1234		bojanz:TestFormatter_Format	EUR 1234		
-de-CH	€\u{00A0}1'234.00	EUR 1234	gap	bojanz:TestFormatter_Format	EUR 1234	CLDR de-CH writes the euro EUR, so € is not in its data	
+de-CH	€\u{00A0}1'234.00	EUR 1234		bojanz:TestFormatter_Format	EUR 1234	CLDR de-CH writes the euro EUR; € is read as the one currency root gives it	
 sr	1.234,00\u{00A0}€	EUR 1234		bojanz:TestFormatter_Format	EUR 1234		
 en	CHF\u{00A0}1,234.00	CHF 1234		bojanz:TestFormatter_Format	CHF 1234		
 de-CH	CHF\u{00A0}1'234.00	CHF 1234		bojanz:TestFormatter_Format	CHF 1234		
@@ -4133,7 +4133,7 @@ ru	1\u{00A0}000\u{00A0}000\u{00A0}000\u{00A0}000	RUB 1000000000000		cldr:decimal
 ru	1\u{00A0}500\u{00A0}000\u{00A0}000\u{00A0}000	RUB 1500000000000		cldr:decimal_extended_numbers	1500000000000		RUB
 ru	5\u{00A0}000\u{00A0}000\u{00A0}000\u{00A0}000	RUB 5000000000000		cldr:decimal_extended_numbers	5000000000000		RUB
 de-CH	Fr. 327.65	CHF 327.65		swiss:Schreibweisungen 539	CHF 327.65		
-de-CH	€ 64.15	EUR 64.15	gap	swiss:Schreibweisungen 539	EUR 64.15	CLDR de-CH writes the euro EUR, so € is not in its data	
+de-CH	€ 64.15	EUR 64.15		swiss:Schreibweisungen 539	EUR 64.15	CLDR de-CH writes the euro EUR; € is read as the one currency root gives it	
 de-CH	EUR 64.15	EUR 64.15		swiss:Schreibweisungen 545	EUR 64.15		
 de-CH	Fr. 1.01	CHF 1.01		swiss:Schreibweisungen 539	CHF 1.01		
 de-CH	Fr. –.98	refuse		swiss:Schreibweisungen 539	CHF 0.98	a dash for zero francs stands where a minus would; refused for now (Swiss usage to be confirmed)	
@@ -4148,7 +4148,7 @@ de-CH	20 Mrd. $	refuse		swiss:Schreibweisungen 540	USD 20000000000	Mio. and Mrd.
 de-CH	30 Mio. EUR	refuse		swiss:Schreibweisungen 540	EUR 30000000	Mio. and Mrd. multiply the amount, which Localize does not read	
 de-CH	Fr. 20.–	CHF 20		swiss:Schreibweisungen 540	CHF 20		
 de-CH	Fr. –.15	refuse		swiss:Schreibweisungen 540	CHF 0.15	a dash for zero francs stands where a minus would; refused for now (Swiss usage to be confirmed)	
-de-CH	€ 15.40	EUR 15.40	gap	swiss:Schreibweisungen 540	EUR 15.40	CLDR de-CH writes the euro EUR, so € is not in its data	
+de-CH	€ 15.40	EUR 15.40		swiss:Schreibweisungen 540	EUR 15.40	CLDR de-CH writes the euro EUR; € is read as the one currency root gives it	
 de-CH	$ 15.40	USD 15.40		swiss:Schreibweisungen 540	USD 15.40		
 de-CH	£ 15.40	GBP 15.40		swiss:Schreibweisungen 540	GBP 15.40		
 de-CH	EUR 15.40	EUR 15.40		swiss:Schreibweisungen 540	EUR 15.40		

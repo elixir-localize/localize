@@ -597,7 +597,7 @@ An amount is money, so an amount that could be read as two amounts is refused ra
 
 * **Compatibility characters** — the currency text is matched after NFKC normalization, as TR35's loose matching asks, so `ja` `¥1.00` is the yen, which `ja` writes `￥`, and a fullwidth `＄` is the dollar. The number is not normalized, since NFKC would turn the footnote of `$5²` into a digit; such text is refused.
 
-* **Another country's narrow symbol** — CLDR writes a currency's narrow symbol where the context makes the currency clear, so an amount reads it only for the locale's own currency: `id` `Rp 15.000` is the rupiah, but Swiss `15 Rp.` is 15 Rappen and is refused, and `en` `Kč 100` is refused where `cs` `100 Kč` reads.
+* **Another country's narrow symbol** — CLDR writes a currency's narrow symbol where the context makes the currency clear, so an amount reads a letter abbreviation only for the locale's own currency: `id` `Rp 15.000` is the rupiah, but Swiss `15 Rp.` is 15 Rappen and is refused, and `en` `Kč 100` is refused where `cs` `100 Kč` reads. A currency sign is read in any locale when it names one currency there and in CLDR's root data, so `en-AU` `€5` and `de-CH` `€ 15.40` are euros, while `bg` `₩5` is refused, since root gives `₩` to both wons, and `en-AU` `₱5`, since `en-AU` gives `₱` to the Philippine and the Cuban peso.
 
 * **A symbol several currencies share** — `fr` `$2.00` is refused, since the Canadian, US and other dollars all write `$` there; `resolve_currency/2` takes the nearest locale's, the Canadian dollar, but an amount is not read in a currency that is a guess.
 

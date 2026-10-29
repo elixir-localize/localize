@@ -4,13 +4,15 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.5.0] — October 28th, 2026
+## [1.5.0] — October 29th, 2026
 
 ### Added
 
-* `Localize.Number.Parser.parse_currency_amount/2` and `Localize.Number.parse_currency_amount/2` read one currency amount, such as "-CHF 1'234.56" or "(1 234,56 €)", into `{:ok, {currency, decimal}}` with the currency's own separators. Currency text is matched after NFKC normalization (`ja` "¥1.00"), a narrow symbol only for the locale's own currency, and an amount that could be read two ways, or whose symbol several currencies share, is refused; options include `:default_currency` and `:caller_currency`, for currencies of the caller's own such as digital tokens.
+* `Localize.Number.Parser.parse_currency_amount/2` and `Localize.Number.parse_currency_amount/2` read one currency amount, such as "-CHF 1'234.56" or "(1 234,56 €)", into `{:ok, {currency, decimal}}` with the currency's own separators. Currency text is matched after NFKC normalization (`ja` "¥1.00"), a narrow symbol of another currency only when it is a currency sign naming that currency alone (`en-AU` "€5", not Swiss "15 Rp."), and an amount that could be read two ways, or whose symbol several currencies share, is refused; options include `:default_currency` and `:caller_currency`, for currencies of the caller's own such as digital tokens.
 
 * `parse_currency_amount/2` refuses one to three digits, a decimal mark and three more in a currency of fewer decimal places, as `de` "1,599 €" may be 1599, and reads a historic currency only by its code or name, so `ru` "6 300 Р" is not the ruble of 1991–1998. A `:fuzzy` match is refused where two currencies are equally close.
+
+* `parse_currency_amount/2` refuses currency text that a `:caller_currency` names differently from CLDR, except in a locale whose own currency the text names: `mn` "₮5" is the tugrik even where Tether claims "₮".
 
 * `Localize.ParseError` has the reason `:missing_currency`, for a currency amount that names no currency.
 
@@ -23,6 +25,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 * `Localize.InvalidAmountError`, returned by `parse_currency_amount/2` when it finds the currency but cannot read the number, with the `:currency` and the `:amount` text.
 
 ### Changed
+
+* `Localize.Number.Parser` refuses to parse with a locale whose data is not installed, returning `Localize.LocaleNotFoundInCacheError`, where it read with a parent's data or English: `en-AU` "$5" was US dollars. Formatting still falls back.
 
 * `Localize.Number.Parser.parse/2`, `scan/2` and `resolve_per/2` read text written in Latin digits with the locale's Latin separators where its own digits are not Latin, so `ar-EG` "1,234.56" is 1234.56 rather than refused and "100,00" is 10000 rather than 100.00.
 

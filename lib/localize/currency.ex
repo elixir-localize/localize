@@ -65,6 +65,9 @@ defmodule Localize.Currency do
 
   @rtl_mark "\u200F"
 
+  # A string made only of currency signs, such as "\u20AC" or "\u20B9".
+  @currency_sign ~r/\A\p{Sc}+\z/u
+
   # ── Currency validation ──────────────────────────────────────
 
   @doc """
@@ -870,6 +873,89 @@ defmodule Localize.Currency do
     |> Enum.reject(&(&1 in names))
     |> Enum.filter(&(Map.get(strings, &1) == code))
     |> Enum.map(&{&1, code})
+  end
+
+  @doc false
+  # The strings of `narrow_symbol_strings/2` that are currency signs naming
+  # their currency alone in CLDR's root data as well as in the locale: "€"
+  # for the euro in `en-AU`, which writes the euro's symbol "EUR". A sign
+  # means a currency and nothing else, so a currency amount reads it outside
+  # the currency's own locales, where a letter abbreviation such as `de-CH`
+  # "Rp" may be something else. The root data catches a locale that writes
+  # one claimant another way: `bg` writes the South Korean won "KRW" and
+  # leaves "₩" to the North Korean won, which shares it in root.
+  @spec currency_sign_strings(
+          Localize.LanguageTag.t() | atom() | String.t(),
+          Keyword.t() | filter()
+        ) :: {:ok, %{String.t() => currency_code()}} | {:error, Exception.t()}
+  def currency_sign_strings(locale, options \\ []) do
+    with {:ok, narrow} <- narrow_symbol_strings(locale, options),
+         {:ok, root} <- root_sign_claimants() do
+      signs =
+        for {string, code} <- narrow,
+            sign = :unicode.characters_to_nfkc_binary(string),
+            String.match?(sign, @currency_sign),
+            Map.get(root, sign, [code]) == [code],
+            into: %{},
+            do: {string, code}
+
+      {:ok, signs}
+    end
+  end
+
+  @doc false
+  # The currency signs a locale's data does not name at all that name one
+  # current currency in CLDR's root data, each with that currency, among the
+  # currencies the filter leaves: "€" for the euro in `de-CH`, which writes
+  # the euro "EUR" as both its symbol and its narrow symbol. A sign another
+  # currency of the locale claims, or that several claim, is not one of them,
+  # and nor is "¤", the sign of no currency.
+  @spec unclaimed_sign_strings(
+          Localize.LanguageTag.t() | atom() | String.t(),
+          Keyword.t() | filter()
+        ) :: {:ok, %{String.t() => currency_code()}} | {:error, Exception.t()}
+  def unclaimed_sign_strings(locale, options \\ []) do
+    with {:ok, only, except} <- filter_options(options),
+         {:ok, currencies} <- do_currencies_for_locale(locale, only, except),
+         {:ok, strings} <- currency_strings_for(locale, :all, nil),
+         {:ok, ambiguous} <- ambiguous_currency_strings(locale),
+         {:ok, root} <- root_sign_claimants(),
+         {:ok, root_currencies} <- currencies_for_locale(:und) do
+      named =
+        MapSet.new(
+          Map.keys(strings) ++ Map.keys(ambiguous),
+          &:unicode.characters_to_nfkc_binary/1
+        )
+
+      signs =
+        for {sign, [code]} <- root,
+            code != :XXX,
+            Map.has_key?(currencies, code),
+            current?(Map.get(root_currencies, code)),
+            not MapSet.member?(named, sign),
+            into: %{},
+            do: {sign, code}
+
+      {:ok, signs}
+    end
+  end
+
+  # Every currency sign in CLDR's root data, each with the currencies whose
+  # symbol or narrow symbol it is: "¥" is the yen's and the yuan's.
+  defp root_sign_claimants do
+    with {:ok, currencies} <- currencies_for_locale(:und) do
+      claimants =
+        for {code, currency} <- currencies,
+            string <- [currency.symbol, currency.narrow_symbol],
+            is_binary(string),
+            sign = :unicode.characters_to_nfkc_binary(string),
+            String.match?(sign, @currency_sign),
+            reduce: %{} do
+          claims -> Map.update(claims, sign, [code], &Enum.uniq([code | &1]))
+        end
+
+      {:ok, claimants}
+    end
   end
 
   defp narrow_symbol_string({_code, %{narrow_symbol: nil}}, _strings) do

@@ -7,6 +7,14 @@ defmodule Localize.Number.Parser do
   grouping separators, and decimal separators to convert
   localized number strings back into Elixir numeric values.
 
+  Parsing reads with a locale's own data or not at all. When the
+  locale is not installed and `:allow_runtime_locale_download` is
+  `false`, formatting falls back to a parent locale's data or to
+  English, but every function here returns
+  `{:error, %Localize.LocaleNotFoundInCacheError{}}`, since with
+  English data `en-AU` "$5" would be US dollars. Install the locale
+  with `mix localize.download_locales` or allow it to be downloaded.
+
   """
 
   alias Localize.Number.{Symbol, System}
@@ -267,7 +275,7 @@ defmodule Localize.Number.Parser do
   def scan(string, options \\ []) do
     with :ok <- validate_arguments(string, :string, options),
          locale = Keyword.get(options, :locale, Localize.get_locale()),
-         {:ok, language_tag} <- Localize.validate_locale(locale),
+         {:ok, language_tag} <- parsing_locale(locale),
          {:ok, _number_type} <- number_type(Keyword.get(options, :number)),
          {:ok, number_system} <- digits_number_system_from(language_tag, string, options),
          {:ok, symbol} <- number_symbols(language_tag, number_system, options) do
@@ -391,7 +399,10 @@ defmodule Localize.Number.Parser do
 
   ### Returns
 
-  * `{:ok, number}` on success.
+  * `{:ok, number}` on success, or
+
+  * `{:error, %Localize.LocaleNotFoundInCacheError{}}` when the locale's
+    data is not installed (see the module documentation), or
 
   * `{:error, exception}` if parsing fails.
 
@@ -435,7 +446,7 @@ defmodule Localize.Number.Parser do
   defp do_parse(string, options) do
     locale = Keyword.get(options, :locale, Localize.get_locale())
 
-    with {:ok, language_tag} <- Localize.validate_locale(locale),
+    with {:ok, language_tag} <- parsing_locale(locale),
          {:ok, number_type} <- number_type(Keyword.get(options, :number)),
          {:ok, number_system} <- digits_number_system_from(language_tag, string, options),
          {:ok, grouping} <- grouping_mode(options),
@@ -740,9 +751,13 @@ defmodule Localize.Number.Parser do
   "1.234 €" is not €1.234, "($-5)" is neither -5 nor 5 dollars,
   "-$.50" is refused since Swiss "Fr. –.15" writes a dash for the zero,
   and `fr` "$2.00" is refused since several dollars share "$" there,
-  where `resolve_currency/2` takes the Canadian one. A narrow symbol is
-  read only for the locale's own currency, so Swiss "15 Rp." (15
-  Rappen) is not the rupiah, whose narrow symbol `de-CH` gives as "Rp".
+  where `resolve_currency/2` takes the Canadian one. A narrow symbol of
+  another currency than the locale's own is read only when it is a
+  currency sign that names that currency alone, in the locale and in
+  CLDR's root data, so `en-AU` "€5" is the euro and `de-CH` "€ 15.40"
+  too, though `de-CH` writes the euro "EUR", but Swiss "15 Rp." (15
+  Rappen) is not the rupiah, whose narrow symbol `de-CH` gives as "Rp",
+  and `bg` "₩5" is refused, since root gives "₩" to both wons.
   A historic currency is read only by its code or its name, since its
   symbols are reused: `ru` "6 300 Р" is not the ruble of 1991–1998. One
   to three digits, a decimal mark and three more are refused in a
@@ -784,10 +799,12 @@ defmodule Localize.Number.Parser do
     anything else. Text that names no currency of the locale is read as
     the caller's currency; text that names one of the locale's and a
     different one of the caller's is ambiguous and refused, as `₮` is the
-    tugrik and a digital token's symbol. Pass it only when the caller has
-    such currencies, since it is called for every amount. Their amounts are read with the
-    locale's separators and the root locale's (`root_separators: true` of
-    `parse/2`), and refused where the two differ.
+    tugrik and a digital token's symbol, except where it names the
+    locale's own currency: `mn` "₮5" is the tugrik. Pass it only when
+    the caller has such currencies, since it is called for every amount.
+    Their amounts are read with the locale's separators and the root
+    locale's (`root_separators: true` of `parse/2`), and refused where
+    the two differ.
 
   ### Returns
 
@@ -807,6 +824,9 @@ defmodule Localize.Number.Parser do
 
   * `{:error, %Localize.ParseError{reason: :unexpected_input}}` when the
     string is not one currency amount, or
+
+  * `{:error, %Localize.LocaleNotFoundInCacheError{}}` when the locale's
+    data is not installed (see the module documentation), or
 
   * `{:error, exception}` for an invalid locale or option.
 
@@ -829,7 +849,7 @@ defmodule Localize.Number.Parser do
     with :ok <- validate_arguments(string, :string, options),
          :ok <- validate_amount_size(string),
          locale = Keyword.get(options, :locale, Localize.get_locale()),
-         {:ok, language_tag} <- Localize.validate_locale(locale),
+         {:ok, language_tag} <- parsing_locale(locale),
          options = Keyword.put(options, :locale, language_tag),
          {:ok, parts} <- amount_parts(string, language_tag),
          {:ok, currency, separators_of, parts} <- amount_currency(parts, string, options),
@@ -854,7 +874,7 @@ defmodule Localize.Number.Parser do
 
     filters = [only: only_filter, except: except_filter]
 
-    with {:ok, language_tag} <- Localize.validate_locale(locale),
+    with {:ok, language_tag} <- parsing_locale(locale),
          {:ok, currency_strings} <- reading_strings(language_tag, filters, reading),
          {:ok, currency} <-
            found_currency(
@@ -919,10 +939,12 @@ defmodule Localize.Number.Parser do
     end
   end
 
-  # A currency amount reads a narrow symbol only for the locale's own
-  # currency: CLDR writes it where the context makes the currency clear, and
-  # elsewhere it may be an abbreviation of another thing. `de-CH` gives the
-  # rupiah the narrow symbol "Rp", but a Swiss "15 Rp." is 15 Rappen.
+  # A currency amount reads a narrow symbol of another currency than the
+  # locale's own only when it is a currency sign that names that currency
+  # alone: CLDR writes a narrow symbol where the context makes the currency
+  # clear, and elsewhere a letter abbreviation may be another thing. `de-CH`
+  # gives the rupiah the narrow symbol "Rp", but a Swiss "15 Rp." is 15
+  # Rappen, while `en-AU` "€5" is the euro.
   # A historic currency is read only by its code or its name, since its
   # symbols are reused: a Russian "6 300 Р" is not the ruble of 1991–1998.
   defp amount_strings(language_tag, own, filters) do
@@ -930,10 +952,24 @@ defmodule Localize.Number.Parser do
 
     with {:ok, strings} <- Localize.Currency.currency_strings(locale_id, filters),
          {:ok, narrow} <- Localize.Currency.narrow_symbol_strings(locale_id, filters),
+         {:ok, signs} <- Localize.Currency.currency_sign_strings(locale_id, filters),
+         {:ok, unclaimed} <- Localize.Currency.unclaimed_sign_strings(locale_id, filters),
          {:ok, historic} <- Localize.Currency.historic_symbol_strings(locale_id, filters) do
-      foreign = for {string, code} <- narrow, code != own, do: string
+      foreign =
+        for {string, code} <- narrow,
+            code != own,
+            not Map.has_key?(signs, string),
+            do: string
+
       dropped = foreign ++ Map.keys(historic)
-      {:ok, strings |> Map.drop(dropped) |> nfkc_strings()}
+
+      amount_strings =
+        strings
+        |> Map.drop(dropped)
+        |> Map.merge(unclaimed)
+        |> nfkc_strings()
+
+      {:ok, amount_strings}
     end
   end
 
@@ -1196,7 +1232,7 @@ defmodule Localize.Number.Parser do
   def resolve_per(string, options \\ []) do
     with :ok <- validate_arguments(string, :string, options),
          locale = Keyword.get(options, :locale, Localize.get_locale()),
-         {:ok, language_tag} <- Localize.validate_locale(locale),
+         {:ok, language_tag} <- parsing_locale(locale),
          {:ok, number_system} <- digits_number_system_from(language_tag, string, options),
          {:ok, symbol} <- number_symbols(language_tag, number_system, []) do
       per_strings =
@@ -1607,14 +1643,23 @@ defmodule Localize.Number.Parser do
 
   # Text that names a CLDR currency names it only if the caller's
   # `:caller_currency` does not name another for the same text: `₮` is the
-  # tugrik in CLDR and Tether's symbol as a digital token, so "₮5" is
-  # refused rather than read as either.
+  # tugrik in CLDR and Tether's symbol as a digital token, so `en` "₮5" is
+  # refused rather than read as either. In a locale whose own currency the
+  # text names, that currency takes it: `mn` "₮5" is the tugrik.
   defp unclaimed_currency(currency, text, options) do
     case caller_claim(Keyword.get(options, :caller_currency), text) do
       {:ok, ^currency} -> {:ok, currency, currency}
-      {:ok, other} -> {:error, ambiguous_currency(text, currency, other)}
+      {:ok, other} -> own_or_ambiguous(currency, other, text, options)
       :none -> {:ok, currency, currency}
       {:error, _invalid_option} = error -> error
+    end
+  end
+
+  defp own_or_ambiguous(currency, other, text, options) do
+    if own_currency(Keyword.get(options, :locale)) == currency do
+      {:ok, currency, currency}
+    else
+      {:error, ambiguous_currency(text, currency, other)}
     end
   end
 
@@ -2420,6 +2465,27 @@ defmodule Localize.Number.Parser do
 
   defp locale_id(%Localize.LanguageTag{cldr_locale_id: id}) when not is_nil(id), do: id
   defp locale_id(%Localize.LanguageTag{}), do: :en
+
+  # Parsing reads with a locale's own data or not at all. When a locale is not
+  # installed and cannot be downloaded, the loader puts a parent's data or
+  # English in its place, which formatting can live with but parsing cannot:
+  # with English data `en-AU` "$5" is US dollars and `zh` "¥1.00" yen.
+  defp parsing_locale(locale) do
+    with {:ok, language_tag} <- Localize.validate_locale(locale),
+         locale_id = locale_id(language_tag),
+         {:ok, data_locale_id} <- Localize.Locale.get(locale_id, [:name]) do
+      own_locale_data(language_tag, locale_id, data_locale_id)
+    end
+  end
+
+  defp own_locale_data(language_tag, locale_id, locale_id) do
+    {:ok, language_tag}
+  end
+
+  defp own_locale_data(_language_tag, locale_id, _data_locale_id) do
+    path = Localize.Locale.Provider.Cache.path(locale_id)
+    {:error, Localize.LocaleNotFoundInCacheError.exception(locale_id: locale_id, path: path)}
+  end
 
   defp do_find_and_replace(string_map, string, nil, period_strings) do
     canonical = String.downcase(String.trim(string))
