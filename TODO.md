@@ -14,6 +14,8 @@ Outstanding work on Localize. The design detail behind these items lives under [
 
 ## In progress
 
+* [ ] **Rebuild the number and currency amount parser as a lexer, a grammar and a per-locale lexicon** — the current parser is the reference model; same results, five to ten times faster, and the rules stated once. Localize 1.5.0 waits for it. Design in [plans/number-parser-grammar.md](plans/number-parser-grammar.md).
+
 * [ ] **CLDR 49 upgrade** — the plan's items are closed bar item 11; the data is built from the final `release-49` (below). [plans/cldr-49.md](plans/cldr-49.md).
 
 ## Blocked

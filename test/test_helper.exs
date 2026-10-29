@@ -149,4 +149,9 @@ Mix.Tasks.Localize.DownloadInflection.download_for(Localize.Inflection.Locale.su
 # system ICU with a version-calibrated skew quarantine, so it is opt-in
 # rather than a portable gate. Run it in a known-ICU environment with
 # `mix test --include nif_differential`.
-ExUnit.start(exclude: [:integration, :nif_differential])
+#
+# The `:differential` test compares the number parser with the reference
+# copy in `test/support/reference_parser.ex` across many locales and
+# runs for minutes, so it is opt-in: `mix test --include differential`
+# (see `plans/number-parser-grammar.md`).
+ExUnit.start(exclude: [:integration, :nif_differential, :differential])
