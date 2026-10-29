@@ -22,6 +22,14 @@
 # * `Refactor.Apply` stays enabled; legitimate dynamic dispatch from
 #   token/handler tables is annotated inline.
 #
+# Policy decision (October 2026):
+#
+# * `Localize.Credo.ErrorTuple` (`credo/checks/error_tuple.ex`) reports
+#   every error tuple built with an atom or a string in `lib/` and `data/`:
+#   an error is `{:error, exception}`. A site whose atom a contract outside
+#   Localize requires, such as Elixir's `Calendar` parse callbacks, carries
+#   an inline `credo:disable-for-next-line` with the reason.
+#
 # Policy decision (September 2026):
 #
 # * `Localize.Credo.NoTryRescue` (`credo/checks/no_try_rescue.ex`)
@@ -40,14 +48,15 @@
         excluded: ["test/support/data/"]
       },
       plugins: [{ExSlop, []}],
-      requires: ["credo/checks/no_try_rescue.ex"],
+      requires: ["credo/checks/no_try_rescue.ex", "credo/checks/error_tuple.ex"],
       checks: %{
         disabled: [
           {Credo.Check.Design.AliasUsage, []}
         ],
         extra:
           [
-            {Localize.Credo.NoTryRescue, allowed_try_after: [{Localize, :with_locale, 2}]}
+            {Localize.Credo.NoTryRescue, allowed_try_after: [{Localize, :with_locale, 2}]},
+            {Localize.Credo.ErrorTuple, files: %{included: ["lib/", "data/"]}}
           ] ++ Enum.map(ExSlop.recommended_checks(), &{&1, []})
       }
     }
