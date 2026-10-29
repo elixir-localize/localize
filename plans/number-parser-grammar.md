@@ -149,7 +149,7 @@ Each task is one turn: build, run that task's tests, stop for the user to commit
 
 * [x] **Reference copy and harness** — `test/support/reference_parser.ex`, the generators in `test/support/parser_differential.ex` and `parser_differential_test.exs`, tagged `:differential`. Run against the unchanged parser: 132,215 amount inputs and 99,342 number inputs across 68 locales, 0 differences, 26 s. 2026-10-29.
 
-* [ ] **Lexicon** — `Localize.Number.Lexicon` with digits, signs, readings and grouping sizes, built from the same locale data as today, cached, with unit tests for `en`, `de`, `de-AT`, `de-CH`, `fr-CH`, `ar-EG`, `en-IN` and `und`.
+* [x] **Lexicon** — `Localize.Number.Lexicon.fetch/3` and `number_system/3`, with digits, sign families, zero-fraction dashes, the period family and one to three readings, each a `MapSet` per separator with the lenient family folded in; cached per locale, system, currency and separator options. 19 tests. 2026-10-29.
 
 * [ ] **Lexer** — `Localize.Number.Lexer.tokens/2` with token snapshots for the hard inputs: bidi marks, Arabic and Devanagari digits, U+202F and U+00A0, "5.–", "−.5", `de-CH` apostrophes, fullwidth characters.
 
