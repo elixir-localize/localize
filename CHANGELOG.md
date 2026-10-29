@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.5.0] — October 29th, 2026
+## [1.5.0] — October 30th, 2026
 
 ### Added
 
@@ -18,7 +18,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 * `Localize.ParseError` has the reason `:missing_currency`, for a currency amount that names no currency.
 
-* `Localize.Number.Parser.parse/2` reads a trailing sign and accounting parentheses, which make it negative: "127,54-" and "(5)". A sign and parentheses together, "(-5)", are refused. `parse_currency_amount/2` hands it everything but the currency text, so the two read a number the same way.
+* `Localize.Number.Parser.parse/2` reads a trailing sign and accounting parentheses, which make it negative, "127,54-" and "(5)", and refuses a sign and parentheses together, "(-5)". `parse_currency_amount/2` hands it everything but the currency text, so the two read a number the same way.
 
 * `Localize.Number.Parser.parse/2` option `grouping: :sizes` takes only groups of the sizes the locale writes, so `de` "1.23" is refused rather than read as 123; `parse_currency_amount/2` reads amounts with it.
 
