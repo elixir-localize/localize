@@ -3639,8 +3639,8 @@ defmodule Localize.Date.Parser do
 
   # ── Eras ─────────────────────────────────────────────────────
 
-  defp maybe_load_eras(locale, calendar) do
-    case LCalendar.eras(locale, calendar) do
+  defp maybe_load_eras(locale, calendar_module) do
+    case LCalendar.calendar_eras(calendar_module, locale) do
       {:ok, data} -> data
       _ -> %{}
     end
@@ -3660,7 +3660,7 @@ defmodule Localize.Date.Parser do
       days: latin_names(maybe_load_days(locale, cldr_calendar), digits),
       locale: locale,
       months: latin_names(months_data, digits),
-      eras: latin_names(maybe_load_eras(locale, era_calendar_type(calendar_module)), digits),
+      eras: latin_names(maybe_load_eras(locale, calendar_module), digits),
       cyclic_years: maybe_load_cyclic_years(locale, cldr_calendar),
       month_patterns: month_patterns,
       traditional_months: traditional_months?(calendar_module, month_patterns),

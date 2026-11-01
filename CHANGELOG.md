@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.6.0] — Unreleased
+
+### Added
+
+* A calendar may name its own eras through an `era_names/1` callback, given a `Localize.LanguageTag` and answering `{:ok, names}` in the shape of `Localize.Calendar.eras/2`, or `:cldr`; dates are written and read with those names, and CLDR's otherwise.
+
 ## [1.5.0] — October 30th, 2026
 
 ### Added

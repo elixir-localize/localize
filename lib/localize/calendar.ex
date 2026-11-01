@@ -845,8 +845,7 @@ defmodule Localize.Calendar do
     with :ok <- holds_part(datetime, :era),
          {:ok, era} <- era_of(datetime) do
       era_key = if options[:era] == :variant, do: -era - 1, else: era
-      options = Keyword.put_new(options, :calendar, era_calendar_type_from(datetime))
-      display_name(:era, era_key, options)
+      era_name(datetime, era, era_key, options)
     end
   end
 
@@ -1726,6 +1725,68 @@ defmodule Localize.Calendar do
   # The CLDR calendar whose data names a calendar's eras.
   @spec era_calendar_type(module()) :: atom()
   def era_calendar_type(calendar), do: answering(calendar).info().era_calendar_type
+
+  @doc false
+  # The names of a calendar's eras in a locale, in the shape `eras/2` gives
+  # them: the calendar's own, where it names its eras through `era_names/1`,
+  # and otherwise CLDR's for the calendar its eras are counted in. CLDR
+  # names no era of a calendar it does not define, so a calendar that takes
+  # its other names from another calendar's data names its eras itself.
+  @spec calendar_eras(module(), Localize.locale()) :: {:ok, map()} | {:error, Exception.t()}
+  def calendar_eras(calendar, locale) do
+    case own_era_names(calendar, locale) do
+      {:ok, names} -> {:ok, names}
+      {:error, _reason} = error -> error
+      :cldr -> eras(locale, era_calendar_type(calendar))
+    end
+  end
+
+  # A calendar's own names for its eras, or `:cldr` where it has none and
+  # CLDR's data names them. A calendar that does not answer `era_names/1`,
+  # as `Calendar.ISO` does not, is named from CLDR's. The calendar is given
+  # the locale as a validated `t:Localize.LanguageTag.t/0`.
+  defp own_era_names(calendar, locale) do
+    answers = answering(calendar)
+
+    if Code.ensure_loaded?(answers) and function_exported?(answers, :era_names, 1) do
+      named_by(answers, locale)
+    else
+      :cldr
+    end
+  end
+
+  defp named_by(answers, locale) do
+    with {:ok, language_tag} <- Localize.validate_locale(locale) do
+      answers.era_names(language_tag)
+    end
+  end
+
+  # An era of a date named from its calendar's own names, where it has
+  # them, and otherwise from CLDR's. A calendar's own names have no variant,
+  # so the variant asked for is the name.
+  defp era_name(datetime, era, era_key, options) do
+    calendar = Map.get(datetime, :calendar, Calendar.ISO)
+    locale = Keyword.get(options, :locale, Localize.get_locale())
+
+    case own_era_names(calendar, locale) do
+      {:ok, names} ->
+        own_era_name(names, era, Keyword.get(options, :style, :wide))
+
+      {:error, _reason} = error ->
+        error
+
+      :cldr ->
+        options = Keyword.put_new(options, :calendar, era_calendar_type_from(datetime))
+        display_name(:era, era_key, options)
+    end
+  end
+
+  defp own_era_name(names, era, style) do
+    names
+    |> Map.get(style, %{})
+    |> Map.get(era)
+    |> wrap_or_invalid(era, "a valid era index")
+  end
 
   @doc false
   # The calendar that text none of `calendar`'s own formats reads is read
