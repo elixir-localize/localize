@@ -707,7 +707,7 @@ Localize.Date.parse("22.03.2026", locale: :de, calendar: :hebrew)
 #=> {:error, %Localize.UnknownCalendarError{calendar: :hebrew}}
 ```
 
-The calendar is checked before any parsing happens, so the answer does not depend on the shape of the input: ISO 8601 and locale-formatted text both return the same error for the same `:calendar`. A calendar names its own CLDR calendar type and months through the Calendrical behaviour's callbacks, so a custom calendar needs no registration with Localize; a module implementing only the `Calendar` behaviour cannot say how its dates are written, and is refused with `Localize.UnknownCalendarError`, as it is when formatting.
+The calendar is checked before any parsing happens, so the answer does not depend on the shape of the input: ISO 8601 and locale-formatted text both return the same error for the same `:calendar`. A calendar names its own CLDR calendar type and months through the Calendrical behaviour's callbacks, and, where CLDR names none of its own, its eras (`era_names/1`), so a custom calendar needs no registration with Localize; a module implementing only the `Calendar` behaviour cannot say how its dates are written, and is refused with `Localize.UnknownCalendarError`, as it is when formatting.
 
 The date comes back in the `:calendar` module. When a consumer needs it in another calendar, such as `Calendar.ISO` for an Ecto `:date` field, convert it with `Date.convert/2`.
 

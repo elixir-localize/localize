@@ -8,8 +8,6 @@ Outstanding work on Localize. The design detail behind these items lives under [
 
 * [ ] **Read CLDR's JSON in place of its XML wherever the JSON carries the data** (next release) — `data/xml_extractors.ex` reads XML for data the CLDR 49 JSON has with every attribute used: `pluralRanges`, `primaryZones` (`metaZones.xml`), the BCP 47 `timezone` (`_alias`, `_region`, `_preferred`) and `measure` files, `subdivisionContainment` (`subdivisions.xml`'s `subgroup`), `units` (`convertUnits` with `_special` and `_systems`, `unitConstants` with `_status`, `unitPrefixes`, `unitQuantities`) and `unitIdComponents`, and the grammatical derivations in `grammaticalFeatures`. `data/validity.ex` reads the BCP 47 XML for the `-u-` and `-t-` keys, which `cldr-bcp47` also carries. Add `bcp47` to `Localize.Data.CldrJson`'s converter types, then move each reader. Only these stay XML, having no JSON: `common/validity/*.xml`, the collation tailorings in `common/collation/` and `common/uca/FractionalUCA.txt`. Gate: every supplemental ETF and the locale hash manifest regenerate byte-identical, which deterministic encoding makes a direct comparison.
 
-* [ ] **The Indian calendar's era is "Zaka" in `und` and `en`** — `Localize.Calendar.eras(:en, :indian)` is `"Zaka"` in all three widths, and `und` the same, where CLDR 49's `root.xml` has `<era type="0">Śaka</era>`, the 49.0.0 production JSON `"Śaka"`, and ICU writes "Saka"; `hi` is right (शक). The string is the same in the 1.4.0 hex package and in locales regenerated from the checkout, so the change is made in the generation, between the converter's JSON and the ETF (`data/locale.ex`, `data/calendars.ex`), not in CLDR. Find where Ś becomes Z, regenerate, and compare every `eraAbbr`, `eraNames` and `eraNarrow` value of every calendar in the generated locales against the JSON for other folded letters. Shows on every Indian date Calendrical localizes with an era. Found by Calendrical's 2.0.0 release review against ICU, 2026-10-24.
-
 * [ ] **Convert an angle or a ratio before a dimensionless function** — `Localize.Unit.Math.apply_dimensionless/2`, and the `sin/1` to `log2/1` wrappers, check that the unit's base is `revolution` or `part` and then apply the function to the raw value, so `sin` of `90 degree` is 0.893997 (sin of 90 radians) and `ln` of `100 percent` is 4.60517 (ln of 100). Convert the value to radians for an angle and to a plain ratio for a `part` unit first; the doctests use only `0 radian` and `1 radian`, so add `90 degree`, `0.5 revolution` and `100 percent`. Same in 1.0.0, so not a 1.4 regression. Found by Unity's 1.2.0 release review, 2026-10-28; its guide keeps `sin(90 degree)` as `1`.
 
 ## In progress
@@ -65,6 +63,8 @@ Outstanding work on Localize. The design detail behind these items lives under [
 * [ ] **`localize_emoji` sibling library** — plan item 11, a separate package on its own schedule. A Phoenix LiveView picker (`localize_emoji_live`) is out of scope for its 0.1.0.
 
 ## Done
+
+* [x] **The Indian calendar's era is "Zaka" in `und` and `en`** — not a defect: the data is "Śaka" (bytes `C5 9A`), and a shell whose BEAM stdout is latin1 printed U+015A with its high byte dropped. 2026-11-01.
 
 * [x] **`UnknownRbnfRuleError` names the unlisted parent whose rules the locale takes** — a `:rules_in` field and message, `:no` for `nb` and `:en` for `en-GB`, from new supplemental data `rbnf_locales.etf` (the CLDR locales with RBNF rules of their own, `Localize.SupplementalData.rbnf_locales/0`), so an application learns which parent to list. Follows #68. 2026-10-30, v1.5.0.
 

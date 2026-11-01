@@ -741,7 +741,11 @@ defmodule Localize.Calendar do
   and lunisolar calendars name each month whatever its place in the
   year. A leap month takes CLDR's leap-year name for its month (the
   Hebrew "Adar II"), or its month's name in the calendar's leap-month
-  pattern (the Chinese "Second Monthbis"). A date's calendar is
+  pattern (the Chinese "Second Monthbis"). An era takes CLDR's name for
+  it in the calendar its eras are counted in, unless the calendar names
+  its own eras through `era_names/1`, as a calendar whose era CLDR does
+  not name must (Calendrical's Bangla calendar names its months from
+  CLDR's Indian calendar and its era itself, "BS"). A date's calendar is
   `Calendar.ISO` or one implementing the Calendrical behaviour, which
   answers these questions; any other is refused.
 
