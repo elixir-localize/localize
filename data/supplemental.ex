@@ -235,8 +235,13 @@ defmodule Localize.Data.Supplemental do
   @doc """
   Generates time preference data from `timeData.json`.
 
-  Returns a map of territory atoms to maps with `:preferred` (string)
-  and `:allowed` (list of strings).
+  Returns a map keyed by the atoms CLDR's time data is keyed by — a
+  territory such as `:CA`, the world `:"001"`, and the language-territory
+  locales whose preferences differ from their territory's, such as
+  `:"fr-CA"` — each to a map with `:preferred` (string) and `:allowed`
+  (list of strings). Every key is an atom: the set is CLDR's and closed,
+  and a lookup that had to know which keys were atoms and which strings
+  answered `fr-CA` with Canada's 12-hour cycle (#70).
 
   """
   def generate_time_preferences do
@@ -244,7 +249,7 @@ defmodule Localize.Data.Supplemental do
     |> get_in(["supplemental", "timeData"])
     |> LMap.remove_leading_underscores()
     |> LMap.deep_map(fn {k, v} -> {k, String.split(v)} end, only: "allowed")
-    |> atomize_territory_keys()
+    |> LMap.atomize_keys()
   end
 
   @doc """
@@ -636,25 +641,6 @@ defmodule Localize.Data.Supplemental do
       {key, "sat"} -> {key, 6}
       other -> other
     end)
-  end
-
-  # Atomizes only top-level keys that look like territory codes
-  # (2-3 uppercase characters or "001"-style codes). Leaves other
-  # keys (like locale codes with hyphens) as strings. Also atomizes
-  # all nested string keys.
-  defp atomize_territory_keys(map) when is_map(map) do
-    Enum.map(map, fn {k, v} ->
-      if is_binary(k) and territory_code?(k) do
-        {String.to_atom(k), LMap.atomize_keys(v)}
-      else
-        {k, LMap.atomize_keys(v)}
-      end
-    end)
-    |> Map.new()
-  end
-
-  defp territory_code?(code) when is_binary(code) do
-    String.length(code) <= 3 and not String.contains?(code, "-")
   end
 
   defp parse_currency_attrs(attrs) when is_map(attrs) do

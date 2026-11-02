@@ -334,8 +334,8 @@ defmodule Localize.Time do
     {:ok, resolved_hour_cycle(language_tag)}
   end
 
-  def hour_format_from_locale(%Localize.LanguageTag{cldr_locale_id: locale_id}) do
-    prefs = Localize.DateTime.Format.Match.time_preferences_for(locale_id)
+  def hour_format_from_locale(%Localize.LanguageTag{} = language_tag) do
+    prefs = Localize.DateTime.Format.Match.time_preferences_for(language_tag)
     {:ok, hour_cycle_from_symbol(prefs.preferred)}
   end
 

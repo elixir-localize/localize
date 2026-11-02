@@ -357,9 +357,64 @@ defmodule Localize.DateTime.FormatResolutionTest do
       assert "H" in allowed
     end
 
+    # `en-US` and `fr-FR` are CLDR's default content for `en` and `fr`, so
+    # nothing in Localize interns `:"en-US"` or `:"fr-FR"`. A lookup that
+    # atomised its input before validating it gave both the world's cycle
+    # until some other code happened to name the atom (#70).
+    test "a default-content locale takes its territory's preferences" do
+      assert %{preferred: "h", allowed: ["h", "hb", "H", "hB"]} =
+               Match.time_preferences_for("en-US")
+
+      assert %{preferred: "H", allowed: ["H", "hB"]} = Match.time_preferences_for("fr-FR")
+      assert %{preferred: "H"} = Match.time_preferences_for("de-DE")
+    end
+
+    # TR35 §Time Data keys a few entries by language and region, which take
+    # precedence over the region alone.
+    test "a language-territory entry takes precedence over its territory" do
+      assert %{preferred: "H", allowed: ["H", "h", "hB"]} = Match.time_preferences_for("fr-CA")
+      assert %{preferred: "h"} = Match.time_preferences_for("en-CA")
+
+      assert %{preferred: "h", allowed: ["hB", "h", "H"]} = Match.time_preferences_for("hi-IN")
+      assert %{preferred: "h", allowed: ["h", "H"]} = Match.time_preferences_for("en-IN")
+    end
+
+    test "a script or an extension does not change the lookup" do
+      assert Match.time_preferences_for("fr-Latn-CA") == Match.time_preferences_for("fr-CA")
+      assert Match.time_preferences_for("fr-CA-u-hc-h12") == Match.time_preferences_for("fr-CA")
+      assert Match.time_preferences_for("und-CA") == Match.time_preferences_for("en-CA")
+    end
+
+    test "a binary and a validated tag agree" do
+      for locale <- ["en-US", "fr-FR", "fr-CA", "hi-IN", "ja", "en-001"] do
+        {:ok, language_tag} = Localize.validate_locale(locale)
+
+        assert Match.time_preferences_for(locale) == Match.time_preferences_for(language_tag),
+               "#{locale} answers differently as a binary and as a tag"
+      end
+    end
+
     test "unknown locales fall back to the world default" do
       assert %{preferred: "H", allowed: ["H", "h"]} = Match.time_preferences_for("xx-nope")
       assert %{preferred: "H", allowed: ["H", "h"]} = Match.time_preferences_for(nil)
+      assert %{preferred: "H", allowed: ["H", "h"]} = Match.time_preferences_for(:"")
+      assert %{preferred: "H", allowed: ["H", "h"]} = Match.time_preferences_for(42)
+    end
+
+    # The lookup composes its language-territory key as an atom, which is
+    # only safe because the data interned every key: a string key would be
+    # found by no atom, and the generator once left `fr-CA` as one.
+    test "the time preference data is keyed by atoms throughout" do
+      data =
+        :localize
+        |> Application.app_dir("priv/localize/supplemental_data/time_preferences.etf")
+        |> File.read!()
+        |> :erlang.binary_to_term()
+
+      assert Enum.all?(Map.keys(data), &is_atom/1)
+      assert Map.has_key?(data, :"fr-CA")
+      assert Map.has_key?(data, :"hi-IN")
+      assert Map.has_key?(data, :"001")
     end
   end
 

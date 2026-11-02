@@ -1265,68 +1265,49 @@ defmodule Localize.DateTime.Format.Match do
   end
 
   @doc false
-  # Locale -> territory -> root (:"001") fallback chain over the CLDR
-  # time-preference data, with language tag / atom / binary input
-  # normalisation.
-
-  # A validated tag already carries the locale id, language and territory
-  # this needs, so it answers without resolving the locale again. Matching
-  # it explicitly also keeps a tag out of the normalisation below, where it
-  # would reduce to `nil` and take every locale to the `:"001"` default —
-  # h23 — rather than to its own hour cycle.
-  def time_preferences_for(%Localize.LanguageTag{territory: nil} = language_tag) do
-    lookup_time_preferences(language_tag.cldr_locale_id, nil, nil)
-  end
-
+  # The hour-cycle preferences of a locale, from TR35 §Time Data. CLDR keys
+  # them by region, with a few language-region entries that take precedence
+  # over their region: `fr-CA` prefers H where `CA` prefers h, and `hi-IN`
+  # allows hB where `IN` does not. So a locale is looked up by its language
+  # and territory, then by its territory, then as the world, `001`, all three
+  # read from a validated tag. A value that is no locale takes the world's
+  # preferences, which is all TR35 has for it.
+  #
+  # Every key is an atom the compiled data interned, so composing the
+  # language-territory key with `existing_atom/1` creates no atom and finds
+  # the key whenever there is one. The input itself is never atomised: doing
+  # so before validating it made the answer depend on which locale atoms the
+  # VM had already seen, and `"en-US"` was 24-hour until something named
+  # `:"en-US"` (#70).
   def time_preferences_for(%Localize.LanguageTag{} = language_tag) do
-    lookup_time_preferences(
-      language_tag.cldr_locale_id,
-      language_tag.language,
-      language_tag.territory
-    )
+    lookup_time_preferences(language_tag.language, language_tag.territory)
   end
 
-  def time_preferences_for(locale_id) do
-    # `@time_preferences` keys are pre-atomised at compile time (CLDR
-    # locale ids and territory codes), so `existing_atom/1` resolves
-    # any known locale and returns nil for everything else. Unknown
-    # binaries no longer grow the atom table.
-    locale_atom =
-      cond do
-        is_atom(locale_id) -> locale_id
-        is_binary(locale_id) -> Localize.Utils.Helpers.existing_atom(locale_id)
-        true -> nil
-      end
-
-    {language, territory} =
-      language_and_territory(locale_atom)
-
-    lookup_time_preferences(locale_atom, language, territory)
-  end
-
-  # The language and territory to look preferences up by. A locale that is
-  # nil, one that does not validate, and one with no territory of its own all
-  # leave only the locale name to look up by.
-  defp language_and_territory(nil), do: {nil, nil}
-
-  defp language_and_territory(locale_atom) do
-    case Localize.validate_locale(locale_atom) do
-      {:ok, %{language: language, territory: territory}} when not is_nil(territory) ->
-        {language, territory}
-
-      _no_territory ->
-        {nil, nil}
+  def time_preferences_for(locale)
+      when is_binary(locale) or (is_atom(locale) and not is_nil(locale)) do
+    case Localize.validate_locale(locale) do
+      {:ok, language_tag} -> time_preferences_for(language_tag)
+      {:error, _reason} -> world_time_preferences()
     end
   end
 
-  # Look up by locale name first, then by language and territory, then by
-  # territory. TR35 §Time Data lets `regions` name a locale as well as a
-  # region (`hi_IN` allows "hB h H" where `IN` allows "h H"), and CLDR's
-  # JSON keys those entries by the hyphenated locale, "hi-IN".
-  defp lookup_time_preferences(locale_atom, language, territory) do
-    Map.get(@time_preferences, locale_atom) ||
-      (territory && Map.get(@time_preferences, "#{language}-#{territory}")) ||
-      (territory && Map.get(@time_preferences, territory)) ||
-      Map.fetch!(@time_preferences, :"001")
+  def time_preferences_for(_no_locale) do
+    world_time_preferences()
+  end
+
+  defp lookup_time_preferences(_language, nil) do
+    world_time_preferences()
+  end
+
+  defp lookup_time_preferences(language, territory) do
+    locale_key = Localize.Utils.Helpers.existing_atom("#{language}-#{territory}")
+
+    (locale_key && Map.get(@time_preferences, locale_key)) ||
+      Map.get(@time_preferences, territory) ||
+      world_time_preferences()
+  end
+
+  defp world_time_preferences do
+    Map.fetch!(@time_preferences, :"001")
   end
 end
