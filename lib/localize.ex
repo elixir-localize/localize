@@ -1890,13 +1890,20 @@ defmodule Localize do
   """
   @spec validate_measurement_system(atom() | String.t()) ::
           {:ok, atom()} | {:error, Exception.t()}
+  # The systems and their aliases are read first and the binary is matched
+  # against their names, rather than against whichever of their atoms the VM
+  # happens to have seen: an `existing_atom/1` gate refused "ussystem" and
+  # "imperial" until something else had loaded the data, the shape of #70.
+  # No atom is made from the input.
   def validate_measurement_system(system) when is_binary(system) do
-    case system |> String.downcase() |> Localize.Utils.Helpers.existing_atom() do
-      nil ->
-        {:error, Localize.UnknownMeasurementSystemError.exception(measurement_system: system)}
+    %{systems: systems, aliases: aliases} = Localize.SupplementalData.measurement_systems()
+    name = String.downcase(system)
+    known = Enum.find(Map.keys(systems) ++ Map.keys(aliases), &(Atom.to_string(&1) == name))
 
-      atom ->
-        validate_measurement_system(atom)
+    if is_nil(known) do
+      {:error, Localize.UnknownMeasurementSystemError.exception(measurement_system: system)}
+    else
+      validate_measurement_system(known)
     end
   end
 

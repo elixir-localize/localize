@@ -81,16 +81,18 @@ defmodule Localize.Territory.Subdivision do
   def display_name(subdivision, options)
       when (is_atom(subdivision) or is_binary(subdivision)) and is_keyword_list(options) do
     locale = Keyword.get(options, :locale, Localize.get_locale())
-    code = normalize_subdivision_code(subdivision)
 
     with {:ok, language_tag} <- Localize.validate_locale(locale),
          {:ok, subdivisions} <- Localize.Locale.get(language_tag, [:subdivisions]) do
-      case Map.get(subdivisions, code) do
-        nil ->
-          {:error, Localize.UnknownSubdivisionError.exception(subdivision: subdivision)}
+      # The code is matched only after the names are read: their keys are
+      # the atoms it is matched against, so a known code's atom exists by
+      # now whatever the VM had seen before (#70).
+      name = Map.get(subdivisions, normalize_subdivision_code(subdivision))
 
-        name ->
-          {:ok, name}
+      if is_nil(name) do
+        {:error, Localize.UnknownSubdivisionError.exception(subdivision: subdivision)}
+      else
+        {:ok, name}
       end
     end
   end

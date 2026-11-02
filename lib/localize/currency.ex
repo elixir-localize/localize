@@ -231,13 +231,13 @@ defmodule Localize.Currency do
   """
   @spec territory_currencies(territory()) ::
           {:ok, map()} | {:error, Exception.t()}
+  # A binary territory is validated, which matches it against the known
+  # territories and answers their atom, rather than matched against whichever
+  # territory atoms the VM had already seen: an `existing_atom/1` gate here
+  # refused "TA" until something else had loaded the territories (#70).
   def territory_currencies(territory) when is_binary(territory) do
-    case territory |> String.upcase() |> Helpers.existing_atom() do
-      nil ->
-        {:error, Localize.UnknownTerritoryError.exception(territory: territory)}
-
-      atom ->
-        territory_currencies(atom)
+    with {:ok, code} <- Localize.validate_territory(territory) do
+      territory_currencies(code)
     end
   end
 
@@ -282,10 +282,12 @@ defmodule Localize.Currency do
   """
   @spec current_currency_for_territory(atom() | String.t()) ::
           currency_code() | nil
+  # Validated for the reason `territory_currencies/1` gives: matched against
+  # the VM's atoms instead, "TA" answered `nil` where `:TA` answered `:GBP`.
   def current_currency_for_territory(territory) when is_binary(territory) do
-    case territory |> String.upcase() |> Helpers.existing_atom() do
-      nil -> nil
-      atom -> current_currency_for_territory(atom)
+    case Localize.validate_territory(territory) do
+      {:ok, code} -> current_currency_for_territory(code)
+      {:error, _reason} -> nil
     end
   end
 
