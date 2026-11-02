@@ -1273,12 +1273,12 @@ defmodule Localize.DateTime.Format.Match do
   # read from a validated tag. A value that is no locale takes the world's
   # preferences, which is all TR35 has for it.
   #
-  # Every key is an atom the compiled data interned, so composing the
-  # language-territory key with `existing_atom/1` creates no atom and finds
-  # the key whenever there is one. The input itself is never atomised: doing
-  # so before validating it made the answer depend on which locale atoms the
-  # VM had already seen, and `"en-US"` was 24-hour until something named
-  # `:"en-US"` (#70).
+  # The data keys a language-region entry by the `{language, territory}`
+  # tuple, so the lookup uses the tag's parts as they are: no locale
+  # identifier is built from them and the VM is never asked for an atom.
+  # The input is validated, never atomised; atomising it first made the
+  # answer depend on which locale atoms the VM had already seen, and
+  # `"en-US"` was 24-hour until something named `:"en-US"` (#70).
   def time_preferences_for(%Localize.LanguageTag{} = language_tag) do
     lookup_time_preferences(language_tag.language, language_tag.territory)
   end
@@ -1300,9 +1300,7 @@ defmodule Localize.DateTime.Format.Match do
   end
 
   defp lookup_time_preferences(language, territory) do
-    locale_key = Localize.Utils.Helpers.existing_atom("#{language}-#{territory}")
-
-    (locale_key && Map.get(@time_preferences, locale_key)) ||
+    Map.get(@time_preferences, {language, territory}) ||
       Map.get(@time_preferences, territory) ||
       world_time_preferences()
   end

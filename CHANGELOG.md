@@ -8,11 +8,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
-* `Localize.DateTime.Format.Match.time_preferences_for/1` validates a locale before looking up its hour cycle, and the time-preference data is keyed by atoms throughout, so a default-content locale such as `en-US` or `fr-FR` takes its territory's cycle and `fr-Latn-CA` takes `fr-CA`'s. It answered the world's 24-hour cycle for any locale whose atom the VM had not yet seen, so `"en-US"` was 24-hour until something else named `:"en-US"`; closes #70.
+* `Localize.DateTime.Format.Match.time_preferences_for/1` validates a locale before looking up its hour cycle, and the time-preference data keys `fr-CA` and its kin by `{language, territory}` tuples beside the territory atoms, so a default-content locale such as `en-US` or `fr-FR` takes its territory's cycle and `fr-Latn-CA` takes `fr-CA`'s. It answered the world's 24-hour cycle for any locale whose atom the VM had not yet seen, so `"en-US"` was 24-hour until something else named `:"en-US"`; closes #70.
 
 * `Localize.validate_measurement_system/1` reads the systems and their aliases before matching a binary against them, so `"ussystem"` and `"imperial"` validate on a fresh VM; they were refused until something else had loaded the data.
 
-* `Localize.Currency.territory_currencies/1` and `current_currency_for_territory/1` validate a binary territory rather than match it against the atoms the VM has seen, so `"TA"` and `"ac"` answer as `:TA` and `:AC` do; on a fresh VM `"TA"` was an unknown territory and had no currency. `Localize.Territory.Subdivision.display_name/2` reads the names before matching the code, for the same reason.
+* `Localize.Currency.validate_currency/1` matches a binary code against the known codes read first, and `territory_currencies/1` and `current_currency_for_territory/1` validate a binary territory, rather than match either against the atoms the VM has seen, so `"TA"` and `"ac"` answer as `:TA` and `:AC` do; on a fresh VM `"TA"` was an unknown territory and had no currency. `Localize.Territory.Subdivision.display_name/2` reads the names before matching the code, for the same reason.
 
 ## [1.6.0] — November 1st, 2026
 

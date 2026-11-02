@@ -97,23 +97,14 @@ defmodule Localize.Currency do
   """
   @spec validate_currency(atom() | String.t()) ::
           {:ok, currency_code()} | {:error, Exception.t()}
+  # A binary code is matched against the known codes as strings, which are
+  # read first, rather than against whichever currency atoms the VM has
+  # seen; no atom is made from it, and the error carries the caller's
+  # binary (#70).
   def validate_currency(currency_code) when is_binary(currency_code) do
-    # Gate atomisation on membership in the validity set so unknown
-    # string codes can't grow the atom table on each call. The error
-    # always carries the caller's binary, never the atom — whether
-    # the atom happens to exist depends on unrelated prior code.
-    case currency_code |> String.upcase() |> Helpers.existing_atom() do
-      nil ->
-        {:error, Localize.UnknownCurrencyError.exception(currency: currency_code)}
-
-      atom ->
-        case validate_currency(atom) do
-          {:ok, code} ->
-            {:ok, code}
-
-          {:error, _} ->
-            {:error, Localize.UnknownCurrencyError.exception(currency: currency_code)}
-        end
+    case Map.fetch(known_currency_code_strings(), String.upcase(currency_code)) do
+      {:ok, code} -> {:ok, code}
+      :error -> {:error, Localize.UnknownCurrencyError.exception(currency: currency_code)}
     end
   end
 
@@ -127,6 +118,14 @@ defmodule Localize.Currency do
 
   def validate_currency(currency_code),
     do: {:error, Localize.UnknownCurrencyError.exception(currency: currency_code)}
+
+  # The known codes by their string, built once from the atoms the data
+  # holds and kept with the data it is built from.
+  defp known_currency_code_strings do
+    Localize.DataLoader.load({:localize, :currency, :known_code_strings}, fn ->
+      Map.new(known_currency_codes(), &{Atom.to_string(&1), &1})
+    end)
+  end
 
   # ── Known currencies ─────────────────────────────────────────
 

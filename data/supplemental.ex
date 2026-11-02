@@ -235,13 +235,15 @@ defmodule Localize.Data.Supplemental do
   @doc """
   Generates time preference data from `timeData.json`.
 
-  Returns a map keyed by the atoms CLDR's time data is keyed by — a
-  territory such as `:CA`, the world `:"001"`, and the language-territory
-  locales whose preferences differ from their territory's, such as
-  `:"fr-CA"` — each to a map with `:preferred` (string) and `:allowed`
-  (list of strings). Every key is an atom: the set is CLDR's and closed,
-  and a lookup that had to know which keys were atoms and which strings
-  answered `fr-CA` with Canada's 12-hour cycle (#70).
+  Returns a map keyed as CLDR's time data is keyed: by a territory atom
+  such as `:CA`, by the world `:"001"`, and — for the language-region
+  entries whose preferences differ from their region's, `fr_CA` and
+  `hi_IN` — by a `{language, territory}` tuple such as `{:fr, :CA}`. Each
+  maps to `:preferred` (string) and `:allowed` (list of strings). The tuple
+  lets a lookup use a validated tag's parts as they are, with no locale
+  identifier built from them; the generator once left those entries as
+  `"fr-CA"` strings beside the territory atoms, which no lookup by atom
+  could find (#70).
 
   """
   def generate_time_preferences do
@@ -250,6 +252,17 @@ defmodule Localize.Data.Supplemental do
     |> LMap.remove_leading_underscores()
     |> LMap.deep_map(fn {k, v} -> {k, String.split(v)} end, only: "allowed")
     |> LMap.atomize_keys()
+    |> Map.new(fn {key, preferences} -> {time_data_key(key), preferences} end)
+  end
+
+  # A region's key stays its atom; a language-region key becomes the tuple
+  # of its two parts' atoms. CLDR's keys are a closed set, so the atoms are
+  # made here, at build time, and nowhere else.
+  defp time_data_key(key) do
+    case key |> Atom.to_string() |> String.split("-") do
+      [_territory] -> key
+      [language, territory] -> {String.to_atom(language), String.to_atom(territory)}
+    end
   end
 
   @doc """

@@ -42,6 +42,20 @@
 #   which `mix.exs` does not ship, so its errors are read by a
 #   maintainer at a terminal and have no locale to be said in.
 #
+# Policy decision (November 2026):
+#
+# * `Localize.Credo.ExistingAtom` (`credo/checks/existing_atom.ex`) reports
+#   every `Helpers.existing_atom/1`, `String.to_existing_atom/1`,
+#   `:erlang.binary_to_existing_atom/2` and their list forms in a public
+#   function of `lib/`. A public function matches the value it is given
+#   against data it has read, or validates it; asking the VM whether the
+#   atom exists answers differently before and after some other call has
+#   loaded that data, which is how `"en-US"` took the world's hour cycle,
+#   `"ussystem"` was an unknown measurement system and `"TA"` had no
+#   currency (#70). A private helper probing a map it already holds is not
+#   read; a public function that must probe the VM says why with an inline
+#   `credo:disable-for-next-line`.
+#
 # Policy decision (September 2026):
 #
 # * `Localize.Credo.NoTryRescue` (`credo/checks/no_try_rescue.ex`)
@@ -60,7 +74,11 @@
         excluded: ["test/support/data/"]
       },
       plugins: [{ExSlop, []}],
-      requires: ["credo/checks/no_try_rescue.ex", "credo/checks/error_tuple.ex"],
+      requires: [
+        "credo/checks/no_try_rescue.ex",
+        "credo/checks/error_tuple.ex",
+        "credo/checks/existing_atom.ex"
+      ],
       checks: %{
         disabled: [
           {Credo.Check.Design.AliasUsage, []}
@@ -68,7 +86,8 @@
         extra:
           [
             {Localize.Credo.NoTryRescue, allowed_try_after: [{Localize, :with_locale, 2}]},
-            {Localize.Credo.ErrorTuple, files: %{included: ["lib/"]}}
+            {Localize.Credo.ErrorTuple, files: %{included: ["lib/"]}},
+            {Localize.Credo.ExistingAtom, files: %{included: ["lib/"]}}
           ] ++ Enum.map(ExSlop.recommended_checks(), &{&1, []})
       }
     }

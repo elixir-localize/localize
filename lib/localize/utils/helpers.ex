@@ -70,6 +70,9 @@ defmodule Localize.Utils.Helpers do
   """
   @spec existing_atom(String.t()) :: atom() | nil
   def existing_atom(string) when is_binary(string) do
+    # This is the one probe of the VM's atoms the library makes; every
+    # other site calls it, and a public one reads its data first.
+    # credo:disable-for-next-line Localize.Credo.ExistingAtom
     :erlang.binary_to_existing_atom(string, :utf8)
   rescue
     ArgumentError -> nil

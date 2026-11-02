@@ -401,19 +401,26 @@ defmodule Localize.DateTime.FormatResolutionTest do
       assert %{preferred: "H", allowed: ["H", "h"]} = Match.time_preferences_for(42)
     end
 
-    # The lookup composes its language-territory key as an atom, which is
-    # only safe because the data interned every key: a string key would be
-    # found by no atom, and the generator once left `fr-CA` as one.
-    test "the time preference data is keyed by atoms throughout" do
+    # A territory is an atom key and a language-region entry a
+    # `{language, territory}` tuple, so the lookup uses a validated tag's
+    # parts as they are and builds no locale identifier from them. The
+    # generator once left those entries as `"fr-CA"` strings, which no
+    # lookup by atom could find.
+    test "the time preference data is keyed by territory atoms and language-territory tuples" do
       data =
         :localize
         |> Application.app_dir("priv/localize/supplemental_data/time_preferences.etf")
         |> File.read!()
         |> :erlang.binary_to_term()
 
-      assert Enum.all?(Map.keys(data), &is_atom/1)
-      assert Map.has_key?(data, :"fr-CA")
-      assert Map.has_key?(data, :"hi-IN")
+      assert Enum.all?(Map.keys(data), fn
+               key when is_atom(key) -> true
+               {language, territory} -> is_atom(language) and is_atom(territory)
+               _other -> false
+             end)
+
+      assert Map.has_key?(data, {:fr, :CA})
+      assert Map.has_key?(data, {:hi, :IN})
       assert Map.has_key?(data, :"001")
     end
   end
