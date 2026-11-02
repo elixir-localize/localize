@@ -25,10 +25,6 @@ defmodule Localize.Unit.Math do
 
   @all_dimensionless_fns @dimensionless_fns ++ @log_fns
 
-  # Dimensionless base units — a unit is considered dimensionless for
-  # transcendental functions if it converts to one of these base units.
-  @dimensionless_bases ~w(revolution part)
-
   @doc """
   Negates the value of a unit.
 
@@ -705,7 +701,7 @@ defmodule Localize.Unit.Math do
 
   * `{:ok, number}` with the sine of the value.
 
-  * `{:error, reason}` if the unit is not dimensionless or has no value.
+  * `{:error, reason}` if the unit is not dimensionless or has no value, or its value is outside the domain of the function.
 
   ### Examples
 
@@ -713,6 +709,10 @@ defmodule Localize.Unit.Math do
       iex> {:ok, result} = Localize.Unit.Math.sin(u)
       iex> result
       0.0
+
+      iex> {:ok, u} = Localize.Unit.new(90, "degree")
+      iex> Localize.Unit.Math.sin(u)
+      {:ok, 1.0}
 
   """
   @spec sin(Unit.t()) :: {:ok, number()} | {:error, Exception.t()}
@@ -729,13 +729,17 @@ defmodule Localize.Unit.Math do
 
   * `{:ok, number}` with the cosine of the value.
 
-  * `{:error, reason}` if the unit is not dimensionless or has no value.
+  * `{:error, reason}` if the unit is not dimensionless or has no value, or its value is outside the domain of the function.
 
   ### Examples
 
       iex> {:ok, u} = Localize.Unit.new(0, "radian")
       iex> Localize.Unit.Math.cos(u)
       {:ok, 1.0}
+
+      iex> {:ok, u} = Localize.Unit.new(0.5, "revolution")
+      iex> Localize.Unit.Math.cos(u)
+      {:ok, -1.0}
 
   """
   @spec cos(Unit.t()) :: {:ok, number()} | {:error, Exception.t()}
@@ -752,7 +756,7 @@ defmodule Localize.Unit.Math do
 
   * `{:ok, number}` with the tangent of the value.
 
-  * `{:error, reason}` if the unit is not dimensionless or has no value.
+  * `{:error, reason}` if the unit is not dimensionless or has no value, or its value is outside the domain of the function.
 
   ### Examples
 
@@ -775,7 +779,7 @@ defmodule Localize.Unit.Math do
 
   * `{:ok, number}` with the arc sine of the value.
 
-  * `{:error, reason}` if the unit is not dimensionless or has no value.
+  * `{:error, reason}` if the unit is not dimensionless or has no value, or its value is outside the domain of the function.
 
   ### Examples
 
@@ -798,7 +802,7 @@ defmodule Localize.Unit.Math do
 
   * `{:ok, number}` with the arc cosine of the value.
 
-  * `{:error, reason}` if the unit is not dimensionless or has no value.
+  * `{:error, reason}` if the unit is not dimensionless or has no value, or its value is outside the domain of the function.
 
   ### Examples
 
@@ -821,7 +825,7 @@ defmodule Localize.Unit.Math do
 
   * `{:ok, number}` with the arc tangent of the value.
 
-  * `{:error, reason}` if the unit is not dimensionless or has no value.
+  * `{:error, reason}` if the unit is not dimensionless or has no value, or its value is outside the domain of the function.
 
   ### Examples
 
@@ -844,7 +848,7 @@ defmodule Localize.Unit.Math do
 
   * `{:ok, number}` with the hyperbolic sine of the value.
 
-  * `{:error, reason}` if the unit is not dimensionless or has no value.
+  * `{:error, reason}` if the unit is not dimensionless or has no value, or its value is outside the domain of the function.
 
   ### Examples
 
@@ -867,7 +871,7 @@ defmodule Localize.Unit.Math do
 
   * `{:ok, number}` with the hyperbolic cosine of the value.
 
-  * `{:error, reason}` if the unit is not dimensionless or has no value.
+  * `{:error, reason}` if the unit is not dimensionless or has no value, or its value is outside the domain of the function.
 
   ### Examples
 
@@ -890,7 +894,7 @@ defmodule Localize.Unit.Math do
 
   * `{:ok, number}` with the hyperbolic tangent of the value.
 
-  * `{:error, reason}` if the unit is not dimensionless or has no value.
+  * `{:error, reason}` if the unit is not dimensionless or has no value, or its value is outside the domain of the function.
 
   ### Examples
 
@@ -913,7 +917,7 @@ defmodule Localize.Unit.Math do
 
   * `{:ok, number}` with the inverse hyperbolic sine of the value.
 
-  * `{:error, reason}` if the unit is not dimensionless or has no value.
+  * `{:error, reason}` if the unit is not dimensionless or has no value, or its value is outside the domain of the function.
 
   ### Examples
 
@@ -936,7 +940,7 @@ defmodule Localize.Unit.Math do
 
   * `{:ok, number}` with the inverse hyperbolic cosine of the value.
 
-  * `{:error, reason}` if the unit is not dimensionless or has no value.
+  * `{:error, reason}` if the unit is not dimensionless or has no value, or its value is outside the domain of the function.
 
   ### Examples
 
@@ -959,7 +963,7 @@ defmodule Localize.Unit.Math do
 
   * `{:ok, number}` with the inverse hyperbolic tangent of the value.
 
-  * `{:error, reason}` if the unit is not dimensionless or has no value.
+  * `{:error, reason}` if the unit is not dimensionless or has no value, or its value is outside the domain of the function.
 
   ### Examples
 
@@ -982,7 +986,7 @@ defmodule Localize.Unit.Math do
 
   * `{:ok, number}` with e raised to the value.
 
-  * `{:error, reason}` if the unit is not dimensionless or has no value.
+  * `{:error, reason}` if the unit is not dimensionless or has no value, or its value is outside the domain of the function.
 
   ### Examples
 
@@ -1005,11 +1009,15 @@ defmodule Localize.Unit.Math do
 
   * `{:ok, number}` with the natural logarithm of the value.
 
-  * `{:error, reason}` if the unit is not dimensionless or has no value.
+  * `{:error, reason}` if the unit is not dimensionless or has no value, or its value is outside the domain of the function.
 
   ### Examples
 
       iex> {:ok, u} = Localize.Unit.new(1, "radian")
+      iex> Localize.Unit.Math.ln(u)
+      {:ok, 0.0}
+
+      iex> {:ok, u} = Localize.Unit.new(100, "percent")
       iex> Localize.Unit.Math.ln(u)
       {:ok, 0.0}
 
@@ -1028,7 +1036,7 @@ defmodule Localize.Unit.Math do
 
   * `{:ok, number}` with the base-10 logarithm of the value.
 
-  * `{:error, reason}` if the unit is not dimensionless or has no value.
+  * `{:error, reason}` if the unit is not dimensionless or has no value, or its value is outside the domain of the function.
 
   ### Examples
 
@@ -1051,7 +1059,7 @@ defmodule Localize.Unit.Math do
 
   * `{:ok, number}` with the base-2 logarithm of the value.
 
-  * `{:error, reason}` if the unit is not dimensionless or has no value.
+  * `{:error, reason}` if the unit is not dimensionless or has no value, or its value is outside the domain of the function.
 
   ### Examples
 
@@ -1073,6 +1081,10 @@ defmodule Localize.Unit.Math do
   angle (`revolution`) or a ratio (`part`). Units with physical
   dimensions (length, mass, etc.) are rejected.
 
+  An angle is taken in radians and a ratio as the plain ratio, whatever
+  unit either is written in, so `sin` of `90 degree` is 1 and `ln` of
+  `100 percent` is 0.
+
   Supported function names: #{Enum.map_join(@all_dimensionless_fns, ", ", &"`:#{&1}`")}.
 
   ### Arguments
@@ -1085,7 +1097,7 @@ defmodule Localize.Unit.Math do
 
   * `{:ok, number}` with the function result.
 
-  * `{:error, reason}` if the unit is not dimensionless or has no value.
+  * `{:error, reason}` if the unit is not dimensionless or has no value, or its value is outside the domain of the function.
 
   ### Examples
 
@@ -1094,20 +1106,21 @@ defmodule Localize.Unit.Math do
       iex> result
       0.0
 
+      iex> {:ok, u} = Localize.Unit.new(90, "degree")
+      iex> Localize.Unit.Math.apply_dimensionless(:sin, u)
+      {:ok, 1.0}
+
+      iex> {:ok, u} = Localize.Unit.new(100, "percent")
+      iex> Localize.Unit.Math.apply_dimensionless(:ln, u)
+      {:ok, 0.0}
+
   """
   @spec apply_dimensionless(atom(), Unit.t()) :: {:ok, number()} | {:error, Exception.t()}
 
-  def apply_dimensionless(name, %Unit{value: value, parsed: parsed} = _unit)
-      when name in @dimensionless_fns and not is_nil(value) do
-    with :ok <- check_dimensionless(name, parsed) do
-      {:ok, apply_math_fn(name, to_float(value))}
-    end
-  end
-
-  def apply_dimensionless(name, %Unit{value: value, parsed: parsed} = _unit)
-      when name in @log_fns and not is_nil(value) do
-    with :ok <- check_dimensionless(name, parsed) do
-      {:ok, apply_math_fn(name, to_float(value))}
+  def apply_dimensionless(name, %Unit{value: value} = unit)
+      when name in @all_dimensionless_fns and not is_nil(value) do
+    with {:ok, ratio} <- dimensionless_value(name, unit) do
+      apply_math_fn(name, ratio)
     end
   end
 
@@ -1123,34 +1136,49 @@ defmodule Localize.Unit.Math do
     {:error, unknown_function(name)}
   end
 
-  defp apply_math_fn(:sin, x), do: :math.sin(x)
-  defp apply_math_fn(:cos, x), do: :math.cos(x)
-  defp apply_math_fn(:tan, x), do: :math.tan(x)
-  defp apply_math_fn(:asin, x), do: :math.asin(x)
-  defp apply_math_fn(:acos, x), do: :math.acos(x)
-  defp apply_math_fn(:atan, x), do: :math.atan(x)
-  defp apply_math_fn(:exp, x), do: :math.exp(x)
-  defp apply_math_fn(:sinh, x), do: :math.sinh(x)
-  defp apply_math_fn(:cosh, x), do: :math.cosh(x)
-  defp apply_math_fn(:tanh, x), do: :math.tanh(x)
-  defp apply_math_fn(:asinh, x), do: :math.asinh(x)
-  defp apply_math_fn(:acosh, x), do: :math.acosh(x)
-  defp apply_math_fn(:atanh, x), do: :math.atanh(x)
-  defp apply_math_fn(:ln, x), do: :math.log(x)
-  defp apply_math_fn(:log, x), do: :math.log10(x)
-  defp apply_math_fn(:log2, x), do: :math.log2(x)
+  # `:math` raises `ArithmeticError` for a number outside a function's
+  # domain, `ln` of 0 or `asin` of 2, or for a result too large for a
+  # float, and has no other API, so it runs isolated and the error is
+  # returned.
+  defp apply_math_fn(name, x) do
+    case Localize.Utils.Helpers.run_isolated(fn -> math_fn(name, x) end) do
+      {:ok, result} -> {:ok, result}
+      {:error, _exception} -> {:error, outside_domain(name, x)}
+    end
+  end
 
-  defp check_dimensionless(name, parsed) do
+  defp math_fn(:sin, x), do: :math.sin(x)
+  defp math_fn(:cos, x), do: :math.cos(x)
+  defp math_fn(:tan, x), do: :math.tan(x)
+  defp math_fn(:asin, x), do: :math.asin(x)
+  defp math_fn(:acos, x), do: :math.acos(x)
+  defp math_fn(:atan, x), do: :math.atan(x)
+  defp math_fn(:exp, x), do: :math.exp(x)
+  defp math_fn(:sinh, x), do: :math.sinh(x)
+  defp math_fn(:cosh, x), do: :math.cosh(x)
+  defp math_fn(:tanh, x), do: :math.tanh(x)
+  defp math_fn(:asinh, x), do: :math.asinh(x)
+  defp math_fn(:acosh, x), do: :math.acosh(x)
+  defp math_fn(:atanh, x), do: :math.atanh(x)
+  defp math_fn(:ln, x), do: :math.log(x)
+  defp math_fn(:log, x), do: :math.log10(x)
+  defp math_fn(:log2, x), do: :math.log2(x)
+
+  # The number a function is applied to: an angle's measure in radians and
+  # a ratio's plain value, whatever unit either is written in. A unit whose
+  # base cannot be found is taken as the bare number it was given as.
+  defp dimensionless_value(name, %Unit{value: value, parsed: parsed} = unit) do
     case Localize.Unit.BaseUnit.base_unit(parsed) do
-      {:ok, base} when base in @dimensionless_bases ->
-        :ok
+      {:ok, "revolution"} -> converted_value(unit, "radian")
+      {:ok, "part"} -> converted_value(unit, "part")
+      {:ok, base} -> {:error, not_dimensionless(name, base)}
+      {:error, _} -> {:ok, to_float(value)}
+    end
+  end
 
-      {:ok, base} ->
-        {:error, not_dimensionless(name, base)}
-
-      {:error, _} ->
-        # If base unit resolution fails, allow it (might be a bare number)
-        :ok
+  defp converted_value(unit, target) do
+    with {:ok, %Unit{value: value}} <- Unit.convert(unit, target) do
+      {:ok, to_float(value)}
     end
   end
 
@@ -1285,6 +1313,14 @@ defmodule Localize.Unit.Math do
     Localize.InvalidValueError.exception(
       value: base,
       expected: "a dimensionless unit",
+      context: name
+    )
+  end
+
+  defp outside_domain(name, value) do
+    Localize.InvalidValueError.exception(
+      value: value,
+      expected: "a number in the domain of #{name}",
       context: name
     )
   end

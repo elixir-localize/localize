@@ -22,6 +22,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 * `Localize.validate_locale/1` and `Localize.LanguageTag.U.parse/1` read a `-u-` keyword with no type as the type `true`, as TR35 §3.6.4 does, so `en-u-kn` validates as `en-u-kn-true` does; it was an invalid locale. A key without a type `true`, `-u-ka`, stays invalid.
 
+* `Localize.Unit.Math.sin/1` and the other dimensionless functions, through `apply_dimensionless/2`, take an angle in radians and a ratio as the plain ratio whatever unit it is written in, so `sin` of `90 degree` is `1.0` and `ln` of `100 percent` is `0.0`. They applied the function to the value as written, so `sin` of `90 degree` was the sine of 90 radians, `0.894`.
+
+* The same functions return `{:error, Localize.InvalidValueError}` for a value outside the function's domain, `ln` of `0 percent` or `asin` of `200 percent`, and for a result too large for a float; they raised `ArithmeticError` out of `:math`.
+
 ## [1.6.0] — November 1st, 2026
 
 ### Added

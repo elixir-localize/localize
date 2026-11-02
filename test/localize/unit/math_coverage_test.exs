@@ -111,8 +111,60 @@ defmodule Localize.Unit.MathCoverageTest do
       assert_in_delta result, 0.479425538604203, 1.0e-12
     end
 
-    test "logarithm on a revolution" do
-      assert Math.apply_dimensionless(:ln, unit!(1, "revolution")) == {:ok, 0.0}
+    test "logarithm on a radian" do
+      assert Math.apply_dimensionless(:ln, unit!(1, "radian")) == {:ok, 0.0}
+    end
+
+    test "an angle is taken in radians, whatever unit it is written in" do
+      assert Math.apply_dimensionless(:sin, unit!(90, "degree")) == {:ok, 1.0}
+      assert Math.apply_dimensionless(:cos, unit!(0.5, "revolution")) == {:ok, -1.0}
+
+      {:ok, tangent} = Math.apply_dimensionless(:tan, unit!(45, "degree"))
+      assert_in_delta tangent, 1.0, 1.0e-12
+
+      {:ok, sine} = Math.apply_dimensionless(:sin, unit!(Decimal.new("90"), "degree"))
+      assert_in_delta sine, 1.0, 1.0e-12
+
+      {:ok, sine} = Math.apply_dimensionless(:sin, unit!(5400, "arc-minute"))
+      assert_in_delta sine, 1.0, 1.0e-12
+
+      {:ok, logarithm} = Math.apply_dimensionless(:ln, unit!(1, "revolution"))
+      assert_in_delta logarithm, :math.log(2 * :math.pi()), 1.0e-12
+    end
+
+    test "a ratio is taken as the plain ratio, whatever unit it is written in" do
+      assert Math.apply_dimensionless(:ln, unit!(100, "percent")) == {:ok, 0.0}
+      assert Math.apply_dimensionless(:exp, unit!(0, "percent")) == {:ok, 1.0}
+
+      {:ok, logarithm} = Math.apply_dimensionless(:log, unit!(1000, "permille"))
+      assert_in_delta logarithm, 0.0, 1.0e-12
+
+      {:ok, angle} = Math.apply_dimensionless(:asin, unit!(50, "percent"))
+      assert_in_delta angle, :math.pi() / 6, 1.0e-12
+
+      {:ok, logarithm} = Math.apply_dimensionless(:log2, unit!(4, "part-per-1e6"))
+      assert_in_delta logarithm, :math.log2(4.0e-6), 1.0e-12
+    end
+
+    test "a value outside the function's domain is an error, not a raise" do
+      assert {:error, %Localize.InvalidValueError{} = error} =
+               Math.apply_dimensionless(:ln, unit!(0, "percent"))
+
+      assert error.value == 0.0
+      assert error.expected == "a number in the domain of ln"
+      assert error.context == :ln
+
+      assert {:error, %Localize.InvalidValueError{context: :asin}} =
+               Math.asin(unit!(200, "percent"))
+
+      assert {:error, %Localize.InvalidValueError{context: :acosh}} =
+               Math.acosh(unit!(50, "percent"))
+
+      assert {:error, %Localize.InvalidValueError{context: :log}} = Math.log(unit!(-1, "part"))
+      assert {:error, %Localize.InvalidValueError{context: :atanh}} = Math.atanh(unit!(1, "part"))
+
+      assert {:error, %Localize.InvalidValueError{context: :exp}} =
+               Math.exp(unit!(1000, "radian"))
     end
 
     test "a dimensioned unit is rejected" do
