@@ -172,9 +172,9 @@ defmodule Localize.Collation.OptionsTest do
       assert {:error, %Localize.InvalidLocaleError{}} = Options.from_locale("en-u-kf-bogus")
     end
 
-    # TR35 reads a boolean key with no type, `-u-kn`, as `true`; the validator
-    # does not yet (see TODO.md), so the explicit form is asserted here.
-    test "a true boolean key" do
+    # TR35 §3.6.4 reads a boolean key with no type, `-u-kn`, as `true`.
+    test "a boolean key with no type is true" do
+      assert Options.from_locale("en-u-kn").numeric == true
       assert Options.from_locale("en-u-kn-true").numeric == true
       assert Options.from_locale("en-u-kn-false").numeric == false
     end

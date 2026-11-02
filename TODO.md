@@ -10,8 +10,6 @@ Outstanding work on Localize. The design detail behind these items lives under [
 
 * [ ] **Convert an angle or a ratio before a dimensionless function** — `Localize.Unit.Math.apply_dimensionless/2`, and the `sin/1` to `log2/1` wrappers, check that the unit's base is `revolution` or `part` and then apply the function to the raw value, so `sin` of `90 degree` is 0.893997 (sin of 90 radians) and `ln` of `100 percent` is 4.60517 (ln of 100). Convert the value to radians for an angle and to a plain ratio for a `part` unit first; the doctests use only `0 radian` and `1 radian`, so add `90 degree`, `0.5 revolution` and `100 percent`. Same in 1.0.0, so not a 1.4 regression. Found by Unity's 1.2.0 release review, 2026-10-28; its guide keeps `sin(90 degree)` as `1`.
 
-* [ ] **Read a `-u-` boolean key with no type as `true`** — TR35 §3.6.4 makes `en-u-kn` mean `en-u-kn-true`, but `Localize.validate_locale/1` rejects the bare key as an invalid locale (so do `-u-kb` and the rest), where `-u-kn-true` validates. Found moving `Localize.Collation.Options.from_locale/1` from its own string parser, which accepted the bare key, onto the validated tag, 2026-11-02.
-
 * [ ] **Key the locale display-name data by the parts of a locale** — `Localize.Locale.LocaleDisplay.locale_name_from/4` and `Localize.Locale.LocaleDisplay.T.find_longest_language_match/3` still build `"en-GB"`-shaped identifiers from a tag's parts to probe each locale's `languages` display names, whose CLDR keys are such identifiers. Keying that per-locale data by `{language, script, territory, variants}` means regenerating every locale ETF, a new hash manifest and a CDN publish, so it is a data-version release of its own. The likely-subtag, language-alias and collation-tailoring tables were keyed by their parts in 1.6.1; found while fixing #70, 2026-11-02.
 
 ## In progress
@@ -67,6 +65,8 @@ Outstanding work on Localize. The design detail behind these items lives under [
 * [ ] **`localize_emoji` sibling library** — plan item 11, a separate package on its own schedule. A Phoenix LiveView picker (`localize_emoji_live`) is out of scope for its 0.1.0.
 
 ## Done
+
+* [x] **Read a `-u-` boolean key with no type as `true`** — `Localize.validate_locale/1` and `Localize.LanguageTag.U.parse/1` read a keyword with no type as the type `true`, as TR35 §3.6.4 does, so `en-u-kn` validates as `en-u-kn-true` does and `-u-ka` stays invalid. Found moving `Localize.Collation.Options.from_locale/1` onto the validated tag. 2026-11-02, v1.6.1.
 
 * [x] **The Indian calendar's era is "Zaka" in `und` and `en`** — not a defect: the data is "Śaka" (bytes `C5 9A`), and a shell whose BEAM stdout is latin1 printed U+015A with its high byte dropped. 2026-11-01.
 

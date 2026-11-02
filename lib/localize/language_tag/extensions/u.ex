@@ -136,11 +136,21 @@ defmodule Localize.LanguageTag.U do
         {:cont, {:ok, acc}}
 
       {key, value}, {:ok, acc} ->
-        case Localize.Validity.U.decode(key, value) do
+        case Localize.Validity.U.decode(key, keyword_type(value)) do
           {:ok, {key, value}} -> {:cont, {:ok, Map.put(acc, key, value)}}
           other -> {:halt, other}
         end
     end)
+  end
+
+  # A keyword with no type has the type "true" (TR35 §3.6.4): `-u-kn` is
+  # `-u-kn-true`, and `-u-ka` is as invalid as `-u-ka-true`.
+  defp keyword_type(nil) do
+    "true"
+  end
+
+  defp keyword_type(type) do
+    type
   end
 
   @doc """

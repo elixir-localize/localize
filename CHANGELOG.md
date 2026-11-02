@@ -20,6 +20,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 * `Localize.Currency.validate_currency/1` matches a binary code against the known codes read first, and `territory_currencies/1` and `current_currency_for_territory/1` validate a binary territory, rather than match either against the atoms the VM has seen, so `"TA"` and `"ac"` answer as `:TA` and `:AC` do; on a fresh VM `"TA"` was an unknown territory and had no currency. `Localize.Territory.Subdivision.display_name/2` reads the names before matching the code, for the same reason.
 
+* `Localize.validate_locale/1` and `Localize.LanguageTag.U.parse/1` read a `-u-` keyword with no type as the type `true`, as TR35 §3.6.4 does, so `en-u-kn` validates as `en-u-kn-true` does; it was an invalid locale. A key without a type `true`, `-u-ka`, stays invalid.
+
 ## [1.6.0] — November 1st, 2026
 
 ### Added

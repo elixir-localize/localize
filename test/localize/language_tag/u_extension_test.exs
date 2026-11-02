@@ -10,6 +10,27 @@ defmodule Localize.LanguageTag.UExtensionTest do
       assert {:ok, %U{ca: :gregorian, hc: :h23}} = U.parse("ca-gregory-hc-h23")
     end
 
+    # TR35 §3.6.4: a keyword with no type has the type `true`, so `kn` is
+    # `kn-true`; `ka` has no type `true`, so the bare key is as invalid as
+    # the explicit one.
+    test "reads a keyword with no type as the type true" do
+      assert {:ok, %U{kn: :yes}} = U.parse("kn")
+      assert U.parse("kn") == U.parse("kn-true")
+      assert {:ok, %U{kn: :yes, ks: :secondary}} = U.parse("kn-ks-level2")
+      assert {:ok, %U{kn: :yes, ks: :secondary}} = U.parse("ks-level2-kn")
+      assert {:ok, %U{kb: :yes, kc: :yes, kk: :yes}} = U.parse("kb-kc-kk")
+      assert {:error, %Localize.InvalidSubtagError{}} = U.parse("ka")
+      assert {:error, %Localize.InvalidSubtagError{}} = U.parse("ka-true")
+    end
+
+    test "a locale validates with a keyword that has no type" do
+      assert {:ok, tag} = Localize.validate_locale("en-u-kn")
+      assert tag.locale.kn == :yes
+      assert {:ok, tag} = Localize.validate_locale("en-u-kn-ks-level2-t-de")
+      assert {tag.locale.kn, tag.locale.ks} == {:yes, :secondary}
+      assert {:error, %Localize.InvalidLocaleError{}} = Localize.validate_locale("en-u-ka")
+    end
+
     test "accepts a leading u- singleton and a leading dash" do
       assert {:ok, %U{nu: :thai}} = U.parse("u-nu-thai")
       assert {:ok, %U{co: :phonebook}} = U.parse("-u-co-phonebk")
