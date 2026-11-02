@@ -218,18 +218,44 @@ defmodule Localize.Data.Supplemental do
   @doc """
   Generates likely subtags data from `likelySubtags.json`.
 
-  Returns a map of locale strings to maps with `:language` (string),
-  `:script` (atom), and `:territory` (atom).
+  Returns a map keyed by the `{language, script, region}` tuple of CLDR's
+  `language[-Script][-REGION]` keys — strings, `nil` where the key has no
+  such part, so `"und-Arab-AF"` is `{"und", "Arab", "AF"}` and `"aa"` is
+  `{"aa", nil, nil}` — to maps with `:language` (string), `:script` (atom)
+  and `:territory` (atom). A lookup then gives the parts it holds and
+  builds no identifier from them.
 
   """
   def generate_likely_subtags do
     Localize.Data.read_json("likelySubtags.json")
     |> get_in(["supplemental", "likelySubtags"])
-    |> Enum.map(fn {k, v} ->
-      tag = parse_locale_to_subtag_map(v)
-      {k, tag}
+    |> Enum.map(fn {key, value} ->
+      {likely_subtags_key(key), parse_locale_to_subtag_map(value)}
     end)
     |> Map.new()
+  end
+
+  defp likely_subtags_key(key) do
+    case String.split(key, "-") do
+      [language] -> {language, nil, nil}
+      [language, second] -> likely_subtags_key(language, second)
+      [language, script, region] -> {language, script, region}
+    end
+  end
+
+  # A two-part key's second part is a script or a region.
+  defp likely_subtags_key(language, second) do
+    if script_subtag?(second) do
+      {language, second, nil}
+    else
+      {language, nil, second}
+    end
+  end
+
+  # A script subtag is four letters, the first upper case; a region is two
+  # upper-case letters or three digits.
+  defp script_subtag?(subtag) do
+    String.length(subtag) == 4 and String.match?(subtag, ~r/^[A-Z]/)
   end
 
   @doc """
@@ -598,15 +624,119 @@ defmodule Localize.Data.Supplemental do
 
   defp simplify_replacements({k, v}), do: {k, v}
 
+  # A language alias is keyed by the parts of CLDR's `type` identifier, the
+  # `{language, extlangs, script, territory, variants}` tuple — strings, with
+  # `nil` or `[]` where the identifier has no such part — so a lookup gives
+  # the parts it holds and builds no identifier from them: `sgn_US` is
+  # `{"sgn", [], nil, "US", []}` and `und_hepburn_heploc` is
+  # `{"und", [], nil, nil, ["hepburn", "heploc"]}`.
+  #
+  # The grandfathered tags of RFC 5646 are also keyed whole, as strings under
+  # `"grandfathered"`, because the grammar matches them whole. A regular one,
+  # `zh-hakka`, is keyed by its parts as well, since `zh` with the variant
+  # `hakka` reaches it once other subtags are present; an irregular one —
+  # `i-ami`, `en-GB-oed`, `sgn-BE-FR` — has no well-formed parts and is keyed
+  # whole only.
   defp parse_language_aliases(map) do
-    language_aliases =
-      Enum.map(Map.get(map, "language"), fn {k, v} ->
-        [language | _rest] = String.split(v, " ")
-        {k, parse_language_tag_to_alias(language)}
+    aliases =
+      map
+      |> Map.get("language")
+      |> Enum.map(fn {key, value} ->
+        [language | _rest] = String.split(value, " ")
+        {key, parse_language_tag_to_alias(language)}
       end)
-      |> Map.new()
 
-    Map.put(map, "language", language_aliases)
+    grandfathered = Enum.filter(aliases, fn {key, _alias} -> grandfathered?(key) end)
+
+    map
+    |> Map.put("language", Map.new(aliases_by_parts(aliases)))
+    |> Map.put("grandfathered", Map.new(grandfathered))
+  end
+
+  defp grandfathered?(key) do
+    key in Localize.LanguageTag.grandfathered_tags()
+  end
+
+  defp aliases_by_parts(aliases) do
+    Enum.flat_map(aliases, fn {key, alias} ->
+      case language_alias_key(key) do
+        {:ok, parts} -> [{parts, alias}]
+        :error -> irregular_alias(key)
+      end
+    end)
+  end
+
+  # Only a grandfathered tag may have no parts to key it by; any other alias
+  # without them is a data error to see at build time.
+  defp irregular_alias(key) do
+    if grandfathered?(key) do
+      []
+    else
+      raise "the language alias #{inspect(key)} has no well-formed parts to key it by"
+    end
+  end
+
+  defp language_alias_key(key) do
+    case String.split(key, "-") do
+      [language | parts] when byte_size(language) in 2..3 ->
+        place_subtags(parts, {language, [], nil, nil, []})
+
+      _irregular ->
+        :error
+    end
+  end
+
+  defp place_subtags([], parts) do
+    {:ok, parts}
+  end
+
+  defp place_subtags([part | rest], parts) do
+    case place_subtag(part, parts) do
+      {:ok, placed} -> place_subtags(rest, placed)
+      :error -> :error
+    end
+  end
+
+  # Each part after the language is placed by its shape, in BCP 47's order.
+  defp place_subtag(part, parts) do
+    place(subtag_shape(part), part, parts)
+  end
+
+  # What a part is, from its spelling: three lower-case letters are an
+  # extended language, four letters a script, two upper-case letters or
+  # three digits a region, and five to eight letters and digits, or a digit
+  # and three more, a variant.
+  defp subtag_shape(part) do
+    cond do
+      Regex.match?(~r/^[a-z]{3}$/, part) -> :extlang
+      Regex.match?(~r/^[A-Z][a-z]{3}$/, part) -> :script
+      Regex.match?(~r/^([A-Z]{2}|\d{3})$/, part) -> :territory
+      Regex.match?(~r/^([a-z0-9]{5,8}|\d[a-z0-9]{3})$/, part) -> :variant
+      true -> :unknown
+    end
+  end
+
+  # Where a part may go: an extended language only after the language, a
+  # script before the one region, the region before any variant. A part out
+  # of that order, or a second region, is no well-formed identifier.
+  defp place(:extlang, part, {language, extlangs, nil, nil, []}) do
+    {:ok, {language, extlangs ++ [part], nil, nil, []}}
+  end
+
+  defp place(:script, part, {language, extlangs, nil, nil, []}) do
+    {:ok, {language, extlangs, part, nil, []}}
+  end
+
+  defp place(:territory, part, {language, extlangs, script, nil, []}) do
+    {:ok, {language, extlangs, script, part, []}}
+  end
+
+  defp place(:variant, part, {language, extlangs, script, territory, variants}) do
+    {:ok, {language, extlangs, script, territory, variants ++ [part]}}
+  end
+
+  defp place(_shape, _part, _parts) do
+    :error
   end
 
   defp parse_language_tag_to_alias(locale_string) do
@@ -632,7 +762,7 @@ defmodule Localize.Data.Supplemental do
         }
 
       [language, second] ->
-        if String.length(second) == 4 and String.match?(second, ~r/^[A-Z]/) do
+        if script_subtag?(second) do
           %{language: language, script: String.to_atom(second), territory: nil}
         else
           %{language: language, script: nil, territory: String.to_atom(second)}

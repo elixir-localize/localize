@@ -34,7 +34,9 @@ defmodule Localize.SupplementalData do
   # ── Public API ──────────────────────────────────────────────────
 
   @doc false
-  @spec likely_subtags() :: %{String.t() => map()}
+  @spec likely_subtags() :: %{
+          {String.t(), String.t() | nil, String.t() | nil} => map()
+        }
   def likely_subtags do
     load_supplemental("likely_subtags.etf")
   end

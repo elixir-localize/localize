@@ -721,10 +721,11 @@ defmodule Localize.Collation do
       {:ok, tag} ->
         options_from_language_tag(tag, extra_options)
 
-      _ ->
-        # Fallback to built-in BCP47 parser
-        with %Options{} <- Options.new(extra_options) do
-          {:ok, Options.from_locale(locale) |> struct(extra_options)}
+      _invalid ->
+        # A locale that does not validate collates as root, with the explicit
+        # options only: nothing is read from text that did not validate.
+        with %Options{} = options <- Options.new(extra_options) do
+          {:ok, options}
         end
     end
   end
@@ -733,26 +734,20 @@ defmodule Localize.Collation do
     alias Localize.Collation.Tailoring
     alias Localize.Collation.Tailoring.LocaleDefaults
 
-    language = tag_language(tag)
-    locale_defaults = LocaleDefaults.options_for(language)
-
-    # Extract U extension options from the tag
-    u = tag.locale
-    u_options = extract_u_options(u)
+    locale_defaults = LocaleDefaults.options_for(tag)
+    u_options = Options.u_options(tag.locale)
 
     # Determine collation type
     type =
       Keyword.get(u_options, :type) ||
         Keyword.get(extra_options, :type) ||
-        LocaleDefaults.default_type(language)
+        LocaleDefaults.default_type(tag)
 
-    # Look up the tailoring from the most specific identifier —
-    # CLDR keys some tailorings by language-territory (fr-CA carries
-    # `[backwards 2]` while plain fr has no tailoring at all); the
-    # parent chain inside get_tailoring falls back to the bare
-    # language when there is no territory-specific entry.
+    # The tailoring is the tag's CLDR locale's — `fr-CA` carries
+    # `[backwards 2]` where plain `fr` has no tailoring — or the first
+    # its parents have.
     {tailoring_overlay, tailoring_option_overrides} =
-      case Tailoring.get_tailoring(tag_tailoring_locale(tag), type) do
+      case Tailoring.get_tailoring(tag, type) do
         {overlay, overrides} -> {overlay, overrides}
         nil -> {nil, []}
       end
@@ -798,53 +793,6 @@ defmodule Localize.Collation do
   # order) for Han, matching the reference behaviour.
   defp han_ordering_for(:unihan), do: :radical_stroke
   defp han_ordering_for(_type), do: :implicit
-
-  defp tag_language(%Localize.LanguageTag{} = tag) do
-    cond do
-      is_atom(tag.language) and not is_nil(tag.language) ->
-        Atom.to_string(tag.language)
-
-      is_binary(tag.language) ->
-        tag.language
-
-      true ->
-        "und"
-    end
-  end
-
-  defp tag_tailoring_locale(%Localize.LanguageTag{} = tag) do
-    language = tag_language(tag)
-
-    case tag.territory do
-      nil -> language
-      territory -> language <> "-" <> to_string(territory)
-    end
-  end
-
-  defp extract_u_options(nil), do: []
-
-  defp extract_u_options(%Localize.LanguageTag.U{} = u) do
-    []
-    |> maybe_put(:type, u.co)
-    |> maybe_put(:strength, u.ks)
-    |> maybe_put(:alternate, u.ka)
-    |> maybe_put(:backwards, u_bool_value(u.kb))
-    |> maybe_put(:normalization, u_bool_value(u.kk))
-    |> maybe_put(:case_level, u_bool_value(u.kc))
-    |> maybe_put(:case_first, u.kf)
-    |> maybe_put(:numeric, u_bool_value(u.kn))
-    |> maybe_put(:reorder, u.kr)
-    |> maybe_put(:max_variable, u.kv)
-  end
-
-  defp extract_u_options(_), do: []
-
-  defp u_bool_value(:yes), do: true
-  defp u_bool_value(:no), do: false
-  defp u_bool_value(_), do: nil
-
-  defp maybe_put(options, _key, nil), do: options
-  defp maybe_put(options, key, value), do: Keyword.put(options, key, value)
 
   defp use_nif?(%Options{backend: :nif} = options) do
     Nif.available?() and Options.nif_compatible?(options)

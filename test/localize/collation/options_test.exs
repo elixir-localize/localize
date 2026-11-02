@@ -151,12 +151,14 @@ defmodule Localize.Collation.OptionsTest do
       assert Options.from_locale("en-u-ks-level4").strength == :quaternary
     end
 
-    test "unknown strength value defaults to tertiary" do
-      assert Options.from_locale("en-u-ks-bogus").strength == :tertiary
+    # The options are read from the validated tag, so a keyword value CLDR
+    # does not know makes the locale invalid rather than taking a default.
+    test "an unknown strength value does not validate" do
+      assert {:error, %Localize.InvalidLocaleError{}} = Options.from_locale("en-u-ks-bogus")
     end
 
-    test "unknown alternate value defaults to non_ignorable" do
-      assert Options.from_locale("en-u-ka-bogus").alternate == :non_ignorable
+    test "an unknown alternate value does not validate" do
+      assert {:error, %Localize.InvalidLocaleError{}} = Options.from_locale("en-u-ka-bogus")
     end
 
     test "parses normalization (kk) and case_level (kc)" do
@@ -165,23 +167,28 @@ defmodule Localize.Collation.OptionsTest do
       assert Options.from_locale("en-u-kc-true").case_level == true
     end
 
-    test "parses case_first false and unknown values" do
+    test "parses case_first false, and an unknown value does not validate" do
       assert Options.from_locale("en-u-kf-false").case_first == false
-      assert Options.from_locale("en-u-kf-bogus").case_first == false
+      assert {:error, %Localize.InvalidLocaleError{}} = Options.from_locale("en-u-kf-bogus")
     end
 
-    test "a bare boolean key without a value means true" do
-      assert Options.from_locale("en-u-kn").numeric == true
+    # TR35 reads a boolean key with no type, `-u-kn`, as `true`; the validator
+    # does not yet (see TODO.md), so the explicit form is asserted here.
+    test "a true boolean key" do
+      assert Options.from_locale("en-u-kn-true").numeric == true
+      assert Options.from_locale("en-u-kn-false").numeric == false
     end
 
     test "parses reorder codes from the kr key" do
-      assert Options.from_locale("en-u-kr-latn-cyrl").reorder == [:latn, :cyrl]
+      assert Options.from_locale("en-u-kr-latn-cyrl").reorder == [:Latn, :Cyrl]
     end
 
-    test "parses all max_variable values" do
+    test "parses all max_variable values, and an unknown one does not validate" do
       assert Options.from_locale("en-u-kv-punct").max_variable == :punct
       assert Options.from_locale("en-u-kv-symbol").max_variable == :symbol
-      assert Options.from_locale("en-u-kv-bogus").max_variable == :punct
+      assert Options.from_locale("en-u-kv-space").max_variable == :space
+      assert Options.from_locale("en-u-kv-currency").max_variable == :currency
+      assert {:error, %Localize.InvalidLocaleError{}} = Options.from_locale("en-u-kv-bogus")
     end
 
     test "parses the remaining collation types" do
@@ -196,18 +203,16 @@ defmodule Localize.Collation.OptionsTest do
       assert Options.from_locale("en-u-co-eor").type == :eor
     end
 
-    test "unknown collation types default to :standard without interning atoms" do
-      assert Options.from_locale("en-u-co-fantasy").type == :standard
+    test "an unknown collation type does not validate, and interns no atom" do
+      assert {:error, %Localize.InvalidLocaleError{}} = Options.from_locale("en-u-co-fantasy")
     end
 
-    test "unknown -u- keys are ignored" do
-      options = Options.from_locale("en-u-zz-what")
-      assert options == Options.new()
+    test "an unknown -u- key does not validate" do
+      assert {:error, %Localize.InvalidLocaleError{}} = Options.from_locale("en-u-zz-what")
     end
 
-    test "u extension parsing stops at a following singleton" do
-      # The raw parser must not consume subtags beyond the -u- extension.
-      options = Options.from_locale("en-u-ks-level2-t")
+    test "a following -t- extension does not disturb the -u- keywords" do
+      options = Options.from_locale("en-u-ks-level2-t-de")
       assert options.strength == :secondary
     end
   end

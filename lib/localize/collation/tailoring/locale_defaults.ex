@@ -1,8 +1,8 @@
 defmodule Localize.Collation.Tailoring.LocaleDefaults do
   # Preset collation option defaults for common locales.
   #
-  # Maps BCP47 language tags to their standard collation option overrides
-  # as defined by CLDR. These defaults are applied before any explicit
+  # Maps languages to their standard collation option overrides as
+  # defined by CLDR. These defaults are applied before any explicit
   # BCP47 `-u-` extension keys.
   #
   @moduledoc false
@@ -26,11 +26,13 @@ defmodule Localize.Collation.Tailoring.LocaleDefaults do
 
   ### Arguments
 
-  * `locale` - a BCP47 locale string (e.g., `"da"`, `"de-AT"`, `"sv-SE"`).
+  * `locale` - a `t:Localize.LanguageTag.t/0`, or a locale name as an
+    atom or a binary, which is validated first.
 
   ### Returns
 
-  A keyword list of option overrides, or an empty list if no defaults exist.
+  A keyword list of option overrides, or an empty list if no defaults exist
+  for the locale's language or any of its parents'.
 
   ### Examples
 
@@ -41,39 +43,28 @@ defmodule Localize.Collation.Tailoring.LocaleDefaults do
       []
 
   """
-  @spec options_for(String.t()) :: keyword()
-  def options_for(locale) when is_binary(locale) do
-    language = extract_language(locale)
-
-    case Map.get(@locale_defaults, language) do
-      nil -> options_from_parent(language)
+  @spec options_for(Localize.LanguageTag.t() | atom() | String.t()) :: keyword()
+  def options_for(%Localize.LanguageTag{} = language_tag) do
+    case Map.get(@locale_defaults, language_of(language_tag)) do
+      nil -> options_from_parent(language_tag)
       defaults -> defaults
     end
   end
 
-  defp options_from_parent(language) do
-    case Localize.validate_locale(language) do
-      {:ok, tag} ->
-        options_from_parent_tag(tag, language)
-
-      {:error, _} ->
-        []
+  def options_for(locale) do
+    case Localize.validate_locale(locale) do
+      {:ok, language_tag} -> options_for(language_tag)
+      {:error, _reason} -> []
     end
   end
 
-  defp options_from_parent_tag(tag, language) do
-    case Localize.Locale.parent(tag) do
-      {:ok, parent_tag} ->
-        parent_language = parent_tag.language |> to_string()
-
-        if parent_language != language and parent_language != "und" do
-          options_for(parent_language)
-        else
-          []
-        end
-
-      {:error, _} ->
-        []
+  # A language without defaults of its own takes its parents', following
+  # CLDR's inheritance through `Localize.Locale.parent/1`; the root has none.
+  defp options_from_parent(language_tag) do
+    case Localize.Locale.parent(language_tag) do
+      {:ok, %Localize.LanguageTag{language: :und}} -> []
+      {:ok, parent} -> options_for(parent)
+      {:error, _no_parent} -> []
     end
   end
 
@@ -82,7 +73,8 @@ defmodule Localize.Collation.Tailoring.LocaleDefaults do
 
   ### Arguments
 
-  * `locale` - a BCP47 locale string.
+  * `locale` - a `t:Localize.LanguageTag.t/0`, or a locale name as an
+    atom or a binary, which is validated first.
 
   ### Returns
 
@@ -97,37 +89,25 @@ defmodule Localize.Collation.Tailoring.LocaleDefaults do
       :standard
 
   """
-  @spec default_type(String.t()) :: atom()
-  def default_type(locale) when is_binary(locale) do
-    language = extract_language(locale)
-    Map.get(@locale_type_defaults, language, :standard)
+  @spec default_type(Localize.LanguageTag.t() | atom() | String.t()) :: atom()
+  def default_type(%Localize.LanguageTag{} = language_tag) do
+    Map.get(@locale_type_defaults, language_of(language_tag), :standard)
   end
 
-  @doc """
-  Extract the language subtag from a BCP47 locale string.
+  def default_type(locale) do
+    case Localize.validate_locale(locale) do
+      {:ok, language_tag} -> default_type(language_tag)
+      {:error, _reason} -> :standard
+    end
+  end
 
-  ### Arguments
+  # The defaults are keyed by the language subtag's text, which a validated
+  # tag carries as an atom.
+  defp language_of(%Localize.LanguageTag{language: language}) when is_atom(language) do
+    Atom.to_string(language)
+  end
 
-  * `locale` - a BCP47 locale string.
-
-  ### Returns
-
-  The lowercase language subtag string.
-
-  ### Examples
-
-      iex> Localize.Collation.Tailoring.LocaleDefaults.extract_language("de-AT-u-co-phonebk")
-      "de"
-
-      iex> Localize.Collation.Tailoring.LocaleDefaults.extract_language("sv")
-      "sv"
-
-  """
-  @spec extract_language(String.t()) :: String.t()
-  def extract_language(locale) do
-    locale
-    |> String.split("-", parts: 2)
-    |> hd()
-    |> String.downcase()
+  defp language_of(%Localize.LanguageTag{language: language}) when is_binary(language) do
+    language
   end
 end

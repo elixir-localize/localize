@@ -263,199 +263,89 @@ defmodule Localize.Collation.Options do
           t() | {:error, Exception.t()}
   def from_locale(locale)
       when is_binary(locale) or is_atom(locale) or is_struct(locale, Localize.LanguageTag) do
-    locale
-    |> canonical_locale_string()
-    |> from_canonical_locale()
+    # Validation resolves legacy aliases (`"iw"` → `"he"`), POSIX separators
+    # and the `-u-` keywords, so a string, an atom and an equivalent tag all
+    # yield the same options, read from the tag and never from its text.
+    with {:ok, language_tag} <- Localize.validate_locale(locale) do
+      from_tag(language_tag)
+    end
   end
 
   def from_locale(locale), do: {:error, Localize.InvalidLocaleError.exception(locale_id: locale)}
 
-  # Normalize any locale representation to a canonical BCP47 string via
-  # `Localize.validate_locale/1` before parsing. This resolves legacy
-  # aliases (`"iw"` → `"he"`, `"pt_BR"` → `"pt"`) and POSIX separators, so a
-  # string, an atom, and an equivalent tag all yield the same collation
-  # options. The raw input is used only as a last resort when validation
-  # fails.
-  #
-  # A tag that carries a `:cldr_locale_id` costs nothing to validate, and one
-  # from `Localize.LanguageTag.parse/1` is resolved and its subtags turned
-  # into atoms, which the rendering needs.
-  defp canonical_locale_string(%Localize.LanguageTag{} = tag) do
-    case Localize.validate_locale(tag) do
-      {:ok, validated} -> Localize.LanguageTag.to_string(validated)
-      {:error, _} -> Localize.LanguageTag.to_string(tag)
-    end
-  end
+  # The tailoring is the tag's CLDR locale's, found by its `cldr_locale_id`
+  # and then its parents'; the defaults are its language's; the keywords
+  # are its decoded `-u-` extension. Nothing is read from the locale's text.
+  defp from_tag(%Localize.LanguageTag{} = language_tag) do
+    u_options = u_options(language_tag.locale)
 
-  defp canonical_locale_string(locale) when is_binary(locale) or is_atom(locale) do
-    case Localize.validate_locale(locale) do
-      {:ok, tag} -> Localize.LanguageTag.to_string(tag)
-      {:error, _} -> to_string(locale)
-    end
-  end
+    type =
+      Keyword.get(u_options, :type) ||
+        Localize.Collation.Tailoring.LocaleDefaults.default_type(language_tag)
 
-  defp from_canonical_locale(locale) when is_binary(locale) do
-    alias Localize.Collation.Tailoring
-    alias Localize.Collation.Tailoring.LocaleDefaults
-
-    language = LocaleDefaults.extract_language(locale)
-    locale_defaults = LocaleDefaults.options_for(locale)
-    u_pairs = extract_u_extension(locale)
-    bcp47_opts = if u_pairs, do: u_pairs_to_opts(u_pairs), else: []
-
-    type = Keyword.get(bcp47_opts, :type, LocaleDefaults.default_type(locale))
-
-    # Look up the tailoring from the most specific identifier —
-    # CLDR keys some tailorings by language-territory (fr-CA carries
-    # `[backwards 2]` while plain fr has no tailoring at all); the
-    # parent chain inside get_tailoring falls back to the bare
-    # language when there is no territory-specific entry.
     {tailoring_overlay, tailoring_option_overrides} =
-      case Tailoring.get_tailoring(tailoring_locale(locale, language), type) do
+      case Localize.Collation.Tailoring.get_tailoring(language_tag, type) do
         {overlay, overrides} -> {overlay, overrides}
         nil -> {nil, []}
       end
 
     new()
     |> struct(tailoring_option_overrides)
-    |> struct(locale_defaults)
-    |> struct(bcp47_opts)
+    |> struct(Localize.Collation.Tailoring.LocaleDefaults.options_for(language_tag))
+    |> struct(u_options)
     |> Map.put(:tailoring, tailoring_overlay)
   end
 
-  # Reduce a canonical locale string to its language-territory pair
-  # ("fr-CA-u-kb-true" -> "fr-CA"), or the bare language when no
-  # territory subtag is present.
-  defp tailoring_locale(canonical_locale, language) do
-    base =
-      canonical_locale
-      |> String.split(["-u-", "-t-", "-x-"], parts: 2)
-      |> hd()
-
-    territory =
-      base
-      |> String.split("-")
-      |> Enum.find(&Regex.match?(~r/^([A-Z]{2}|\d{3})$/, &1))
-
-    if territory, do: language <> "-" <> territory, else: language
+  @doc false
+  # The collation options a tag's `-u-` extension carries, as validation
+  # decoded them: `ks-level2` is `:secondary`, `co-phonebk` `:phonebook`,
+  # `kr-latn-digit` `[:Latn, :digit]`, and a boolean keyword `:yes` or `:no`.
+  # `Localize.Collation` reads a tag's options with this as well.
+  def u_options(%Localize.LanguageTag.U{} = u) do
+    []
+    |> maybe_put(:type, u.co)
+    |> maybe_put(:strength, u.ks)
+    |> maybe_put(:alternate, u.ka)
+    |> maybe_put(:backwards, u_boolean(u.kb))
+    |> maybe_put(:normalization, u_boolean(u.kk))
+    |> maybe_put(:case_level, u_boolean(u.kc))
+    |> maybe_put(:case_first, u_case_first(u.kf))
+    |> maybe_put(:numeric, u_boolean(u.kn))
+    |> maybe_put(:reorder, u.kr)
+    |> maybe_put(:max_variable, u.kv)
   end
 
-  # BCP 47 -u- extension dispatch: one branch per collation keyword
-  # (co/ks/ka/kb/kk/kc/kf/kn/kr/kv).
-  # credo:disable-for-next-line Credo.Check.Refactor.CyclomaticComplexity
-  defp u_pairs_to_opts(pairs) do
-    Enum.reduce(pairs, [], fn {key, value}, acc ->
-      case key do
-        "co" -> [{:type, parse_type(value)} | acc]
-        "ks" -> [{:strength, parse_strength(value)} | acc]
-        "ka" -> [{:alternate, parse_alternate(value)} | acc]
-        "kb" -> [{:backwards, parse_bool(value)} | acc]
-        "kk" -> [{:normalization, parse_bool(value)} | acc]
-        "kc" -> [{:case_level, parse_bool(value)} | acc]
-        "kf" -> [{:case_first, parse_case_first(value)} | acc]
-        "kn" -> [{:numeric, parse_bool(value)} | acc]
-        "kr" -> [{:reorder, parse_reorder_codes(value)} | acc]
-        "kv" -> [{:max_variable, parse_max_variable(value)} | acc]
-        _ -> acc
-      end
-    end)
+  def u_options(_no_extension) do
+    []
   end
 
-  defp extract_u_extension(locale) do
-    parts = String.split(locale, "-")
-
-    case Enum.find_index(parts, &(&1 == "u")) do
-      nil ->
-        nil
-
-      idx ->
-        parts
-        |> Enum.drop(idx + 1)
-        |> collect_pairs([])
-    end
+  defp u_boolean(:yes) do
+    true
   end
 
-  defp collect_pairs([], acc), do: Enum.reverse(acc)
-
-  defp collect_pairs([<<c::utf8>> | _rest], acc)
-       when c in ?a..?z and c != ?u do
-    Enum.reverse(acc)
+  defp u_boolean(:no) do
+    false
   end
 
-  defp collect_pairs([key, value | rest], acc) when byte_size(key) == 2 do
-    collect_pairs(rest, [{key, value} | acc])
+  defp u_boolean(_unset) do
+    nil
   end
 
-  defp collect_pairs([key | rest], acc) when byte_size(key) == 2 do
-    collect_pairs(rest, [{key, "true"} | acc])
+  # `kf-false` decodes to `:no`, which `:case_first` writes as `false`.
+  defp u_case_first(:no) do
+    false
   end
 
-  defp collect_pairs([value | rest], acc) do
-    case acc do
-      [{key, prev_val} | acc_rest] ->
-        collect_pairs(rest, [{key, prev_val <> "-" <> value} | acc_rest])
-
-      _ ->
-        collect_pairs(rest, acc)
-    end
-  end
-
-  defp parse_strength("level1"), do: :primary
-  defp parse_strength("level2"), do: :secondary
-  defp parse_strength("level3"), do: :tertiary
-  defp parse_strength("level4"), do: :quaternary
-  defp parse_strength("identic"), do: :identical
-  defp parse_strength(_), do: :tertiary
-
-  defp parse_alternate("noignore"), do: :non_ignorable
-  defp parse_alternate("shifted"), do: :shifted
-  defp parse_alternate(_), do: :non_ignorable
-
-  defp parse_bool("true"), do: true
-  defp parse_bool("false"), do: false
-  defp parse_bool(_), do: false
-
-  defp parse_case_first("upper"), do: :upper
-  defp parse_case_first("lower"), do: :lower
-  defp parse_case_first("false"), do: false
-  defp parse_case_first(_), do: false
-
-  defp parse_max_variable("space"), do: :space
-  defp parse_max_variable("punct"), do: :punct
-  defp parse_max_variable("symbol"), do: :symbol
-  defp parse_max_variable("currency"), do: :currency
-  defp parse_max_variable(_), do: :punct
-
-  defp parse_type("standard"), do: :standard
-  defp parse_type("search"), do: :search
-  defp parse_type("phonebk"), do: :phonebook
-  defp parse_type("pinyin"), do: :pinyin
-  defp parse_type("stroke"), do: :stroke
-  defp parse_type("unihan"), do: :unihan
-  defp parse_type("zhuyin"), do: :zhuyin
-  defp parse_type("searchjl"), do: :searchjl
-  defp parse_type("eor"), do: :eor
-  defp parse_type("trad"), do: :traditional
-  defp parse_type("tradnl"), do: :traditional
-
-  # Unknown collation types from a `-u-co-` extension default to
-  # `:standard`. Previously this fallthrough called `String.to_atom/1`
-  # on the raw value, growing the atom table for every distinct
-  # attacker-supplied collation name. Tailoring lookup with an
-  # unknown type already produces nil → no tailoring overlay, which
-  # is the same end state as `:standard` for an unrecognised type.
-  defp parse_type(_other), do: :standard
-
-  # Parse `-u-kr-` reorder code list. Codes are script names (e.g.
-  # `latn`, `cyrl`) or category names (e.g. `digit`, `currency`).
-  # Use `existing_atom/1` so attacker-supplied codes can't grow the
-  # atom table; unknown codes are dropped silently (the consumer
-  # uses the list as a Map.get key, where nil entries miss).
-  defp parse_reorder_codes(value) when is_binary(value) do
+  defp u_case_first(value) do
     value
-    |> String.split("-")
-    |> Enum.map(&Localize.Utils.Helpers.existing_atom/1)
-    |> Enum.reject(&is_nil/1)
+  end
+
+  defp maybe_put(options, _key, nil) do
+    options
+  end
+
+  defp maybe_put(options, key, value) do
+    Keyword.put(options, key, value)
   end
 
   @doc """

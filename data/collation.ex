@@ -4,7 +4,8 @@ defmodule Localize.Data.Collation do
 
   Parses all collation XML files from the CLDR repository, extracts
   tailoring rule strings, resolves `[import]` directives, and returns
-  a map keyed by `{language, type}` tuples.
+  a map keyed by `{cldr_locale_id, type}` tuples, the locale id being the
+  atom a validated tag carries as its `cldr_locale_id`.
 
   """
 
@@ -27,8 +28,9 @@ defmodule Localize.Data.Collation do
   Generates collation tailoring data from CLDR XML collation files.
 
   Reads XML files from `../cldr_repo/common/collation/`, parses
-  tailoring rules, resolves import directives, and returns a map
-  of `{language_string, type_atom}` tuples to rule strings.
+  tailoring rules, resolves import directives, and returns a map of
+  `{cldr_locale_id, type_atom}` tuples to rule strings: `fr_CA.xml` is
+  `{:"fr-CA", :standard}`, and `root.xml`'s search collation `{:und, :search}`.
 
   """
   def generate_collation_tailoring do
@@ -76,7 +78,11 @@ defmodule Localize.Data.Collation do
     |> Enum.reject(fn {{_language, _type}, rules} ->
       not has_ordering_rules?(rules) or rules == ""
     end)
-    |> Map.new()
+    # Keyed by the CLDR locale a file is for, as the atom a validated tag
+    # carries in `cldr_locale_id`, so a lookup uses the tag's id and builds
+    # no identifier. The set is CLDR's and closed, so the atoms are made
+    # here, at build time.
+    |> Map.new(fn {{locale, type}, rules} -> {{String.to_atom(locale), type}, rules} end)
   end
 
   defp root_search_entries(entries) do

@@ -1416,8 +1416,11 @@ defmodule Localize.LanguageTag do
     end
   end
 
-  # Lookup likely subtags in the CLDR data.
-  # Tries keys in order: lang-script-region, lang-script, lang-region, lang.
+  # Lookup likely subtags in the CLDR data, keyed by the
+  # `{language, script, region}` tuple of CLDR's `language[-Script][-REGION]`
+  # keys, so a candidate is the parts as the parser holds them and no
+  # identifier is built from them. Tries, in order: all three parts,
+  # language and script, language and region, language alone.
   defp lookup_likely_subtags(language, script, region) do
     # Per TR35 (Likely Subtags, Lookup) the candidate list for a
     # non-und language is language-based only. Falling back to the
@@ -1425,14 +1428,12 @@ defmodule Localize.LanguageTag do
     # subtags — CLDR's test data marks e.g. `qaa-Cyrl` as FAIL, not
     # `qaa-Cyrl-RU` via und-Cyrl. The und-based candidates apply
     # only when the source language itself is `und`.
-    candidates =
-      [
-        build_lookup_key(language, script, region),
-        build_lookup_key(language, script, nil),
-        build_lookup_key(language, nil, region),
-        build_lookup_key(language, nil, nil)
-      ]
-      |> Enum.reject(&is_nil/1)
+    candidates = [
+      {language, script, region},
+      {language, script, nil},
+      {language, nil, region},
+      {language, nil, nil}
+    ]
 
     likely_subtags = SupplementalData.likely_subtags()
 
@@ -1443,13 +1444,6 @@ defmodule Localize.LanguageTag do
       end
     end)
   end
-
-  defp build_lookup_key(language, nil, nil), do: language
-  defp build_lookup_key(language, script, nil), do: "#{language}-#{script}"
-  defp build_lookup_key(language, nil, region), do: "#{language}-#{region}"
-
-  defp build_lookup_key(language, script, region),
-    do: "#{language}-#{script}-#{region}"
 
   # Strip sentinel values (Zzzz, ZZ) to nil.
   defp strip_sentinel(nil, _sentinel), do: nil
@@ -1528,23 +1522,32 @@ defmodule Localize.LanguageTag do
 
   defp resolve_grandfathered_tag(map), do: map
 
+  @doc false
+  # The grandfathered tags, for the data pipeline, which keeps their aliases
+  # apart from the aliases it keys by their parts.
+  def grandfathered_tags do
+    @grandfathered_tags
+  end
+
   # Maps each downcased grandfathered tag to its CLDR languageAlias
-  # replacement (a map of language/script/territory/language_variants).
+  # replacement (a map of language/script/territory/language_variants). The
+  # data keys them by their whole identifier, which the grammar matches whole.
   defp grandfathered_aliases do
     cached(:grandfathered_aliases, fn ->
-      aliases = language_aliases()
-
-      Map.new(@grandfathered_tags, fn tag ->
-        {String.downcase(tag), Map.get(aliases, tag)}
+      Map.new(SupplementalData.aliases()[:grandfathered], fn {tag, replacement} ->
+        {String.downcase(tag), replacement}
       end)
     end)
   end
 
-  # Step 2: Simple language alias (e.g., "aar" → "aa", "iw" → "he")
+  # Step 2: Simple language alias (e.g., "aar" → "aa", "iw" → "he"). The
+  # aliases are keyed by the `{language, extlangs, script, territory,
+  # variants}` tuple of their parts, so each step asks with the parts it has
+  # and builds no identifier from them.
   defp resolve_simple_language_alias(%{language: nil} = map), do: map
 
   defp resolve_simple_language_alias(%{language: language} = map) when is_binary(language) do
-    case Map.get(language_aliases(), language) do
+    case Map.get(language_aliases(), {language, [], nil, nil, []}) do
       nil -> map
       replacement -> apply_language_replacement(map, replacement)
     end
@@ -1566,9 +1569,7 @@ defmodule Localize.LanguageTag do
 
   defp resolve_language_territory_alias(%{language: language, territory: territory} = map)
        when is_binary(language) and is_binary(territory) do
-    compound_key = "#{language}-#{territory}"
-
-    case Map.get(language_aliases(), compound_key) do
+    case Map.get(language_aliases(), {language, [], nil, territory, []}) do
       nil ->
         map
 
@@ -1612,11 +1613,9 @@ defmodule Localize.LanguageTag do
   # Try `lang-variant` then fall back to `und-variant`. On a hit, drop the
   # consumed variant from the map and apply the replacement.
   defp try_single_variant_alias(variant, {acc_map, changed?}) do
-    compound_key = "#{acc_map.language}-#{variant}"
-
     replacement =
-      Map.get(language_aliases(), compound_key) ||
-        Map.get(language_aliases(), "und-#{variant}")
+      Map.get(language_aliases(), {acc_map.language, [], nil, nil, [variant]}) ||
+        Map.get(language_aliases(), {"und", [], nil, nil, [variant]})
 
     case replacement do
       nil ->
@@ -1637,17 +1636,9 @@ defmodule Localize.LanguageTag do
       end
 
     Enum.find_value(pairs, :none, fn {v1, v2} ->
-      key = "#{lang_str}-#{v1}-#{v2}"
-
       result =
-        case Map.get(language_aliases(), key) do
-          nil ->
-            und_key = "und-#{v1}-#{v2}"
-            Map.get(language_aliases(), und_key)
-
-          replacement ->
-            replacement
-        end
+        Map.get(language_aliases(), {lang_str, [], nil, nil, [v1, v2]}) ||
+          Map.get(language_aliases(), {"und", [], nil, nil, [v1, v2]})
 
       if result do
         remaining = Enum.reject(variants, &(&1 in [v1, v2]))
@@ -1772,8 +1763,8 @@ defmodule Localize.LanguageTag do
   defp likely_territory_entry(language, script) do
     likely_subtags = SupplementalData.likely_subtags()
 
-    (script && Map.get(likely_subtags, build_lookup_key(language, script, nil))) ||
-      Map.get(likely_subtags, build_lookup_key(language, nil, nil))
+    (script && Map.get(likely_subtags, {language, script, nil})) ||
+      Map.get(likely_subtags, {language, nil, nil})
   end
 
   defp resolve_variant_aliases(%{language_variants: []} = map), do: map

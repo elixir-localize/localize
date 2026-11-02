@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [1.6.1] — November 2nd, 2026
 
+### Changed
+
+* `Localize.LanguageTag` looks likely subtags up by the `{language, script, region}` tuple of CLDR's keys and a language alias by the tuple of its parts, and `Localize.Collation.Tailoring` looks a tailoring up by the CLDR locale a validated tag carries and then by its parents', so none builds a locale identifier from a tag's parts. `Localize.Collation.Tailoring.supported_locales/0` lists `{cldr_locale_id, type}` tuples of atoms, `{:"fr-CA", :standard}` where it listed `{"fr-CA", :standard}`.
+
+* `Localize.Collation.Options.from_locale/1` reads its options from the validated tag's `-u-` extension rather than parsing the locale's text itself, so a locale that does not validate — an unknown keyword or value — returns `{:error, exception}` where it took a default, and `-u-kr-latn-digit` is `[:Latn, :digit]` where it was `[:latn, :digit]`, which the NIF backend also accepts. `Localize.Collation.compare/3` and `sort/2` still collate an invalid locale as root.
+
 ### Fixed
 
 * `Localize.DateTime.Format.Match.time_preferences_for/1` validates a locale before looking up its hour cycle, and the time-preference data keys `fr-CA` and its kin by `{language, territory}` tuples beside the territory atoms, so a default-content locale such as `en-US` or `fr-FR` takes its territory's cycle and `fr-Latn-CA` takes `fr-CA`'s. It answered the world's 24-hour cycle for any locale whose atom the VM had not yet seen, so `"en-US"` was 24-hour until something else named `:"en-US"`; closes #70.

@@ -4,10 +4,24 @@ defmodule Localize.SupplementalDataTest do
   alias Localize.SupplementalData
 
   describe "likely_subtags/0" do
-    test "returns a map with string keys" do
+    test "is keyed by {language, script, region} tuples of strings, nil for an absent part" do
       subtags = SupplementalData.likely_subtags()
+
       assert is_map(subtags)
-      assert Map.has_key?(subtags, "en")
+      assert Map.has_key?(subtags, {"en", nil, nil})
+      assert Map.has_key?(subtags, {"und", nil, "JP"})
+      assert Map.has_key?(subtags, {"zh", "Hant", nil})
+      refute Map.has_key?(subtags, "en")
+
+      assert Enum.all?(subtags, fn {key, _value} ->
+               match?(
+                 {language, script, region}
+                 when is_binary(language) and
+                        (is_nil(script) or is_binary(script)) and
+                        (is_nil(region) or is_binary(region)),
+                 key
+               )
+             end)
     end
   end
 

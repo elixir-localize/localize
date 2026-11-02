@@ -236,9 +236,10 @@ defmodule Localize.Collation.TailoringTest do
   describe "supported_locales/0" do
     test "lists available tailorings" do
       locales = Localize.Collation.Tailoring.supported_locales()
-      assert {"es", :standard} in locales
-      assert {"de", :phonebook} in locales
-      assert {"sv", :standard} in locales
+      assert {:es, :standard} in locales
+      assert {:de, :phonebook} in locales
+      assert {:sv, :standard} in locales
+      assert {:"fr-CA", :standard} in locales
     end
   end
 end
