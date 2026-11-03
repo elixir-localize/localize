@@ -186,4 +186,124 @@ defmodule Localize.InflectionTest do
              inflect: :safe
            ) == {:ok, "2 kilometreye"}
   end
+
+  # The German display function, as upstream's, inflected the last two
+  # words only, so the article of "das kleine Haus" never agreed, and the
+  # adjective declined strong whatever stood before it.
+  describe "a German phrase of a determiner, adjectives and a noun" do
+    test "the determiner, the adjectives and the noun agree in case and number" do
+      assert Localize.Inflection.inflect("das kleine Haus", :de, case: :dative) ==
+               {:ok, "dem kleinen Haus"}
+
+      assert Localize.Inflection.inflect("das kleine Haus", :de, case: :genitive) ==
+               {:ok, "des kleinen Hauses"}
+
+      assert Localize.Inflection.inflect("das kleine Haus", :de, case: :accusative) ==
+               {:ok, "das kleine Haus"}
+
+      assert Localize.Inflection.inflect("das kleine Haus", :de, number: :plural) ==
+               {:ok, "die kleinen Häuser"}
+
+      assert Localize.Inflection.inflect("das kleine Haus", :de, number: :plural, case: :dative) ==
+               {:ok, "den kleinen Häusern"}
+
+      assert Localize.Inflection.inflect("dem kleinen Haus", :de, number: :plural) ==
+               {:ok, "den kleinen Häusern"}
+
+      assert Localize.Inflection.inflect("das kleine alte Haus", :de, case: :genitive) ==
+               {:ok, "des kleinen alten Hauses"}
+
+      assert Localize.Inflection.inflect("die schöne Katze", :de, case: :genitive) ==
+               {:ok, "der schönen Katze"}
+
+      assert Localize.Inflection.inflect("der große Hund", :de, case: :dative) ==
+               {:ok, "dem großen Hund"}
+    end
+
+    test "an adjective declines weak after a der-word and mixed after an ein-word" do
+      assert Localize.Inflection.inflect("dieses kleine Haus", :de, case: :dative) ==
+               {:ok, "diesem kleinen Haus"}
+
+      assert Localize.Inflection.inflect("ein kleines Haus", :de, case: :dative) ==
+               {:ok, "einem kleinen Haus"}
+
+      assert Localize.Inflection.inflect("ein kleines Haus", :de, case: :genitive) ==
+               {:ok, "eines kleinen Hauses"}
+
+      assert Localize.Inflection.inflect("eine schöne Katze", :de, case: :dative) ==
+               {:ok, "einer schönen Katze"}
+
+      assert Localize.Inflection.inflect("ein alter Hund", :de, case: :dative) ==
+               {:ok, "einem alten Hund"}
+    end
+
+    test "an ein-word the dictionary cannot inflect takes the negative article's endings" do
+      assert Localize.Inflection.inflect("kein kleines Haus", :de, case: :genitive) ==
+               {:ok, "keines kleinen Hauses"}
+
+      assert Localize.Inflection.inflect("kein kleines Haus", :de, number: :plural, case: :dative) ==
+               {:ok, "keinen kleinen Häusern"}
+
+      assert Localize.Inflection.inflect("mein kleines Haus", :de, case: :dative) ==
+               {:ok, "meinem kleinen Haus"}
+
+      assert Localize.Inflection.inflect("sein kleines Haus", :de, case: :dative) ==
+               {:ok, "seinem kleinen Haus"}
+
+      assert Localize.Inflection.inflect("ihr kleines Haus", :de, case: :genitive) ==
+               {:ok, "ihres kleinen Hauses"}
+
+      assert Localize.Inflection.inflect("Ihr kleines Haus", :de, case: :dative) ==
+               {:ok, "Ihrem kleinen Haus"}
+
+      assert Localize.Inflection.inflect("unser kleines Haus", :de, case: :dative) ==
+               {:ok, "unserem kleinen Haus"}
+
+      assert Localize.Inflection.inflect("euer kleines Haus", :de, case: :dative) ==
+               {:ok, "eurem kleinen Haus"}
+
+      assert Localize.Inflection.inflect("euer kleines Haus", :de, case: :nominative) ==
+               {:ok, "euer kleines Haus"}
+
+      assert Localize.Inflection.inflect("kein Haus", :de, case: :genitive) ==
+               {:ok, "keines Hauses"}
+
+      assert Localize.Inflection.inflect("ihr Haus", :de, case: :dative) == {:ok, "ihrem Haus"}
+    end
+
+    test "an adjective before a noun with readings in two genders takes the noun's gender" do
+      assert Localize.Inflection.inflect("kleine Haus", :de, case: :dative) ==
+               {:ok, "kleinem Haus"}
+    end
+
+    test "two words keep upstream's reading" do
+      assert Localize.Inflection.inflect("motorisierten Fenstern", :de, case: :nominative) ==
+               {:ok, "motorisiertes Fenster"}
+
+      assert Localize.Inflection.inflect("der Domain-Eigentümer", :de, gender: :feminine) ==
+               {:ok, "die Domain-Eigentümerin"}
+
+      assert Localize.Inflection.inflect("das Haus", :de, case: :genitive) == {:ok, "des Hauses"}
+    end
+  end
+
+  # The Hebrew dictionary knows "ילד" only as the verb "gave birth", so a
+  # plural from its tables was "ילדו", "they gave birth".
+  describe "a Hebrew word the dictionary knows only as a verb" do
+    test "takes the heuristic plural when nothing but the number is asked for" do
+      assert Localize.Inflection.inflect("ילד", :he, number: :plural) == {:ok, "ילדים"}
+      assert Localize.Inflection.inflect("ילד קטן", :he, number: :plural) == {:ok, "ילדים קטנים"}
+      assert Localize.Inflection.quantify("3", "ילד", :he, plural: :other) == {:ok, "3 ילדים"}
+      assert Localize.Inflection.inflect("ספר", :he, number: :plural) == {:ok, "ספרים"}
+    end
+
+    test "inflects the verb for a part of speech, a person or a gender, as upstream does" do
+      assert Localize.Inflection.inflect("ילד", :he, number: :plural, pos: :verb) == {:ok, "ילדו"}
+
+      assert Localize.Inflection.inflect("ילד", :he, number: :plural, person: :third) ==
+               {:ok, "ילדו"}
+
+      assert Localize.Inflection.inflect("הקש", :he, gender: :feminine) == {:ok, "הקישי"}
+    end
+  end
 end

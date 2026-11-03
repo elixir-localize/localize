@@ -162,8 +162,11 @@ defmodule Localize.Inflection.Synthesizer.He do
   defp inflect_display_string(display_string, count, gender, person, disambiguation) do
     constraint_values = Enum.reject([count, gender, person], &(&1 == ""))
 
+    plural_only? =
+      count in ["dual", "plural"] and gender == "" and person == "" and disambiguation == []
+
     whole =
-      case Dictionary.combined_grammemes(@locale, display_string) do
+      case nominal_grammemes(display_string, plural_only?) do
         nil ->
           :error
 
@@ -212,6 +215,39 @@ defmodule Localize.Inflection.Synthesizer.He do
       [] -> display_string
       inflected -> inflected |> Enum.reverse() |> Enum.join(" ")
     end
+  end
+
+  # The grammemes a word brings to a request. For a plural (or dual)
+  # alone, with no gender, person or part of speech, a word the
+  # dictionary knows only as a verb has none: "ילד" is only the verb
+  # "gave birth" in the dictionary, so its plural from the verb tables
+  # is "ילדו", "they gave birth", where the noun "child" wants "ילדים".
+  # Such a word is read as one the dictionary does not know, and takes
+  # the heuristic plural. Upstream inflects the verb. A request with a
+  # gender or a person inflects the verb, as upstream's tests expect
+  # ("הקש" feminine is "הקישי").
+  defp nominal_grammemes(word, true = _plural_only?) do
+    case Dictionary.combined_grammemes(@locale, word) do
+      nil ->
+        nil
+
+      grammemes ->
+        if verb_only?(grammemes) do
+          nil
+        else
+          grammemes
+        end
+    end
+  end
+
+  defp nominal_grammemes(word, false = _plural_only?) do
+    Dictionary.combined_grammemes(@locale, word)
+  end
+
+  defp verb_only?(grammemes) do
+    verb = Dictionary.binary_properties(@locale, ["verb"]) || 0
+    nominal = Dictionary.binary_properties(@locale, ["noun", "adjective", "proper-noun"]) || 0
+    (grammemes &&& verb) != 0 and (grammemes &&& nominal) == 0
   end
 
   # ── Pluralization heuristics ─────────────────────────────────

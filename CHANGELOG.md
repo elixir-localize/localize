@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.6.2] — Unreleased
+
+### Fixed
+
+* `Localize.Inflection.inflect/3` inflects a German phrase of a determiner, adjectives and a noun throughout, so "das kleine Haus" in the dative is "dem kleinen Haus", where the article was left as it was and the adjective declined strong. An adjective declines weak after a der-word and mixed after an ein-word, and an ein-word the dictionary cannot inflect ("kein", "ihr", "sein") takes the negative article's endings.
+
+* `Localize.Inflection.inflect/3` and `quantify/4` pluralise a Hebrew word the dictionary knows only as a verb by the heuristics when nothing but the number is asked for, so "ילד" is "ילדים", where it was the verb's "ילדו". A part of speech, a person or a gender still inflects the verb.
+
 ## [1.6.1] — November 2nd, 2026
 
 ### Changed

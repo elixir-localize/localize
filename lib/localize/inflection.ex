@@ -145,6 +145,11 @@ defmodule Localize.Inflection do
   the confidence gate for callers that must never emit a guessed
   form (see the `:inflect` option of `Localize.Unit.to_string/2`).
 
+  In Hebrew, a word the dictionary knows only as a verb is pluralised
+  by the heuristics when nothing but the number is asked for, as an
+  unknown word is, so that "ילד" is "ילדים" rather than the verb's
+  "ילדו"; the gate still reports it as known.
+
   Digit-only words are skipped; a phrase with no words at all
   returns false, as does an unavailable locale or missing
   inflection data (the gate fails closed).

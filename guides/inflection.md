@@ -89,9 +89,12 @@ iex> Localize.Inflection.inflect("집", :ko, case: :nominative)
 
 iex> Localize.Inflection.inflect("दरवाज़ा में", :hi, number: :singular)
 {:ok, "दरवाज़े में"}
+
+iex> Localize.Inflection.inflect("das kleine Haus", :de, case: :dative)
+{:ok, "dem kleinen Haus"}
 ```
 
-Each of these exercises a different part of the machinery: Spanish selects an agreeing article, Russian inflects both the adjective and the noun to the instrumental case, Finnish replaces a preposition with the inessive case suffix, Korean attaches the topic particle in its consonant-final form (은 rather than 는), and Hindi shifts the noun into the oblique case because it stands before the postposition में.
+Each of these exercises a different part of the machinery: Spanish selects an agreeing article, Russian inflects both the adjective and the noun to the instrumental case, Finnish replaces a preposition with the inessive case suffix, Korean attaches the topic particle in its consonant-final form (은 rather than 는), Hindi shifts the noun into the oblique case because it stands before the postposition में, and German inflects the article, the adjective and the noun together, the adjective declining weak after a definite article.
 
 Gender inflection produces the counterpart form where one exists in the data — *gato* / *gata*, *लड़का* (boy) / *लड़की* (girl) — and features compose freely, so an adjective can move to feminine and dative in one call:
 

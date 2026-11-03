@@ -64,6 +64,8 @@ Outstanding work on Localize. The design detail behind these items lives under [
 
 ## Done
 
+* [x] **German and Hebrew phrases misinflect** — a German determiner, adjectives and noun agree throughout, with the declension the determiner selects; a Hebrew word the dictionary knows only as a verb takes the heuristic plural. 2026-11-04, unreleased.
+
 * [x] **Convert an angle or a ratio before a dimensionless function** — `Localize.Unit.Math.apply_dimensionless/2` converts an angle to radians and a `part` unit to the plain ratio before applying `sin/1` to `log2/1`, so `sin` of `90 degree` is 1 and `ln` of `100 percent` is 0; the doctests add `90 degree`, `0.5 revolution` and `100 percent`. Found by Unity's 1.2.0 release review, 2026-10-28. 2026-11-02, v1.6.1.
 
 * [x] **Read a `-u-` boolean key with no type as `true`** — `Localize.validate_locale/1` and `Localize.LanguageTag.U.parse/1` read a keyword with no type as the type `true`, as TR35 §3.6.4 does, so `en-u-kn` validates as `en-u-kn-true` does and `-u-ka` stays invalid. Found moving `Localize.Collation.Options.from_locale/1` onto the validated tag. 2026-11-02, v1.6.1.

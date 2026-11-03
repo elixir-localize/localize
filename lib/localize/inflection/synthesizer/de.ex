@@ -41,6 +41,12 @@ defmodule Localize.Inflection.Synthesizer.De do
     ["masculine", "feminine"]
   ]
 
+  # The stems of the ein-words, after which an adjective declines
+  # mixed: the negative article and the possessives, in every case
+  # form ("keinem", "unsrer", "eurem"). The indefinite article itself
+  # is marked in the dictionary.
+  @ein_word_stems ~w(kein mein dein sein ihr unser unsr euer eur)
+
   # feature name -> {table key, include_semantic_value?}
   @article_features %{
     "pronoun" => {:pronoun, false},
@@ -590,76 +596,397 @@ defmodule Localize.Inflection.Synthesizer.De do
     end
   end
 
+  # The head word is the last token and the dependent word the token
+  # immediately before the last whitespace gap, as upstream reads them;
+  # hyphenated compounds ("Domain-Eigentümer") stay attached to the
+  # head group, so "der Domain-Eigentümer" yields dependent "der", head
+  # "Eigentümer". A determiner and adjectives before an adjective
+  # dependent are inflected with it, which upstream does not do: it
+  # inflects the two words and leaves "das" of "das kleine Haus" as it
+  # is.
   defp inflect_token_chain(display_string, constraints, guess?) do
     tokens = Tokenizer.word_tokens(@locale, display_string)
+    groups = whitespace_groups(display_string, tokens)
 
     case List.last(tokens) do
       nil ->
         :error
 
       head_token ->
-        dependent_token = dependent_before_whitespace(display_string, tokens)
+        dependent_token = dependent_token(groups)
+        phrase = noun_phrase(groups, dependent_token, head_token)
 
         result =
-          if dependent_token do
-            inflect_two_words(dependent_token.value, head_token.value, constraints, guess?)
-          else
-            case inflect_word(
-                   head_token.value,
-                   Dictionary.combined_grammemes(@locale, head_token.value),
-                   constraints,
-                   [],
-                   guess?
-                 ) do
-              {:ok, head} -> {:ok, {head, nil}}
-              :error -> :error
-            end
+          cond do
+            phrase ->
+              inflect_noun_phrase(phrase, constraints, guess?)
+
+            dependent_token ->
+              inflect_dependent_and_head(dependent_token, head_token, constraints, guess?)
+
+            true ->
+              inflect_head(head_token, constraints, guess?)
           end
 
-        case result do
-          :error ->
-            :error
-
-          {:ok, {inflected_head, inflected_dependent}} ->
-            {:ok,
-             rebuild(
-               display_string,
-               tokens,
-               head_token,
-               inflected_head,
-               dependent_token,
-               inflected_dependent
-             )}
+        with {:ok, replacements} <- result do
+          {:ok, rebuild(display_string, tokens, replacements)}
         end
     end
   end
 
-  # The dependent word is the token immediately before the last
-  # whitespace gap — hyphenated compounds ("Domain-Eigentümer")
-  # stay attached to the head group, so "der Domain-Eigentümer"
-  # yields dependent "der", head "Eigentümer".
-  defp dependent_before_whitespace(display_string, tokens) do
-    tokens
-    |> Enum.chunk_every(2, 1, :discard)
-    |> Enum.reverse()
-    |> Enum.find_value(fn [left, right] ->
-      gap = binary_part(display_string, left.stop, right.start - left.stop)
-      if gap =~ ~r/\s/, do: left
+  # Tokens grouped by the whitespace between them: tokens with no
+  # whitespace between them, as the parts of a hyphenated compound,
+  # form one group.
+  defp whitespace_groups(_display_string, []) do
+    []
+  end
+
+  defp whitespace_groups(display_string, [first | rest]) do
+    {groups, current} =
+      Enum.reduce(rest, {[], [first]}, fn token, {groups, [previous | _rest] = current} ->
+        gap = binary_part(display_string, previous.stop, token.start - previous.stop)
+
+        if gap =~ ~r/\s/ do
+          {[Enum.reverse(current) | groups], [token]}
+        else
+          {groups, [token | current]}
+        end
+      end)
+
+    Enum.reverse([Enum.reverse(current) | groups])
+  end
+
+  defp dependent_token(groups) do
+    case Enum.at(groups, -2) do
+      nil -> nil
+      group -> List.last(group)
+    end
+  end
+
+  defp inflect_head(head_token, constraints, guess?) do
+    head_type = Dictionary.combined_grammemes(@locale, head_token.value)
+
+    with {:ok, head} <- inflect_word(head_token.value, head_type, constraints, [], guess?) do
+      {:ok, %{head_token => head}}
+    end
+  end
+
+  defp inflect_dependent_and_head(dependent_token, head_token, constraints, guess?) do
+    with {:ok, {head, dependent}} <-
+           inflect_two_words(dependent_token.value, head_token.value, constraints, guess?) do
+      {:ok, %{head_token => head, dependent_token => dependent}}
+    end
+  end
+
+  # A noun phrase of a determiner, adjectives and a noun, as
+  # `{determiner_token | nil, adjective_tokens, head_token}`, where the
+  # dependent is an adjective before a noun and at least one more
+  # adjective or a determiner stands before it; nil otherwise, so two
+  # words keep upstream's reading. The walk back from the dependent
+  # stops at any other word, or at a hyphenated group.
+  defp noun_phrase([_first, _second, _third | _rest] = groups, dependent_token, head_token)
+       when not is_nil(dependent_token) do
+    if adjective_before_noun?(dependent_token, head_token) do
+      earlier = groups |> Enum.drop(-2) |> Enum.reverse()
+
+      case phrase_front(earlier, []) do
+        {nil, []} -> nil
+        {determiner, adjectives} -> {determiner, adjectives ++ [dependent_token], head_token}
+      end
+    end
+  end
+
+  defp noun_phrase(_groups, _dependent_token, _head_token) do
+    nil
+  end
+
+  defp adjective_before_noun?(dependent_token, head_token) do
+    noun = Dictionary.binary_properties(@locale, ["noun"]) || 0
+    adjective = Dictionary.binary_properties(@locale, ["adjective"]) || 0
+    dependent_type = Dictionary.combined_grammemes(@locale, dependent_token.value) || 0
+    head_type = Dictionary.combined_grammemes(@locale, head_token.value) || 0
+
+    (dependent_type &&& adjective) != 0 and (dependent_type &&& noun) == 0 and
+      (head_type &&& noun) != 0
+  end
+
+  defp phrase_front([[token] | rest], adjectives) do
+    noun = Dictionary.binary_properties(@locale, ["noun"]) || 0
+    adjective = Dictionary.binary_properties(@locale, ["adjective"]) || 0
+    determiner = Dictionary.binary_properties(@locale, ["article", "pronoun"]) || 0
+    type = Dictionary.combined_grammemes(@locale, token.value) || 0
+
+    # The possessive "sein" is only the verb in the dictionary, so an
+    # ein-word with no nominal reading counts as a determiner too.
+    cond do
+      (type &&& adjective) != 0 and (type &&& noun) == 0 ->
+        phrase_front(rest, [token | adjectives])
+
+      (type &&& determiner) != 0 ->
+        {token, adjectives}
+
+      ein_word?(token.value) and (type &&& (noun ||| adjective)) == 0 ->
+        {token, adjectives}
+
+      true ->
+        {nil, adjectives}
+    end
+  end
+
+  defp phrase_front(_groups, adjectives) do
+    {nil, adjectives}
+  end
+
+  # The case comes from the determiner, the number and gender from the
+  # noun, each where the constraints do not give it, as for a
+  # determiner and a noun; without a determiner the number is singular
+  # unless given, as for an adjective and a noun. The adjectives take
+  # the declension the determiner selects.
+  defp inflect_noun_phrase({determiner, adjectives, head_token}, constraints, guess?) do
+    noun = head_token.value
+    noun_type = Dictionary.combined_grammemes(@locale, noun) || 0
+    noun_mask = Dictionary.binary_properties(@locale, ["noun"]) || 0
+    determiner_mask = Dictionary.binary_properties(@locale, ["article", "pronoun"]) || 0
+
+    best_head = best_reading(noun, noun_mask)
+    best_dep = determiner && best_reading(determiner.value, determiner_mask)
+
+    {case_, number, gender} = agreement = agreement(constraints, best_dep, best_head, determiner)
+    deduced = Enum.reject([case_, number, gender], &is_nil/1)
+    declension = phrase_declension(constraints, determiner)
+
+    phrase_constraints =
+      constraints
+      |> Map.merge(%{"case" => case_, "number" => number, "gender" => gender})
+      |> Map.reject(fn {_feature, value} -> is_nil(value) end)
+
+    with {:ok, inflected_noun} <- inflect_word(noun, noun_type, constraints, deduced, guess?),
+         {:ok, inflected_determiner} <-
+           inflect_determiner(determiner, constraints, deduced, agreement, guess?) do
+      inflected_adjectives =
+        for token <- adjectives do
+          {token,
+           inflect_phrase_adjective(token, deduced, declension, phrase_constraints, gender)}
+        end
+
+      replacements =
+        Map.new([{head_token, inflected_noun} | inflected_adjectives])
+        |> Map.merge(inflected_determiner)
+
+      {:ok, replacements}
+    end
+  end
+
+  # The case, number and gender a phrase agrees in: each the
+  # constraints' own, else deduced, the case from the determiner's best
+  # reading and the number and gender from the noun's, with no gender
+  # in the plural, as upstream deduces them for a determiner and a noun.
+  # Without a determiner the number is singular unless given, as
+  # upstream reads an adjective and a noun.
+  defp agreement(constraints, best_dep, best_head, determiner) do
+    case_mask = Dictionary.binary_properties(@locale, @cases) || 0
+    count_mask = Dictionary.binary_properties(@locale, @numbers) || 0
+    gender_mask = Dictionary.binary_properties(@locale, @genders) || 0
+
+    case_ = deduced_value(constraints, "case", best_dep, case_mask)
+
+    number =
+      if determiner do
+        deduced_value(constraints, "number", best_head, count_mask)
+      else
+        deduced_value(constraints, "number", nil, count_mask) || "singular"
+      end
+
+    gender =
+      if number == "plural" do
+        nil
+      else
+        deduced_value(constraints, "gender", best_head, gender_mask)
+      end
+
+    {case_, number, gender}
+  end
+
+  defp inflect_determiner(nil, _constraints, _deduced, _agreement, _guess?) do
+    {:ok, %{}}
+  end
+
+  defp inflect_determiner(token, constraints, deduced, agreement, guess?) do
+    type = Dictionary.combined_grammemes(@locale, token.value) || 0
+
+    with {:ok, inflected} <-
+           inflect_determiner_word(token.value, type, constraints, deduced, agreement, guess?) do
+      {:ok, %{token => inflected}}
+    end
+  end
+
+  # A determiner is inflected from the dictionary. An ein-word the
+  # dictionary leaves as it is, listed without inflection rows ("kein",
+  # "seinem", "Ihrem"), known only as a personal pronoun ("ihr", the
+  # dative of "sie") or only as the verb ("sein"), is inflected as the
+  # negative article is, on its own stem.
+  defp inflect_determiner_word(word, type, constraints, deduced, agreement, guess?) do
+    case inflect_word(word, type, constraints, deduced, guess?) do
+      {:ok, inflected} when inflected == word ->
+        if ein_word?(word) do
+          {:ok, ein_word_form(word, agreement) || inflected}
+        else
+          {:ok, inflected}
+        end
+
+      {:ok, inflected} ->
+        {:ok, inflected}
+
+      :error ->
+        ein_word_or_error(word, agreement)
+    end
+  end
+
+  defp ein_word_or_error(word, agreement) do
+    if ein_word?(word) do
+      case ein_word_form(word, agreement) do
+        nil -> :error
+        form -> {:ok, form}
+      end
+    else
+      :error
+    end
+  end
+
+  defp ein_word?(word) do
+    String.starts_with?(String.downcase(word), @ein_word_stems)
+  end
+
+  # The ein-word's form for the agreement, nil where the case or the
+  # number is unknown: the negative article's form with "kein" replaced
+  # by the word's own stem, so "mein" is "meinem" where "kein" is
+  # "keinem". "euer" and "unser" keep their e only before no ending.
+  defp ein_word_form(word, {case_, number, gender}) do
+    gender =
+      if number == "plural" do
+        "masculine"
+      else
+        gender
+      end
+
+    case Map.get(table(:negated), {number, gender, case_}) do
+      nil ->
+        nil
+
+      form ->
+        ending = String.replace_prefix(form, "kein", "")
+        stem = Enum.find(@ein_word_stems, &String.starts_with?(String.downcase(word), &1))
+        ein_word_stem(binary_part(word, 0, byte_size(stem)), ending) <> ending
+    end
+  end
+
+  defp ein_word_stem(stem, ending) when ending != "" do
+    case String.downcase(stem) do
+      "euer" -> binary_part(stem, 0, 2) <> "r"
+      _other -> stem
+    end
+  end
+
+  defp ein_word_stem(stem, "") do
+    case String.downcase(stem) do
+      "eur" -> binary_part(stem, 0, 2) <> "er"
+      "unsr" -> binary_part(stem, 0, 3) <> "er"
+      _other -> stem
+    end
+  end
+
+  defp phrase_declension(constraints, determiner) do
+    case Map.get(constraints, "declension", "") do
+      "" -> determiner_declension(determiner)
+      declension -> declension
+    end
+  end
+
+  # An adjective is weak after a definite article or another der-word
+  # ("dieser"), mixed after an indefinite article or an ein-word (the
+  # negative and the possessives) and strong with no determiner. The
+  # dictionary marks the articles; the ein-words are known by their
+  # stems.
+  defp determiner_declension(nil) do
+    "strong"
+  end
+
+  defp determiner_declension(token) do
+    type = Dictionary.combined_grammemes(@locale, token.value) || 0
+    definite = Dictionary.binary_properties(@locale, ["definite"]) || 0
+    indefinite = Dictionary.binary_properties(@locale, ["indefinite"]) || 0
+
+    cond do
+      (type &&& definite) != 0 -> "weak"
+      (type &&& indefinite) != 0 -> "mixed"
+      String.starts_with?(token.clean, @ein_word_stems) -> "mixed"
+      true -> "weak"
+    end
+  end
+
+  defp inflect_phrase_adjective(token, deduced, declension, phrase_constraints, gender) do
+    adjective_type = Dictionary.combined_grammemes(@locale, token.value) || 0
+
+    disambiguation =
+      for value <- [Map.get(phrase_constraints, "pos")], value not in [nil, ""], do: value
+
+    options = [disambiguation: disambiguation, priorities: @priorities]
+
+    case Inflector.inflect(@locale, token.value, adjective_type, deduced ++ [declension], options) do
+      {:ok, inflected} ->
+        inflected
+
+      :error ->
+        constraints = Map.put(phrase_constraints, "declension", declension)
+
+        declension_adjective(
+          adjective_lemma(token.value, adjective_type),
+          constraints,
+          gender || ""
+        )
+    end
+  end
+
+  # The lemma a declension suffix is added to, for an adjective the
+  # dictionary knows but cannot inflect to a case: the word without the
+  # suffix its own reading carries ("schöne" is "schön"), or, where the
+  # dictionary lists whole forms rather than suffixes ("alte" among
+  # "alt", "altem", "alten"), the predicative positive form.
+  defp adjective_lemma(word, word_type) do
+    patterns = Dictionary.patterns_for_word(@locale, word)
+    rows = Enum.flat_map(patterns, &Dictionary.matching_inflections(word, word_type, &1))
+
+    strip =
+      rows
+      |> Enum.map(fn {_grammemes, suffix} -> suffix end)
+      |> Enum.filter(&String.ends_with?(word, &1))
+      |> Enum.map(&byte_size/1)
+      |> Enum.max(fn -> 0 end)
+
+    if strip < byte_size(word) do
+      binary_part(word, 0, byte_size(word) - strip)
+    else
+      predicative_form(patterns) || word
+    end
+  end
+
+  defp predicative_form(patterns) do
+    predicative = Dictionary.binary_properties(@locale, ["predicative", "positive"]) || 0
+
+    Enum.find_value(patterns, fn pattern ->
+      Enum.find_value(pattern.inflections, fn {grammemes, form} ->
+        if (grammemes &&& predicative) == predicative do
+          form
+        end
+      end)
     end)
   end
 
-  defp rebuild(display_string, tokens, head_token, head, dependent_token, dependent) do
+  defp rebuild(display_string, tokens, replacements) do
     {output, position} =
       Enum.reduce(tokens, {"", 0}, fn token, {output, position} ->
         separator = binary_part(display_string, position, token.start - position)
-
-        replacement =
-          cond do
-            token == head_token -> head
-            dependent != nil and token == dependent_token -> dependent
-            true -> token.value
-          end
-
+        replacement = Map.get(replacements, token, token.value)
         {output <> separator <> replacement, token.stop}
       end)
 
@@ -713,45 +1040,33 @@ defmodule Localize.Inflection.Synthesizer.De do
   defp inflect_determiner_and_noun(determiner, det_type, noun, noun_type, constraints, guess?) do
     determiner_mask = Dictionary.binary_properties(@locale, ["article", "pronoun"]) || 0
     noun_mask = Dictionary.binary_properties(@locale, ["noun"]) || 0
-    case_mask = Dictionary.binary_properties(@locale, @cases) || 0
-    count_mask = Dictionary.binary_properties(@locale, @numbers) || 0
-    gender_mask = Dictionary.binary_properties(@locale, @genders) || 0
 
     best_dep = best_reading(determiner, determiner_mask)
     best_head = best_reading(noun, noun_mask)
 
-    deduced =
-      []
-      |> deduce(constraints, "case", best_dep, case_mask)
-      |> deduce(constraints, "number", best_head, count_mask)
-
-    deduced =
-      if "plural" in deduced do
-        deduced
-      else
-        deduce(deduced, constraints, "gender", best_head, gender_mask)
-      end
+    {case_, number, gender} = agreement = agreement(constraints, best_dep, best_head, determiner)
+    deduced = Enum.reject([case_, number, gender], &is_nil/1)
 
     with {:ok, inflected_head} <- inflect_word(noun, noun_type, constraints, deduced, guess?),
-         {:ok, inflected_dep} <- inflect_word(determiner, det_type, constraints, deduced, guess?) do
+         {:ok, inflected_dep} <-
+           inflect_determiner_word(determiner, det_type, constraints, deduced, agreement, guess?) do
       {:ok, {inflected_head, inflected_dep}}
     end
   end
 
-  defp deduce(deduced, constraints, feature, best_reading, mask) do
-    value =
-      case Map.get(constraints, feature) do
-        value when value not in [nil, ""] ->
-          value
+  # The value of a feature: the constraints' own, else the one the best
+  # reading carries, else nil.
+  defp deduced_value(constraints, feature, best_reading, mask) do
+    case Map.get(constraints, feature) do
+      value when value not in [nil, ""] ->
+        value
 
-        _missing when best_reading != nil ->
-          first_property_name(best_reading &&& mask)
+      _missing when best_reading != nil ->
+        first_property_name(best_reading &&& mask)
 
-        _missing ->
-          nil
-      end
-
-    if value, do: deduced ++ [value], else: deduced
+      _missing ->
+        nil
+    end
   end
 
   defp first_property_name(0), do: nil
@@ -793,8 +1108,7 @@ defmodule Localize.Inflection.Synthesizer.De do
       if count == "plural" do
         {"", "plural"}
       else
-        {gender_string(constraints, Dictionary.combined_grammemes(@locale, inflected_noun) || 0),
-         "singular"}
+        {noun_gender(constraints, inflected_noun), "singular"}
       end
 
     declension = if declension == "", do: "strong", else: declension
@@ -821,6 +1135,28 @@ defmodule Localize.Inflection.Synthesizer.De do
       end
 
     from_type || Map.get(constraints, "gender", "")
+  end
+
+  # The gender of a noun: the one gender its readings together carry,
+  # else the constraints', as upstream reads it; else the gender of its
+  # best noun reading, which upstream does not consult, so a noun with
+  # a reading in another gender ("Haus" has a masculine genitive one)
+  # still agrees.
+  defp noun_gender(constraints, noun) do
+    case gender_string(constraints, Dictionary.combined_grammemes(@locale, noun) || 0) do
+      "" -> best_reading_gender(noun)
+      gender -> gender
+    end
+  end
+
+  defp best_reading_gender(noun) do
+    noun_mask = Dictionary.binary_properties(@locale, ["noun"]) || 0
+    gender_mask = Dictionary.binary_properties(@locale, @genders) || 0
+
+    case best_reading(noun, noun_mask) do
+      nil -> ""
+      reading -> first_property_name(reading &&& gender_mask) || ""
+    end
   end
 
   defp add_definiteness(display_value, constraints) do
