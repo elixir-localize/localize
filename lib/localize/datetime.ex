@@ -1213,6 +1213,63 @@ defmodule Localize.DateTime do
     end
   end
 
+  @doc """
+  Parses a date and time written with a `Calendar.strftime/3` format.
+
+  The format is translated into the pattern the locale is read with by
+  `Localize.DateTime.Strptime.pattern/2`, and the text read with it by
+  `parse/2`, so a date and time `Calendar.strftime/3` writes with
+  `Localize.Calendar.strftime_options!/1` reads back in the same locale,
+  as does text from C, Python or Ruby. The [strptime guide](strptime.html)
+  lists the directives and where the reading differs from C's
+  `strptime(3)`.
+
+  ### Arguments
+
+  * `string` is the text to parse.
+
+  * `format` is a `Calendar.strftime/3` format string, such as
+    `"%Y-%m-%d %H:%M:%S"`.
+
+  * `options` is a keyword list of options.
+
+  ### Options
+
+  * `:preferred_datetime`, `:preferred_date` and `:preferred_time` are
+    the formats `%c`, `%x` and `%X` stand for, as `Calendar.strftime/3`
+    takes them.
+
+  * Every option of `parse/2` but `:format`: `:locale`, `:calendar`,
+    `:reference_date` and `:as`.
+
+  ### Returns
+
+  * `{:ok, date_time}`, as `parse/2` returns it: a `t:NaiveDateTime.t/0`, or a `t:DateTime.t/0` when the text carries a resolvable zone, or
+
+  * `{:error, exception}`, a `t:Localize.DateTimeFormatError.t/0` where
+    the format has a directive Localize does not read, or the error
+    `parse/2` returns where the text does not parse.
+
+  ### Examples
+
+      iex> Localize.DateTime.strptime("2026-03-04T07:05:09", "%Y-%m-%dT%H:%M:%S", locale: :en)
+      {:ok, ~N[2026-03-04 07:05:09]}
+
+      iex> Localize.DateTime.strptime("4. März 2026, 07:05", "%e. %B %Y, %H:%M", locale: :de)
+      {:ok, ~N[2026-03-04 07:05:00]}
+
+      iex> Localize.DateTime.strptime("2026-03-04 07:05 +0530", "%Y-%m-%d %H:%M %z", locale: :en)
+      {:ok, DateTime.new!(~D[2026-03-04], ~T[07:05:00], "+05:30", Localize.TimeZoneDatabase)}
+
+  """
+  @spec strptime(String.t(), String.t(), Keyword.t()) ::
+          {:ok, NaiveDateTime.t() | DateTime.t()} | {:error, Exception.t()}
+  def strptime(string, format, options \\ []) do
+    with {:ok, pattern} <- Localize.DateTime.Strptime.pattern(format, options) do
+      parse(string, Localize.DateTime.Strptime.parse_options(options, pattern))
+    end
+  end
+
   # The CLDR calendar whose data formats a value: its calendar's answer for
   # the value's date.
   defp cldr_calendar_for(value) when is_map(value),

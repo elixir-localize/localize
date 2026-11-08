@@ -26,7 +26,7 @@ Try it without installing anything at the [Localize playground](https://playgrou
 
 * **Minimal pairs** — CLDR's worked examples of a locale's plural, ordinal, case and gender forms, useful for showing a sample or checking that a rule selects the form it should.
 
-* **Dates and times** — format `Date`, `Time`, `DateTime`, and `NaiveDateTime` values using CLDR calendar patterns, classical skeletons, or TR35 semantic skeletons that ask for a date by meaning (`"YMDE"`, `"MDTZ"`) rather than by field, and parse locale-formatted text back into them. CLDR 49's ordinal days — the `ddd` field, as in "Jul 6th, 2024" — are a **technical preview**; see `Localize.Date`.
+* **Dates and times** — format `Date`, `Time`, `DateTime`, and `NaiveDateTime` values using CLDR calendar patterns, classical skeletons, or TR35 semantic skeletons that ask for a date by meaning (`"YMDE"`, `"MDTZ"`), and parse them back, including text written with a `Calendar.strftime/3` format rather than by field, and parse locale-formatted text back into them. CLDR 49's ordinal days — the `ddd` field, as in "Jul 6th, 2024" — are a **technical preview**; see `Localize.Date`.
 
 * **Relative times** — format time differences as human-readable phrases like "2 hours ago" or "in 3 days".
 
@@ -56,7 +56,7 @@ Try it without installing anything at the [Localize playground](https://playgrou
 
 * **MessageFormat 2** — parse and evaluate ICU MessageFormat 2 message strings.
 
-* **Inflection** — inflect words, pronouns and quantities for number, gender, case and definiteness, from the Unicode inflection project's data, as functions and as MessageFormat 2's `i:` functions. Inflection is a **technical preview**; see `Localize.Inflection`.
+* **Inflection** — inflect words, pronouns and quantities for number, gender, case and definiteness, from the Unicode inflection project's data, as functions and as MessageFormat 2's `i:` functions. Inflection is a **technical preview**; see `Localize.Inflection`. With `unicode_string` installed, Chinese, Japanese and Thai phrases are broken into dictionary words first.
 
 ## Claude Code skill
 
@@ -239,6 +239,8 @@ Why `:otp_app` is the recommended anchor: `Application.app_dir/2` is re-resolved
 * `:https_proxy` is an HTTPS proxy URL. The `HTTPS_PROXY` environment variable is also read. The default is `nil`.
 
 * `:http_retries` is how many times a locale or inflection download is retried after a CDN server error, a timeout or a dropped connection, each retry waiting twice as long as the last, with jitter. A 404 is never retried, and `0` makes a single attempt. The default is `3`.
+
+* `:inflection_word_break` is how `Localize.Inflection` breaks a phrase into words: `:unicode_string` segments by UAX #29 with the `unicode_string` package, which breaks Chinese, Japanese and Thai phrases into dictionary words, and `:regex` scans the phrase as it is. The default, `:auto`, uses `unicode_string` when the project has it. Localize declares no dependency on it.
 
 * `:http_retry_delay` is the delay in milliseconds before the first retry, doubling up to 8 seconds. The default is `500`.
 

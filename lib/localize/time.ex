@@ -967,4 +967,60 @@ defmodule Localize.Time do
       Localize.Time.Parser.parse(string, options)
     end
   end
+
+  @doc """
+  Parses a time written with a `Calendar.strftime/3` format.
+
+  The format is translated into the pattern the locale is read with by
+  `Localize.DateTime.Strptime.pattern/2`, and the text read with it by
+  `parse/2`, so a time `Calendar.strftime/3` writes with
+  `Localize.Calendar.strftime_options!/1` reads back in the same locale,
+  as does text from C, Python or Ruby. The [strptime guide](strptime.html)
+  lists the directives and where the reading differs from C's
+  `strptime(3)`.
+
+  ### Arguments
+
+  * `string` is the text to parse.
+
+  * `format` is a `Calendar.strftime/3` format string, such as
+    `"%I:%M %p"`.
+
+  * `options` is a keyword list of options.
+
+  ### Options
+
+  * `:preferred_datetime`, `:preferred_date` and `:preferred_time` are
+    the formats `%c`, `%x` and `%X` stand for, as `Calendar.strftime/3`
+    takes them.
+
+  * Every option of `parse/2` but `:format`: `:locale`, `:calendar`,
+    and `:as`.
+
+  ### Returns
+
+  * `{:ok, time}`, as `parse/2` returns it, or
+
+  * `{:error, exception}`, a `t:Localize.DateTimeFormatError.t/0` where
+    the format has a directive Localize does not read, or the error
+    `parse/2` returns where the text does not parse.
+
+  ### Examples
+
+      iex> Localize.Time.strptime("7:05 PM", "%I:%M %p", locale: :en)
+      {:ok, ~T[19:05:00]}
+
+      iex> Localize.Time.strptime("07:05:09.250000", "%H:%M:%S.%f", locale: :en)
+      {:ok, ~T[07:05:09.250000]}
+
+      iex> Localize.Time.strptime("14h30", "%Hh%M", locale: :fr)
+      {:ok, ~T[14:30:00]}
+
+  """
+  @spec strptime(String.t(), String.t(), Keyword.t()) :: {:ok, Time.t()} | {:error, Exception.t()}
+  def strptime(string, format, options \\ []) do
+    with {:ok, pattern} <- Localize.DateTime.Strptime.pattern(format, options) do
+      parse(string, Localize.DateTime.Strptime.parse_options(options, pattern))
+    end
+  end
 end

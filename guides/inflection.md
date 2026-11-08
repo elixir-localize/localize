@@ -116,6 +116,15 @@ A noun with fixed gender and no counterpart form comes back unchanged rather tha
 
 Phrases are handled by each language's synthesizer: significant words are identified, agreement rules applied, and the original separators preserved. Unknown words fall back to suffix-based guessing where the language supports it, and the original string is preserved when no inflection applies.
 
+### Word breaking
+
+A phrase is tokenized into words before any word is looked up or inflected. Apostrophes and hyphens end a word, as they do for the upstream tokenizer, so "l'école" is `l` + `école` and "Domain-Eigentümer" is `Domain` + `Eigentümer`; Dutch keeps its apostrophes (`auto’s` is a dictionary key); a period stays inside a word only between alphanumerics (`U.S.`).
+
+When your project has [unicode_string](https://hex.pm/packages/unicode_string), `{:unicode_string, "~> 2.4"}` in your `deps`, the phrase is first segmented by the [UAX #29](https://unicode.org/reports/tr29/) word break algorithm in the locale, and each segment is then scanned as above. The languages that have a synthesizer tokenize exactly as they do without it. The difference is in Chinese, Japanese and Thai, whose phrases carry no spaces: with `unicode_string` they break into dictionary words, so a phrase can be looked up word by word, where without it the whole phrase is one token. The Chinese and Japanese dictionary loads on the first phrase in either language, in under a second, and takes about 100 MB; Thai's takes a tenth of that.
+
+Localize declares no dependency on `unicode_string`, which itself depends optionally on Localize; it looks for the module at runtime, so adding the dependency is all it takes. `config :localize, inflection_word_break: :regex` keeps the plain tokenizer even when the module is there, and `:unicode_string` asks for it outright.
+
+
 ## Querying grammatical features
 
 `Localize.Inflection.feature/3` asks the dictionary (and the language's heuristics) about a word or phrase:

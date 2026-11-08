@@ -747,4 +747,60 @@ defmodule Localize.Date do
       Localize.Date.Parser.parse(string, options)
     end
   end
+
+  @doc """
+  Parses a date written with a `Calendar.strftime/3` format.
+
+  The format is translated into the pattern the locale is read with by
+  `Localize.DateTime.Strptime.pattern/2`, and the text read with it by
+  `parse/2`, so a date `Calendar.strftime/3` writes with
+  `Localize.Calendar.strftime_options!/1` reads back in the same locale,
+  as does text from C, Python or Ruby. The [strptime guide](strptime.html)
+  lists the directives and where the reading differs from C's
+  `strptime(3)`.
+
+  ### Arguments
+
+  * `string` is the text to parse.
+
+  * `format` is a `Calendar.strftime/3` format string, such as
+    `"%d %B %Y"`.
+
+  * `options` is a keyword list of options.
+
+  ### Options
+
+  * `:preferred_datetime`, `:preferred_date` and `:preferred_time` are
+    the formats `%c`, `%x` and `%X` stand for, as `Calendar.strftime/3`
+    takes them.
+
+  * Every option of `parse/2` but `:format`: `:locale`, `:calendar`,
+    `:reference_date` and `:as`.
+
+  ### Returns
+
+  * `{:ok, date}`, as `parse/2` returns it, or
+
+  * `{:error, exception}`, a `t:Localize.DateTimeFormatError.t/0` where
+    the format has a directive Localize does not read, or the error
+    `parse/2` returns where the text does not parse.
+
+  ### Examples
+
+      iex> Localize.Date.strptime("04/03/2026", "%d/%m/%Y", locale: :en)
+      {:ok, ~D[2026-03-04]}
+
+      iex> Localize.Date.strptime("4 mars 2026", "%e %B %Y", locale: :fr)
+      {:ok, ~D[2026-03-04]}
+
+      iex> Localize.Date.strptime("2026-063", "%Y-%j", locale: :en)
+      {:ok, ~D[2026-03-04]}
+
+  """
+  @spec strptime(String.t(), String.t(), Keyword.t()) :: {:ok, Date.t()} | {:error, Exception.t()}
+  def strptime(string, format, options \\ []) do
+    with {:ok, pattern} <- Localize.DateTime.Strptime.pattern(format, options) do
+      parse(string, Localize.DateTime.Strptime.parse_options(options, pattern))
+    end
+  end
 end

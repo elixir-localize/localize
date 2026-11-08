@@ -10,8 +10,6 @@ Outstanding work on Localize. The design detail behind these items lives under [
 
 * [ ] **Key the locale display-name data by the parts of a locale** — `Localize.Locale.LocaleDisplay.locale_name_from/4` and `Localize.Locale.LocaleDisplay.T.find_longest_language_match/3` still build `"en-GB"`-shaped identifiers from a tag's parts to probe each locale's `languages` display names, whose CLDR keys are such identifiers. Keying that per-locale data by `{language, script, territory, variants}` means regenerating every locale ETF, a new hash manifest and a CDN publish, so it is a data-version release of its own. The likely-subtag, language-alias and collation-tailoring tables were keyed by their parts in 1.6.1; found while fixing #70, 2026-11-02.
 
-* [ ] **Tokenise inflection phrases with `unicode_string` when it is installed** (1.7.0) — `Localize.Inflection.Tokenizer` is a regex approximating ICU's word break; with `{:unicode_string, "~> 2.4", optional: true}` present, segment by UAX #29 so Chinese, Japanese and Thai phrases break into dictionary words, which the regex returns as one run. Keep apostrophes and hyphens as boundaries outside Dutch, since the French, Italian and English synthesizers rely on "l'école" splitting, so the 31 synthesizer languages keep their tokens and their conformance suites. Assessed 2026-11-04: same tokens for those languages, dictionary words for CJK and Thai, 3 µs a call and 70 µs for a Japanese phrase on 2.4.2, 105 MB for the Chinese dictionary.
-
 ## In progress
 
 * [ ] **CLDR 49 upgrade** — the plan's items are closed bar item 11; the data is built from the final `release-49` (below). [plans/cldr-49.md](plans/cldr-49.md).
@@ -65,6 +63,10 @@ Outstanding work on Localize. The design detail behind these items lives under [
 * [ ] **`localize_emoji` sibling library** — plan item 11, a separate package on its own schedule. A Phoenix LiveView picker (`localize_emoji_live`) is out of scope for its 0.1.0.
 
 ## Done
+
+* [x] **Read strftime formats** — `Localize.Date.strptime/3`, `Localize.Time.strptime/3` and `Localize.DateTime.strptime/3` translate a `Calendar.strftime/3` format into the pattern `parse/2` reads with; the strptime guide marks where the reading differs from `strptime(3)`. 2026-11-08, unreleased.
+
+* [x] **Tokenise inflection phrases with `unicode_string` when it is installed** — `Localize.Inflection.Tokenizer` segments by UAX #29 first when the optional dependency is present, then scans each segment as before; Chinese, Japanese and Thai phrases break into dictionary words. 2026-11-04, unreleased.
 
 * [x] **German and Hebrew phrases misinflect** — a German determiner, adjectives and noun agree throughout, with the declension the determiner selects; a Hebrew word the dictionary knows only as a verb takes the heuristic plural. 2026-11-04, unreleased.
 

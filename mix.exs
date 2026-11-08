@@ -24,7 +24,7 @@ defmodule Localize.MixProject do
       compilers: maybe_elixir_make() ++ [:yecc, :leex] ++ Mix.compilers(),
       make_makefile: "c_src/Makefile",
       dialyzer: [
-        plt_add_apps: ~w(gettext inets mix sweet_xml nimble_parsec unicode xmerl)a,
+        plt_add_apps: ~w(gettext inets mix sweet_xml nimble_parsec unicode unicode_string xmerl)a,
         ignore_warnings: ".dialyzer_ignore.exs",
         flags: [
           :error_handling,
@@ -195,6 +195,7 @@ defmodule Localize.MixProject do
         "guides/number_formatting.md",
         "guides/plural_rules.md",
         "guides/date_time_formatting.md",
+        "guides/strptime.md",
         "guides/interval_and_duration_formatting.md",
         "guides/unit_formatting.md",
         "guides/list_formatting.md",
@@ -333,8 +334,10 @@ defmodule Localize.MixProject do
       {:sweet_xml, "~> 0.7", only: [:dev, :test], runtime: false},
       # `mix localize.gen_unicode_categories` reads the general categories
       # the number lexer classifies characters by; the generated module
-      # is checked in, so nothing needs the library at runtime.
-      {:unicode, "~> 2.2", only: :dev, runtime: false},
+      # is checked in, so nothing needs the library at runtime. A test
+      # dependency as well as a dev one because `unicode_string` below,
+      # a test dependency, depends on it.
+      {:unicode, "~> 2.2", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 1.4", only: :dev, runtime: false},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
       {:ex_slop, "~> 0.1", only: [:dev, :test], runtime: false},
@@ -344,7 +347,17 @@ defmodule Localize.MixProject do
       # offset and the daylight flag. Localize itself has no runtime need for
       # one — a consumer supplies whichever they use — so this never reaches
       # the package requirements.
-      {:tz, "~> 0.26", optional: true}
+      {:tz, "~> 0.26", optional: true},
+      # Dev and test only, never a package dependency: `unicode_string`
+      # depends optionally on Localize, so the dependency points one way,
+      # and were each to start the other OTP's application controller
+      # would recurse without end. `Localize.Inflection.Tokenizer` finds
+      # `Unicode.String` at runtime when a consumer has it, and segments
+      # a phrase by UAX #29 before finding its words, which is what
+      # breaks a Chinese, Japanese or Thai phrase into dictionary words.
+      # It is here so the suite exercises that path; `runtime: false`
+      # keeps it unstarted, and its functions need no application.
+      {:unicode_string, "~> 2.4", only: [:dev, :test], runtime: false}
     ] ++ maybe_json_polyfill() ++ maybe_cldr()
   end
 

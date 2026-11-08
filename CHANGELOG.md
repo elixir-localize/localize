@@ -4,7 +4,13 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.6.2] — Unreleased
+## [1.7.0] — Unreleased
+
+### Added
+
+* `Localize.Date.strptime/3`, `Localize.Time.strptime/3` and `Localize.DateTime.strptime/3` read text written with a `Calendar.strftime/3` format, in any locale, by translating the format into the pattern `parse/2` reads with (`Localize.DateTime.Strptime.pattern/2`); `%c`, `%x` and `%X` take the `:preferred_*` options as `Calendar.strftime/3` does. The strptime guide lists the directives and where the reading differs from C's `strptime(3)`.
+
+* `Localize.Inflection` tokenizes a phrase with `unicode_string` when the consumer has it, found at runtime with no dependency declared: the phrase is segmented by UAX #29 first, so a Chinese, Japanese or Thai phrase breaks into dictionary words where it was one run, and the languages with a synthesizer tokenize as before. `config :localize, inflection_word_break: :regex` or `:unicode_string` overrides the detection.
 
 ### Fixed
 

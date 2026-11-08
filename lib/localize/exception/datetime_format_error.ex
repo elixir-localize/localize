@@ -7,6 +7,12 @@ defmodule Localize.DateTimeFormatError do
 
   defexception [:format, :reason, :detail]
 
+  @type t :: %__MODULE__{
+          format: String.t() | atom() | struct() | nil,
+          reason: atom() | nil,
+          detail: term()
+        }
+
   @impl true
   def exception(bindings) when is_list(bindings) do
     struct!(__MODULE__, bindings)
