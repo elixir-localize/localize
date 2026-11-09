@@ -56,6 +56,11 @@ defmodule Localize.Number.Parser do
   # and an unrelated one 84.
   @good_fit_distance 10
 
+  # An ISO 4217 code at the start or the end of a string, as a whole word:
+  # "KWD 100", "100 KWD", but not the "ars" that ends "dolars".
+  @leading_code ~r/\A\s*([A-Za-z]{3})(?!\p{L})(.+)\z/us
+  @trailing_code ~r/\A(.+?)(?<!\p{L})([A-Za-z]{3})\s*\z/us
+
   @doc """
   Scans a string in a locale-aware manner and returns a list
   of strings and numbers.
@@ -617,10 +622,57 @@ defmodule Localize.Number.Parser do
         found
 
       {:error, %Localize.InvalidValueError{context: "Localize.Number.Parser"}} ->
-        {:error, Localize.UnknownCurrencyError.exception(currency: string)}
+        unlisted_or_unknown(string, language_tag, filters, reading)
 
       {:error, _exception} = error ->
         error
+    end
+  end
+
+  # A locale's data names only some currencies, and the number formatter
+  # writes one it does not name with its ISO 4217 code ("1 234,500 KWD" in
+  # `ady`), so text that matches none of the locale's strings may be such a
+  # code. See `Localize.Number.Lexicon.unlisted_currency/3`.
+  defp unlisted_or_unknown(string, language_tag, filters, reading) do
+    case unlisted_currency(string, language_tag, filters, reading) do
+      {:ok, _found} = found -> found
+      _unknown -> {:error, Localize.UnknownCurrencyError.exception(currency: string)}
+    end
+  end
+
+  # A currency amount's text is the currency alone.
+  defp unlisted_currency(string, language_tag, filters, :amount) do
+    with {:ok, code} <- Lexicon.unlisted_currency(string, language_tag, filters) do
+      {:ok, [code]}
+    end
+  end
+
+  # `resolve_currency/2` reads a currency at the start or the end of a string
+  # too, and returns the rest beside it, as it does for the locale's strings.
+  defp unlisted_currency(string, language_tag, filters, :nearest) do
+    Enum.find_value(code_candidates(string), :error, fn {text, before, rest} ->
+      case Lexicon.unlisted_currency(text, language_tag, filters) do
+        {:ok, code} -> {:ok, Enum.reject([before, code, rest], &(&1 == ""))}
+        _miss -> nil
+      end
+    end)
+  end
+
+  defp code_candidates(string) do
+    [{string, "", ""}] ++ leading_code(string) ++ trailing_code(string)
+  end
+
+  defp leading_code(string) do
+    case Regex.run(@leading_code, string, capture: :all_but_first) do
+      [code, rest] -> [{code, "", rest}]
+      nil -> []
+    end
+  end
+
+  defp trailing_code(string) do
+    case Regex.run(@trailing_code, string, capture: :all_but_first) do
+      [before, code] -> [{code, before, ""}]
+      nil -> []
     end
   end
 

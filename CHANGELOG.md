@@ -14,6 +14,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+* `Localize.Number.Parser.parse_currency_amount/2` and `resolve_currency/2` read the ISO 4217 code of a currency the locale does not list, which is how `to_string/2` writes one, so "1 234,500 KWD" in `ady` is read where it returned `UnknownCurrencyError`. The code is read only when none of the locale's currencies claims the text, and within `:only` and `:except`.
+
 * `Localize.Number.to_string/2`, the MF2 `:currency` function and `Localize.Currency.symbol/2` format a currency the locale's CLDR data does not list with its parent locale's data, so KWD in `ady` or VED in `es` is formatted where it returned `CurrencyNotLocalizedError`, even with `currency_symbol: :none`.
 
 * `Localize.Number.Parser.parse/2` and `scan/2` read Latin digits written with a locale's own separators, so `fa` "−1٬234٫5" is -1234.5, which 1.6 refused. Latin digits with Latin separators, `ar-EG` "1,234.56", still read with the locale's Latin set.

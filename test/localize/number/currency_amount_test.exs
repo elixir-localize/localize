@@ -570,6 +570,51 @@ defmodule Localize.Number.CurrencyAmountTest do
     end
   end
 
+  describe "a currency the locale does not list" do
+    # CLDR's ady lists no KWD and az-Cyrl no BHD, and es lists no VED, so
+    # `Localize.Number.to_string/2` writes them with their ISO 4217 codes.
+    test "reads the code in either case" do
+      assert {:error, %Localize.CurrencyNotLocalizedError{}} =
+               Localize.Currency.currency_for_code(:KWD, locale: :ady)
+
+      assert {:KWD, "1234.500"} = amount("1\u00A0234,500 KWD", locale: :ady)
+      assert {:KWD, "1234.500"} = amount("kwd 1\u00A0234,500", locale: :ady)
+      assert {:VED, "-7.00"} = amount("-7,00 VED", locale: :es)
+    end
+
+    test "reads back what to_string/2 writes" do
+      for {code, locale} <- [{:KWD, :ady}, {:BHD, :"az-Cyrl"}, {:VED, :es}] do
+        {:ok, text} = Localize.Number.to_string(-1234.5, currency: code, locale: locale)
+
+        assert {:ok, {^code, decimal}} = Parser.parse_currency_amount(text, locale: locale)
+        assert Decimal.equal?(decimal, Decimal.new("-1234.5")), "#{code} #{locale}"
+      end
+    end
+
+    test "keeps to the :only and :except filters" do
+      assert {:KWD, "1234.500"} = amount("1\u00A0234,500 KWD", locale: :ady, only: [:KWD])
+
+      assert %Localize.UnknownCurrencyError{} =
+               amount("1\u00A0234,500 KWD", locale: :ady, except: [:KWD])
+
+      assert %Localize.UnknownCurrencyError{} =
+               amount("1\u00A0234,500 KWD", locale: :ady, only: :historic)
+    end
+
+    test "reads only a known code" do
+      assert %Localize.UnknownCurrencyError{} = amount("100 ZQX", locale: :ady)
+    end
+
+    test "resolve_currency/2 reads the code alone or at either end" do
+      assert Parser.resolve_currency("KWD", locale: :ady) == [:KWD]
+      assert Parser.resolve_currency("100 KWD", locale: :ady) == ["100 ", :KWD]
+      assert Parser.resolve_currency("KWD 100", locale: :ady) == [:KWD, " 100"]
+
+      assert {:error, %Localize.UnknownCurrencyError{}} =
+               Parser.resolve_currency("ZQX", locale: :ady)
+    end
+  end
+
   describe "errors" do
     test "no currency and no default" do
       assert %Localize.ParseError{reason: :missing_currency, input: "100"} = amount("100")

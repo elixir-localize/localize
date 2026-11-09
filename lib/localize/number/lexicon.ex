@@ -133,6 +133,9 @@ defmodule Localize.Number.Lexicon do
 
   @single_space ~r/^\p{Zs}$/u
 
+  # An ISO 4217 code: three Latin letters, in either case.
+  @iso_code ~r/\A[A-Za-z]{3}\z/
+
   @default_grouping_sizes {3, 3}
 
   @latin_digits ~w(0 1 2 3 4 5 6 7 8 9)
@@ -387,6 +390,85 @@ defmodule Localize.Number.Lexicon do
 
       {:ok, amount_strings}
     end
+  end
+
+  @doc false
+  # The currency an ISO 4217 code names when the locale's data does not list
+  # it. A locale names only some currencies, and the number formatter writes
+  # one it does not name with its parent locale's symbol, which for every
+  # such currency is its code: "1 234,500 KWD" in `ady`, "1234,50 VED" in
+  # `es`. So text that matches none of the locale's currency strings is read
+  # as such a code when the locale does not list the currency, no string of
+  # its currencies takes the text, and the default locale, where the
+  # formatter's fallback ends, lists the currency under the same filters.
+  @spec unlisted_currency(String.t(), Localize.LanguageTag.t(), Keyword.t()) ::
+          {:ok, atom()} | :error | {:error, Exception.t()}
+  def unlisted_currency(text, %Localize.LanguageTag{} = language_tag, filters) do
+    trimmed = String.trim(text)
+
+    with {:ok, code} <- iso_code(trimmed),
+         :ok <- unlisted(code, String.downcase(trimmed), language_tag, filters) do
+      {:ok, code}
+    end
+  end
+
+  defp iso_code(text) do
+    if Regex.match?(@iso_code, text) do
+      known_code(Localize.Currency.validate_currency(text))
+    else
+      :error
+    end
+  end
+
+  defp known_code({:ok, code}) do
+    {:ok, code}
+  end
+
+  defp known_code({:error, _unknown}) do
+    :error
+  end
+
+  defp unlisted(code, string, language_tag, filters) do
+    locale_id = language_tag.cldr_locale_id
+
+    with {:ok, listed} <- Localize.Currency.currencies_for_locale(locale_id, filters),
+         {:ok, fallback} <-
+           Localize.Currency.currencies_for_locale(Localize.default_locale(), filters) do
+      readable? = Map.has_key?(fallback, code) and not Map.has_key?(listed, code)
+
+      if readable? and not claimed?(listed, string) do
+        :ok
+      else
+        :error
+      end
+    end
+  end
+
+  # Whether one of the locale's currencies writes `string` as its code,
+  # name, symbol, narrow symbol or a plural form, normalized as
+  # `Localize.Currency.currency_strings/2` normalizes them, so the string is
+  # that currency's, or one several of them share.
+  defp claimed?(listed, string) do
+    Enum.any?(listed, fn {code, currency} -> string in claimed_texts(code, currency) end)
+  end
+
+  defp claimed_texts(code, currency) do
+    texts = [Atom.to_string(code), currency.name, currency.symbol, currency.narrow_symbol]
+
+    for text <- texts ++ plural_names(currency.count), is_binary(text) do
+      text
+      |> String.downcase()
+      |> String.trim_trailing("\u200F")
+      |> String.trim_trailing(".")
+    end
+  end
+
+  defp plural_names(counts) when is_map(counts) do
+    Map.values(counts)
+  end
+
+  defp plural_names(_counts) do
+    []
   end
 
   # Two strings that normalize alike but name different currencies name
