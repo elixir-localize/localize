@@ -14,6 +14,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+* `Localize.Number.Parser.parse/2` and `scan/2` read Latin digits written with a locale's own separators, so `fa` "−1٬234٫5" is -1234.5, which 1.6 refused. Latin digits with Latin separators, `ar-EG` "1,234.56", still read with the locale's Latin set.
+
 * `Localize.Inflection.inflect/3` inflects a German phrase of a determiner, adjectives and a noun throughout, so "das kleine Haus" in the dative is "dem kleinen Haus", where the article was left as it was and the adjective declined strong. An adjective declines weak after a der-word and mixed after an ein-word, and an ein-word the dictionary cannot inflect ("kein", "ihr", "sein") takes the negative article's endings.
 
 * `Localize.Inflection.inflect/3` and `quantify/4` pluralise a Hebrew word the dictionary knows only as a verb by the heuristics when nothing but the number is asked for, so "ילד" is "ילדים", where it was the verb's "ילדו". A part of speech, a person or a gender still inflects the verb.

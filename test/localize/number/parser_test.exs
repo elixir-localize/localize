@@ -263,6 +263,16 @@ defmodule Localize.Number.ParserTest do
       assert {:ok, 1234.56} = Parser.parse("١٬٢٣٤٫٥٦", locale: "ar-EG")
       assert {:ok, 100.0} = Parser.parse("100,00", locale: "ar-EG", number_system: :arab)
     end
+
+    test "are read with the locale's own separators where the text uses them" do
+      assert {:ok, 1234.56} = Parser.parse("1٬234٫56", locale: "ar-EG")
+      assert {:ok, -1234.5} = Parser.parse("−1٬234٫5", locale: "fa")
+      assert {:ok, -1234.5} = Parser.parse("-1٬234٫5", locale: "ckb")
+      assert {:ok, -1234.5} = Parser.parse("-1٬234.5", locale: "sd")
+      assert {:ok, -1234.5} = Parser.parse("-1٬234٫5", locale: "ps")
+      assert {:ok, 1234} = Parser.parse("1٬234", locale: "ur-IN")
+      assert {:ok, 1234.5} = Parser.parse("1234.5", locale: "sd")
+    end
   end
 
   describe "a grouping separator after the decimal mark" do

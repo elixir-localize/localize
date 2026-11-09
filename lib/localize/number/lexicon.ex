@@ -204,7 +204,10 @@ defmodule Localize.Number.Lexicon do
 
   The locale's own number system, unless the string is written in
   Latin digits alone, in which case Latin, with the locale's Latin
-  separators. `:number_system` in the options overrides the choice.
+  separators. Latin digits written with a separator of the locale's
+  own system that its Latin set does not use (`ar-EG` "1٬234٫5") are
+  read in the locale's system, whose digits include the Latin ones.
+  `:number_system` in the options overrides the choice.
 
   ### Arguments
 
@@ -230,6 +233,10 @@ defmodule Localize.Number.Lexicon do
       iex> {:ok, ar_eg} = Localize.validate_locale(:"ar-EG")
       iex> Localize.Number.Lexicon.number_system(ar_eg, "123", [])
       {:ok, :latn}
+
+      iex> {:ok, ar_eg} = Localize.validate_locale(:"ar-EG")
+      iex> Localize.Number.Lexicon.number_system(ar_eg, "1٬234٫5", [])
+      {:ok, :arab}
 
   """
   @spec number_system(Localize.LanguageTag.t(), String.t(), Keyword.t()) ::
@@ -655,39 +662,74 @@ defmodule Localize.Number.Lexicon do
   # alone. `ar-EG` writes `arab` digits with ٬ and ٫, and ٫ folds onto ",",
   # so reading typed "100,00" with those separators made it 100.00 and
   # refused "1,234.56". The locale's Latin separators are the ones such
-  # text is written with.
+  # text is written with. Latin digits written with the locale's own
+  # separators, "1٬234٫5", as a field that writes only Latin digits types
+  # them, are read in its own system, whose digits include the Latin ones.
   defp written_number_system(language_tag, string) do
     case own_number_system(language_tag) do
       {system, nil} -> system
-      {system, digits} -> native_or_latin(system, digits, string)
+      {system, markers} -> native_or_latin(system, markers, string)
     end
   end
 
   # The locale's own number system and, where it is not Latin and has
-  # digits, those digits, found once per locale. A `-u-nu-` extension
-  # names the system too and is no part of the CLDR locale id, so it is
-  # part of the key: `und-u-nu-arab` is not `und`.
+  # digits, the characters that mark text as written in it: its digits and
+  # those of its separators the locale's Latin set does not also use. Found
+  # once per locale. A `-u-nu-` extension names the system too and is no
+  # part of the CLDR locale id, so it is part of the key: `und-u-nu-arab`
+  # is not `und`.
   defp own_number_system(language_tag) do
     extension = Map.get(language_tag.locale, :nu)
 
     cached({:own_number_system, language_tag.cldr_locale_id, extension}, fn ->
       case System.number_system_from_locale(language_tag) do
         {:ok, :latn} -> {:latn, nil}
-        {:ok, system} -> {system, system_digits(system)}
+        {:ok, system} -> {system, system_markers(language_tag, system)}
         _no_system -> {:latn, nil}
       end
     end)
   end
 
-  defp system_digits(system) do
+  defp system_markers(language_tag, system) do
     case System.number_system_digits(system) do
-      {:ok, digits} -> String.graphemes(digits)
+      {:ok, digits} -> String.graphemes(digits) ++ own_separators(language_tag, system)
       {:error, _not_numeric} -> nil
     end
   end
 
-  defp native_or_latin(system, digits, string) do
-    if String.contains?(string, digits) do
+  # The separators of the locale's own system that its Latin set does not
+  # use: ٫ and ٬ in `ar-EG` and `fa`, ٬ alone in `sd`, whose decimal is a
+  # period. The characters themselves, not their lenient families, since ٫
+  # folds onto "," and "1,234.56" is Latin text.
+  defp own_separators(language_tag, system) do
+    case Symbol.number_symbols_for(language_tag) do
+      {:ok, symbols} -> separators_not_in(Map.get(symbols, system), Map.get(symbols, :latn))
+      {:error, _reason} -> []
+    end
+  end
+
+  defp separators_not_in(nil, _latin) do
+    []
+  end
+
+  defp separators_not_in(own, latin) do
+    latin_separators = separators_of(latin)
+
+    own
+    |> separators_of()
+    |> Enum.reject(&(&1 == "" or &1 in latin_separators))
+  end
+
+  defp separators_of(nil) do
+    []
+  end
+
+  defp separators_of(symbols) do
+    [separator(symbols.decimal), separator(symbols.group)]
+  end
+
+  defp native_or_latin(system, markers, string) do
+    if String.contains?(string, markers) do
       system
     else
       :latn

@@ -133,6 +133,16 @@ defmodule Localize.Number.LexiconTest do
       assert {:ok, :latn} = Lexicon.number_system(ar_eg, "", [])
     end
 
+    test "the locale's system where its own separators are written", %{ar_eg: ar_eg} do
+      {:ok, sd} = Localize.validate_locale(:sd)
+
+      assert {:ok, :arab} = Lexicon.number_system(ar_eg, "1٬234", [])
+      assert {:ok, :arab} = Lexicon.number_system(ar_eg, "12٫5", [])
+      assert {:ok, :latn} = Lexicon.number_system(ar_eg, "1,234.5", [])
+      assert {:ok, :arab} = Lexicon.number_system(sd, "1٬234.5", [])
+      assert {:ok, :latn} = Lexicon.number_system(sd, "1234.5", [])
+    end
+
     test "an option names the system", %{ar_eg: ar_eg, en: en} do
       assert {:ok, :latn} = Lexicon.number_system(ar_eg, "١٢٣", number_system: :latn)
       assert {:ok, :deva} = Lexicon.number_system(en, "123", number_system: :deva)
