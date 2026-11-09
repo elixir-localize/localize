@@ -162,7 +162,7 @@ Recommended: 1, with 2 for applications that configure `:supported_locales`, aft
 
 * [x] **Make custom unit registration atomic** — `Localize.Unit.CustomRegistry` is a process under `Localize.Supervisor` owning a protected ETS table; writes go through it, reads go to the table, and registering before it starts returns an error. 200 concurrent registrations all kept. 2026-11-10.
 
-* [ ] **Keep locale chains in ETS** — cleared with one call when the supported locales change.
+* [x] **Keep locale chains in ETS** — kept in `Localize.Locale.Loader`'s locale cache, which `put_supported_locales/1` already cleared, so `Rbnf.clear_locale_chains/0` is gone. 2026-11-10.
 
 * [ ] **Warn once with `:ets.insert_new/2`** — for `Localize.Macros.warn_once/3` and the four flags.
 

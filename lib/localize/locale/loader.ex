@@ -116,6 +116,9 @@ defmodule Localize.Locale.Loader do
     # write to or delete from it. The table is `:protected`: any
     # process can read directly via `:ets.lookup/2`, but writes go
     # through this GenServer (see `cache_store/1` and `clear_cache/0`).
+    # It also keeps each locale's RBNF lookup chain, which depends on the
+    # supported locales as a validation does, so one clear forgets both
+    # when they change.
     if :ets.whereis(:localize_locale_cache) == :undefined do
       :ets.new(:localize_locale_cache, [
         :set,
@@ -126,6 +129,23 @@ defmodule Localize.Locale.Loader do
     end
 
     {:ok, %{}}
+  end
+
+  @doc """
+  Looks a key up in the locale-validation cache, which any process reads
+  directly.
+
+  """
+  @spec cache_lookup(term()) :: {:ok, term()} | :miss
+  def cache_lookup(key) do
+    if :ets.whereis(:localize_locale_cache) == :undefined do
+      :miss
+    else
+      case :ets.lookup(:localize_locale_cache, key) do
+        [{^key, value}] -> {:ok, value}
+        [] -> :miss
+      end
+    end
   end
 
   @doc """

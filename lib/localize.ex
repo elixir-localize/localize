@@ -1055,8 +1055,10 @@ defmodule Localize do
   def put_supported_locales(locales)
       when locales == [] or (is_list(locales) and is_atom(hd(locales))) do
     :persistent_term.put({:localize, :supported_locales}, with_root(locales))
-    Localize.Locale.Loader.clear_locale_cache()
-    Localize.Number.Rbnf.clear_locale_chains()
+
+    # The cache holds the validated locales and the RBNF locale chains,
+    # both resolved among the supported locales, and one call clears both.
+    Localize.Locale.Loader.clear_cache()
   end
 
   def put_supported_locales(locales),

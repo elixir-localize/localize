@@ -352,32 +352,23 @@ defmodule Localize.Number.Rbnf do
   # The CLDR locales a locale's rules are looked up in: its own, then each
   # parent's (`he`, then `und`, whose rules write Hebrew and Roman
   # numerals). Found once a locale, since finding a parent revalidates its
-  # tag, which took tens of milliseconds a call.
+  # tag, which took tens of milliseconds a call. A chain names the CLDR
+  # locale each parent resolves to among the supported locales, so it is
+  # kept in the locale-validation cache, which
+  # `Localize.put_supported_locales/1` clears with one call when they change.
   defp locale_chain(language_tag, locale_id) do
     key = {__MODULE__, :locale_chain, locale_id}
 
-    case :persistent_term.get(key, nil) do
-      nil ->
-        chain = parent_chain(language_tag, [locale_id])
-        Localize.LiteralMemory.cache(key, chain)
-        chain
-
-      chain ->
-        chain
+    case Localize.Locale.Loader.cache_lookup(key) do
+      {:ok, chain} -> chain
+      :miss -> store_locale_chain(key, language_tag, locale_id)
     end
   end
 
-  @doc false
-  # Forgets every cached locale chain. A chain names the CLDR locale each
-  # parent resolves to among the supported locales, so it is stale once the
-  # supported locales change; `Localize.put_supported_locales/1` calls this.
-  @spec clear_locale_chains() :: :ok
-  def clear_locale_chains do
-    :persistent_term.get()
-    |> Enum.each(fn
-      {{__MODULE__, :locale_chain, _locale_id} = key, _chain} -> :persistent_term.erase(key)
-      _other -> :ok
-    end)
+  defp store_locale_chain(key, language_tag, locale_id) do
+    chain = parent_chain(language_tag, [locale_id])
+    Localize.Locale.Loader.cache_store({key, chain})
+    chain
   end
 
   defp parent_chain(language_tag, chain) do

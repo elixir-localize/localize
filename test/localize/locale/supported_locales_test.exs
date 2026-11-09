@@ -235,6 +235,20 @@ defmodule Localize.Locale.SupportedLocalesTest do
 
       Localize.put_supported_locales(context.original_supported)
     end
+
+    test "a locale chain is kept in the locale cache and cleared with it", context do
+      key = {Localize.Number.Rbnf, :locale_chain, :nb}
+      Localize.put_supported_locales([:en, :nb, :no])
+      assert Localize.Number.to_string(3, format: :spellout, locale: :nb) == {:ok, "tre"}
+
+      # The chain is stored with a cast, which this call waits behind.
+      _state = :sys.get_state(Localize.Locale.Loader)
+      assert {:ok, [:nb | _parents]} = Localize.Locale.Loader.cache_lookup(key)
+      refute Enum.any?(:persistent_term.get(), &match?({{Localize.Number.Rbnf, _, _}, _}, &1))
+
+      Localize.put_supported_locales(context.original_supported)
+      assert Localize.Locale.Loader.cache_lookup(key) == :miss
+    end
   end
 
   # The CLDR locale of each ancestor of a tag, up to the root.
