@@ -11,7 +11,7 @@ Out of the box, your `mix.exs` just lists the dependency:
 ```elixir
 def deps do
   [
-    {:localize, "~> 1.6"}
+    {:localize, "~> 1.7"}
   ]
 end
 ```
@@ -25,7 +25,7 @@ To mount Localize yourself, mark the dependency `runtime: false`. This tells Mix
 ```elixir
 def deps do
   [
-    {:localize, "~> 1.6", runtime: false}
+    {:localize, "~> 1.7", runtime: false}
   ]
 end
 ```

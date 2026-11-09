@@ -163,7 +163,8 @@ defmodule Localize.Inflection.Synthesizer.He do
     constraint_values = Enum.reject([count, gender, person], &(&1 == ""))
 
     plural_only? =
-      count in ["dual", "plural"] and gender == "" and person == "" and disambiguation == []
+      count in ["dual", "plural"] and gender == "" and person == "" and
+        nominal_request?(disambiguation)
 
     whole =
       case nominal_grammemes(display_string, plural_only?) do
@@ -218,8 +219,8 @@ defmodule Localize.Inflection.Synthesizer.He do
   end
 
   # The grammemes a word brings to a request. For a plural (or dual)
-  # alone, with no gender, person or part of speech, a word the
-  # dictionary knows only as a verb has none: "ילד" is only the verb
+  # alone, with no gender or person and no part of speech but a nominal
+  # one, a word the dictionary knows only as a verb has none: "ילד" is only the verb
   # "gave birth" in the dictionary, so its plural from the verb tables
   # is "ילדו", "they gave birth", where the noun "child" wants "ילדים".
   # Such a word is read as one the dictionary does not know, and takes
@@ -248,6 +249,12 @@ defmodule Localize.Inflection.Synthesizer.He do
     verb = Dictionary.binary_properties(@locale, ["verb"]) || 0
     nominal = Dictionary.binary_properties(@locale, ["noun", "adjective", "proper-noun"]) || 0
     (grammemes &&& verb) != 0 and (grammemes &&& nominal) == 0
+  end
+
+  # A request that names no part of speech, or only nominal ones, cannot
+  # be asking for the verb.
+  defp nominal_request?(disambiguation) do
+    Enum.all?(disambiguation, &(&1 in ["noun", "adjective", "proper-noun"]))
   end
 
   # ── Pluralization heuristics ─────────────────────────────────

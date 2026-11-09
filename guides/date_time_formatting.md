@@ -426,6 +426,8 @@ Parsing is the inverse of formatting and reads the same CLDR data, so a locale t
 | `Localize.Interval.parse/2` | `t:Date.Range.t/0` |
 | `Localize.DateTime.Parser.parse/2` | whichever of the four the input turns out to be |
 
+Text written with a `Calendar.strftime/3` format, `%d/%m/%Y` and the other C directives, reads through `Localize.Date.strptime/3`, `Localize.Time.strptime/3` and `Localize.DateTime.strptime/3`, which translate the format into the pattern `parse/2` reads with. The [strptime guide](strptime.html) lists the directives and where the reading differs from C's `strptime(3)`.
+
 ### Dates and times
 
 Input is matched against the locale's own short, medium, long and full patterns, and then its other available formats, so each locale accepts what it produces and an ambiguous numeric date is read the way the locale writes it:

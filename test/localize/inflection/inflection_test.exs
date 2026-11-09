@@ -220,6 +220,41 @@ defmodule Localize.InflectionTest do
                {:ok, "dem großen Hund"}
     end
 
+    # "gute" is only the noun "das Gute" to the dictionary, "rote" only
+    # "die Rote" and "junge" only a verb, where "gut", "rot" and "jung"
+    # are adjectives; a lower-case form is the adjective.
+    test "an adjective the dictionary reads only as a noun or a verb declines from its lemma" do
+      assert Localize.Inflection.inflect("der gute Wein", :de, case: :dative) ==
+               {:ok, "dem guten Wein"}
+
+      assert Localize.Inflection.inflect("die gute Frau", :de, case: :dative) ==
+               {:ok, "der guten Frau"}
+
+      assert Localize.Inflection.inflect("das rote Auto", :de, case: :genitive) ==
+               {:ok, "des roten Autos"}
+
+      assert Localize.Inflection.inflect("der junge Hund", :de, case: :dative) ==
+               {:ok, "dem jungen Hund"}
+
+      assert Localize.Inflection.inflect("ein guter Wein", :de, case: :dative) ==
+               {:ok, "einem guten Wein"}
+    end
+
+    # The dictionary has "dieser" and not the other der-words.
+    test "a der-word the dictionary lacks takes the definite article's endings" do
+      assert Localize.Inflection.inflect("jeder alte Mann", :de, case: :dative) ==
+               {:ok, "jedem alten Mann"}
+
+      assert Localize.Inflection.inflect("jener alte Mann", :de, case: :dative) ==
+               {:ok, "jenem alten Mann"}
+
+      assert Localize.Inflection.inflect("welcher alte Mann", :de, case: :accusative) ==
+               {:ok, "welchen alten Mann"}
+
+      assert Localize.Inflection.inflect("dieser alte Mann", :de, case: :dative) ==
+               {:ok, "diesem alten Mann"}
+    end
+
     test "an adjective declines weak after a der-word and mixed after an ein-word" do
       assert Localize.Inflection.inflect("dieses kleine Haus", :de, case: :dative) ==
                {:ok, "diesem kleinen Haus"}
@@ -292,12 +327,16 @@ defmodule Localize.InflectionTest do
   describe "a Hebrew word the dictionary knows only as a verb" do
     test "takes the heuristic plural when nothing but the number is asked for" do
       assert Localize.Inflection.inflect("ילד", :he, number: :plural) == {:ok, "ילדים"}
+
+      assert Localize.Inflection.inflect("ילד", :he, number: :plural, pos: :noun) ==
+               {:ok, "ילדים"}
+
       assert Localize.Inflection.inflect("ילד קטן", :he, number: :plural) == {:ok, "ילדים קטנים"}
       assert Localize.Inflection.quantify("3", "ילד", :he, plural: :other) == {:ok, "3 ילדים"}
       assert Localize.Inflection.inflect("ספר", :he, number: :plural) == {:ok, "ספרים"}
     end
 
-    test "inflects the verb for a part of speech, a person or a gender, as upstream does" do
+    test "inflects the verb for a verb part of speech, a person or a gender, as upstream does" do
       assert Localize.Inflection.inflect("ילד", :he, number: :plural, pos: :verb) == {:ok, "ילדו"}
 
       assert Localize.Inflection.inflect("ילד", :he, number: :plural, person: :third) ==

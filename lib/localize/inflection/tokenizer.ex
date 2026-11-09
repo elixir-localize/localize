@@ -68,7 +68,8 @@ defmodule Localize.Inflection.Tokenizer do
   The backend `word_tokens/2` segments with: the one the application
   environment key `:inflection_word_break` names, `:unicode_string` or
   `:regex`, or by default `:unicode_string` when `Unicode.String` is
-  loaded and `:regex` otherwise.
+  loaded and `:regex` otherwise. Any other value of the key is read as
+  the default.
 
   """
   def backend do

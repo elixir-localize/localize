@@ -67,7 +67,7 @@ Localize ships a [Claude Code](https://claude.com/claude-code) skill that teache
 /plugin install localize@localize
 ```
 
-The skill source lives in [skills/localize](https://github.com/elixir-localize/localize/blob/v1.6.1/skills/localize/SKILL.md).
+The skill source lives in [skills/localize](https://github.com/elixir-localize/localize/blob/v1.7.0/skills/localize/SKILL.md).
 
 ## MCP server
 
@@ -86,7 +86,7 @@ Add `localize` to your dependencies in `mix.exs`:
 ```elixir
 def deps do
   [
-    {:localize, "~> 1.6"}
+    {:localize, "~> 1.7"}
   ]
 end
 ```
@@ -96,7 +96,7 @@ On OTP 26 only:
 ```elixir
 def deps do
   [
-    {:localize, "~> 1.6"},
+    {:localize, "~> 1.7"},
     {:json_polyfill, "~> 0.2 or ~> 1.0"}
   ]
 end
@@ -397,4 +397,4 @@ Locale-aware Phoenix LiveView inputs, so a user can enter a value under their ow
 
 ## License
 
-Apache License 2.0, together with the Unicode License v3 for the CLDR and UCD data embedded in the package. See the [LICENSE](https://github.com/elixir-localize/localize/blob/v1.6.1/LICENSE.md) file for details, including which Unicode data is used and what it becomes.
+Apache License 2.0, together with the Unicode License v3 for the CLDR and UCD data embedded in the package. See the [LICENSE](https://github.com/elixir-localize/localize/blob/v1.7.0/LICENSE.md) file for details, including which Unicode data is used and what it becomes.

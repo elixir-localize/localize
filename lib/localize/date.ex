@@ -782,7 +782,9 @@ defmodule Localize.Date do
   * `{:ok, date}`, as `parse/2` returns it, or
 
   * `{:error, exception}`, a `t:Localize.DateTimeFormatError.t/0` where
-    the format has a directive Localize does not read, or the error
+    the format has a directive Localize does not read, a
+    `t:Localize.InvalidValueError.t/0` where the format is not a UTF-8
+    string or the options are not a keyword list, or the error
     `parse/2` returns where the text does not parse.
 
   ### Examples
@@ -799,8 +801,9 @@ defmodule Localize.Date do
   """
   @spec strptime(String.t(), String.t(), Keyword.t()) :: {:ok, Date.t()} | {:error, Exception.t()}
   def strptime(string, format, options \\ []) do
-    with {:ok, pattern} <- Localize.DateTime.Strptime.pattern(format, options) do
-      parse(string, Localize.DateTime.Strptime.parse_options(options, pattern))
+    with {:ok, pattern} <- Localize.DateTime.Strptime.pattern(format, options),
+         {:ok, parse_options} <- Localize.DateTime.Strptime.parse_options(options, pattern) do
+      parse(string, parse_options)
     end
   end
 end

@@ -10,6 +10,8 @@ Outstanding work on Localize. The design detail behind these items lives under [
 
 * [ ] **Key the locale display-name data by the parts of a locale** — `Localize.Locale.LocaleDisplay.locale_name_from/4` and `Localize.Locale.LocaleDisplay.T.find_longest_language_match/3` still build `"en-GB"`-shaped identifiers from a tag's parts to probe each locale's `languages` display names, whose CLDR keys are such identifiers. Keying that per-locale data by `{language, script, territory, variants}` means regenerating every locale ETF, a new hash manifest and a CDN publish, so it is a data-version release of its own. The likely-subtag, language-alias and collation-tailoring tables were keyed by their parts in 1.6.1; found while fixing #70, 2026-11-02.
 
+* [ ] **Two German words, and the indefinite article in the plural** — `Localize.Inflection.inflect/3` reads an adjective and a noun alone as the upstream project does, the number singular unless asked for, so "kleine Häuser" in the dative is "kleinem Häusern", and an adjective form it does not read stays as it is, "alter Mann" in the genitive and "guter Wein" in the dative; and "ein kleines Haus" in the plural keeps "ein", which German drops. Three or more words agree throughout. Found by the 1.7.0 release review, 2026-11-09.
+
 ## In progress
 
 * [ ] **CLDR 49 upgrade** — the plan's items are closed bar item 11; the data is built from the final `release-49` (below). [plans/cldr-49.md](plans/cldr-49.md).
@@ -64,11 +66,11 @@ Outstanding work on Localize. The design detail behind these items lives under [
 
 ## Done
 
-* [x] **Read strftime formats** — `Localize.Date.strptime/3`, `Localize.Time.strptime/3` and `Localize.DateTime.strptime/3` translate a `Calendar.strftime/3` format into the pattern `parse/2` reads with; the strptime guide marks where the reading differs from `strptime(3)`. 2026-11-08, unreleased.
+* [x] **Read strftime formats** — `Localize.Date.strptime/3`, `Localize.Time.strptime/3` and `Localize.DateTime.strptime/3` translate a `Calendar.strftime/3` format into the pattern `parse/2` reads with; the strptime guide marks where the reading differs from `strptime(3)`. 2026-11-08, v1.7.0.
 
-* [x] **Tokenise inflection phrases with `unicode_string` when it is installed** — `Localize.Inflection.Tokenizer` segments by UAX #29 first when the optional dependency is present, then scans each segment as before; Chinese, Japanese and Thai phrases break into dictionary words. 2026-11-04, unreleased.
+* [x] **Tokenise inflection phrases with `unicode_string` when it is installed** — `Localize.Inflection.Tokenizer` segments by UAX #29 first when the optional dependency is present, then scans each segment as before; Chinese, Japanese and Thai phrases break into dictionary words. 2026-11-04, v1.7.0.
 
-* [x] **German and Hebrew phrases misinflect** — a German determiner, adjectives and noun agree throughout, with the declension the determiner selects; a Hebrew word the dictionary knows only as a verb takes the heuristic plural. 2026-11-04, unreleased.
+* [x] **German and Hebrew phrases misinflect** — a German determiner, adjectives and noun agree throughout, with the declension the determiner selects; a Hebrew word the dictionary knows only as a verb takes the heuristic plural. 2026-11-04, v1.7.0.
 
 * [x] **Convert an angle or a ratio before a dimensionless function** — `Localize.Unit.Math.apply_dimensionless/2` converts an angle to radians and a `part` unit to the plain ratio before applying `sin/1` to `log2/1`, so `sin` of `90 degree` is 1 and `ln` of `100 percent` is 0; the doctests add `90 degree`, `0.5 revolution` and `100 percent`. Found by Unity's 1.2.0 release review, 2026-10-28. 2026-11-02, v1.6.1.
 
@@ -84,29 +86,29 @@ Outstanding work on Localize. The design detail behind these items lives under [
 
 * [x] **`localize_mf1` sibling library** — ICU MessageFormat 1 (`plural`, `select`, `selectordinal`) for applications migrating from `ex_cldr_messages`, as asked in #60; completed, not yet released. Recorded 2026-10-28.
 
-* [x] **An amount that could be two amounts is refused** — `grouping: :sizes` for amounts (`de` "1.23 EUR" was €123), and `:currency` in `de-AT` and `fr-CH` reads with both separator sets and refuses where they differ (user, 2026-10-28: "We can never create a situation where the returned result is incorrect"). 2026-10-28, unreleased.
+* [x] **An amount that could be two amounts is refused** — `grouping: :sizes` for amounts (`de` "1.23 EUR" was €123), and `:currency` in `de-AT` and `fr-CH` reads with both separator sets and refuses where they differ (user, 2026-10-28: "We can never create a situation where the returned result is incorrect"). 2026-10-28, v1.5.0.
 
-* [x] **A stray space between digits** — refused where the locale does not group with a space, as `scan/2` reads it (user, 2026-10-28), so `en` "1 2" is an error rather than 12; space-grouping locales still take any `[:Zs:]`. 2026-10-28, unreleased.
+* [x] **A stray space between digits** — refused where the locale does not group with a space, as `scan/2` reads it (user, 2026-10-28), so `en` "1 2" is an error rather than 12; space-grouping locales still take any `[:Zs:]`. 2026-10-28, v1.5.0.
 
-* [x] **A grouping separator after the decimal mark** — refused, so `de` "1,234.56" and `en` "1.234,56" are errors rather than 1.23456. 2026-10-28, unreleased.
+* [x] **A grouping separator after the decimal mark** — refused, so `de` "1,234.56" and `en` "1.234,56" are errors rather than 1.23456. 2026-10-28, v1.5.0.
 
-* [x] **ASCII digits read with the Latin separators** — with no `:number_system`, text in Latin digits alone is read with the locale's `latn` separators, and `scan/2` passes its chosen system to each piece. 2026-10-28, unreleased.
+* [x] **ASCII digits read with the Latin separators** — with no `:number_system`, text in Latin digits alone is read with the locale's `latn` separators, and `scan/2` passes its chosen system to each piece. 2026-10-28, v1.5.0.
 
-* [x] **Lenient grouping accepts a group that is too long** — every group is now at most the locale's longest grouping size, so `de` "1234.56" no longer reads as 123456; found comparing ex_money's old and new readings. 2026-10-28, unreleased.
+* [x] **Lenient grouping accepts a group that is too long** — every group is now at most the locale's longest grouping size, so `de` "1234.56" no longer reads as 123456; found comparing ex_money's old and new readings. 2026-10-28, v1.5.0.
 
-* [x] **A dash after the decimal mark reads as a zero fraction** — one or two dashes after the decimal mark and no digit, read only leniently, in `parse/2`, `scan/2` and `parse_currency_amount/2`; a dash after the fraction digits is still a trailing minus. 2026-10-28, unreleased.
+* [x] **A dash after the decimal mark reads as a zero fraction** — one or two dashes after the decimal mark and no digit, read only leniently, in `parse/2`, `scan/2` and `parse_currency_amount/2`; a dash after the fraction digits is still a trailing minus. 2026-10-28, v1.5.0.
 
-* [x] **`Localize.Number.Parser.parse_currency_amount/2`** — reads one currency amount into `{:ok, {currency, decimal}}`: currency either side, a sign before, between or after, accounting parentheses, the currency's separators, `:default_currency` and `:unknown_currency`; reads every case in ex_money's `test/money_parse_test.exs`. 2026-10-28, unreleased.
+* [x] **`Localize.Number.Parser.parse_currency_amount/2`** — reads one currency amount into `{:ok, {currency, decimal}}`: currency either side, a sign before, between or after, accounting parentheses, the currency's separators, `:default_currency` and `:unknown_currency`; reads every case in ex_money's `test/money_parse_test.exs`. 2026-10-28, v1.5.0.
 
-* [x] **A currency symbol ending in a period is matched whole** — the matcher takes the closing period of a string whose CLDR form has one, and the bidi controls after it, so `da` "kr." and `ar` "ج.م.‏" leave nothing over; "100 USD." keeps its period. 2026-10-28, unreleased.
+* [x] **A currency symbol ending in a period is matched whole** — the matcher takes the closing period of a string whose CLDR form has one, and the bidi controls after it, so `da` "kr." and `ar` "ج.م.‏" leave nothing over; "100 USD." keeps its period. 2026-10-28, v1.5.0.
 
-* [x] **`scan/2` ignores bidi marks** — Bidi_Control runs before a number or between its sign and digits are part of the number, so `ar-EG` "\u061C-\u200F١٬٢٣٤" reads as negative; marks elsewhere stay in the text. 2026-10-28, unreleased.
+* [x] **`scan/2` ignores bidi marks** — Bidi_Control runs before a number or between its sign and digits are part of the number, so `ar-EG` "\u061C-\u200F١٬٢٣٤" reads as negative; marks elsewhere stay in the text. 2026-10-28, v1.5.0.
 
-* [x] **`scan/2` applies the `parseLenients` folds** — the scanner's sign, group and decimal classes take every character `parse/2` folds onto them, so `sv` "−1 234,56" and `de-CH` "1’234.56" read as one number. 2026-10-28, unreleased.
+* [x] **`scan/2` applies the `parseLenients` folds** — the scanner's sign, group and decimal classes take every character `parse/2` folds onto them, so `sv` "−1 234,56" and `de-CH` "1’234.56" read as one number. 2026-10-28, v1.5.0.
 
-* [x] **Compact formats cost ten times a decimal** — a compact 1234 fell from 1,908 to 721 reductions: a `Decimal`'s plural operands are integer arithmetic on its coefficient and exponent, `Formatter.Short` pluralises once after the rounding carry, and reads the formats once. 2026-10-27, unreleased.
+* [x] **Compact formats cost ten times a decimal** — a compact 1234 fell from 1,908 to 721 reductions: a `Decimal`'s plural operands are integer arithmetic on its coefficient and exponent, `Formatter.Short` pluralises once after the rounding carry, and reads the formats once. 2026-10-27, v1.4.3.
 
-* [x] **Resolve a locale's number data once per format** — a default `Localize.Number.to_string/2` fell from 786 to 363 reductions: the number system, symbols, standard patterns and minimum grouping digits are kept per locale and number system in `FormatCache`, `Locale.get/3` reads with no options go straight to the provider, and `Format.formats_for/2` reads the number systems once (#67). 2026-10-27, unreleased.
+* [x] **Resolve a locale's number data once per format** — a default `Localize.Number.to_string/2` fell from 786 to 363 reductions: the number system, symbols, standard patterns and minimum grouping digits are kept per locale and number system in `FormatCache`, `Locale.get/3` reads with no options go straight to the provider, and `Format.formats_for/2` reads the number systems once (#67). 2026-10-27, v1.4.3.
 
 * [x] **A non-finite `Decimal` formats everywhere** — NaN and ±Infinity format in every number format and select `other` in plural rules; NaN takes no affix (TR35 Special Values). 2026-10-27, v1.4.1.
 

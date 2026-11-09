@@ -4,21 +4,21 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.7.0] — Unreleased
+## [1.7.0] — November 9th, 2026
 
 ### Added
 
 * `Localize.Date.strptime/3`, `Localize.Time.strptime/3` and `Localize.DateTime.strptime/3` read text written with a `Calendar.strftime/3` format, in any locale, by translating the format into the pattern `parse/2` reads with (`Localize.DateTime.Strptime.pattern/2`); `%c`, `%x` and `%X` take the `:preferred_*` options as `Calendar.strftime/3` does. The strptime guide lists the directives and where the reading differs from C's `strptime(3)`.
 
-* `Localize.Inflection` tokenizes a phrase with `unicode_string` when the consumer has it, found at runtime with no dependency declared: the phrase is segmented by UAX #29 first, so a Chinese, Japanese or Thai phrase breaks into dictionary words where it was one run, and the languages with a synthesizer tokenize as before. `config :localize, inflection_word_break: :regex` or `:unicode_string` overrides the detection.
+* `Localize.Inflection` tokenizes a phrase with `unicode_string` when the consumer has it, found at runtime with no dependency declared: the phrase is segmented by UAX #29 first, so a Chinese, Japanese or Thai phrase breaks into dictionary words where it was one run, and a phrase in a language with a synthesizer tokenizes as before, apart from CJK characters in it, which UAX #29 breaks singly. `config :localize, inflection_word_break: :regex` or `:unicode_string` overrides the detection.
 
 ### Fixed
 
 * `Localize.Number.Parser.parse/2` and `scan/2` read Latin digits written with a locale's own separators, so `fa` "−1٬234٫5" is -1234.5, which 1.6 refused. Latin digits with Latin separators, `ar-EG` "1,234.56", still read with the locale's Latin set.
 
-* `Localize.Inflection.inflect/3` inflects a German phrase of a determiner, adjectives and a noun throughout, so "das kleine Haus" in the dative is "dem kleinen Haus", where the article was left as it was and the adjective declined strong. An adjective declines weak after a der-word and mixed after an ein-word, and an ein-word the dictionary cannot inflect ("kein", "ihr", "sein") takes the negative article's endings.
+* `Localize.Inflection.inflect/3` inflects a German phrase of a determiner, adjectives and a noun throughout, so "das kleine Haus" in the dative is "dem kleinen Haus", where the article was left as it was and the adjective declined strong. An adjective declines weak after a der-word and mixed after an ein-word, from its lemma where the dictionary reads the form only as a noun or a verb ("gute", "junge"), and a determiner the dictionary cannot inflect ("kein", "ihr", "jeder", "welcher") takes the article's endings.
 
-* `Localize.Inflection.inflect/3` and `quantify/4` pluralise a Hebrew word the dictionary knows only as a verb by the heuristics when nothing but the number is asked for, so "ילד" is "ילדים", where it was the verb's "ילדו". A part of speech, a person or a gender still inflects the verb.
+* `Localize.Inflection.inflect/3` and `quantify/4` pluralise a Hebrew word the dictionary knows only as a verb by the heuristics when nothing but the number is asked for, so "ילד" is "ילדים", where it was the verb's "ילדו". A verb part of speech, a person or a gender still inflects the verb.
 
 ## [1.6.1] — November 2nd, 2026
 

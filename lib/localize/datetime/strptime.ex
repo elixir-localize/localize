@@ -59,8 +59,8 @@ defmodule Localize.DateTime.Strptime do
 
   @preferred_options Enum.map(Map.values(@preferred), &elem(&1, 0))
 
-  # A newline or a tab in the format matches any whitespace in the text,
-  # as a space does.
+  # A newline or a tab in the format is read as a space, which the
+  # parsers match to a run of spaces in the text.
   @whitespace_directives [?n, ?t]
 
   # `%-d`, `%_d`, `%05d`: padding and width that a formatter honours and
@@ -125,10 +125,9 @@ defmodule Localize.DateTime.Strptime do
   def pattern(format, options \\ [])
 
   def pattern(format, options) when is_binary(format) and is_list(options) do
-    if Keyword.keyword?(options) do
+    with :ok <- validate_format(format),
+         :ok <- validate_options(options) do
       translate(format, format, options, false)
-    else
-      {:error, Localize.Utils.Helpers.invalid_options(options)}
     end
   end
 
@@ -153,19 +152,53 @@ defmodule Localize.DateTime.Strptime do
 
   ### Returns
 
-  * A keyword list of options for `parse/2`.
+  * `{:ok, options}` with the keyword list of options for `parse/2`, or
+
+  * `{:error, exception}`, a `t:Localize.InvalidValueError.t/0` if
+    `options` is not a keyword list or `pattern` is not a string.
 
   ### Examples
 
       iex> Localize.DateTime.Strptime.parse_options([locale: :de, preferred_date: "%d.%m.%Y"], "dd.MM.y")
-      [format: "dd.MM.y", locale: :de]
+      {:ok, [format: "dd.MM.y", locale: :de]}
 
   """
-  @spec parse_options(Keyword.t(), String.t()) :: Keyword.t()
+  @spec parse_options(Keyword.t(), String.t()) :: {:ok, Keyword.t()} | {:error, Exception.t()}
   def parse_options(options, pattern) when is_list(options) and is_binary(pattern) do
-    options
-    |> Keyword.drop([:format | @preferred_options])
-    |> Keyword.put(:format, pattern)
+    with :ok <- validate_options(options) do
+      parse_options =
+        options
+        |> Keyword.drop([:format | @preferred_options])
+        |> Keyword.put(:format, pattern)
+
+      {:ok, parse_options}
+    end
+  end
+
+  def parse_options(options, pattern) when is_list(options) do
+    {:error, Localize.Utils.Helpers.invalid_value(pattern, "a date and time pattern string")}
+  end
+
+  def parse_options(options, _pattern) do
+    {:error, Localize.Utils.Helpers.invalid_options(options)}
+  end
+
+  # The format must be UTF-8, which `translate_rest/6` reads it as, and
+  # the options a keyword list.
+  defp validate_format(format) do
+    if String.valid?(format) do
+      :ok
+    else
+      {:error, Localize.Utils.Helpers.invalid_value(format, "a UTF-8 strftime format string")}
+    end
+  end
+
+  defp validate_options(options) do
+    if Keyword.keyword?(options) do
+      :ok
+    else
+      {:error, Localize.Utils.Helpers.invalid_options(options)}
+    end
   end
 
   # The whole format is carried for the error, and `nested?` is true while
@@ -249,11 +282,19 @@ defmodule Localize.DateTime.Strptime do
     {:error, unsupported(format, written)}
   end
 
-  defp preferred_pattern(preferred, _option, format, options) when is_binary(preferred) do
-    translate(format, preferred, options, true)
+  defp preferred_pattern(preferred, option, format, options) when is_binary(preferred) do
+    if String.valid?(preferred) do
+      translate(format, preferred, options, true)
+    else
+      invalid_preferred(preferred, option)
+    end
   end
 
   defp preferred_pattern(preferred, option, _format, _options) do
+    invalid_preferred(preferred, option)
+  end
+
+  defp invalid_preferred(preferred, option) do
     {:error,
      Localize.Utils.Helpers.invalid_value(preferred, "a strftime format for #{inspect(option)}")}
   end

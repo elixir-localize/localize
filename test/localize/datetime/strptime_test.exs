@@ -74,9 +74,23 @@ defmodule Localize.DateTime.StrptimeTest do
     test "invalid arguments are errors, not raises" do
       assert {:error, %Localize.InvalidValueError{}} = Strptime.pattern(nil)
       assert {:error, %Localize.InvalidValueError{}} = Strptime.pattern("%Y", :bogus)
+      assert {:error, %Localize.InvalidValueError{}} = Strptime.pattern(<<0xFF>>)
+      assert {:error, %Localize.InvalidValueError{}} = Strptime.pattern("%Y" <> <<0xC3>>)
 
       assert {:error, %Localize.InvalidValueError{}} =
                Strptime.pattern("%c", preferred_datetime: 42)
+
+      assert {:error, %Localize.InvalidValueError{}} =
+               Strptime.pattern("%c", preferred_datetime: <<0xFF>>)
+    end
+
+    test "parse_options/2 returns the options for parse/2, or an error" do
+      assert Strptime.parse_options([locale: :de, preferred_date: "%d.%m.%Y"], "dd.MM.y") ==
+               {:ok, [format: "dd.MM.y", locale: :de]}
+
+      assert {:error, %Localize.InvalidValueError{}} = Strptime.parse_options(nil, "y")
+      assert {:error, %Localize.InvalidValueError{}} = Strptime.parse_options([1, 2], "y")
+      assert {:error, %Localize.InvalidValueError{}} = Strptime.parse_options([], nil)
     end
   end
 
@@ -166,6 +180,25 @@ defmodule Localize.DateTime.StrptimeTest do
     test "returns the fields read with as: :map" do
       assert Localize.Date.strptime("2026-03", "%Y-%m", locale: :en, as: :map) ==
                {:ok, %{calendar: Calendar.ISO, year: 2026, month: 3}}
+    end
+
+    test "a format that is not UTF-8 is an error, not a raise" do
+      assert {:error, %Localize.InvalidValueError{}} =
+               Localize.Date.strptime("2026", <<0xFF>>, locale: :en)
+
+      assert {:error, %Localize.InvalidValueError{}} =
+               Localize.DateTime.strptime("2026", "%Y" <> <<0xC3>>, locale: :en)
+    end
+
+    test "a tab in the text reads where the format has one, not for a space, %t or %n" do
+      assert Localize.DateTime.strptime("2026-03-04\t07:05", "%F\t%R", locale: :en) ==
+               {:ok, ~N[2026-03-04 07:05:00]}
+
+      assert {:error, %Localize.DateTimeParseError{}} =
+               Localize.DateTime.strptime("2026-03-04\t07:05", "%F %R", locale: :en)
+
+      assert {:error, %Localize.DateTimeParseError{}} =
+               Localize.DateTime.strptime("2026-03-04\t07:05", "%F%t%R", locale: :en)
     end
 
     test "an unsupported directive is an error before any parsing" do

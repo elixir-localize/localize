@@ -47,6 +47,35 @@ defmodule Localize.Inflection.Synthesizer.De do
   # is marked in the dictionary.
   @ein_word_stems ~w(kein mein dein sein ihr unser unsr euer eur)
 
+  # The der-words the dictionary has no entry for ("dieser" it has), which
+  # decline with the definite article's endings; and those endings by
+  # number, gender and case, the plural keyed by "masculine" as the
+  # negated-article table is.
+  @der_word_stems ~w(jen jed welch manch solch)
+
+  @der_word_endings %{
+    {"singular", "masculine", "nominative"} => "er",
+    {"singular", "masculine", "accusative"} => "en",
+    {"singular", "masculine", "dative"} => "em",
+    {"singular", "masculine", "genitive"} => "es",
+    {"singular", "feminine", "nominative"} => "e",
+    {"singular", "feminine", "accusative"} => "e",
+    {"singular", "feminine", "dative"} => "er",
+    {"singular", "feminine", "genitive"} => "er",
+    {"singular", "neuter", "nominative"} => "es",
+    {"singular", "neuter", "accusative"} => "es",
+    {"singular", "neuter", "dative"} => "em",
+    {"singular", "neuter", "genitive"} => "es",
+    {"plural", "masculine", "nominative"} => "e",
+    {"plural", "masculine", "accusative"} => "e",
+    {"plural", "masculine", "dative"} => "en",
+    {"plural", "masculine", "genitive"} => "er"
+  }
+
+  # The declension endings a lower-case adjective form may carry, longest
+  # first, so "guten" is tried as "gut" before "gute" would be.
+  @adjective_endings ~w(en em er es e)
+
   # feature name -> {table key, include_semantic_value?}
   @article_features %{
     "pronoun" => {:pronoun, false},
@@ -702,12 +731,44 @@ defmodule Localize.Inflection.Synthesizer.De do
 
   defp adjective_before_noun?(dependent_token, head_token) do
     noun = Dictionary.binary_properties(@locale, ["noun"]) || 0
-    adjective = Dictionary.binary_properties(@locale, ["adjective"]) || 0
-    dependent_type = Dictionary.combined_grammemes(@locale, dependent_token.value) || 0
     head_type = Dictionary.combined_grammemes(@locale, head_token.value) || 0
 
-    (dependent_type &&& adjective) != 0 and (dependent_type &&& noun) == 0 and
-      (head_type &&& noun) != 0
+    phrase_adjective?(dependent_token) and (head_type &&& noun) != 0
+  end
+
+  # A token is an adjective of a phrase where the dictionary reads its
+  # form as an adjective and not as a noun, or, for a word in lower
+  # case, where the form less a declension ending is an adjective the
+  # dictionary knows: "gute" is only the noun "das Gute" to it and
+  # "junge" only a verb, where "gut" and "jung" are adjectives. A noun
+  # is written with a capital, so the lower-case form is the adjective.
+  defp phrase_adjective?(token) do
+    noun = Dictionary.binary_properties(@locale, ["noun"]) || 0
+    adjective = Dictionary.binary_properties(@locale, ["adjective"]) || 0
+    type = Dictionary.combined_grammemes(@locale, token.value) || 0
+
+    ((type &&& adjective) != 0 and (type &&& noun) == 0) or
+      (lower_case?(token.value) and not is_nil(adjective_stem(token.value)))
+  end
+
+  # The adjective the dictionary knows a declined lower-case form by,
+  # "gut" for "gute" or "guten"; nil where no ending leaves one.
+  defp adjective_stem(word) do
+    adjective = Dictionary.binary_properties(@locale, ["adjective"]) || 0
+
+    Enum.find_value(@adjective_endings, fn ending ->
+      stem = String.replace_suffix(word, ending, "")
+      type = Dictionary.combined_grammemes(@locale, stem) || 0
+
+      if stem != word and stem != "" and (type &&& adjective) != 0 do
+        stem
+      end
+    end)
+  end
+
+  defp lower_case?(word) do
+    first = String.first(word) || ""
+    first == String.downcase(first) and first != String.upcase(first)
   end
 
   defp phrase_front([[token] | rest], adjectives) do
@@ -716,16 +777,18 @@ defmodule Localize.Inflection.Synthesizer.De do
     determiner = Dictionary.binary_properties(@locale, ["article", "pronoun"]) || 0
     type = Dictionary.combined_grammemes(@locale, token.value) || 0
 
-    # The possessive "sein" is only the verb in the dictionary, so an
-    # ein-word with no nominal reading counts as a determiner too.
+    # The possessive "sein" is only the verb in the dictionary, and the
+    # der-words "jeder" and "welcher" are not in it, so an ein-word or a
+    # der-word with no nominal reading counts as a determiner too.
     cond do
-      (type &&& adjective) != 0 and (type &&& noun) == 0 ->
+      phrase_adjective?(token) ->
         phrase_front(rest, [token | adjectives])
 
       (type &&& determiner) != 0 ->
         {token, adjectives}
 
-      ein_word?(token.value) and (type &&& (noun ||| adjective)) == 0 ->
+      (ein_word?(token.value) or der_word?(token.value)) and
+          (type &&& (noun ||| adjective)) == 0 ->
         {token, adjectives}
 
       true ->
@@ -828,33 +891,59 @@ defmodule Localize.Inflection.Synthesizer.De do
   defp inflect_determiner_word(word, type, constraints, deduced, agreement, guess?) do
     case inflect_word(word, type, constraints, deduced, guess?) do
       {:ok, inflected} when inflected == word ->
-        if ein_word?(word) do
-          {:ok, ein_word_form(word, agreement) || inflected}
-        else
-          {:ok, inflected}
-        end
+        {:ok, determiner_form(word, agreement) || inflected}
 
       {:ok, inflected} ->
         {:ok, inflected}
 
       :error ->
-        ein_word_or_error(word, agreement)
+        determiner_form_or_error(word, agreement)
     end
   end
 
-  defp ein_word_or_error(word, agreement) do
-    if ein_word?(word) do
-      case ein_word_form(word, agreement) do
-        nil -> :error
-        form -> {:ok, form}
-      end
-    else
-      :error
+  defp determiner_form_or_error(word, agreement) do
+    case determiner_form(word, agreement) do
+      nil -> :error
+      form -> {:ok, form}
+    end
+  end
+
+  # The form of an ein-word or a der-word the dictionary does not
+  # inflect; nil for any other word, or where the agreement is unknown.
+  defp determiner_form(word, agreement) do
+    cond do
+      ein_word?(word) -> ein_word_form(word, agreement)
+      der_word?(word) -> der_word_form(word, agreement)
+      true -> nil
     end
   end
 
   defp ein_word?(word) do
     String.starts_with?(String.downcase(word), @ein_word_stems)
+  end
+
+  defp der_word?(word) do
+    String.starts_with?(String.downcase(word), @der_word_stems)
+  end
+
+  # The der-word's form for the agreement: the definite article's ending
+  # on the word's stem, so "jeder" is "jedem" in the dative.
+  defp der_word_form(word, {case_, number, gender}) do
+    gender =
+      if number == "plural" do
+        "masculine"
+      else
+        gender
+      end
+
+    case Map.get(@der_word_endings, {number, gender, case_}) do
+      nil ->
+        nil
+
+      ending ->
+        stem = Enum.find(@der_word_stems, &String.starts_with?(String.downcase(word), &1))
+        binary_part(word, 0, byte_size(stem)) <> ending
+    end
   end
 
   # The ein-word's form for the agreement, nil where the case or the
@@ -926,7 +1015,34 @@ defmodule Localize.Inflection.Synthesizer.De do
 
   defp inflect_phrase_adjective(token, deduced, declension, phrase_constraints, gender) do
     adjective_type = Dictionary.combined_grammemes(@locale, token.value) || 0
+    adjective = Dictionary.binary_properties(@locale, ["adjective"]) || 0
 
+    if (adjective_type &&& adjective) != 0 do
+      inflect_read_adjective(
+        token,
+        adjective_type,
+        deduced,
+        declension,
+        phrase_constraints,
+        gender
+      )
+    else
+      constraints = Map.put(phrase_constraints, "declension", declension)
+      declension_adjective(adjective_stem(token.value) || token.value, constraints, gender || "")
+    end
+  end
+
+  # An adjective the dictionary reads as one: inflected by its tables,
+  # or, where they cannot reach the case, by a declension suffix on its
+  # lemma.
+  defp inflect_read_adjective(
+         token,
+         adjective_type,
+         deduced,
+         declension,
+         phrase_constraints,
+         gender
+       ) do
     disambiguation =
       for value <- [Map.get(phrase_constraints, "pos")], value not in [nil, ""], do: value
 
