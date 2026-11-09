@@ -14,6 +14,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+* `Localize.Number.to_string/2`, the MF2 `:currency` function and `Localize.Currency.symbol/2` format a currency the locale's CLDR data does not list with its parent locale's data, so KWD in `ady` or VED in `es` is formatted where it returned `CurrencyNotLocalizedError`, even with `currency_symbol: :none`.
+
 * `Localize.Number.Parser.parse/2` and `scan/2` read Latin digits written with a locale's own separators, so `fa` "−1٬234٫5" is -1234.5, which 1.6 refused. Latin digits with Latin separators, `ar-EG` "1,234.56", still read with the locale's Latin set.
 
 * `Localize.Inflection.inflect/3` inflects a German phrase of a determiner, adjectives and a noun throughout, so "das kleine Haus" in the dative is "dem kleinen Haus", where the article was left as it was and the adjective declined strong. An adjective declines weak after a der-word and mixed after an ein-word, from its lemma where the dictionary reads the form only as a noun or a verb ("gute", "junge"), and a determiner the dictionary cannot inflect ("kein", "ihr", "jeder", "welcher") takes the article's endings.

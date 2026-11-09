@@ -3,6 +3,12 @@ defmodule Localize.Message.CurrencyOptionsTest do
 
   alias Localize.Message.{Interpreter, Parser}
 
+  test ":currency formats a currency the locale has no data for" do
+    assert Localize.Message.format("{$amount :currency currency=KWD}", %{"amount" => 1234.5},
+             locale: :ady
+           ) == {:ok, "KWD\u00A01\u00A0234,500"}
+  end
+
   defp format(source, bindings) do
     {:ok, parsed} = Parser.parse(source)
     options = [locale: "en-US"]

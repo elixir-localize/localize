@@ -116,6 +116,33 @@ defmodule Localize.Number.CurrencyFormatTest do
     end
   end
 
+  describe "a currency the locale has no data for" do
+    # CLDR's ady and az-Cyrl list no KWD or BHD, and es lists no VED, so
+    # these format with the parent locale's symbol and the locale's own
+    # separators; KWD and BHD keep their three decimal places.
+    test "formats with the parent locale's data" do
+      assert {:error, %Localize.CurrencyNotLocalizedError{}} =
+               Localize.Currency.currency_for_code(:KWD, locale: :ady)
+
+      assert Number.to_string(1234.5, currency: :KWD, locale: :ady) ==
+               {:ok, "KWD\u00A01\u00A0234,500"}
+
+      assert Number.to_string(1234.5, currency: :VED, locale: :es) ==
+               {:ok, "1234,50\u00A0VED"}
+    end
+
+    test "formats without a symbol" do
+      assert Number.to_string(1234.5, currency: :KWD, locale: :ady, currency_symbol: :none) ==
+               {:ok, "1\u00A0234,500"}
+
+      assert Number.to_string(-1234.5,
+               currency: :BHD,
+               locale: :"az-Cyrl",
+               currency_symbol: :none
+             ) == {:ok, "-1.234,500"}
+    end
+  end
+
   describe "currency_digits option" do
     test "JPY defaults to zero fractional digits" do
       assert Number.to_string(1234.56, currency: :JPY) == {:ok, "¥1,235"}

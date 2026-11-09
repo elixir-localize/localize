@@ -471,7 +471,10 @@ defmodule Localize.Number.Lexicon do
   @spec currency_places(atom()) :: {:ok, non_neg_integer()} | :error
   def currency_places(currency) when is_atom(currency) do
     cached({:currency_places, currency}, fn ->
-      case Localize.Currency.currency_for_code(currency) do
+      # The digits do not depend on the locale, so the lookup falls back
+      # rather than miss in a process locale that does not name the
+      # currency, which would also cache the miss for every locale.
+      case Localize.Currency.currency_for_code(currency, fallback: true) do
         {:ok, %{digits: digits, iso_digits: iso_digits}} -> {:ok, max(digits, iso_digits || 0)}
         {:error, _not_iso} -> :error
       end

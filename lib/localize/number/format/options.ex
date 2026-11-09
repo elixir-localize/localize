@@ -309,7 +309,7 @@ defmodule Localize.Number.Format.Options do
   defp resolve_currency(format, nil, %Localize.LanguageTag{} = language_tag)
        when format in [:currency, :currency_long, :currency_long_with_symbol] do
     with {:ok, code} <- Localize.Currency.currency_from_locale(language_tag) do
-      Localize.Currency.currency_for_code(code, locale: language_tag)
+      currency_for_locale(code, language_tag)
     end
   end
 
@@ -317,7 +317,7 @@ defmodule Localize.Number.Format.Options do
        when is_binary(format) do
     if String.contains?(format, @currency_indicator) do
       with {:ok, code} <- Localize.Currency.currency_from_locale(language_tag) do
-        Localize.Currency.currency_for_code(code, locale: language_tag)
+        currency_for_locale(code, language_tag)
       end
     else
       {:ok, nil}
@@ -326,12 +326,21 @@ defmodule Localize.Number.Format.Options do
 
   defp resolve_currency(_, currency, language_tag) when not is_nil(currency) do
     with {:ok, code} <- Localize.Currency.validate_currency(currency) do
-      Localize.Currency.currency_for_code(code, locale: language_tag)
+      currency_for_locale(code, language_tag)
     end
   end
 
   defp resolve_currency(_format, _currency, _language_tag) do
     {:ok, nil}
+  end
+
+  # A locale's CLDR data lists the currencies it names, and a sparse
+  # locale lists few, so a currency missing from it ("ady" has no KWD,
+  # "es" no VED) is formatted with its parent's data, ending at the
+  # default locale. The digits are the currency's own whatever the
+  # locale; only the symbol and names come from a fallback locale.
+  defp currency_for_locale(code, language_tag) do
+    Localize.Currency.currency_for_code(code, locale: language_tag, fallback: true)
   end
 
   # ── Format auto-switch ──────────────────────────────────────

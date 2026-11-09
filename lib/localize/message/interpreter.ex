@@ -2107,7 +2107,9 @@ defmodule Localize.Message.Interpreter do
           _ -> :en
         end
 
-      Localize.Currency.currency_for_code(code, locale: locale_id)
+      # Like the number formatter, use the parent locale's data for a
+      # currency this locale does not name.
+      Localize.Currency.currency_for_code(code, locale: locale_id, fallback: true)
     end
   end
 

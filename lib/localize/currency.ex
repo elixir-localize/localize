@@ -1151,7 +1151,7 @@ defmodule Localize.Currency do
   def symbol(%__MODULE__{} = currency, kind), do: {:ok, do_symbol(currency, kind)}
 
   def symbol(currency_code, kind) do
-    with {:ok, currency} <- currency_for_code(currency_code) do
+    with {:ok, currency} <- currency_for_code(currency_code, fallback: true) do
       symbol(currency, kind)
     end
   end

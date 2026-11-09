@@ -416,6 +416,14 @@ defmodule Localize.CurrencyTest do
     end
   end
 
+  describe "symbol/2 with a currency code" do
+    test "resolves a code the process locale has no data for" do
+      {:ok, _} = Localize.put_locale(:ady)
+
+      assert Currency.symbol(:KWD) == {:ok, "KWD"}
+    end
+  end
+
   describe "symbol/2 with :variant" do
     # Expected symbols come from the CLDR source rather than library output.
     # cldr-numbers-full/main/hy/currencies.json gives AMD the triple symbol
