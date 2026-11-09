@@ -5,7 +5,8 @@ defmodule Localize.Supervisor do
   Owns the small set of processes the library needs at runtime — the
   data loader, the locale loader (which owns the locale-validation
   ETS table), the cache sweeper, the format cache, the collation
-  ICU table, and the inflection dictionaries — and runs the one-time
+  ICU table, the custom unit registry (`Localize.Unit.CustomRegistry`)
+  and the inflection dictionaries — and runs the one-time
   post-start work that interns
   every supplemental atom and resolves the configured
   `:supported_locales`.
@@ -95,6 +96,8 @@ defmodule Localize.Supervisor do
       Localize.Locale.Loader,
       Localize.Locale.CacheSweeper,
       Localize.FormatCache,
+      # Owns the table of units registered at runtime.
+      Localize.Unit.CustomRegistry,
       Localize.Collation.Table,
       # Owns the per-locale inflection dictionary ETS tables,
       # loaded lazily on first use of an inflection function.

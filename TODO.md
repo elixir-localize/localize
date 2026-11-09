@@ -16,8 +16,6 @@ Outstanding work on Localize. The design detail behind these items lives under [
 
 ## In progress
 
-* [ ] **Stop caller options growing `:persistent_term`, and keep every custom unit registered** — `:only` and `:except` (`parse_currency_amount/2`, so `Money.parse/2`), `:separators` (`Parser.parse/2`) and the collation `:type` go into cache keys unchecked, so each new value adds a key for good (1,000 calls, 1,000 keys) and the last two accept any value; concurrent `CustomRegistry.register/2` calls keep 13 of 200. All in 1.6.1. [plans/persistent-term-writes.md](plans/persistent-term-writes.md). Caller options landed 2026-11-10 (`test/localize/caller_option_keys_test.exs`); custom unit registration is next.
-
 * [ ] **CLDR 49 upgrade** — the plan's items are closed bar item 11; the data is built from the final `release-49` (below). [plans/cldr-49.md](plans/cldr-49.md).
 
 ## Blocked
@@ -69,6 +67,8 @@ Outstanding work on Localize. The design detail behind these items lives under [
 * [ ] **`localize_emoji` sibling library** — plan item 11, a separate package on its own schedule. A Phoenix LiveView picker (`localize_emoji_live`) is out of scope for its 0.1.0.
 
 ## Done
+
+* [x] **Stop caller options growing `:persistent_term`, and keep every custom unit registered** — caller options add no key per value, and `CustomRegistry` is supervised ETS that keeps concurrent registrations. [plans/persistent-term-writes.md](plans/persistent-term-writes.md). 2026-11-10, v1.7.0.
 
 * [x] **Read strftime formats** — `Localize.Date.strptime/3`, `Localize.Time.strptime/3` and `Localize.DateTime.strptime/3` translate a `Calendar.strftime/3` format into the pattern `parse/2` reads with; the strptime guide marks where the reading differs from `strptime(3)`. 2026-11-08, v1.7.0.
 

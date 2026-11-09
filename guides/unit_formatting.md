@@ -718,7 +718,7 @@ When registering a special conversion, the registry verifies that:
 
 ### Batch registration
 
-For bulk loading, `Localize.Unit.CustomRegistry.register_batch/1` accepts a map of `%{name => definition}` and performs a single `persistent_term` update, avoiding the memory overhead of individual registrations:
+For bulk loading, `Localize.Unit.CustomRegistry.register_batch/1` accepts a map of `%{name => definition}` and writes the units together, so a reader sees all of them or none. A definition that fails validation is left out, and `{:ok, count}` counts the units registered. Registrations, single or batched, go through the registry's process, which `Localize.Supervisor` starts, so concurrent ones are all kept:
 
 ```elixir
 Localize.Unit.CustomRegistry.register_batch(%{

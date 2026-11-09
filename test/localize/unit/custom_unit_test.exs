@@ -2,13 +2,15 @@ defmodule Localize.Unit.CustomUnitTest do
   use ExUnit.Case, async: false
 
   # Doctests for the registry are wired here (not in an async module)
-  # because they mutate the global :persistent_term registry. The
+  # because they change the registry, which every process shares. The
   # setup block clears the registry around every test, doctests
   # included.
   doctest Localize.Unit.CustomRegistry
 
   alias Localize.Unit
   alias Localize.Unit.CustomRegistry
+
+  @smoot %{base_unit: "meter", factor: 1.7018, category: "length"}
 
   setup do
     CustomRegistry.clear()
@@ -577,6 +579,43 @@ defmodule Localize.Unit.CustomUnitTest do
 
     test "unregistered hyphenated names remain errors" do
       assert {:error, %Localize.UnknownUnitError{}} = Unit.new(1, "not-a-unit")
+    end
+  end
+
+  describe "the registry's process" do
+    test "concurrent registrations are all kept" do
+      names = for index <- 1..200, do: "concurrent-unit-#{index}"
+      batch = Map.new(1..50, &{"batched-unit-#{&1}", @smoot})
+
+      singles =
+        Task.async_stream(names, &CustomRegistry.register(&1, @smoot), max_concurrency: 50)
+
+      batched = Task.async(fn -> CustomRegistry.register_batch(batch) end)
+
+      assert Enum.all?(singles, &(&1 == {:ok, :ok}))
+      assert {:ok, 50} = Task.await(batched)
+      assert Enum.all?(names ++ Map.keys(batch), &CustomRegistry.registered?/1)
+      assert map_size(CustomRegistry.all()) == 250
+    end
+
+    test "a host can own the registry's process" do
+      :ok = Supervisor.terminate_child(Localize.Supervisor, CustomRegistry)
+      on_exit(fn -> Supervisor.restart_child(Localize.Supervisor, CustomRegistry) end)
+
+      assert {:error, message} = CustomRegistry.register("smoot", @smoot)
+      assert message =~ "not running"
+      assert {:error, %RuntimeError{}} = CustomRegistry.register_batch(%{"smoot" => @smoot})
+      assert CustomRegistry.get("smoot") == nil
+      refute CustomRegistry.registered?("smoot")
+      assert CustomRegistry.all() == %{}
+      assert :ok = CustomRegistry.clear()
+
+      start_supervised!(CustomRegistry)
+      assert :ok = CustomRegistry.register("smoot", @smoot)
+      assert CustomRegistry.get("smoot").base_unit == "meter"
+
+      :ok = stop_supervised(CustomRegistry)
+      assert {:ok, _pid} = Supervisor.restart_child(Localize.Supervisor, CustomRegistry)
     end
   end
 end

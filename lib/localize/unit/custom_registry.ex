@@ -1,11 +1,21 @@
 defmodule Localize.Unit.CustomRegistry do
   @moduledoc """
-  Runtime registry for user-defined units backed by `:persistent_term`.
+  Runtime registry for user-defined units.
 
-  Custom units are stored in a single map keyed by unit name. The registry
+  Custom units are kept in an ETS table keyed by unit name. The registry
   is checked by `Localize.Unit.Data`, `Localize.Unit.BaseUnit`,
   `Localize.Unit.Conversion`, and the unit formatter to overlay
   runtime definitions on top of the compile-time CLDR data.
+
+  ## Supervision
+
+  The table belongs to this module's process, which `Localize.Supervisor`
+  starts with Localize's other processes, so an application that adds the
+  dependency has it running. A host that starts `Localize.Supervisor` in
+  its own tree has the registry with it. Registrations go through the
+  process, one at a time, so concurrent registrations are all kept; reads
+  go to the table directly. A registration made before the process starts
+  returns an error, and the units last as long as the process does.
 
   ## Definition structure
 
@@ -35,9 +45,14 @@ defmodule Localize.Unit.CustomRegistry do
 
   """
 
-  @persistent_term_key :localize_custom_units
+  use GenServer
+
+  @table :localize_custom_units
 
   @name_pattern ~r/^[a-z][a-z0-9_-]*$/
+
+  @not_running "the custom unit registry is not running: start the :localize " <>
+                 "application, or Localize.Supervisor in your own supervision tree"
 
   @doc """
   Returns the definition for a custom unit, or `nil` if not registered.
@@ -62,7 +77,12 @@ defmodule Localize.Unit.CustomRegistry do
   """
   @spec get(String.t()) :: map() | nil
   def get(unit_name) do
-    all() |> Map.get(unit_name)
+    if table?() do
+      case :ets.lookup(@table, unit_name) do
+        [{_name, definition}] -> definition
+        [] -> nil
+      end
+    end
   end
 
   @doc """
@@ -88,7 +108,7 @@ defmodule Localize.Unit.CustomRegistry do
   """
   @spec registered?(String.t()) :: boolean()
   def registered?(unit_name) do
-    all() |> Map.has_key?(unit_name)
+    table?() and :ets.member(@table, unit_name)
   end
 
   @doc """
@@ -108,7 +128,13 @@ defmodule Localize.Unit.CustomRegistry do
   """
   @spec all() :: %{String.t() => map()}
   def all do
-    :persistent_term.get(@persistent_term_key, %{})
+    if table?() do
+      @table
+      |> :ets.tab2list()
+      |> Map.new()
+    else
+      %{}
+    end
   end
 
   @doc """
@@ -124,7 +150,8 @@ defmodule Localize.Unit.CustomRegistry do
 
   * `:ok` on success.
 
-  * `{:error, reason}` if validation fails.
+  * `{:error, reason}` if validation fails or the registry's process is
+    not running, with `reason` a message.
 
   ### Examples
 
@@ -142,20 +169,14 @@ defmodule Localize.Unit.CustomRegistry do
          :ok <- validate_definition(definition),
          :ok <- validate_no_collision(name),
          {:ok, normalized} <- normalize_base(definition) do
-      current = all()
-      :persistent_term.put(@persistent_term_key, Map.put(current, name, normalized))
-      :ok
+      insert([{name, normalized}])
     end
   end
 
   @doc """
-  Registers multiple custom units in a single `persistent_term` update.
+  Registers multiple custom units at once.
 
-  This is significantly more memory-efficient than calling `register/2`
-  in a loop, because it avoids creating intermediate `persistent_term`
-  snapshots for each unit. Each snapshot is stored in the BEAM's literal
-  area and is not freed until a global garbage collection sweep, so
-  bulk registration via `register/2` can exhaust literal memory.
+  The units are written together: a reader sees all of them or none.
 
   ### Arguments
 
@@ -164,10 +185,11 @@ defmodule Localize.Unit.CustomRegistry do
 
   ### Returns
 
-  * `{:ok, count}` with the number of units registered.
+  * `{:ok, count}` with the number of units registered. A definition that
+    fails validation is left out and not counted.
 
-  * `{:error, reason}` if any validation fails, or `definitions` is not
-    a map. No units are registered on error (the operation is atomic).
+  * `{:error, exception}` if `definitions` is not a map, or a
+    `RuntimeError` if the registry's process is not running.
 
   ### Examples
 
@@ -187,9 +209,10 @@ defmodule Localize.Unit.CustomRegistry do
         put_validated(acc, name, definition)
       end)
 
-    current = all()
-    :persistent_term.put(@persistent_term_key, Map.merge(current, validated_map))
-    {:ok, map_size(validated_map)}
+    case insert(Map.to_list(validated_map)) do
+      :ok -> {:ok, map_size(validated_map)}
+      {:error, message} -> {:error, RuntimeError.exception(message)}
+    end
   end
 
   def register_batch(definitions),
@@ -329,13 +352,22 @@ defmodule Localize.Unit.CustomRegistry do
       end)
 
     case batch do
-      {:ok, batch_map} -> register_batch(batch_map)
+      {:ok, batch_map} -> loaded(register_batch(batch_map))
       {:error, _} = error -> error
     end
   end
 
   defp register_definitions(other) do
     {:error, "expected a list of definitions, got #{inspect(other, limit: 50)}"}
+  end
+
+  # `load_file/1` reports a failure as a message, as it always has.
+  defp loaded({:error, exception}) when is_exception(exception) do
+    {:error, Exception.message(exception)}
+  end
+
+  defp loaded(result) do
+    result
   end
 
   @doc """
@@ -356,8 +388,72 @@ defmodule Localize.Unit.CustomRegistry do
   """
   @spec clear() :: :ok
   def clear do
-    :persistent_term.put(@persistent_term_key, %{})
-    :ok
+    if Process.whereis(__MODULE__) do
+      GenServer.call(__MODULE__, :clear)
+    else
+      :ok
+    end
+  end
+
+  # ── The registry's process ──
+
+  @doc """
+  Starts the registry's process, which owns the table of custom units.
+
+  `Localize.Supervisor` starts it; a host adds `Localize.Supervisor` to its
+  own tree rather than this module.
+
+  ### Arguments
+
+  * `options` is a keyword list. No options are currently honoured.
+
+  ### Returns
+
+  * `{:ok, pid}`, or
+
+  * `{:error, reason}` if the process cannot start, as for
+    `GenServer.start_link/3`.
+
+  ### Examples
+
+      iex> {:error, {:already_started, _pid}} = Localize.Unit.CustomRegistry.start_link()
+
+  """
+  @spec start_link(Keyword.t()) :: GenServer.on_start()
+  def start_link(options \\ []) do
+    GenServer.start_link(__MODULE__, options, name: __MODULE__)
+  end
+
+  @impl GenServer
+  def init(_options) do
+    :ets.new(@table, [:set, :protected, :named_table, read_concurrency: true])
+    {:ok, %{}}
+  end
+
+  @impl GenServer
+  def handle_call({:insert, entries}, _from, state) do
+    :ets.insert(@table, entries)
+    {:reply, :ok, state}
+  end
+
+  def handle_call(:clear, _from, state) do
+    :ets.delete_all_objects(@table)
+    {:reply, :ok, state}
+  end
+
+  # Writes the entries through the process that owns the table. One
+  # `:ets.insert/2` writes them all at once, and the process takes one
+  # write at a time, so no registration replaces another.
+  defp insert(entries) do
+    if Process.whereis(__MODULE__) do
+      GenServer.call(__MODULE__, {:insert, entries})
+    else
+      {:error, @not_running}
+    end
+  end
+
+  defp table? do
+    :ets.whereis(@table) != :undefined
   end
 
   # ── Base-unit normalization ──

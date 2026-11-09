@@ -16,6 +16,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 * A caller's `:only`, `:except`, `:separators`, `:currency` or collation `:type` no longer adds a `:persistent_term` key for each new value, which grew memory without bound. A `:separators` or collation `:type` that is not an atom returns `InvalidValueError`.
 
+* `Localize.Unit.CustomRegistry.register/2` and `register_batch/1` keep every unit when called concurrently, where 13 of 200 were kept. The registry is an ETS table owned by a process under `Localize.Supervisor`, and registering before it starts returns an error.
+
 * `Localize.Number.Parser.parse_currency_amount/2` and `resolve_currency/2` read the ISO 4217 code of a currency the locale does not list, which is how `to_string/2` writes one, so "1 234,500 KWD" in `ady` is read where it returned `UnknownCurrencyError`. The code is read only when none of the locale's currencies claims the text, and within `:only` and `:except`.
 
 * `Localize.Number.to_string/2`, the MF2 `:currency` function and `Localize.Currency.symbol/2` format a currency the locale's CLDR data does not list with its parent locale's data, so KWD in `ady` or VED in `es` is formatted where it returned `CurrencyNotLocalizedError`, even with `currency_symbol: :none`.

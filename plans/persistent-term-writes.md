@@ -160,7 +160,7 @@ Recommended: 1, with 2 for applications that configure `:supported_locales`, aft
 
 * [x] **Bound the cache keys that caller options reach** — `:only` and `:except` are reduced to the statuses and known codes they name, and a code filter is kept in `Localize.FormatCache`; an unknown separator set or collation type is keyed as none, an error is not cached, and a non-atom `:separators` or `:type` is `InvalidValueError`. `test/localize/caller_option_keys_test.exs`. 2026-11-10.
 
-* [ ] **Make custom unit registration atomic** — ETS rows owned by a supervised process, with a test that concurrent registrations are all kept.
+* [x] **Make custom unit registration atomic** — `Localize.Unit.CustomRegistry` is a process under `Localize.Supervisor` owning a protected ETS table; writes go through it, reads go to the table, and registering before it starts returns an error. 200 concurrent registrations all kept. 2026-11-10.
 
 * [ ] **Keep locale chains in ETS** — cleared with one call when the supported locales change.
 
