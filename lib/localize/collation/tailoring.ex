@@ -107,13 +107,8 @@ defmodule Localize.Collation.Tailoring do
     cache_key = {:localize, :collation_tailoring, language_tag.cldr_locale_id, type}
 
     case :persistent_term.get(cache_key, :unset) do
-      :unset ->
-        result = tailoring_for(language_tag, type, @longest_parent_chain)
-        Localize.LiteralMemory.cache(cache_key, result)
-        result
-
-      cached ->
-        cached
+      :unset -> cache_tailoring(cache_key, language_tag, type)
+      cached -> cached
     end
   end
 
@@ -122,6 +117,23 @@ defmodule Localize.Collation.Tailoring do
       {:ok, language_tag} -> get_tailoring(language_tag, type)
       {:error, _reason} -> nil
     end
+  end
+
+  # The type is the caller's, so a type no tailoring has, which no locale or
+  # parent can match, is answered without a lookup and without a key; each
+  # such type would otherwise add a key that is never removed.
+  defp cache_tailoring(cache_key, language_tag, type) do
+    if known_type?(type) do
+      result = tailoring_for(language_tag, type, @longest_parent_chain)
+      Localize.LiteralMemory.cache(cache_key, result)
+      result
+    else
+      nil
+    end
+  end
+
+  defp known_type?(type) do
+    Enum.any?(tailorings(), fn {{_locale_id, known}, _rules} -> known == type end)
   end
 
   # The data is keyed by the CLDR locale a tailoring file is for, which a

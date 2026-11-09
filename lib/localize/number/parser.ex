@@ -141,7 +141,9 @@ defmodule Localize.Number.Parser do
 
   ### Returns
 
-  * A list of strings and numbers.
+  * A list of strings and numbers, or
+
+  * `{:error, exception}` if an argument or option is not valid.
 
   ### Examples
 
@@ -280,7 +282,7 @@ defmodule Localize.Number.Parser do
   * `{:error, %Localize.LocaleNotFoundInCacheError{}}` when the locale's
     data is not installed (see the module documentation), or
 
-  * `{:error, exception}` if parsing fails.
+  * `{:error, exception}` if an option is not valid or parsing fails.
 
   ### Examples
 

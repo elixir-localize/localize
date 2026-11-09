@@ -159,6 +159,21 @@ defmodule Localize.Collation.Options do
     end
   end
 
+  # A type is an atom. One no tailoring has, such as `:searchjl`, collates
+  # as the standard order, so only the kind of value is checked here.
+  defp validate_values([{:type, type} | rest]) when is_atom(type) do
+    validate_values(rest)
+  end
+
+  defp validate_values([{:type, type} | _rest]) do
+    {:error,
+     Localize.InvalidValueError.exception(
+       value: type,
+       expected: "a collation type atom",
+       context: "the :type option"
+     )}
+  end
+
   defp validate_values([_other | rest]), do: validate_values(rest)
 
   defp script_codes([]), do: :ok

@@ -136,6 +136,9 @@ defmodule Localize.Number.Lexicon do
   # An ISO 4217 code: three Latin letters, in either case.
   @iso_code ~r/\A[A-Za-z]{3}\z/
 
+  # The statuses `Localize.Currency.currency_filter/3` reads in a filter.
+  @currency_statuses [:all, :current, :historic, :tender, :annotated, :unannotated]
+
   @default_grouping_sizes {3, 3}
 
   @latin_digits ~w(0 1 2 3 4 5 6 7 8 9)
@@ -160,7 +163,8 @@ defmodule Localize.Number.Lexicon do
     other separators, with those too.
 
   * `:separators` names the set of separators to read with, `:standard`
-    by default.
+    by default. A locale without the named set reads with its standard
+    one.
 
   * `:root_separators` set to `true` adds the root locale's separators
     as a reading.
@@ -170,7 +174,8 @@ defmodule Localize.Number.Lexicon do
   * `{:ok, lexicon}`, or
 
   * `{:error, exception}` when the locale has no symbols for the
-    number system or the currency is unknown.
+    number system, the currency is unknown or `:separators` is not an
+    atom.
 
   ### Examples
 
@@ -190,9 +195,15 @@ defmodule Localize.Number.Lexicon do
   @spec fetch(Localize.LanguageTag.t(), atom(), Keyword.t()) ::
           {:ok, t()} | {:error, Exception.t()}
   def fetch(%Localize.LanguageTag{} = language_tag, number_system, options) do
+    with {:ok, separators} <- separator_set(language_tag, number_system, options) do
+      fetch_lexicon(language_tag, number_system, separators, options)
+    end
+  end
+
+  defp fetch_lexicon(language_tag, number_system, separators, options) do
     currency = Keyword.get(options, :currency)
-    separators = Keyword.get(options, :separators, :standard)
     root? = Keyword.get(options, :root_separators) == true
+    options = Keyword.put(options, :separators, separators)
 
     if is_nil(currency) or is_atom(currency) do
       key = {language_tag.cldr_locale_id, number_system, currency, separators, root?}
@@ -200,6 +211,51 @@ defmodule Localize.Number.Lexicon do
     else
       build(language_tag, number_system, options)
     end
+  end
+
+  # The set of separators a string is read with: the one `:separators`
+  # names where the locale has it for the number system, and otherwise the
+  # standard set, which `number_symbols/3` reads in its place. A name the
+  # locale lacks is keyed as `:standard`, so a caller's name adds no lexicon
+  # of its own.
+  defp separator_set(language_tag, number_system, options) do
+    case Keyword.get(options, :separators, :standard) do
+      :standard ->
+        {:ok, :standard}
+
+      name when is_atom(name) ->
+        {:ok, locale_separator_set(language_tag, number_system, name)}
+
+      other ->
+        {:error,
+         Localize.InvalidValueError.exception(
+           value: other,
+           expected: "the name of a set of separators, such as :standard or :us"
+         )}
+    end
+  end
+
+  defp locale_separator_set(language_tag, number_system, name) do
+    case Symbol.number_symbols_for(language_tag, number_system) do
+      {:ok, symbols} -> named_set(symbols, name)
+      {:error, _no_symbols} -> :standard
+    end
+  end
+
+  defp named_set(%{decimal: decimal, group: group}, name) do
+    if named_variant?(decimal, name) or named_variant?(group, name) do
+      name
+    else
+      :standard
+    end
+  end
+
+  defp named_variant?(%{} = variants, name) do
+    Map.has_key?(variants, name)
+  end
+
+  defp named_variant?(_separator, _name) do
+    false
   end
 
   @doc """
@@ -336,9 +392,17 @@ defmodule Localize.Number.Lexicon do
   # The currency index a currency amount is read with: every string that
   # names one currency of the locale under the `:only` and `:except`
   # filters, NFKC-normalized and downcased, to its code. Built once per
-  # locale and filter set and cached, since a filter changes which strings
-  # are unambiguous ("kr" names the krone alone among `only: [:NOK]`) and
-  # the build walks every currency.
+  # locale and filter and cached, since a filter changes which strings are
+  # unambiguous ("kr" names the krone alone among `only: [:NOK]`) and the
+  # build walks every currency, which takes 3 to 9 ms.
+  #
+  # The filters are the caller's, so before they become part of a key they
+  # are reduced to the statuses and known codes they name; an entry that
+  # names neither matches no currency and is dropped. An index filtered by
+  # statuses alone is kept in `:persistent_term`, since a locale has a few
+  # thousand such filters at most. One filtered by codes is kept in the
+  # bounded `Localize.FormatCache`, since every subset of the currencies is
+  # another filter.
   #
   # A currency amount reads a narrow symbol of another currency than the
   # locale's own only when it is a currency sign that names that currency
@@ -351,10 +415,19 @@ defmodule Localize.Number.Lexicon do
   @spec currencies(Localize.LanguageTag.t(), Keyword.t()) ::
           {:ok, %{String.t() => atom()}} | {:error, Exception.t()}
   def currencies(%Localize.LanguageTag{} = language_tag, filters) do
-    only = filters |> Keyword.get(:only, :all) |> List.wrap() |> Enum.sort()
-    except = filters |> Keyword.get(:except, []) |> List.wrap() |> Enum.sort()
+    only = filters |> Keyword.get(:only, :all) |> canonical_filter()
+    except = filters |> Keyword.get(:except, []) |> canonical_filter()
     key = {__MODULE__, {:currencies, language_tag.cldr_locale_id, only, except}}
+    canonical = [only: only, except: except]
 
+    if statuses_only?(only) and statuses_only?(except) do
+      kept_currencies(key, language_tag, canonical)
+    else
+      bounded_currencies(key, language_tag, canonical)
+    end
+  end
+
+  defp kept_currencies(key, language_tag, filters) do
     case :persistent_term.get(key, nil) do
       nil -> cache_currencies(key, language_tag, filters)
       strings -> {:ok, strings}
@@ -366,6 +439,64 @@ defmodule Localize.Number.Lexicon do
       Localize.LiteralMemory.cache(key, strings)
       {:ok, strings}
     end
+  end
+
+  defp bounded_currencies(key, language_tag, filters) do
+    case Localize.FormatCache.lookup(key) do
+      {:ok, strings} -> {:ok, strings}
+      :miss -> store_currencies(key, language_tag, filters)
+    end
+  end
+
+  defp store_currencies(key, language_tag, filters) do
+    with {:ok, strings} <- amount_strings(language_tag, own_currency(language_tag), filters) do
+      Localize.FormatCache.store(key, strings)
+      {:ok, strings}
+    end
+  end
+
+  # A filter's entries as the statuses and known codes they name, sorted and
+  # without repeats. A code given as a string names its currency only when it
+  # is the code exactly, as `Localize.Currency.currency_filter/3` reads it.
+  # An atom or string that names no status or code matches no currency and is
+  # dropped; anything else is kept for the filter's own validation to refuse.
+  defp canonical_filter(filter) do
+    filter
+    |> List.wrap()
+    |> Enum.flat_map(&canonical_entry/1)
+    |> Enum.uniq()
+    |> Enum.sort()
+  end
+
+  defp canonical_entry(status) when status in @currency_statuses do
+    [status]
+  end
+
+  defp canonical_entry(code) when is_atom(code) or is_binary(code) do
+    case Localize.Currency.validate_currency(code) do
+      {:ok, known} -> exact_code(known, code)
+      {:error, _unknown} -> []
+    end
+  end
+
+  defp canonical_entry(other) do
+    [other]
+  end
+
+  defp exact_code(known, code) when is_atom(code) do
+    [known]
+  end
+
+  defp exact_code(known, code) do
+    if Atom.to_string(known) == code do
+      [known]
+    else
+      []
+    end
+  end
+
+  defp statuses_only?(filter) do
+    Enum.all?(filter, &(&1 in @currency_statuses))
   end
 
   defp amount_strings(language_tag, own, filters) do
@@ -871,11 +1002,26 @@ defmodule Localize.Number.Lexicon do
     case :persistent_term.get(pt_key, :__not_loaded__) do
       :__not_loaded__ ->
         value = build_fn.()
-        Localize.LiteralMemory.cache(pt_key, value)
+        keep(pt_key, value)
         value
 
       value ->
         value
     end
+  end
+
+  # An error is worked out again rather than kept: it can answer a value the
+  # caller made up, such as an unknown currency, and each such value would
+  # otherwise add a key that is never removed.
+  defp keep(_key, {:error, _reason}) do
+    :ok
+  end
+
+  defp keep(_key, :error) do
+    :ok
+  end
+
+  defp keep(key, value) do
+    Localize.LiteralMemory.cache(key, value)
   end
 end

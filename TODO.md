@@ -4,8 +4,6 @@ Outstanding work on Localize. The design detail behind these items lives under [
 
 ## Open
 
-* [ ] **Stop caller options growing `:persistent_term`, and keep every custom unit registered** — `:only` and `:except` (`parse_currency_amount/2`, so `Money.parse/2`), `:separators` (`Parser.parse/2`) and the collation `:type` go into cache keys unchecked, so each new value adds a key for good (1,000 calls, 1,000 keys) and the last two accept any value; concurrent `CustomRegistry.register/2` calls keep 13 of 200. All in 1.6.1. [plans/persistent-term-writes.md](plans/persistent-term-writes.md).
-
 * [ ] **Settle the runtime `:persistent_term` writes under rule 14** — about forty sites write at runtime: per-locale data and caches, constants computed on first use, configuration setters and warn-once flags. Needs a decision on per-locale data; the options and their measured costs are in [plans/persistent-term-writes.md](plans/persistent-term-writes.md).
 
 * [ ] **Accept a date or time skeleton given as a string** — `Localize.Date`, `Localize.Time` and `Localize.DateTime` match a skeleton only as an atom (`format: :yMMMd`), and read a string as a pattern (`"yMMMd"` writes "2026Oct27"), so a skeleton from message text cannot be used without making an atom from it. Add a string form, such as `format: {:skeleton, "yMMMd"}`, matched by TR35 without creating an atom, so `localize_mf1` can format ICU's `{d, date, ::yMMMd}`, which returns an error today.
@@ -17,6 +15,8 @@ Outstanding work on Localize. The design detail behind these items lives under [
 * [ ] **Two German words, and the indefinite article in the plural** — `Localize.Inflection.inflect/3` reads an adjective and a noun alone as the upstream project does, the number singular unless asked for, so "kleine Häuser" in the dative is "kleinem Häusern", and an adjective form it does not read stays as it is, "alter Mann" in the genitive and "guter Wein" in the dative; and "ein kleines Haus" in the plural keeps "ein", which German drops. Three or more words agree throughout. Found by the 1.7.0 release review, 2026-11-09.
 
 ## In progress
+
+* [ ] **Stop caller options growing `:persistent_term`, and keep every custom unit registered** — `:only` and `:except` (`parse_currency_amount/2`, so `Money.parse/2`), `:separators` (`Parser.parse/2`) and the collation `:type` go into cache keys unchecked, so each new value adds a key for good (1,000 calls, 1,000 keys) and the last two accept any value; concurrent `CustomRegistry.register/2` calls keep 13 of 200. All in 1.6.1. [plans/persistent-term-writes.md](plans/persistent-term-writes.md). Caller options landed 2026-11-10 (`test/localize/caller_option_keys_test.exs`); custom unit registration is next.
 
 * [ ] **CLDR 49 upgrade** — the plan's items are closed bar item 11; the data is built from the final `release-49` (below). [plans/cldr-49.md](plans/cldr-49.md).
 

@@ -1,6 +1,6 @@
 # Runtime `:persistent_term` writes
 
-**Status:** draft, 2026-11-10
+**Status:** in progress, 2026-11-10
 
 Rule 14 of the house standards says no code writes `:persistent_term` while it serves calls: no lazy caches, no tables that grow, no configuration mirrors refreshed when they change. Localize writes it at runtime in about forty places. This document lists every `put` and `erase` in `lib/` as of `d5e2111f`, what each costs as measured on Elixir 1.20.5 and OTP 29.1.2, three defects the audit found, and the options. No code has been changed.
 
@@ -158,7 +158,7 @@ Recommended: 1, with 2 for applications that configure `:supported_locales`, aft
 
 ## Tasks
 
-* [ ] **Bound the cache keys that caller options reach** — validate `:separators`, the collation `:type`, and `:only` and `:except` at the public API, with tests that 1,000 distinct values add no keys and return `InvalidValueError`.
+* [x] **Bound the cache keys that caller options reach** — `:only` and `:except` are reduced to the statuses and known codes they name, and a code filter is kept in `Localize.FormatCache`; an unknown separator set or collation type is keyed as none, an error is not cached, and a non-atom `:separators` or `:type` is `InvalidValueError`. `test/localize/caller_option_keys_test.exs`. 2026-11-10.
 
 * [ ] **Make custom unit registration atomic** — ETS rows owned by a supervised process, with a test that concurrent registrations are all kept.
 
