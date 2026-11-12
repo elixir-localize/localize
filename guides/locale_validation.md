@@ -169,20 +169,20 @@ Restricting `:supported_locales` is the recommended production setup — it boun
 `Localize.LanguageTag.best_match/3` implements the CLDR language matching algorithm directly, for cases like negotiating an `Accept-Language` header against the locales your application ships:
 
 ```elixir
-iex> Localize.LanguageTag.best_match("en-AU", ["en", "en-GB", "fr"])
-{:ok, "en-GB", 3}
+iex> Localize.LanguageTag.best_match(:"en-AU", [:en, :"en-GB", :fr])
+{:ok, :"en-GB", 3}
 
-iex> Localize.LanguageTag.best_match("pt-PT", ["pt-BR", "es", "fr"])
-{:ok, "pt-BR", 5}
+iex> Localize.LanguageTag.best_match(:"pt-PT", [:"pt-BR", :es, :fr])
+{:ok, :"pt-BR", 5}
 ```
 
 The score is the CLDR match distance — `0` is exact, small values are regional variants, and `80`+ means a different language. With the default threshold the algorithm always returns some supported locale (a distant match beats no match, per the CLDR specification); pass an explicit threshold for strict matching:
 
 ```elixir
-iex> Localize.LanguageTag.best_match("de", ["en", "de", "fr"], 0)
-{:ok, "de", 0}
+iex> Localize.LanguageTag.best_match(:de, [:en, :de, :fr], 0)
+{:ok, :de, 0}
 
-iex> {:error, _} = Localize.LanguageTag.best_match("ja", ["en", "fr"], 20)
+iex> {:error, _} = Localize.LanguageTag.best_match(:ja, [:en, :fr], 20)
 ```
 
 `Localize.LanguageTag.match_distance/2` returns the raw distance between two locales:
