@@ -145,6 +145,65 @@ defmodule Localize.Locale.SupportedLocalesTest do
     end
   end
 
+  # Root being a supported locale must not take a locale from the ones
+  # configured: `:und` scored as a match candidate is `en-Latn-US`, so
+  # `en` and `en-US` resolved to `:und` where `en-GB` was the only
+  # English locale (#71).
+  describe "the root locale never answers for a configured language" do
+    test "English resolves to en-GB when it is the only English locale", context do
+      Localize.put_supported_locales([:"en-GB", :"sv-FI", :fi])
+
+      for locale <- [:en, :"en-US", :"en-AU", :"en-CA", :"en-GB", "en", "en-US", "en_US"] do
+        {:ok, tag} = Localize.validate_locale(locale)
+        assert tag.cldr_locale_id == :"en-GB", inspect(locale)
+      end
+
+      Localize.put_supported_locales(context.original_supported)
+    end
+
+    test "the other configured locales and the fallback are unchanged", context do
+      Localize.put_supported_locales([:"en-GB", :"sv-FI", :fi])
+
+      for {locale, expected} <- [sv: :"sv-FI", fi: :fi, de: :"en-GB", und: :und] do
+        {:ok, tag} = Localize.validate_locale(locale)
+        assert tag.cldr_locale_id == expected, inspect(locale)
+      end
+
+      Localize.put_supported_locales(context.original_supported)
+    end
+
+    test "a regional locale's language resolves to it, for several languages", context do
+      Localize.put_supported_locales([:"fr-CA", :"pt-PT", :"es-MX", :"zh-Hant", :"en-AU"])
+
+      expectations = [
+        en: :"en-AU",
+        "en-US": :"en-AU",
+        fr: :"fr-CA",
+        pt: :"pt-PT",
+        es: :"es-MX",
+        "zh-TW": :"zh-Hant"
+      ]
+
+      for {locale, expected} <- expectations do
+        {:ok, tag} = Localize.validate_locale(locale)
+        assert tag.cldr_locale_id == expected, inspect(locale)
+      end
+
+      Localize.put_supported_locales(context.original_supported)
+    end
+
+    test "no installed locale but the root resolves to :und", context do
+      Localize.put_supported_locales([:"en-GB", :"sv-FI", :fi])
+
+      for locale <- Localize.Test.InstalledLocales.all() -- [:und] do
+        {:ok, tag} = Localize.validate_locale(locale)
+        refute tag.cldr_locale_id == :und, inspect(locale)
+      end
+
+      Localize.put_supported_locales(context.original_supported)
+    end
+  end
+
   # Root is a supported locale whether or not it is configured, so `und`
   # resolves to itself and every parent chain ends at it (#68).
   describe "root with supported_locales that do not name it" do

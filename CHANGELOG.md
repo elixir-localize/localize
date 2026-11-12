@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.7.1] — Unreleased
+
+### Fixed
+
+* `Localize.validate_locale/1` and `Localize.LanguageTag.best_match/3` no longer resolve `en` or `en-US` to `:und` when the supported locales hold another English locale such as `:"en-GB"` but not `:en`, a regression in 1.5.0 ([#71](https://github.com/elixir-localize/localize/issues/71)). The root locale in a supported list, in any form, matches only a desired root.
+
 ## [1.7.0] — November 10th, 2026
 
 ### Added

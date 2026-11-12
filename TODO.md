@@ -68,6 +68,8 @@ Outstanding work on Localize. The design detail behind these items lives under [
 
 ## Done
 
+* [x] **Keep the root locale out of language matching** — `en` and `en-US` resolved to `:und` where `:"en-GB"` was the only English locale supported, because `best_match/3` knew the root only as the string `"und"` (#71). 2026-11-13, v1.7.1.
+
 * [x] **Stop caller options growing `:persistent_term`, and keep every custom unit registered** — caller options add no key per value, and `CustomRegistry` is supervised ETS that keeps concurrent registrations. [plans/persistent-term-writes.md](plans/persistent-term-writes.md). 2026-11-10, v1.7.0.
 
 * [x] **Read strftime formats** — `Localize.Date.strptime/3`, `Localize.Time.strptime/3` and `Localize.DateTime.strptime/3` translate a `Calendar.strftime/3` format into the pattern `parse/2` reads with; the strptime guide marks where the reading differs from `strptime(3)`. 2026-11-08, v1.7.0.

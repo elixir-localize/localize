@@ -73,6 +73,18 @@ The `:en` and `:und` locale ETFs are the only locales committed to the repositor
 
 The complete CLDR update process — source refresh, generation, conformance review, verification gates, CDN upload, hash manifest, release ordering — is documented in `CLDR_UPDATE_INTEGRATION.md` (the CLDR Update Guide). Consult it before any CLDR-version or data-pipeline work.
 
+## Locale identifiers are atoms, never strings
+
+The canonical locale identifier is an atom: `:en`, `:"en-GB"`, `:und`, `:"zh-Hant"`. It is what `cldr_locale_id` holds, what `Localize.supported_locales/0` returns and what every locale argument and option takes. A string locale identifier is a defect wherever it appears.
+
+* **Write atoms everywhere:** library code, tests, doctests, `@doc` and guide examples, configuration examples, scratch scripts, reproductions, issue replies and commit messages. `Localize.validate_locale(:en)`, `locale: :"en-GB"`, `Localize.put_supported_locales([:"en-GB", :fi])`; never `"en"`, `"en-GB"` or `["en-GB", "fi"]`.
+
+* **Match and compare on the atom.** Code that tests for a locale tests the atom (`:und`, never `"und"`), and a list of locale identifiers is a list of atoms. A check written against the string silently misses the canonical form: `best_match/3` excluded only `"und"` from matching, so `:und` in the supported list was matched as `en-Latn-US` and `en` resolved to `:und` (#71).
+
+* **A string is input, not an identifier.** Text from outside (an `Accept-Language` header, a URL segment, a form field, a file) is a string only until `Localize.validate_locale/1` has turned it into a `%Localize.LanguageTag{}`, at the boundary where it arrives. Nothing past that boundary carries or compares a string, and a string is never converted with `String.to_atom/1`.
+
+* **The subtag fields of a `%Localize.LanguageTag{}` are not locale identifiers** (`language: :en`, `script: :Latn`, `territory: :GB`) and keep the types the struct defines. `canonical_locale_id` is the BCP 47 string form of the whole tag, for display and serialisation; it is not the identifier a locale is looked up or compared by.
+
 ## Locale parsing
 
 * When we need to parse or resolve a locale identifier, prefer `Localize.validate_locale/1` over `Localize.LanguageTag.parse/1`. Validation canonicalizes the tag, populates the `LanguageTag.U` struct for `-u-` extensions, resolves likely subtags, and caches the result.

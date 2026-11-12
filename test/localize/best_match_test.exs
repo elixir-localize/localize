@@ -112,4 +112,102 @@ defmodule Localize.BestMatchTest do
       assert {:ok, _match, _score} = LanguageTag.best_match("und-Cyrl", ["ru", "en"])
     end
   end
+
+  # The root locale in the supported list matches a desired root and
+  # nothing else. `Localize.supported_locales/0` always holds it, as the
+  # atom `:und`; scored as a candidate it maximizes to `en-Latn-US`, an
+  # exact match for `en` and `en-US`, so a configuration whose only
+  # English locale was `en-GB` resolved English to `:und` (#71).
+  describe "best_match/3 with the root locale in the supported list" do
+    test "en and en-US match en-GB, not the root, wherever the root is listed" do
+      for desired <- [:en, :"en-US", :"en-AU", :"en-CA"], supported <- root_placements() do
+        assert {:ok, :"en-GB", score} = LanguageTag.best_match(desired, supported),
+               "#{inspect(desired)} in #{inspect(supported)}"
+
+        assert score < LanguageTag.default_distance()
+      end
+    end
+
+    test "every form of the root is kept out of the candidates" do
+      for root <- root_forms() do
+        assert {:ok, :"en-GB", 5} = LanguageTag.best_match(:en, [:"en-GB", :fi, root]),
+               inspect(root)
+
+        assert {:ok, :"en-GB", 5} = LanguageTag.best_match(:en, [root, :"en-GB", :fi]),
+               inspect(root)
+      end
+    end
+
+    test "a locale with no near match falls back to the first locale that is not the root" do
+      for root <- root_forms() do
+        assert {:ok, :"en-GB", 80} = LanguageTag.best_match(:zh, [root, :"en-GB", :fi]),
+               inspect(root)
+      end
+    end
+
+    test "a strict threshold does not return the root for another locale" do
+      for root <- root_forms() do
+        assert {:error, %Localize.LocaleMatchError{}} =
+                 LanguageTag.best_match(:en, [:fi, root], 0),
+               inspect(root)
+      end
+    end
+
+    test "a desired root matches the root as the caller listed it" do
+      for desired <- [:und, :root, "und", "root"], root <- root_forms() do
+        assert {:ok, ^root, 0} = LanguageTag.best_match(desired, [:"en-GB", :fi, root]),
+               "#{inspect(desired)} in #{inspect(root)}"
+      end
+    end
+
+    test "a desired root with no root listed takes the first supported locale" do
+      assert {:ok, :"en-GB", 80} = LanguageTag.best_match(:und, [:"en-GB", :fi])
+    end
+
+    test "a list of the root alone matches no other locale" do
+      for root <- root_forms() do
+        assert {:error, %Localize.LocaleMatchError{}} = LanguageTag.best_match(:en, [root]),
+               inspect(root)
+      end
+    end
+
+    # The invariant behind all of the above: adding the root to a
+    # supported list changes the match of no other locale.
+    test "adding the root changes the match of no installed locale" do
+      desired_locales = Localize.Test.InstalledLocales.all() -- [:und]
+
+      for supported <- supported_sets(), desired <- desired_locales do
+        expected = LanguageTag.best_match(desired, supported)
+        label = "#{inspect(desired)} in #{inspect(supported)}"
+
+        assert LanguageTag.best_match(desired, supported ++ [:und]) == expected, label
+        assert LanguageTag.best_match(desired, [:und | supported]) == expected, label
+        refute match?({:ok, :und, _score}, expected), label
+      end
+    end
+  end
+
+  defp root_placements do
+    [
+      [:"en-GB", :"sv-FI", :fi, :und],
+      [:und, :"en-GB", :"sv-FI", :fi],
+      [:"en-GB", :und, :"sv-FI", :fi],
+      [:"en-GB", :"sv-FI", :fi]
+    ]
+  end
+
+  defp root_forms do
+    {:ok, root_tag} = Localize.validate_locale(:und)
+    [:und, :root, "und", "root", root_tag]
+  end
+
+  defp supported_sets do
+    [
+      [:"en-GB", :"sv-FI", :fi],
+      [:"en-AU", :fr],
+      [:"fr-CA", :"pt-PT", :"zh-Hant"],
+      [:de, :ja, :ar],
+      [:"es-MX"]
+    ]
+  end
 end

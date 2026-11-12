@@ -825,11 +825,14 @@ defmodule Localize.LanguageTag do
 
   ### Arguments
 
-  * `desired` is a `%Localize.LanguageTag{}` struct or a BCP 47
-    locale string.
+  * `desired` is a locale identifier atom such as `:"en-AU"`, a
+    `%Localize.LanguageTag{}` struct or a BCP 47 locale string.
 
-  * `supported` is a list of `%Localize.LanguageTag{}` structs
-    or BCP 47 locale strings.
+  * `supported` is a list of locale identifier atoms, as
+    `Localize.supported_locales/0` returns, of
+    `%Localize.LanguageTag{}` structs or of BCP 47 locale strings.
+    The root locale in the list, `:und`, matches only a desired
+    root and is never a candidate for another locale.
 
   * `distance` is the maximum acceptable distance score. Matches
     with a score above this threshold are rejected.
@@ -859,12 +862,16 @@ defmodule Localize.LanguageTag do
 
   ### Examples
 
-      iex> {:ok, match, _score} = Localize.LanguageTag.best_match("en-AU", ["en", "en-GB", "fr"])
+      iex> {:ok, match, _score} = Localize.LanguageTag.best_match(:"en-AU", [:en, :"en-GB", :fr])
       iex> match
-      "en-GB"
+      :"en-GB"
+
+      iex> # The root locale is never a candidate for another locale
+      iex> Localize.LanguageTag.best_match(:en, [:"en-GB", :fi, :und])
+      {:ok, :"en-GB", 5}
 
       iex> # Strict matching: threshold 0 rejects non-exact matches
-      iex> {:error, _} = Localize.LanguageTag.best_match("xyzzy", ["en", "fr"], 0)
+      iex> {:error, _} = Localize.LanguageTag.best_match("xyzzy", [:en, :fr], 0)
 
   """
   @spec best_match(t() | String.t() | atom(), [t() | String.t() | atom()], non_neg_integer()) ::
@@ -883,11 +890,11 @@ defmodule Localize.LanguageTag do
   end
 
   def best_match(desired, supported, distance) when is_binary(desired) and is_list(supported) do
-    # Bare "und" as desired short-circuits to the default-supported
-    # selection: it only ever exact-matches "und" in supported, and
-    # otherwise yields the first non-und entry.
-    if desired == "und" do
-      best_match_und(supported)
+    # The root locale as desired short-circuits to the default-supported
+    # selection: it only ever exact-matches the root in supported, and
+    # otherwise yields the first entry that is not the root.
+    if root?(desired) do
+      best_match_root(supported)
     else
       with {:ok, desired_tag} <- resolve_for_matching(desired, :desired) do
         desired_tag
@@ -905,15 +912,17 @@ defmodule Localize.LanguageTag do
 
   # Build the list of {locale, tag, score, index, is_paradigm,
   # is_territory_language} tuples for every supported locale within the
-  # distance threshold, sorted by `match_comparator/2`. "und" in
-  # supported is skipped (it only exact-matches a desired "und",
-  # handled above).
+  # distance threshold, sorted by `match_comparator/2`. The root locale
+  # in supported is skipped in whichever form it is given (it only
+  # exact-matches a desired root, handled above). Scored as a candidate
+  # it maximizes to `en-Latn-US`, an exact match for `en` and `en-US`
+  # that takes them from every other English locale listed (#71).
   defp compute_match_candidates(desired_tag, supported, distance) do
     territory_language = territory_language(desired_tag)
 
     supported
     |> Enum.with_index()
-    |> Enum.reject(fn {locale, _index} -> locale == "und" end)
+    |> Enum.reject(fn {locale, _index} -> root?(locale) end)
     |> Enum.flat_map(&score_candidate(&1, desired_tag, territory_language, distance))
     |> Enum.sort(&match_comparator/2)
   end
@@ -960,7 +969,7 @@ defmodule Localize.LanguageTag do
   # Pick the best candidate (head of the sorted list). When no
   # candidate is within range: a threshold below the default is
   # strict and returns an error; the default threshold falls back
-  # to the first non-und supported locale, matching the CLDR
+  # to the first supported locale that is not the root, matching the CLDR
   # algorithm's guarantee that a non-empty supported list always
   # yields a match.
   defp select_best_match([{locale, _tag, score, _idx, _par, _terr} | _], _desired, _supported, _d) do
@@ -972,28 +981,54 @@ defmodule Localize.LanguageTag do
   end
 
   defp select_best_match([], desired, supported, distance) do
-    case first_non_und(supported) do
-      nil -> {:error, Localize.LocaleMatchError.exception(desired: desired, threshold: distance)}
-      default -> {:ok, default, distance}
-    end
-  end
+    default = first_non_root(supported)
 
-  defp best_match_und(supported) do
-    if "und" in supported do
-      {:ok, "und", 0}
+    if is_nil(default) do
+      {:error, Localize.LocaleMatchError.exception(desired: desired, threshold: distance)}
     else
-      case first_non_und(supported) do
-        nil -> {:error, Localize.LocaleMatchError.exception(desired: "und", threshold: 0)}
-        default -> {:ok, default, @default_distance}
-      end
+      {:ok, default, distance}
     end
   end
 
-  defp first_non_und(list) do
-    Enum.find(list, fn
-      locale when is_binary(locale) -> locale != "und"
-      _ -> true
-    end)
+  # A desired root matches the root in supported, returned as the caller
+  # listed it, and otherwise the first supported locale that is not the
+  # root.
+  defp best_match_root(supported) do
+    root = Enum.find(supported, &root?/1)
+    default = first_non_root(supported)
+
+    cond do
+      not is_nil(root) -> {:ok, root, 0}
+      not is_nil(default) -> {:ok, default, @default_distance}
+      true -> {:error, Localize.LocaleMatchError.exception(desired: "und", threshold: 0)}
+    end
+  end
+
+  defp first_non_root(supported) do
+    Enum.find(supported, fn locale -> not root?(locale) end)
+  end
+
+  # The root locale in each form a caller can name it: the canonical
+  # locale identifier `:und`, CLDR's `:root`, either as text, a validated
+  # tag whose locale identifier is `:und` (its subtags are the likely
+  # ones, `en-Latn-US`), or a parsed tag with no subtag but the language.
+  # Testing one form only lets the others through to be matched as
+  # `en-Latn-US`, which is how `:und` in the supported locales took `en`
+  # from `en-GB` (#71).
+  defp root?(locale) when locale in [:und, :root, "und", "root"] do
+    true
+  end
+
+  defp root?(%__MODULE__{cldr_locale_id: :und}) do
+    true
+  end
+
+  defp root?(%__MODULE__{language: :und, script: nil, territory: nil, language_variants: []}) do
+    true
+  end
+
+  defp root?(_locale) do
+    false
   end
 
   @doc """
