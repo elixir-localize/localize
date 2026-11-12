@@ -73,17 +73,19 @@ The `:en` and `:und` locale ETFs are the only locales committed to the repositor
 
 The complete CLDR update process — source refresh, generation, conformance review, verification gates, CDN upload, hash manifest, release ordering — is documented in `CLDR_UPDATE_INTEGRATION.md` (the CLDR Update Guide). Consult it before any CLDR-version or data-pipeline work.
 
-## Locale identifiers are atoms, never strings
+## Locales: validate at the public API, thread the `%Localize.LanguageTag{}`, and its `cldr_locale_id` is an atom
 
-The canonical locale identifier is an atom: `:en`, `:"en-GB"`, `:und`, `:"zh-Hant"`. It is what `cldr_locale_id` holds, what `Localize.supported_locales/0` returns and what every locale argument and option takes. A string locale identifier is a defect wherever it appears.
+A public function takes a locale as a string, an atom or a `%Localize.LanguageTag{}`; all three are fine, in the API and in its docs and tests. What happens next is fixed:
 
-* **Write atoms everywhere:** library code, tests, doctests, `@doc` and guide examples, configuration examples, scratch scripts, reproductions, issue replies and commit messages. `Localize.validate_locale(:en)`, `locale: :"en-GB"`, `Localize.put_supported_locales([:"en-GB", :fi])`; never `"en"`, `"en-GB"` or `["en-GB", "fi"]`.
+* **The public API validates the locale, once, at entry,** with `Localize.validate_locale/1`. An invalid locale returns `{:error, exception}` there.
 
-* **Match and compare on the atom.** Code that tests for a locale tests the atom (`:und`, never `"und"`), and a list of locale identifiers is a list of atoms. A check written against the string silently misses the canonical form: `best_match/3` excluded only `"und"` from matching, so `:und` in the supported list was matched as `en-Latn-US` and `en` resolved to `:und` (#71).
+* **The `%Localize.LanguageTag{}` is what is threaded through.** Every internal function below the public entry takes the validated tag, trusts it, and passes it on. Internal code never carries a locale as a string, never re-parses or re-validates one, and never builds a string identifier from a tag's parts to look something up.
 
-* **A string is input, not an identifier.** Text from outside (an `Accept-Language` header, a URL segment, a form field, a file) is a string only until `Localize.validate_locale/1` has turned it into a `%Localize.LanguageTag{}`, at the boundary where it arrives. Nothing past that boundary carries or compares a string, and a string is never converted with `String.to_atom/1`.
+* **`cldr_locale_id` is always an atom:** `:en`, `:"en-GB"`, `:und`, `:"zh-Hant"`. It is the identifier locale data is keyed by, and what `Localize.supported_locales/0` holds. Internal code that tests for a locale, keys a cache or table by one, or compares two, uses that atom: `:und`, never `"und"`.
 
-* **The subtag fields of a `%Localize.LanguageTag{}` are not locale identifiers** (`language: :en`, `script: :Latn`, `territory: :GB`) and keep the types the struct defines. `canonical_locale_id` is the BCP 47 string form of the whole tag, for display and serialisation; it is not the identifier a locale is looked up or compared by.
+* **A check written against the string form silently misses the canonical one.** `best_match/3` kept the root out of matching only as `"und"`, so the `:und` in the supported locales was matched as `en-Latn-US` and `en` resolved to `:und` (#71). Where a function does take a caller's list of locales in more than one form, test every form in one place, the atom first.
+
+* **A string is never made into an atom with `String.to_atom/1`.** `Localize.validate_locale/1` is the only route from a caller's string to a `cldr_locale_id`.
 
 ## Locale parsing
 
