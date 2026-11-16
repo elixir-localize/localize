@@ -4,6 +4,8 @@ Outstanding work on Localize. The design detail behind these items lives under [
 
 ## Open
 
+* [ ] **Return the default locale for a valid tag that matches no supported locale** — `Localize.validate_locale/1` returns `:und` for a tag with no CLDR data (`tlh`) under every configuration, because `:und` has been in every supported list since #68, and returns the first supported locale, not the default, for a locale that is not configured (`ja` under `[fr, de, en]` with default `en` gives `fr`). It should return the default locale, and `:und` only when no other default is configured; the `tlh` result is documented and tested as intended, so the docs, the locale validation guide and `locale_inheritance_test.exs` change with it, and `default_locale/0` validates `:en` while it resolves, so the fallback must not call it. To be reviewed after `localize_web` 1.4.0.
+
 * [ ] **Settle the runtime `:persistent_term` writes under rule 14** — about forty sites write at runtime: per-locale data and caches, constants computed on first use, configuration setters and warn-once flags. Needs a decision on per-locale data; the options and their measured costs are in [plans/persistent-term-writes.md](plans/persistent-term-writes.md).
 
 * [ ] **Accept a date or time skeleton given as a string** — `Localize.Date`, `Localize.Time` and `Localize.DateTime` match a skeleton only as an atom (`format: :yMMMd`), and read a string as a pattern (`"yMMMd"` writes "2026Oct27"), so a skeleton from message text cannot be used without making an atom from it. Add a string form, such as `format: {:skeleton, "yMMMd"}`, matched by TR35 without creating an atom, so `localize_mf1` can format ICU's `{d, date, ::yMMMd}`, which returns an error today.
