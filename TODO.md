@@ -10,8 +10,6 @@ Outstanding work on Localize. The design detail behind these items lives under [
 
 * [ ] **Accept a date or time skeleton given as a string** — `Localize.Date`, `Localize.Time` and `Localize.DateTime` match a skeleton only as an atom (`format: :yMMMd`), and read a string as a pattern (`"yMMMd"` writes "2026Oct27"), so a skeleton from message text cannot be used without making an atom from it. Add a string form, such as `format: {:skeleton, "yMMMd"}`, matched by TR35 without creating an atom, so `localize_mf1` can format ICU's `{d, date, ::yMMMd}`, which returns an error today.
 
-* [ ] **Sort with ICU sort keys in one NIF call** — `Localize.Collation.sort/2` with `backend: :nif` calls `nif_collation_cmp` once per comparison, about 10,000 dirty-scheduler calls for 1,000 strings, so it takes ~33 ms whatever the string length, slower than the Elixir backend's sort keys below 20 code points. Add a NIF that returns `ucol_getSortKey` keys for a list in one call and sort on them, as romantic_collation does in 1.4–5 ms (`~/Development/localize/collation_bench`, 2026-11-17).
-
 * [ ] **Resolve keyword collation options once, not on every call** — `Localize.Collation.compare/3` given a keyword list such as `[locale: "und-u-kn", backend: :nif]` runs `Localize.validate_locale/1` on each call, ~38 µs where the ICU compare itself is ~4 µs. Cache the resolved `Localize.Collation.Options` by keyword list (in `:persistent_term` or a supervised ETS table), or document that callers comparing in a loop build the struct once with `Localize.Collation.Options.from_locale/1`.
 
 * [ ] **Read CLDR's JSON in place of its XML wherever the JSON carries the data** (next release) — `data/xml_extractors.ex` reads XML for data the CLDR 49 JSON has with every attribute used: `pluralRanges`, `primaryZones` (`metaZones.xml`), the BCP 47 `timezone` (`_alias`, `_region`, `_preferred`) and `measure` files, `subdivisionContainment` (`subdivisions.xml`'s `subgroup`), `units` (`convertUnits` with `_special` and `_systems`, `unitConstants` with `_status`, `unitPrefixes`, `unitQuantities`) and `unitIdComponents`, and the grammatical derivations in `grammaticalFeatures`. `data/validity.ex` reads the BCP 47 XML for the `-u-` and `-t-` keys, which `cldr-bcp47` also carries. Add `bcp47` to `Localize.Data.CldrJson`'s converter types, then move each reader. Only these stay XML, having no JSON: `common/validity/*.xml`, the collation tailorings in `common/collation/` and `common/uca/FractionalUCA.txt`. Gate: every supplemental ETF and the locale hash manifest regenerate byte-identical, which deterministic encoding makes a direct comparison.
@@ -73,6 +71,8 @@ Outstanding work on Localize. The design detail behind these items lives under [
 * [ ] **`localize_emoji` sibling library** — plan item 11, a separate package on its own schedule. A Phoenix LiveView picker (`localize_emoji_live`) is out of scope for its 0.1.0.
 
 ## Done
+
+* [x] **Sort with ICU sort keys in one NIF call** — `Localize.Collation.sort/2` with `backend: :nif` makes one `nif_collation_sort` call, sorting 1,000 strings in 1–3 ms where it took 33 ms or more. 2026-11-17, unreleased (1.7.2).
 
 * [x] **Keep the root locale out of language matching** — `en` and `en-US` resolved to `:und` where `:"en-GB"` was the only English locale supported, because `best_match/3` knew the root only as the string `"und"` (#71). 2026-11-13, v1.7.1.
 

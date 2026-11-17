@@ -122,6 +122,41 @@ defmodule Localize.Collation.Nif do
     end
   end
 
+  @doc """
+  Sorts a list of strings with the ICU NIF collator in one NIF call.
+
+  ### Arguments
+
+  * `strings` - a list of strings.
+
+  * `options` - a `%Localize.Collation.Options{}` struct.
+
+  ### Returns
+
+  * The sorted list, with collation-equal strings in their input order, or
+
+  * `{:error, reason}` when the NIF cannot sort the list (a string over
+    1 MB, an exhausted collator pool or an ICU failure).
+
+  """
+  @spec nif_sort([String.t()], Options.t()) :: [String.t()] | {:error, atom()}
+  def nif_sort(strings, %Options{} = options) do
+    {strength, backwards, alternate, case_first, case_level, normalization, numeric, reorder_bin} =
+      options_to_nif_args(options)
+
+    Localize.Nif.nif_collation_sort(
+      strings,
+      strength,
+      backwards,
+      alternate,
+      case_first,
+      case_level,
+      normalization,
+      numeric,
+      reorder_bin
+    )
+  end
+
   @doc false
   def options_to_nif_args(%Options{} = options) do
     strength = encode_strength(options.strength)

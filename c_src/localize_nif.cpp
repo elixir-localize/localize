@@ -4,16 +4,20 @@
 //   nif_mf2_validate/1      - Parse an MF2 message and return normalized pattern or error
 //   nif_mf2_format/3        - Format an MF2 message with locale and JSON-encoded arguments
 //   nif_collation_cmp/10    - Compare two strings using ICU collation with full option support
+//   nif_collation_sort/9    - Sort a list of strings by ICU sort keys in one call
 //   nif_plural_rule/4       - Select plural category using ICU PluralRules
 //   nif_number_format/4     - Format a number using ICU NumberFormatter
 
+#include <algorithm>
 #include <cstring>
 #include <map>
 #include <string>
+#include <vector>
 
 #include "erl_nif.h"
 
 #include "unicode/ucol.h"
+#include "unicode/ustring.h"
 #include "unicode/uscript.h"
 #include "unicode/errorcode.h"
 #include "unicode/locid.h"
@@ -44,45 +48,53 @@ static ERL_NIF_TERM atom_error;
 /* Use -1 as sentinel for "use default / no change" */
 #define OPT_DEFAULT (-1)
 
+/* The pool is a stack of the collators not in use: `collators[0]` to
+ * `collators[numAvailable - 1]`. A call pops one and pushes the same
+ * one back when it is done, so a collator is never handed out while
+ * another call still has it, whatever order concurrent calls finish
+ * in. (An index that only moved up and down handed out whichever slot
+ * it pointed at, which could be a collator another call still held.)
+ * When every collator is back, the array holds each exactly once. */
 typedef struct {
     UCollator** collators;
-    int collStackTop;
+    int numAvailable;
     int numCollators;
     ErlNifMutex* collMutex;
 } collation_priv_t;
 
 /* Reserve a collator from the pool. Returns 1 on success (out is set
- * to a valid collator), 0 on overflow (out is set to NULL).
+ * to a valid collator), 0 when every collator is in use (out is set
+ * to NULL).
  *
  * The pool is sized for `schedulers + dirty_cpu_schedulers` at NIF
  * load time so concurrent calls that span both scheduler classes have
- * a slot available. The overflow check here is defence-in-depth in
- * case the actual concurrency ever exceeds the pool size — without
- * it the previous code dereferenced `collators[collStackTop]` past
- * the array end, an OOB read inside the BEAM. */
+ * a collator available. The empty check is defence-in-depth in case
+ * the actual concurrency ever exceeds the pool size. */
 static inline int
 reserve_coll(collation_priv_t* pData, UCollator** out)
 {
     enif_mutex_lock(pData->collMutex);
 
-    if (pData->collStackTop >= pData->numCollators) {
+    if (pData->numAvailable <= 0) {
         enif_mutex_unlock(pData->collMutex);
         *out = NULL;
         return 0;
     }
 
-    *out = pData->collators[pData->collStackTop];
-    pData->collStackTop += 1;
+    pData->numAvailable -= 1;
+    *out = pData->collators[pData->numAvailable];
     enif_mutex_unlock(pData->collMutex);
     return 1;
 }
 
+/* Return the collator `reserve_coll` gave out. */
 static inline void
-release_coll(collation_priv_t* pData)
+release_coll(collation_priv_t* pData, UCollator* coll)
 {
     enif_mutex_lock(pData->collMutex);
-    if (pData->collStackTop > 0) {
-        pData->collStackTop -= 1;
+    if (pData->numAvailable < pData->numCollators) {
+        pData->collators[pData->numAvailable] = coll;
+        pData->numAvailable += 1;
     }
     enif_mutex_unlock(pData->collMutex);
 }
@@ -97,7 +109,7 @@ init_collation_pool(int num_schedulers)
     if (!pData) return NULL;
 
     pData->collators = NULL;
-    pData->collStackTop = 0;
+    pData->numAvailable = num_schedulers;
     pData->numCollators = num_schedulers;
     pData->collMutex = enif_mutex_create((char*)"localize_coll_mutex");
 
@@ -555,22 +567,149 @@ static ERL_NIF_TERM nif_mf2_format(ErlNifEnv* env, int argc,
                             make_binary_from_unistr(env, result));
 }
 
-/* ── Collation NIF function ─────────────────────────────────────── */
+/* ── Collation NIF functions ────────────────────────────────────── */
+
+/* The collation options nif_collation_cmp and nif_collation_sort take:
+ * seven ICU attribute values, each OPT_DEFAULT (-1) for "use the
+ * collator default", and a binary of packed big-endian int32 reorder
+ * codes. */
+typedef struct {
+    int strength;
+    int backwards;
+    int alternate;
+    int case_first;
+    int case_level;
+    int normalization;
+    int numeric;
+    ErlNifBinary reorder;
+} collation_opts_t;
+
+/* What apply_collation_opts changed on a pooled collator, so that
+ * restore_collation_opts can put it back as it was. */
+typedef struct {
+    int any_set;
+    int has_reorder;
+} collation_applied_t;
+
+/* ICU itself only defines ~30 reorder codes; legitimate input has at
+ * most a few dozen. The cap stops an attacker causing an unbounded
+ * `enif_alloc`. */
+static const size_t MAX_REORDER_CODES = 256;
+
+/* Reads the eight option arguments starting at argv[0]. */
+static int
+get_collation_opts(ErlNifEnv* env, const ERL_NIF_TERM argv[], collation_opts_t* opts)
+{
+    return enif_get_int(env, argv[0], &opts->strength) &&
+           enif_get_int(env, argv[1], &opts->backwards) &&
+           enif_get_int(env, argv[2], &opts->alternate) &&
+           enif_get_int(env, argv[3], &opts->case_first) &&
+           enif_get_int(env, argv[4], &opts->case_level) &&
+           enif_get_int(env, argv[5], &opts->normalization) &&
+           enif_get_int(env, argv[6], &opts->numeric) &&
+           enif_inspect_binary(env, argv[7], &opts->reorder);
+}
+
+static void
+set_collation_attribute(UCollator* coll, UColAttribute attribute, int value, int* any_set)
+{
+    if (value != OPT_DEFAULT) {
+        UErrorCode status = U_ZERO_ERROR;
+        ucol_setAttribute(coll, attribute, (UColAttributeValue)value, &status);
+        *any_set = 1;
+    }
+}
+
+static void
+reset_collation_attribute(UCollator* coll, UColAttribute attribute, int value)
+{
+    if (value != OPT_DEFAULT) {
+        UErrorCode status = U_ZERO_ERROR;
+        ucol_setAttribute(coll, attribute, UCOL_DEFAULT, &status);
+    }
+}
+
+static collation_applied_t
+apply_collation_opts(UCollator* coll, const collation_opts_t* opts)
+{
+    collation_applied_t applied = {0, 0};
+
+    set_collation_attribute(coll, UCOL_STRENGTH, opts->strength, &applied.any_set);
+    set_collation_attribute(coll, UCOL_FRENCH_COLLATION, opts->backwards, &applied.any_set);
+    set_collation_attribute(coll, UCOL_ALTERNATE_HANDLING, opts->alternate, &applied.any_set);
+    set_collation_attribute(coll, UCOL_CASE_FIRST, opts->case_first, &applied.any_set);
+    set_collation_attribute(coll, UCOL_CASE_LEVEL, opts->case_level, &applied.any_set);
+    set_collation_attribute(coll, UCOL_NORMALIZATION_MODE, opts->normalization, &applied.any_set);
+    set_collation_attribute(coll, UCOL_NUMERIC_COLLATION, opts->numeric, &applied.any_set);
+
+    /* The reorder list is a packed sequence of 32-bit big-endian script
+     * codes. The size arithmetic stays in `size_t` so a >8 GB binary
+     * cannot wrap a signed `int32_t` and produce a huge allocation
+     * request. A list over the cap, or an `enif_alloc` returning NULL,
+     * applies no reorder; ICU would reject a plainly-too-long list
+     * anyway. */
+    const ErlNifBinary* reorder = &opts->reorder;
+
+    if (reorder->size > 0 && (reorder->size % 4) == 0) {
+        size_t numCodesSize = reorder->size / 4;
+
+        if (numCodesSize <= MAX_REORDER_CODES) {
+            int32_t* codes = (int32_t*)enif_alloc(sizeof(int32_t) * numCodesSize);
+
+            if (codes != NULL) {
+                const unsigned char* p = reorder->data;
+
+                for (size_t i = 0; i < numCodesSize; i++) {
+                    codes[i] = (int32_t)(
+                        ((uint32_t)p[0] << 24) |
+                        ((uint32_t)p[1] << 16) |
+                        ((uint32_t)p[2] << 8)  |
+                        ((uint32_t)p[3])
+                    );
+                    p += 4;
+                }
+
+                UErrorCode status = U_ZERO_ERROR;
+                ucol_setReorderCodes(coll, codes, (int32_t)numCodesSize, &status);
+                enif_free(codes);
+                applied.has_reorder = 1;
+            }
+        }
+    }
+
+    return applied;
+}
+
+static void
+restore_collation_opts(UCollator* coll, const collation_opts_t* opts, collation_applied_t applied)
+{
+    if (applied.any_set) {
+        reset_collation_attribute(coll, UCOL_STRENGTH, opts->strength);
+        reset_collation_attribute(coll, UCOL_FRENCH_COLLATION, opts->backwards);
+        reset_collation_attribute(coll, UCOL_ALTERNATE_HANDLING, opts->alternate);
+        reset_collation_attribute(coll, UCOL_CASE_FIRST, opts->case_first);
+        reset_collation_attribute(coll, UCOL_CASE_LEVEL, opts->case_level);
+        reset_collation_attribute(coll, UCOL_NORMALIZATION_MODE, opts->normalization);
+        reset_collation_attribute(coll, UCOL_NUMERIC_COLLATION, opts->numeric);
+    }
+
+    if (applied.has_reorder) {
+        int32_t defaultCode = UCOL_REORDER_CODE_DEFAULT;
+        UErrorCode status = U_ZERO_ERROR;
+        ucol_setReorderCodes(coll, &defaultCode, 1, &status);
+    }
+}
 
 // nif_collation_cmp(string_a, string_b, strength, backwards, alternate,
 //                   case_first, case_level, normalization, numeric, reorder_bin)
-// Each option is an integer. OPT_DEFAULT (-1) means "use collator default".
-// reorder_bin is a binary of packed big-endian int32 reorder codes.
 static ERL_NIF_TERM nif_collation_cmp(ErlNifEnv* env, int argc,
                                        const ERL_NIF_TERM argv[]) {
     if (argc != 10) {
         return enif_make_badarg(env);
     }
 
-    ErlNifBinary binA, binB, reorderBin;
-    int strength, backwards, alternate, case_first, case_level, normalization, numeric;
-    int any_set = 0;
-    int has_reorder = 0;
+    ErlNifBinary binA, binB;
+    collation_opts_t opts;
     UCollator* coll = NULL;
 
     collation_priv_t* pData = (collation_priv_t*)enif_priv_data(env);
@@ -590,19 +729,7 @@ static ERL_NIF_TERM nif_collation_cmp(ErlNifEnv* env, int argc,
         return enif_make_int(env, 0);
     }
 
-    /* Extract option integers */
-    if (!enif_get_int(env, argv[2], &strength) ||
-        !enif_get_int(env, argv[3], &backwards) ||
-        !enif_get_int(env, argv[4], &alternate) ||
-        !enif_get_int(env, argv[5], &case_first) ||
-        !enif_get_int(env, argv[6], &case_level) ||
-        !enif_get_int(env, argv[7], &normalization) ||
-        !enif_get_int(env, argv[8], &numeric)) {
-        return enif_make_int(env, 0);
-    }
-
-    /* Extract reorder codes binary (10th arg) */
-    if (!enif_inspect_binary(env, argv[9], &reorderBin)) {
+    if (!get_collation_opts(env, argv + 2, &opts)) {
         return enif_make_int(env, 0);
     }
 
@@ -610,8 +737,7 @@ static ERL_NIF_TERM nif_collation_cmp(ErlNifEnv* env, int argc,
 
     /* Set up UTF-8 iterators. The cast to `uint32_t` is safe because
      * the size has already been bounded by `MAX_COLLATION_BYTES` (1 MB)
-     * above, which is far below the `uint32_t` range. Without that cap
-     * a >4 GB binary would silently truncate here. */
+     * above, which is far below the `uint32_t` range. */
     UCharIterator iterA, iterB;
     uiter_setUTF8(&iterA, (const char*)binA.data, (uint32_t)binA.size);
     uiter_setUTF8(&iterB, (const char*)binB.data, (uint32_t)binB.size);
@@ -624,111 +750,170 @@ static ERL_NIF_TERM nif_collation_cmp(ErlNifEnv* env, int argc,
         return enif_make_int(env, 0);
     }
 
-    /* Apply non-default attributes */
-    if (strength != OPT_DEFAULT) {
-        ucol_setAttribute(coll, UCOL_STRENGTH, (UColAttributeValue)strength, &status);
-        any_set = 1;
-    }
-    if (backwards != OPT_DEFAULT) {
-        ucol_setAttribute(coll, UCOL_FRENCH_COLLATION, (UColAttributeValue)backwards, &status);
-        any_set = 1;
-    }
-    if (alternate != OPT_DEFAULT) {
-        ucol_setAttribute(coll, UCOL_ALTERNATE_HANDLING, (UColAttributeValue)alternate, &status);
-        any_set = 1;
-    }
-    if (case_first != OPT_DEFAULT) {
-        ucol_setAttribute(coll, UCOL_CASE_FIRST, (UColAttributeValue)case_first, &status);
-        any_set = 1;
-    }
-    if (case_level != OPT_DEFAULT) {
-        ucol_setAttribute(coll, UCOL_CASE_LEVEL, (UColAttributeValue)case_level, &status);
-        any_set = 1;
-    }
-    if (normalization != OPT_DEFAULT) {
-        ucol_setAttribute(coll, UCOL_NORMALIZATION_MODE, (UColAttributeValue)normalization, &status);
-        any_set = 1;
-    }
-    if (numeric != OPT_DEFAULT) {
-        ucol_setAttribute(coll, UCOL_NUMERIC_COLLATION, (UColAttributeValue)numeric, &status);
-        any_set = 1;
-    }
-
-    /* Apply reorder codes if provided.
-     *
-     * The reorder list is a packed sequence of 32-bit big-endian script
-     * codes. ICU itself only defines ~30 reorder codes; legitimate
-     * input has at most a few dozen. Cap the count so an attacker can't
-     * cause an unbounded `enif_alloc`, and keep the size arithmetic in
-     * `size_t` so a >8 GB binary cannot wrap a signed `int32_t` and
-     * produce a huge allocation request whose return value the original
-     * code did not check. */
-    static const size_t MAX_REORDER_CODES = 256;
-
-    if (reorderBin.size > 0 && (reorderBin.size % 4) == 0) {
-        size_t numCodesSize = reorderBin.size / 4;
-
-        if (numCodesSize <= MAX_REORDER_CODES) {
-            int32_t* codes = (int32_t*)enif_alloc(sizeof(int32_t) * numCodesSize);
-
-            if (codes != NULL) {
-                const unsigned char* p = reorderBin.data;
-
-                for (size_t i = 0; i < numCodesSize; i++) {
-                    codes[i] = (int32_t)(
-                        ((uint32_t)p[0] << 24) |
-                        ((uint32_t)p[1] << 16) |
-                        ((uint32_t)p[2] << 8)  |
-                        ((uint32_t)p[3])
-                    );
-                    p += 4;
-                }
-
-                ucol_setReorderCodes(coll, codes, (int32_t)numCodesSize, &status);
-                enif_free(codes);
-                has_reorder = 1;
-            }
-            /* `enif_alloc` returning NULL is treated as "no reorder
-             * applied"; the comparison still proceeds with the
-             * collator's default ordering. */
-        }
-        /* Reorder lists above the cap are silently ignored — same
-         * effect as not supplying any reorder. ICU would have returned
-         * an error for a plainly-too-long list anyway. */
-    }
-
-    /* Perform the comparison */
+    collation_applied_t applied = apply_collation_opts(coll, &opts);
     int response = ucol_strcollIter(coll, &iterA, &iterB, &status);
+    restore_collation_opts(coll, &opts, applied);
 
-    /* Restore all modified attributes to defaults */
-    if (any_set) {
-        status = U_ZERO_ERROR;
-        if (strength != OPT_DEFAULT)
-            ucol_setAttribute(coll, UCOL_STRENGTH, UCOL_DEFAULT, &status);
-        if (backwards != OPT_DEFAULT)
-            ucol_setAttribute(coll, UCOL_FRENCH_COLLATION, UCOL_DEFAULT, &status);
-        if (alternate != OPT_DEFAULT)
-            ucol_setAttribute(coll, UCOL_ALTERNATE_HANDLING, UCOL_DEFAULT, &status);
-        if (case_first != OPT_DEFAULT)
-            ucol_setAttribute(coll, UCOL_CASE_FIRST, UCOL_DEFAULT, &status);
-        if (case_level != OPT_DEFAULT)
-            ucol_setAttribute(coll, UCOL_CASE_LEVEL, UCOL_DEFAULT, &status);
-        if (normalization != OPT_DEFAULT)
-            ucol_setAttribute(coll, UCOL_NORMALIZATION_MODE, UCOL_DEFAULT, &status);
-        if (numeric != OPT_DEFAULT)
-            ucol_setAttribute(coll, UCOL_NUMERIC_COLLATION, UCOL_DEFAULT, &status);
-    }
-
-    /* Restore reorder codes to default */
-    if (has_reorder) {
-        int32_t defaultCode = UCOL_REORDER_CODE_DEFAULT;
-        status = U_ZERO_ERROR;
-        ucol_setReorderCodes(coll, &defaultCode, 1, &status);
-    }
-
-    release_coll(pData);
+    release_coll(pData, coll);
 
     return enif_make_int(env, response);
+}
+
+static ERL_NIF_TERM
+collation_sort_error(ErlNifEnv* env, const char* reason)
+{
+    return enif_make_tuple2(env, enif_make_atom(env, "error"), enif_make_atom(env, reason));
+}
+
+/* Computes the ICU sort key of each binary in `terms` with `coll`.
+ * Returns NULL, or the reason a key could not be made. */
+static const char*
+collation_sort_keys(ErlNifEnv* env, UCollator* coll, const std::vector<ERL_NIF_TERM>& terms,
+                    std::vector<std::string>& keys)
+{
+    std::vector<UChar> text;
+    std::vector<uint8_t> key(256);
+
+    for (size_t i = 0; i < terms.size(); i++) {
+        ErlNifBinary bin;
+        if (!enif_inspect_binary(env, terms[i], &bin)) {
+            return "badarg";
+        }
+
+        /* UTF-8 to UTF-16, which `ucol_getSortKey` takes: measure,
+         * then convert. Input over MAX_COLLATION_BYTES was rejected
+         * before, so every length fits an `int32_t`. */
+        UErrorCode status = U_ZERO_ERROR;
+        int32_t textLength = 0;
+        u_strFromUTF8(NULL, 0, &textLength, (const char*)bin.data, (int32_t)bin.size, &status);
+        if (status != U_BUFFER_OVERFLOW_ERROR && U_FAILURE(status)) {
+            return "invalid_utf8";
+        }
+
+        text.resize((size_t)textLength + 1);
+        status = U_ZERO_ERROR;
+        u_strFromUTF8(text.data(), textLength + 1, NULL, (const char*)bin.data,
+                      (int32_t)bin.size, &status);
+        if (U_FAILURE(status)) {
+            return "invalid_utf8";
+        }
+
+        /* A sort key's length is known only once it is made: a short
+         * buffer returns the length needed, and the key is made again. */
+        int32_t keyLength = ucol_getSortKey(coll, text.data(), textLength, key.data(),
+                                            (int32_t)key.size());
+        if (keyLength <= 0) {
+            return "icu_error";
+        }
+        if ((size_t)keyLength > key.size()) {
+            key.resize((size_t)keyLength);
+            keyLength = ucol_getSortKey(coll, text.data(), textLength, key.data(),
+                                        (int32_t)key.size());
+        }
+
+        /* The key ends in a NUL byte, which ordering does not need. */
+        keys[i].assign((const char*)key.data(), (size_t)keyLength - 1);
+    }
+
+    return NULL;
+}
+
+// nif_collation_sort(strings, strength, backwards, alternate, case_first,
+//                    case_level, normalization, numeric, reorder_bin)
+//
+// Sorts a list of binaries in one call: each string's ICU sort key is
+// made once, and the strings are returned in key order. Collation-equal
+// strings keep their input order. Returns `{:error, reason}` when a
+// string is over MAX_COLLATION_BYTES, the collator pool is exhausted or
+// a key cannot be made, so the caller can sort another way rather than
+// receive a wrong order.
+static ERL_NIF_TERM nif_collation_sort(ErlNifEnv* env, int argc,
+                                        const ERL_NIF_TERM argv[]) {
+    if (argc != 9) {
+        return enif_make_badarg(env);
+    }
+
+    collation_priv_t* pData = (collation_priv_t*)enif_priv_data(env);
+    if (!pData) {
+        return collation_sort_error(env, "unavailable");
+    }
+
+    unsigned length;
+    collation_opts_t opts;
+
+    if (!enif_get_list_length(env, argv[0], &length) ||
+        !get_collation_opts(env, argv + 1, &opts)) {
+        return enif_make_badarg(env);
+    }
+
+    if (length < 2) {
+        return argv[0];
+    }
+
+    std::vector<ERL_NIF_TERM> terms;
+    std::vector<std::string> keys;
+    std::vector<unsigned> order;
+    std::vector<ERL_NIF_TERM> sorted;
+
+    /* A C++ exception must not cross into the BEAM, so allocation
+     * failure is caught and returned as an error. */
+    try {
+        terms.reserve(length);
+        keys.resize(length);
+        order.resize(length);
+        sorted.resize(length);
+    } catch (...) {
+        return collation_sort_error(env, "out_of_memory");
+    }
+
+    ERL_NIF_TERM head, tail = argv[0];
+    while (enif_get_list_cell(env, tail, &head, &tail)) {
+        ErlNifBinary bin;
+        if (!enif_inspect_binary(env, head, &bin)) {
+            return enif_make_badarg(env);
+        }
+        if (bin.size > MAX_COLLATION_BYTES) {
+            return collation_sort_error(env, "too_large");
+        }
+        terms.push_back(head);
+    }
+
+    UCollator* coll = NULL;
+    if (!reserve_coll(pData, &coll)) {
+        return collation_sort_error(env, "busy");
+    }
+
+    collation_applied_t applied = apply_collation_opts(coll, &opts);
+    const char* failure;
+
+    try {
+        failure = collation_sort_keys(env, coll, terms, keys);
+    } catch (...) {
+        failure = "out_of_memory";
+    }
+
+    restore_collation_opts(coll, &opts, applied);
+    release_coll(pData, coll);
+
+    if (failure != NULL) {
+        return collation_sort_error(env, failure);
+    }
+
+    for (unsigned i = 0; i < length; i++) {
+        order[i] = i;
+    }
+
+    /* Sort keys compare as unsigned bytes; std::string::compare does,
+     * since std::char_traits<char> compares as unsigned char. */
+    std::stable_sort(order.begin(), order.end(), [&keys](unsigned a, unsigned b) {
+        return keys[a].compare(keys[b]) < 0;
+    });
+
+    for (unsigned i = 0; i < length; i++) {
+        sorted[i] = terms[order[i]];
+    }
+
+    return enif_make_list_from_array(env, sorted.data(), length);
 }
 
 /* ── Plural Rules NIF function ──────────────────────────────────── */
@@ -1098,6 +1283,7 @@ static ErlNifFunc nif_funcs[] = {
     {"nif_mf2_validate",    1, nif_mf2_validate,  ERL_NIF_DIRTY_JOB_CPU_BOUND},
     {"nif_mf2_format",      3, nif_mf2_format,    ERL_NIF_DIRTY_JOB_CPU_BOUND},
     {"nif_collation_cmp",  10, nif_collation_cmp, ERL_NIF_DIRTY_JOB_CPU_BOUND},
+    {"nif_collation_sort",  9, nif_collation_sort, ERL_NIF_DIRTY_JOB_CPU_BOUND},
     {"nif_plural_rule",     4, nif_plural_rule,   0},
     {"nif_number_format",   4, nif_number_format, ERL_NIF_DIRTY_JOB_CPU_BOUND},
     {"nif_unit_format",     4, nif_unit_format,   ERL_NIF_DIRTY_JOB_CPU_BOUND}

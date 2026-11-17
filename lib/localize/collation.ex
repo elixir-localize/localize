@@ -391,11 +391,15 @@ defmodule Localize.Collation do
 
   * `:casing` - `:sensitive` or `:insensitive`.
 
-  * `:backend` - `:nif` or `:elixir`. The default is `:elixir`.
+  * `:backend` - `:nif` or `:elixir`. The default is `:elixir`. The NIF
+    sorts the whole list in one call, by ICU sort keys.
+
+  Options given as a keyword list are resolved once for the whole list.
 
   ### Returns
 
   A new list of strings sorted according to the CLDR collation rules.
+  Strings that collate equal keep their order in `strings`.
 
   ### Examples
 
@@ -426,15 +430,28 @@ defmodule Localize.Collation do
 
   defp sort_strings(strings, options) do
     if use_nif?(options) do
-      Enum.sort(strings, fn a, b ->
-        Nif.nif_compare(a, b, options) in [:lt, :eq]
-      end)
+      nif_sort(strings, options)
     else
-      strings
-      |> Enum.map(fn s -> {sort_key(s, options), s} end)
-      |> Enum.sort_by(fn {key, _s} -> key end)
-      |> Enum.map(fn {_key, s} -> s end)
+      sort_by_keys(strings, options)
     end
+  end
+
+  # The NIF sorts in one call by ICU sort keys. When it cannot sort the
+  # list (a string over its size cap, an exhausted collator pool) it
+  # returns an error rather than a wrong order, and the Elixir sort keys
+  # sort it instead.
+  defp nif_sort(strings, options) do
+    case Nif.nif_sort(strings, options) do
+      {:error, _reason} -> sort_by_keys(strings, options)
+      sorted -> sorted
+    end
+  end
+
+  defp sort_by_keys(strings, options) do
+    strings
+    |> Enum.map(fn s -> {sort_key(s, options), s} end)
+    |> Enum.sort_by(fn {key, _s} -> key end)
+    |> Enum.map(fn {_key, s} -> s end)
   end
 
   defp validate_strings([string | rest]) when is_binary(string) do

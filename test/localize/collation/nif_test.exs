@@ -373,4 +373,150 @@ defmodule Localize.Collation.NifTest do
       refute Localize.Collation.Nif.reorder_codes_supported?([:Grek, :BadCode])
     end
   end
+
+  describe "sort in one NIF call" do
+    @sort_alphabet String.graphemes("abcABCéèÉñÑöß012 .-_,") ++ ["中", "α", "Ω", "я"]
+
+    @sort_options [
+      [],
+      [numeric: true],
+      [strength: :primary],
+      [strength: :secondary],
+      [strength: :quaternary, alternate: :shifted],
+      [strength: :identical],
+      [alternate: :shifted],
+      [case_first: :upper],
+      [case_first: :lower],
+      [case_level: true, strength: :primary],
+      [backwards: true],
+      [reorder: [:Grek, :Latn]]
+    ]
+
+    defp random_strings(seed) do
+      :rand.seed(:exsss, {seed, seed, seed})
+
+      for _ <- 1..300 do
+        length = :rand.uniform(12)
+        Enum.map_join(1..length, fn _ -> Enum.random(@sort_alphabet) end)
+      end
+    end
+
+    # The order the NIF backend gave before sorting in one call: a stable
+    # sort that compares each pair through the NIF.
+    defp pairwise_nif_sort(strings, options) do
+      options = Localize.Collation.Options.new([{:backend, :nif} | options])
+
+      Enum.sort(strings, fn a, b ->
+        Localize.Collation.Nif.nif_compare(a, b, options) in [:lt, :eq]
+      end)
+    end
+
+    @tag :nif
+    test "gives the order pairwise NIF compares give, for every option" do
+      if Localize.Collation.Nif.available?() do
+        for {options, seed} <- Enum.with_index(@sort_options, 1) do
+          strings = random_strings(seed)
+
+          assert Localize.Collation.sort(strings, [{:backend, :nif} | options]) ==
+                   pairwise_nif_sort(strings, options),
+                 "one-call NIF sort differs from pairwise compares for #{inspect(options)}"
+        end
+      end
+    end
+
+    @tag :nif
+    test "keeps collation-equal strings in their input order" do
+      if Localize.Collation.Nif.available?() do
+        assert Localize.Collation.sort(["b", "B", "a", "A", "á"],
+                 backend: :nif,
+                 strength: :primary
+               ) ==
+                 ["a", "A", "á", "b", "B"]
+
+        assert Localize.Collation.sort(["A", "a"], backend: :nif, strength: :primary) == [
+                 "A",
+                 "a"
+               ]
+      end
+    end
+
+    @tag :nif
+    test "an empty or single-element list" do
+      if Localize.Collation.Nif.available?() do
+        assert Localize.Collation.sort([], backend: :nif) == []
+        assert Localize.Collation.sort(["x"], backend: :nif) == ["x"]
+      end
+    end
+
+    @tag :nif
+    test "a string over the NIF's size cap is sorted by the Elixir backend instead" do
+      if Localize.Collation.Nif.available?() do
+        long = String.duplicate("b", 1_048_577)
+
+        assert Localize.Nif.nif_collation_sort(["c", long], -1, -1, -1, -1, -1, -1, -1, <<>>) ==
+                 {:error, :too_large}
+
+        assert Localize.Collation.sort(["c", long, "a"], backend: :nif) == ["a", long, "c"]
+      end
+    end
+  end
+
+  describe "concurrent NIF calls" do
+    # Each pooled collator is given a call's options and reset after it. If
+    # two concurrent calls were ever given the same collator, one would sort
+    # or compare with the other's options, so results under concurrency are
+    # checked against the same calls made one at a time.
+    @concurrent_options [
+      [backend: :nif],
+      [backend: :nif, strength: :primary],
+      [backend: :nif, numeric: true],
+      [backend: :nif, case_first: :upper],
+      [backend: :nif, alternate: :shifted, strength: :quaternary],
+      [backend: :nif, reorder: [:Grek, :Latn]]
+    ]
+
+    @tag :nif
+    test "concurrent sorts and compares with different options do not share a collator" do
+      if Localize.Collation.Nif.available?() do
+        :rand.seed(:exsss, {7, 7, 7})
+        alphabet = String.graphemes("aAbBéÉ1 10 2-_α") ++ ["Ω", "10", "9"]
+
+        strings =
+          for _ <- 1..400 do
+            Enum.map_join(1..:rand.uniform(10), fn _ -> Enum.random(alphabet) end)
+          end
+
+        pairs = Enum.zip(strings, Enum.reverse(strings))
+
+        expected =
+          Map.new(@concurrent_options, fn options ->
+            compares = Enum.map(pairs, fn {a, b} -> Localize.Collation.compare(a, b, options) end)
+            {options, {Localize.Collation.sort(strings, options), compares}}
+          end)
+
+        results =
+          1..(System.schedulers_online() * 8)
+          |> Task.async_stream(
+            fn index ->
+              options = Enum.at(@concurrent_options, rem(index, length(@concurrent_options)))
+
+              for _ <- 1..10 do
+                compares =
+                  Enum.map(pairs, fn {a, b} -> Localize.Collation.compare(a, b, options) end)
+
+                {options, {Localize.Collation.sort(strings, options), compares}}
+              end
+            end,
+            max_concurrency: System.schedulers_online() * 4,
+            timeout: :infinity
+          )
+          |> Enum.flat_map(fn {:ok, runs} -> runs end)
+
+        mismatches = Enum.count(results, fn {options, result} -> result != expected[options] end)
+
+        assert mismatches == 0,
+               "#{mismatches} of #{length(results)} concurrent runs gave another call's order"
+      end
+    end
+  end
 end

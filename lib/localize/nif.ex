@@ -370,6 +370,72 @@ defmodule Localize.Nif do
     :erlang.nif_error(:nif_library_not_loaded)
   end
 
+  @doc """
+  Sorts a list of strings by ICU collation in one NIF call.
+
+  This is the raw NIF function. Use `Localize.Collation.sort/2` for the
+  public interface that handles option encoding. Each string's ICU sort
+  key is made once and the strings are returned in key order;
+  collation-equal strings keep their input order.
+
+  ### Arguments
+
+  * `strings` - a list of strings.
+
+  * `strength`, `backwards`, `alternate`, `case_first`, `case_level`,
+    `normalization` and `numeric` - ICU enum values, or -1 for the
+    default, as for `nif_collation_cmp/10`.
+
+  * `reorder_bin` - binary of packed big-endian int32 reorder codes.
+
+  ### Returns
+
+  * The sorted list, or
+
+  * `{:error, reason}` when a string is over 1 MB, the collator pool is
+    exhausted or a sort key cannot be made.
+
+  ### Examples
+
+  The NIF is optional, so the example calls it only where it is loaded.
+
+      iex> if Localize.Nif.available?() do
+      ...>   Localize.Nif.nif_collation_sort(["b", "a"], -1, -1, -1, -1, -1, -1, -1, <<>>)
+      ...> else
+      ...>   ["a", "b"]
+      ...> end
+      ["a", "b"]
+
+  """
+  @spec nif_collation_sort(
+          [binary()],
+          integer(),
+          integer(),
+          integer(),
+          integer(),
+          integer(),
+          integer(),
+          integer(),
+          binary()
+        ) :: [binary()] | {:error, atom()}
+  @dialyzer {:no_return, nif_collation_sort: 9}
+  # The arity mirrors the C NIF signature one-to-one, as for
+  # `nif_collation_cmp/10`.
+  # credo:disable-for-next-line Credo.Check.Refactor.FunctionArity
+  def nif_collation_sort(
+        _strings,
+        _strength,
+        _backwards,
+        _alternate,
+        _case_first,
+        _case_level,
+        _normalization,
+        _numeric,
+        _reorder_bin
+      ) do
+    :erlang.nif_error(:nif_library_not_loaded)
+  end
+
   # ── Plural Rules ──────────────────────────────────────────────────
 
   @doc """
