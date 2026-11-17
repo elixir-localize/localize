@@ -4,11 +4,11 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.7.2] — Unreleased
+## [1.8.0] — November 17th, 2026
 
 ### Changed
 
-* An MF2 message formatted to a string follows TR35's Default Bidi Strategy by default, as ICU 79 does: a placeholder that may not have the message's direction is wrapped in Unicode bidi isolates (U+2066 to U+2069), so `{{Hello {$name}!}}` gives "Hello \u2068World\u2069!". `bidi: :none` gives the previous output; Gettext output in applications isolates, Localize's own messages do not.
+* MF2 messages formatted to a string follow TR35's Default Bidi Strategy by default, as ICU 79 does, wrapping a placeholder that may not have the message's direction in Unicode bidi isolates: `{{Hello {$name}!}}` gives "Hello \u2068World\u2069!". `bidi: :none` restores the previous output, and Localize's own exception messages stay plain.
 
 * `Localize.Collation.sort/2` with `backend: :nif` sorts the whole list in one NIF call by ICU sort keys, where it made a NIF call per comparison: 1,000 strings sort in about 1–3 ms instead of 33 ms or more. Collation-equal strings keep their input order.
 
