@@ -118,7 +118,7 @@ defmodule Localize.Gettext.Interpolation do
   # The compile-time interpolation, with options for the interpreter, as
   # for `interpolate/3`.
   @doc false
-  @spec __compile_interpolate__(Macro.t(), Macro.t(), Macro.Env.t(), Keyword.t()) :: Macro.t()
+  @spec __compile_interpolate__(term(), term(), Macro.Env.t(), Keyword.t()) :: Macro.t()
   def __compile_interpolate__(message, bindings, caller, format_options) do
     message = expand_to_binary!(message, caller)
 

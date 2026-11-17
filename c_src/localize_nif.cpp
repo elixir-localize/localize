@@ -533,9 +533,9 @@ static ERL_NIF_TERM nif_mf2_format(ErlNifEnv* env, int argc,
 
 #if U_ICU_VERSION_MAJOR_NUM >= 79
     if (bidi == 0) {
-        builder.setBidiIsolationStrategy(U_MF_BIDI_OFF);
+        builder.setBidiIsolationStrategy(icu::U_MF_BIDI_OFF);
     } else if (bidi == 1) {
-        builder.setBidiIsolationStrategy(U_MF_BIDI_DEFAULT);
+        builder.setBidiIsolationStrategy(icu::U_MF_BIDI_DEFAULT);
     }
 #endif
 
