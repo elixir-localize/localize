@@ -53,7 +53,10 @@ defmodule Localize.NifTest do
     end
 
     test "local declarations do not count as unbound" do
-      result = safe_nif(fn -> Nif.mf2_format(".local $x = {1} {{X is {$x}}}", "en", %{}) end)
+      result =
+        safe_nif(fn ->
+          Nif.mf2_format(".local $x = {1} {{X is {$x}}}", "en", %{}, bidi: :none)
+        end)
 
       if Nif.available?() do
         assert result == {:ok, "X is 1"}
@@ -101,8 +104,10 @@ defmodule Localize.NifTest do
       end
     end
 
-    test "mf2_format/3 formats bound variables" do
-      case safe_nif(fn -> Nif.mf2_format("Hello {$name}", "en", %{"name" => "World"}) end) do
+    test "mf2_format/4 formats bound variables" do
+      case safe_nif(fn ->
+             Nif.mf2_format("Hello {$name}", "en", %{"name" => "World"}, bidi: :none)
+           end) do
         :nif_not_loaded -> refute Nif.available?()
         result -> assert result == {:ok, "Hello World"}
       end
@@ -140,8 +145,8 @@ defmodule Localize.NifTest do
       end
     end
 
-    test "mf2_format/3 reads JSON escapes and exponent numbers" do
-      case safe_nif(fn -> Nif.mf2_format("{$x}", "en", ~s({"x": "a\\u0001b"})) end) do
+    test "mf2_format/4 reads JSON escapes and exponent numbers" do
+      case safe_nif(fn -> Nif.mf2_format("{$x}", "en", ~s({"x": "a\\u0001b"}), bidi: :none) end) do
         :nif_not_loaded ->
           refute Nif.available?()
 
