@@ -133,3 +133,72 @@ jobs:
         env:
           MIX_ENV: release
         run: mix docs --warnings-as-errors
+
+  # The ICU NIF is optional, so the test rows above build without it and
+  # every NIF test skips there. This job builds it against ICU from the
+  # ICU project's own Ubuntu build (Ubuntu's ICU is too old for MF2), on
+  # the lint row's toolchain, and runs the whole suite with it loaded.
+  nif:
+    name: "ICU NIF (ICU ${{ matrix.icu }}) / Elixir ${{ matrix.elixir }} / OTP ${{ matrix.otp }}"
+    runs-on: ubuntu-24.04
+    needs: check-locales
+    if: ${{ !cancelled() && (needs.check-locales.result == 'success' || needs.check-locales.result == 'skipped') }}
+
+    strategy:
+      matrix:
+        include:
+          - elixir: "1.20.5-otp-29"
+            otp: "29.1.2"
+            icu: "79.1"
+            icu_url: "https://github.com/unicode-org/icu/releases/download/release-79.1/icu4c-79.1-Ubuntu24.04-x64.tgz"
+            icu_sha256: "9ceb5bd2f8f876972ac2a48f6471ab10be45cf98d7d5db6d9fce055f4840e47f"
+
+    env:
+      LOCALIZE_NIF: "true"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Install ICU
+        run: |
+          curl -fsSL -o icu.tgz "${{ matrix.icu_url }}"
+          echo "${{ matrix.icu_sha256 }}  icu.tgz" | sha256sum --check
+          mkdir icu && tar -xzf icu.tgz -C icu
+          pc=$(find icu -name icu-uc.pc | head -1)
+          prefix=$(dirname "$(dirname "$(dirname "$pc")")")
+          sudo cp -a "$prefix"/. /usr/local/
+          sudo ldconfig
+          pkg-config --modversion icu-uc
+          pkg-config --cflags --libs icu-uc icu-i18n
+
+      - name: Set up Elixir
+        uses: erlef/setup-beam@v1
+        with:
+          elixir-version: ${{ matrix.elixir }}
+          otp-version: ${{ matrix.otp }}
+
+      - name: Restore dependency cache
+        uses: actions/cache@v6
+        with:
+          path: |
+            deps
+            _build
+          key: mix-nif-${{ matrix.elixir }}-${{ matrix.otp }}-${{ matrix.icu }}-${{ hashFiles('mix.lock') }}
+          restore-keys: |
+            mix-nif-${{ matrix.elixir }}-${{ matrix.otp }}-${{ matrix.icu }}-
+
+      - name: Install dependencies
+        run: mix deps.get
+
+      - name: Compile with the NIF (warnings as errors)
+        run: mix compile --warnings-as-errors
+
+      # Every NIF test skips when the NIF is not loaded, so a build that
+      # silently fell back to Elixir would pass. Refuse to go on.
+      - name: Check the NIF is loaded
+        run: |
+          mix run -e 'unless Localize.Nif.available?() do raise "the ICU NIF did not load" end'
+
+      - name: Run tests
+        run: mix test

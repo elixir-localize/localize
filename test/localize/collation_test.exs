@@ -143,4 +143,51 @@ defmodule Localize.CollationTest do
                Localize.Collation.sort(["äpfel", "apfel"], locale: "de")
     end
   end
+
+  describe "keyword options and an options struct" do
+    @words ["côte", "cote", "Côte", "coté", "file10", "file2", "Zebra", "apple"]
+
+    test "a struct built once gives the order the keyword list gives" do
+      for {keywords, options} <- [
+            {[locale: "und-u-kn"], Localize.Collation.Options.from_locale("und-u-kn")},
+            {[strength: :secondary], Localize.Collation.Options.new(strength: :secondary)},
+            {[locale: "fr-CA"], Localize.Collation.Options.from_locale("fr-CA")}
+          ] do
+        assert Localize.Collation.sort(@words, keywords) ==
+                 Localize.Collation.sort(@words, options)
+
+        for a <- @words, b <- @words do
+          assert Localize.Collation.compare(a, b, keywords) ==
+                   Localize.Collation.compare(a, b, options)
+        end
+      end
+    end
+
+    test "invalid options are reported before invalid strings" do
+      assert {:error, %Localize.InvalidValueError{value: :bogus}} =
+               Localize.Collation.compare(:a, "b", strength: :bogus)
+
+      assert {:error, %Localize.InvalidValueError{} = error} =
+               Localize.Collation.compare(:a, "b", Localize.Collation.Options.new())
+
+      assert error.value == :a
+    end
+
+    test "a struct with strings of the wrong type is an error" do
+      options = Localize.Collation.Options.new()
+
+      assert {:error, %Localize.InvalidValueError{value: 1}} =
+               Localize.Collation.compare("a", 1, options)
+
+      assert {:error, %Localize.InvalidValueError{value: "abc"}} =
+               Localize.Collation.sort("abc", options)
+
+      assert {:error, _exception} = Localize.Collation.sort(["a", 1], options)
+    end
+
+    test "options that are neither a keyword list nor a struct are an error" do
+      assert {:error, _exception} = Localize.Collation.compare("a", "b", %{})
+      assert {:error, _exception} = Localize.Collation.sort(["a"], :options)
+    end
+  end
 end

@@ -101,7 +101,12 @@ defmodule Localize.Collation do
 
   * `string_b` - the second string to compare.
 
-  * `options` - a keyword list of collation options.
+  * `options` - a keyword list of collation options, or a
+    `Localize.Collation.Options` struct. A keyword list is validated on
+    every call; to compare many strings, build the struct once with
+    `Localize.Collation.Options.from_locale/1` or
+    `Localize.Collation.Options.new/1` and pass it instead, which skips
+    validation.
 
   ### Options
 
@@ -161,25 +166,33 @@ defmodule Localize.Collation do
           :lt | :eq | :gt | {:error, Exception.t()}
   def compare(string_a, string_b, options \\ [])
 
-  def compare(string_a, string_b, options)
-      when is_binary(string_a) and is_binary(string_b) and
-             (is_keyword_list(options) or is_struct(options, Options)) do
+  # A keyword list is validated and resolved once, then compared with the
+  # resolved struct, which is not validated again.
+  def compare(string_a, string_b, options) when is_keyword_list(options) do
+    with {:ok, options} <- resolve_options(options) do
+      compare(string_a, string_b, options)
+    end
+  end
+
+  def compare(string_a, string_b, %Options{} = options)
+      when is_binary(string_a) and is_binary(string_b) do
     with :ok <- validate_utf8(string_a),
-         :ok <- validate_utf8(string_b),
-         {:ok, options} <- resolve_options(options) do
+         :ok <- validate_utf8(string_b) do
       compare_strings(string_a, string_b, options)
     end
   end
 
-  def compare(_string_a, _string_b, options)
-      when not is_keyword_list(options) and not is_struct(options, Options),
-      do: {:error, Localize.Utils.Helpers.invalid_options(options)}
+  def compare(string_a, _string_b, %Options{}) when not is_binary(string_a) do
+    {:error, Localize.Utils.Helpers.invalid_value(string_a, "a string")}
+  end
 
-  def compare(string_a, _string_b, _options) when not is_binary(string_a),
-    do: {:error, Localize.Utils.Helpers.invalid_value(string_a, "a string")}
+  def compare(_string_a, string_b, %Options{}) do
+    {:error, Localize.Utils.Helpers.invalid_value(string_b, "a string")}
+  end
 
-  def compare(_string_a, string_b, _options),
-    do: {:error, Localize.Utils.Helpers.invalid_value(string_b, "a string")}
+  def compare(_string_a, _string_b, options) do
+    {:error, Localize.Utils.Helpers.invalid_options(options)}
+  end
 
   defp compare_strings(string_a, string_b, options) do
     if use_nif?(options) do
@@ -351,7 +364,9 @@ defmodule Localize.Collation do
 
   * `strings` - a list of UTF-8 strings to sort.
 
-  * `options` - a keyword list of collation options.
+  * `options` - a keyword list of collation options, or a
+    `Localize.Collation.Options` struct, which is not validated again. A
+    keyword list is validated once for the whole list.
 
   ### Options
 
@@ -394,8 +409,6 @@ defmodule Localize.Collation do
   * `:backend` - `:nif` or `:elixir`. The default is `:elixir`. The NIF
     sorts the whole list in one call, by ICU sort keys.
 
-  Options given as a keyword list are resolved once for the whole list.
-
   ### Returns
 
   A new list of strings sorted according to the CLDR collation rules.
@@ -413,20 +426,27 @@ defmodule Localize.Collation do
   @spec sort([String.t()], keyword() | Options.t()) :: [String.t()] | {:error, Exception.t()}
   def sort(strings, options \\ [])
 
-  def sort(strings, options)
-      when is_list(strings) and (is_keyword_list(options) or is_struct(options, Options)) do
-    with {:ok, options} <- resolve_options(options),
-         :ok <- validate_strings(strings) do
+  # A keyword list is validated and resolved once, then sorted with the
+  # resolved struct, which is not validated again.
+  def sort(strings, options) when is_keyword_list(options) do
+    with {:ok, options} <- resolve_options(options) do
+      sort(strings, options)
+    end
+  end
+
+  def sort(strings, %Options{} = options) when is_list(strings) do
+    with :ok <- validate_strings(strings) do
       sort_strings(strings, options)
     end
   end
 
-  def sort(_strings, options)
-      when not is_keyword_list(options) and not is_struct(options, Options),
-      do: {:error, Localize.Utils.Helpers.invalid_options(options)}
+  def sort(strings, %Options{}) do
+    {:error, Localize.Utils.Helpers.invalid_value(strings, "a list of strings")}
+  end
 
-  def sort(strings, _options),
-    do: {:error, Localize.Utils.Helpers.invalid_value(strings, "a list of strings")}
+  def sort(_strings, options) do
+    {:error, Localize.Utils.Helpers.invalid_options(options)}
+  end
 
   defp sort_strings(strings, options) do
     if use_nif?(options) do
@@ -728,8 +748,6 @@ defmodule Localize.Collation do
         {:error, Localize.InvalidLocaleError.exception(locale_id: locale)}
     end
   end
-
-  defp resolve_options(%Options{} = options), do: {:ok, options}
 
   defp options_from_locale_string(locale, extra_options) do
     # Validate the locale to get a fully canonicalized LanguageTag
