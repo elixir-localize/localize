@@ -6,8 +6,11 @@ defmodule Localize.Test.ScriptedHttpServer do
   # on 127.0.0.1, so a test can make the CDN fail on cue without any
   # network traffic or dependency.
   #
-  # Each response is `{status, headers, body}`. A request beyond the
-  # script is answered with a 500, which a test counting requests notices.
+  # Each response is `{status, headers, body}`, or `{:truncated, status,
+  # body}`, which declares a longer `content-length` than it sends and then
+  # closes the connection, as a server that drops a connection mid-body
+  # does. A request beyond the script is answered with a 500, which a test
+  # counting requests notices.
 
   @doc """
   Starts a server for `responses` and returns a map with its `:url`.
@@ -35,8 +38,7 @@ defmodule Localize.Test.ScriptedHttpServer do
     case :gen_tcp.accept(listen) do
       {:ok, socket} ->
         with {:ok, request} <- read_request(socket, "") do
-          {status, headers, body} = next_response(agent, request)
-          :ok = :gen_tcp.send(socket, response(status, headers, body))
+          :ok = :gen_tcp.send(socket, response(next_response(agent, request)))
         end
 
         :gen_tcp.close(socket)
@@ -71,7 +73,13 @@ defmodule Localize.Test.ScriptedHttpServer do
     end)
   end
 
-  defp response(status, headers, body) do
+  defp response({:truncated, status, body}) do
+    "HTTP/1.1 #{status} Scripted\r\n" <>
+      "content-length: #{byte_size(body) + 100}\r\n" <>
+      "connection: close\r\n\r\n" <> body
+  end
+
+  defp response({status, headers, body}) do
     header_lines = Enum.map_join(headers, fn {name, value} -> "#{name}: #{value}\r\n" end)
 
     "HTTP/1.1 #{status} Scripted\r\n" <>

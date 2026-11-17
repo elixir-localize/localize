@@ -402,12 +402,44 @@ defmodule Localize.Utils.Http do
     {:failed, reason, "Failed to download #{inspect(url)}. Error #{inspect(reason)}"}
   end
 
-  defp retryable?(status) when is_integer(status), do: status in @retryable_statuses
-  defp retryable?(:connection_timeout), do: true
-  defp retryable?(:timeout), do: true
-  defp retryable?(:socket_closed_remotely), do: true
-  defp retryable?({:failed_connect, [_address | _attempts]}), do: true
-  defp retryable?(_final), do: false
+  defp retryable?(status) when is_integer(status) do
+    status in @retryable_statuses
+  end
+
+  defp retryable?(:connection_timeout) do
+    true
+  end
+
+  defp retryable?(:timeout) do
+    true
+  end
+
+  defp retryable?(:socket_closed_remotely) do
+    true
+  end
+
+  defp retryable?({:failed_connect, [_address | _attempts]}) do
+    true
+  end
+
+  # `:httpc` ends a connection the server closed mid-body with
+  # `{:shutdown, :server_closed}`, and one it could not reuse with
+  # `{:shutdown, {:keepalive_failed, _}}` or `{:shutdown,
+  # {:pipeline_failed, _}}`: each a dropped connection that a new one
+  # usually gets past. Another `{:shutdown, _}`, such as a crash in
+  # `:httpc`'s own handler, is not retried.
+  defp retryable?({:shutdown, :server_closed}) do
+    true
+  end
+
+  defp retryable?({:shutdown, {connection_failure, _reason}})
+       when connection_failure in [:keepalive_failed, :pipeline_failed] do
+    true
+  end
+
+  defp retryable?(_final) do
+    false
+  end
 
   defp retries(options) do
     case Keyword.get(options, :retries, Application.get_env(:localize, :http_retries)) do

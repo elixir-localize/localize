@@ -14,6 +14,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 * Concurrent collation through the ICU NIF no longer crashes the BEAM: the collator pool could hand a collator to one call while another still held it, so concurrent `backend: :nif` compares with different options segfaulted (in 1.7.1 too).
 
+* A download the server drops mid-body (`{:shutdown, :server_closed}`), or on a connection that cannot be reused, is retried like other dropped connections, where the locale failed to download at once.
+
 * A pad escape at the start of a number pattern with no negative subpattern stays in front of the minus sign: `*x#,##0` formats -2 as "xxxx-2", where it gave "-xxxx2".
 
 ## [1.7.1] — November 13th, 2026

@@ -148,6 +148,29 @@ defmodule Localize.Utils.HttpTest do
       assert log =~ "Retrying in"
     end
 
+    # The server closing the connection before the whole body arrives is
+    # `{:shutdown, :server_closed}` from `:httpc`, a dropped connection
+    # that a second request usually gets past.
+    test "a connection the server closes mid-body is retried" do
+      server = Server.start([{:truncated, 200, "partial"}, {200, [], "locale data"}])
+
+      {result, log} = with_log(fn -> Localize.Utils.Http.get(server.url, @quick) end)
+
+      assert result == {:ok, "locale data"}
+      assert [_, _] = Server.requests(server)
+      assert log =~ "server_closed"
+      assert log =~ "Retrying in"
+    end
+
+    test "a connection the server closes mid-body is the error when not retried" do
+      server = Server.start([{:truncated, 200, "partial"}])
+
+      {result, _log} =
+        with_log(fn -> Localize.Utils.Http.get(server.url, [retries: 0] ++ @quick) end)
+
+      assert result == {:error, {:shutdown, :server_closed}}
+    end
+
     test "every status worth retrying is retried" do
       for status <- [408, 429, 500, 502, 503, 504] do
         server = Server.start([{status, [], ""}, {200, [], "ok"}])
