@@ -49,7 +49,11 @@ Erlang code.
 % If there is no explicit negative subpattern then build the implicit
 % one. Per TR35 it is the minus sign prefixed to the whole positive
 % subpattern: "0.00" is equivalent to "0.00;-0.00", and "¤0.00" to
-% "¤0.00;-¤0.00".
+% "¤0.00;-¤0.00". A pad escape that leads the positive subpattern stays
+% in front of the prefix, as ICU takes the pad position from the positive
+% subpattern, so "*x0" pads before the minus sign.
+negative([{pad, Pad} | Positive]) ->
+  {negative, [{pad, Pad}, {minus, "-"} | Positive]};
 negative(Positive) ->
   {negative, [{minus, "-"} | Positive]}.
 

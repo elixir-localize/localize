@@ -117,6 +117,28 @@ defmodule Localize.Number.FormattingOptionsTest do
     test "padding counts literal characters in the pattern" do
       assert Number.to_string(42, format: "*x #,##0") == {:ok, "xxx 42"}
     end
+
+    # ICU pads one character fewer here ("xxx-2"), as it counts the sign
+    # in the width; the position is what this pins.
+    test "a leading pad stays before the implicit minus sign" do
+      assert Number.to_string(-2, format: "*x#,##0") == {:ok, "xxxx-2"}
+      assert Number.to_string(2, format: "*x#,##0") == {:ok, "xxxx2"}
+
+      assert Number.to_string(-2, format: "*x¤#,##0.00", currency: :USD, locale: :en) ==
+               {:ok, "xxxx-$2.00"}
+    end
+
+    test "a pad after the prefix or after the number follows the implicit minus sign" do
+      assert Number.to_string(-2, format: "¤*x#,##0.00", currency: :USD, locale: :en) ==
+               {:ok, "-$xxxx2.00"}
+
+      assert Number.to_string(-2, format: "#,##0*x") == {:ok, "-2xxxx"}
+    end
+
+    test "an explicit negative subpattern keeps its own pad position" do
+      assert Number.to_string(-2, format: "*x#,##0;-*x#,##0") == {:ok, "-xxxx2"}
+      assert Number.to_string(-2, format: "*x#,##0;(*x#,##0)") == {:ok, "(xxxx2)"}
+    end
   end
 
   describe "locale-specific grouping" do
