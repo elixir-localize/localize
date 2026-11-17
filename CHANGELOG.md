@@ -8,9 +8,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Changed
 
+* An MF2 message formatted to a string follows TR35's Default Bidi Strategy by default, as ICU 79 does: a placeholder that may not have the message's direction is wrapped in Unicode bidi isolates (U+2066 to U+2069), so `{{Hello {$name}!}}` gives "Hello \u2068World\u2069!". `bidi: :none` gives the previous output; Gettext output in applications isolates, Localize's own messages do not.
+
 * `Localize.Collation.sort/2` with `backend: :nif` sorts the whole list in one NIF call by ICU sort keys, where it made a NIF call per comparison: 1,000 strings sort in about 1–3 ms instead of 33 ms or more. Collation-equal strings keep their input order.
 
 ### Fixed
+
+* The ICU NIF and the Elixir interpreter give the same MF2 output: the NIF passes the bidi strategy to ICU 79 (`Localize.Nif.mf2_format/4`), and a message asking for isolation on older ICU is formatted by the interpreter. `u:dir` is read as the option TR35 defines, and on markup is a Bad Option error; all the MF2 WG conformance cases now pass.
+
+* A compiled Gettext translation whose value cannot be formatted is returned unformatted, as at runtime, where `Localize.Gettext.Interpolation` raised `CaseClauseError`.
 
 * Concurrent collation through the ICU NIF no longer crashes the BEAM: the collator pool could hand a collator to one call while another still held it, so concurrent `backend: :nif` compares with different options segfaulted (in 1.7.1 too).
 

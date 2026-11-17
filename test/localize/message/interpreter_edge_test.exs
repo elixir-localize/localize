@@ -6,7 +6,7 @@ defmodule Localize.Message.InterpreterEdgeTest do
 
   defp format(message, bindings, options) do
     {:ok, ast} = Parser.parse(message)
-    Interpreter.format_list(ast, bindings, options)
+    Interpreter.format_list(ast, bindings, Keyword.put_new(options, :bidi, :none))
   end
 
   defp format_structured(message, bindings, options) do
@@ -344,12 +344,21 @@ defmodule Localize.Message.InterpreterEdgeTest do
                format("{$name}", %{"name" => "x"}, bidi: :auto)
     end
 
-    test "a u:dir attribute forces isolation even in mode :none" do
+    # Mode :none is TR35's strategy that performs no processing, as in ICU.
+    test "mode :none isolates nothing, even with a u:dir attribute" do
+      assert {:ok, ["x"], ["name"], []} =
+               format("{$name @u:dir=rtl}", %{"name" => "x"}, bidi: :none)
+
+      assert {:ok, ["x"], ["name"], []} =
+               format("{$name @u:dir=auto}", %{"name" => "x"}, bidi: :none)
+    end
+
+    test "a u:dir attribute sets the direction in mode :default" do
       assert {:ok, [[@rli, "x", @pdi]], ["name"], []} =
-               format("{$name @u:dir=rtl}", %{"name" => "x"}, [])
+               format("{$name @u:dir=rtl}", %{"name" => "x"}, bidi: :default)
 
       assert {:ok, [[@fsi, "x", @pdi]], ["name"], []} =
-               format("{$name @u:dir=auto}", %{"name" => "x"}, [])
+               format("{$name @u:dir=auto}", %{"name" => "x"}, bidi: :default)
     end
 
     test "a u:dir attribute overrides the bidi mode" do

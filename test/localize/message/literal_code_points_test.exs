@@ -18,10 +18,13 @@ defmodule Localize.Message.LiteralCodePointsTest do
   @composed <<0x1E0C::utf8, 0x0307::utf8>>
 
   test "quoted and unquoted literals format with their own code points" do
-    assert Localize.Message.format("{|" <> @decomposed <> "|}", %{}, backend: :elixir) ==
+    assert Localize.Message.format("{|" <> @decomposed <> "|}", %{},
+             backend: :elixir,
+             bidi: :none
+           ) ==
              {:ok, @decomposed}
 
-    assert Localize.Message.format("{" <> @decomposed <> "}", %{}, backend: :elixir) ==
+    assert Localize.Message.format("{" <> @decomposed <> "}", %{}, backend: :elixir, bidi: :none) ==
              {:ok, @decomposed}
   end
 

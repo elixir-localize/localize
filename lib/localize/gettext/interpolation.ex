@@ -25,14 +25,15 @@ defmodule Localize.Gettext.Interpolation do
       import MyApp.Gettext
 
       gettext("{{Hello {$name}!}}", %{name: "World"})
-      #=> "Hello World!"
+      #=> "Hello \\u2068World\\u2069!"
 
-  ### Options
+  ### Bidirectional isolation
 
-  The `use` macro accepts the following options:
-
-  * `:locale` - a default locale to use for formatting. When not set,
-    the locale is resolved from `Gettext.get_locale/1` at runtime.
+  Messages are formatted with TR35's Default Bidi Strategy, the default of
+  `Localize.Message.format/3`: a placeholder that may not have the
+  message's direction is wrapped in Unicode bidi isolates (U+2066 to
+  U+2069), so that a right-to-left value in a left-to-right message, or
+  the reverse, displays correctly.
 
   """
 
@@ -62,15 +63,24 @@ defmodule Localize.Gettext.Interpolation do
   def skip_interpolation_sentinel, do: %{__localize_skip_interpolation__: true}
 
   @impl Gettext.Interpolation
-  def runtime_interpolate(message, %{__localize_skip_interpolation__: _})
-      when is_binary(message) do
+  def runtime_interpolate(message, bindings) when is_binary(message) do
+    interpolate(message, bindings, [])
+  end
+
+  # The runtime interpolation, with options for `Localize.Message.format/3`:
+  # `Localize.Gettext.Interpolation.Plain` formats Localize's own messages
+  # with `bidi: :none`.
+  @doc false
+  @spec interpolate(String.t(), map(), Keyword.t()) ::
+          {:ok, String.t()} | {:missing_bindings, String.t(), [atom() | String.t()]}
+  def interpolate(message, %{__localize_skip_interpolation__: _}, _format_options) do
     {:ok, message}
   end
 
-  def runtime_interpolate(message, bindings) when is_binary(message) do
+  def interpolate(message, bindings, format_options) do
     string_bindings = normalize_gettext_bindings(bindings)
 
-    case Localize.Message.format(message, string_bindings) do
+    case Localize.Message.format(message, string_bindings, format_options) do
       {:ok, formatted} ->
         {:ok, formatted}
 
@@ -102,7 +112,15 @@ defmodule Localize.Gettext.Interpolation do
 
   @impl Gettext.Interpolation
   defmacro compile_interpolate(_translation_type, message, bindings) do
-    message = expand_to_binary!(message, __CALLER__)
+    __compile_interpolate__(message, bindings, __CALLER__, [])
+  end
+
+  # The compile-time interpolation, with options for the interpreter, as
+  # for `interpolate/3`.
+  @doc false
+  @spec __compile_interpolate__(Macro.t(), Macro.t(), Macro.Env.t(), Keyword.t()) :: Macro.t()
+  def __compile_interpolate__(message, bindings, caller, format_options) do
+    message = expand_to_binary!(message, caller)
 
     # Syntax first, then the TR35 data-model rules, so a mis-authored
     # msgid fails the build rather than surfacing at runtime. Parsing and
@@ -117,7 +135,8 @@ defmodule Localize.Gettext.Interpolation do
         regular_bindings ->
           Localize.Gettext.Interpolation.do_interpolate(
             unquote(Macro.escape(parsed)),
-            regular_bindings
+            regular_bindings,
+            unquote(format_options)
           )
       end
     end
@@ -150,20 +169,30 @@ defmodule Localize.Gettext.Interpolation do
     "icu-format"
   end
 
+  # A value that cannot be formatted leaves the message unformatted, as
+  # `runtime_interpolate/2` does, rather than raising.
   @doc false
-  @spec do_interpolate(term(), map()) ::
+  @spec do_interpolate(term(), map(), Keyword.t()) ::
           {:ok, String.t()}
           | {:missing_bindings, String.t(), [atom() | String.t()]}
-  def do_interpolate(parsed_ast, bindings) do
+  def do_interpolate(parsed_ast, bindings, format_options \\ []) do
     string_bindings = normalize_gettext_bindings(bindings)
 
-    case Localize.Message.Interpreter.format_list(parsed_ast, string_bindings) do
+    case Localize.Message.Interpreter.format_list(parsed_ast, string_bindings, format_options) do
       {:ok, iolist, _bound, []} ->
         {:ok, :erlang.iolist_to_binary(iolist)}
 
       {:error, iolist, _bound, unbound} ->
         missing = Enum.map(unbound, &safe_to_atom/1)
         {:missing_bindings, :erlang.iolist_to_binary(iolist), missing}
+
+      {:format_error, payload} ->
+        Logger.warning(
+          "Localize.Gettext.Interpolation: returning message unformatted, " <>
+            "format failed: #{inspect(payload)}"
+        )
+
+        {:ok, Localize.Message.Print.to_string(parsed_ast)}
     end
   end
 

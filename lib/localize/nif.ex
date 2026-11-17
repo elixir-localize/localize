@@ -146,49 +146,87 @@ defmodule Localize.Nif do
   * `args` is a map of argument names to values, or the same map as
     a JSON object. The default is `%{}`.
 
+  * `options` is a keyword list of options.
+
+  ### Options
+
+  * `:bidi` is `:default` for TR35's Default Bidi Strategy, which isolates
+    placeholders with Unicode bidi controls, or `:none` for no isolation.
+    Without it, ICU's own default applies: the Default Bidi Strategy from
+    ICU 79, and no isolation before it.
+
   ### Returns
 
   * `{:ok, formatted_string}` on success.
+
+  * `{:error, :bidi_unsupported}` if `bidi: :default` is given and ICU is
+    older than 79, which has no bidi isolation.
 
   * `{:error, reason}` if ICU cannot format the message.
 
   * `{:error, exception}` if an argument the message uses is missing,
     if any argument is not a string, a 64-bit integer or a float, if
-    `args` is neither a map nor a JSON object, or if `message` or
-    `locale` is not a string.
+    `args` is neither a map nor a JSON object, if `message` or `locale`
+    is not a string, or if an option is not valid.
 
   ### Examples
 
   The NIF is optional, so the example calls it only where it is loaded.
 
       iex> if Localize.Nif.available?() do
-      ...>   Localize.Nif.mf2_format("Hello {$name}!", "en", %{"name" => "World"})
+      ...>   Localize.Nif.mf2_format("Hello {$name}!", "en", %{"name" => "World"}, bidi: :none)
       ...> else
       ...>   {:ok, "Hello World!"}
       ...> end
       {:ok, "Hello World!"}
 
   """
-  @dialyzer {:nowarn_function, mf2_format: 3}
+  @dialyzer {:nowarn_function, mf2_format: 4}
 
-  @spec mf2_format(String.t(), String.t(), map() | String.t()) ::
-          {:ok, String.t()} | {:error, String.t() | Exception.t()}
-  def mf2_format(message, locale \\ "en", args \\ %{})
+  @spec mf2_format(String.t(), String.t(), map() | String.t(), Keyword.t()) ::
+          {:ok, String.t()} | {:error, :bidi_unsupported | String.t() | Exception.t()}
+  def mf2_format(message, locale \\ "en", args \\ %{}, options \\ [])
 
-  def mf2_format(message, locale, args) when is_binary(message) and is_binary(locale) do
-    with {:ok, args_map, args_json} <- mf2_arguments(args) do
+  def mf2_format(message, locale, args, options)
+      when is_binary(message) and is_binary(locale) and is_list(options) do
+    with {:ok, bidi} <- mf2_bidi(Keyword.get(options, :bidi)),
+         {:ok, args_map, args_json} <- mf2_arguments(args) do
       case unbound_variables(message, args_map) do
-        [] -> nif_mf2_format(message, locale, args_json)
+        [] -> nif_mf2_format(message, locale, args_json, bidi)
         unbound -> {:error, Localize.BindError.exception(unbound: unbound)}
       end
     end
   end
 
-  def mf2_format(message, locale, _args) when is_binary(message),
-    do: {:error, Localize.Utils.Helpers.invalid_value(locale, "a locale identifier string")}
+  def mf2_format(message, locale, _args, options) when is_binary(message) and is_list(options) do
+    {:error, Localize.Utils.Helpers.invalid_value(locale, "a locale identifier string")}
+  end
 
-  def mf2_format(message, _locale, _args),
-    do: {:error, Localize.Utils.Helpers.invalid_value(message, "an MF2 message string")}
+  def mf2_format(message, _locale, _args, options) when is_binary(message) do
+    {:error, Localize.Utils.Helpers.invalid_options(options)}
+  end
+
+  def mf2_format(message, _locale, _args, _options) do
+    {:error, Localize.Utils.Helpers.invalid_value(message, "an MF2 message string")}
+  end
+
+  # The NIF's bidi argument: -1 leaves ICU's default, 0 isolates nothing,
+  # 1 is TR35's Default Bidi Strategy.
+  defp mf2_bidi(nil) do
+    {:ok, -1}
+  end
+
+  defp mf2_bidi(:none) do
+    {:ok, 0}
+  end
+
+  defp mf2_bidi(:default) do
+    {:ok, 1}
+  end
+
+  defp mf2_bidi(other) do
+    {:error, Localize.Utils.Helpers.invalid_value(other, ":default or :none")}
+  end
 
   @doc false
   # Whether every argument crosses to ICU unchanged: a name that is text,
@@ -491,8 +529,8 @@ defmodule Localize.Nif do
     :erlang.nif_error(:nif_library_not_loaded)
   end
 
-  @dialyzer {:no_return, nif_mf2_format: 3}
-  defp nif_mf2_format(_message, _locale, _args_json) do
+  @dialyzer {:no_return, nif_mf2_format: 4}
+  defp nif_mf2_format(_message, _locale, _args_json, _bidi) do
     :erlang.nif_error(:nif_library_not_loaded)
   end
 

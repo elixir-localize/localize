@@ -524,7 +524,7 @@ iex> Localize.Message.format(
 ...>   "{{You have {$count} items}}",
 ...>   %{"count" => 3}
 ...> )
-{:ok, "You have 3 items"}
+{:ok, "You have \u20683\u2069 items"}
 ```
 
 Note that Localize uses the MF2 (MessageFormat 2) syntax which differs from ICU MessageFormat 1. See the MF2 specification for syntax details.

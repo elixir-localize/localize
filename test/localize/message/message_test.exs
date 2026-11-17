@@ -11,12 +11,12 @@ defmodule Localize.MessageTest do
 
     test "v2 with variable" do
       assert Localize.Message.format("{{Hello {$name}!}}", %{"name" => "World"}) ==
-               {:ok, "Hello World!"}
+               {:ok, "Hello \u2068World\u2069!"}
     end
 
     test "v2 with atom key bindings" do
       assert Localize.Message.format("{{Hello {$name}!}}", name: "World") ==
-               {:ok, "Hello World!"}
+               {:ok, "Hello \u2068World\u2069!"}
     end
 
     test "v2 with unbound variable" do
@@ -25,7 +25,7 @@ defmodule Localize.MessageTest do
 
     test "simple message (no declarations)" do
       assert Localize.Message.format("Hello {$name}!", %{"name" => "World"}) ==
-               {:ok, "Hello World!"}
+               {:ok, "Hello \u2068World\u2069!"}
     end
 
     test "empty message" do
@@ -38,18 +38,18 @@ defmodule Localize.MessageTest do
     end
 
     test "literal expression" do
-      assert Localize.Message.format("{|hello|}") == {:ok, "hello"}
+      assert Localize.Message.format("{|hello|}") == {:ok, "\u2068hello\u2069"}
     end
 
     test "number literal expression" do
-      assert Localize.Message.format("{42}") == {:ok, "42"}
+      assert Localize.Message.format("{42}") == {:ok, "\u206842\u2069"}
     end
 
     test "local declaration" do
       msg = ".local $y = {$x :string}\n{{{$y} is the value}}"
 
       assert Localize.Message.format(msg, %{"x" => "hello"}) ==
-               {:ok, "hello is the value"}
+               {:ok, "\u2068hello\u2069 is the value"}
     end
 
     test "formatter_backend :elixir option" do
@@ -61,7 +61,7 @@ defmodule Localize.MessageTest do
   describe "format!/3" do
     test "returns formatted string" do
       assert Localize.Message.format!("{{Hello {$name}!}}", %{"name" => "World"}) ==
-               "Hello World!"
+               "Hello \u2068World\u2069!"
     end
 
     test "raises on error" do
@@ -76,7 +76,7 @@ defmodule Localize.MessageTest do
       assert {:ok, iolist, bound, []} =
                Localize.Message.format_to_iolist("{{Hello {$name}!}}", %{"name" => "World"})
 
-      assert :erlang.iolist_to_binary(iolist) == "Hello World!"
+      assert :erlang.iolist_to_binary(iolist) == "Hello \u2068World\u2069!"
       assert "name" in bound
     end
 

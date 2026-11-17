@@ -6,7 +6,7 @@ defmodule Localize.Message.InterpreterCoverageTest do
 
   defp format(message, bindings, options) do
     {:ok, ast} = Parser.parse(message)
-    Interpreter.format_list(ast, bindings, options)
+    Interpreter.format_list(ast, bindings, Keyword.put_new(options, :bidi, :none))
   end
 
   defp format_structured(message, bindings, options) do

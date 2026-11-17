@@ -345,7 +345,7 @@ defmodule Mix.Tasks.Localize.DownloadLocales do
         "1 {{Downloading {$count} locale to {$dir}}}\n" <>
         "* {{Downloading {$count} locales to {$dir}}}"
 
-    case Localize.Message.format(template, %{"count" => count, "dir" => cache_dir}) do
+    case Localize.Message.format(template, %{"count" => count, "dir" => cache_dir}, bidi: :none) do
       {:ok, rendered} ->
         rendered
 

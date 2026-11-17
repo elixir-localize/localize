@@ -8,6 +8,11 @@ defmodule Localize.Message.NamespaceDispatchTest do
 
   alias Localize.Message
 
+  # These tests are about function dispatch, not bidi isolation.
+  defp format_without_isolation(message, bindings, options) do
+    Message.format(message, bindings, [{:bidi, :none} | options])
+  end
+
   defmodule AcmeNamespace do
     @behaviour Localize.Message.Namespace
 
@@ -49,12 +54,15 @@ defmodule Localize.Message.NamespaceDispatchTest do
   describe "per-call :namespaces registration" do
     test "routes a namespaced function to its handler by local name" do
       assert {:ok, "HELLO"} =
-               Message.format("{$w :acme:shout}", %{w: "hello"}, locale: :en, namespaces: ns())
+               format_without_isolation("{$w :acme:shout}", %{w: "hello"},
+                 locale: :en,
+                 namespaces: ns()
+               )
     end
 
     test "passes function options through to the handler" do
       assert {:ok, "hello!"} =
-               Message.format(
+               format_without_isolation(
                  "{$w :acme:echo suffix=|!|}",
                  %{w: "hello"},
                  locale: :en,
@@ -64,7 +72,10 @@ defmodule Localize.Message.NamespaceDispatchTest do
 
     test "a local name the handler does not implement is an Unknown Function" do
       assert unknown_function?(
-               Message.format("{$w :acme:whisper}", %{w: "hi"}, locale: :en, namespaces: ns())
+               format_without_isolation("{$w :acme:whisper}", %{w: "hi"},
+                 locale: :en,
+                 namespaces: ns()
+               )
              )
     end
   end
@@ -76,12 +87,13 @@ defmodule Localize.Message.NamespaceDispatchTest do
     end
 
     test "routes via the application config" do
-      assert {:ok, "HELLO"} = Message.format("{$w :acme:shout}", %{w: "hello"}, locale: :en)
+      assert {:ok, "HELLO"} =
+               format_without_isolation("{$w :acme:shout}", %{w: "hello"}, locale: :en)
     end
 
     test "per-call handlers take precedence over application-level ones" do
       assert {:ok, "other"} =
-               Message.format(
+               format_without_isolation(
                  "{$w :acme:shout}",
                  %{w: "hello"},
                  locale: :en,
@@ -93,7 +105,7 @@ defmodule Localize.Message.NamespaceDispatchTest do
   describe "reserved namespaces" do
     test "u: never routes to a user handler even when one is registered" do
       assert unknown_function?(
-               Message.format("{$w :u:shout}", %{w: "hi"},
+               format_without_isolation("{$w :u:shout}", %{w: "hi"},
                  locale: :en,
                  namespaces: %{"u" => AcmeNamespace}
                )
@@ -102,7 +114,7 @@ defmodule Localize.Message.NamespaceDispatchTest do
 
     test "i: never routes to a user handler (built-ins own the namespace)" do
       assert unknown_function?(
-               Message.format("{$w :i:shout}", %{w: "hi"},
+               format_without_isolation("{$w :i:shout}", %{w: "hi"},
                  locale: :en,
                  namespaces: %{"i" => AcmeNamespace}
                )
@@ -111,7 +123,7 @@ defmodule Localize.Message.NamespaceDispatchTest do
 
     test "built-in i:inflect is unaffected by a registered i handler" do
       assert {:ok, "lights"} =
-               Message.format("{$w :i:inflect number=plural}", %{w: "light"},
+               format_without_isolation("{$w :i:inflect number=plural}", %{w: "light"},
                  locale: :en,
                  namespaces: %{"i" => AcmeNamespace}
                )
@@ -121,7 +133,7 @@ defmodule Localize.Message.NamespaceDispatchTest do
   describe "back-compat and unknown namespaces" do
     test "a flat-string :functions key with a namespace still resolves" do
       assert {:ok, "flat:widget"} =
-               Message.format(
+               format_without_isolation(
                  "{$w :acme:price}",
                  %{w: "widget"},
                  locale: :en,
@@ -131,7 +143,7 @@ defmodule Localize.Message.NamespaceDispatchTest do
 
     test "a flat-string exact-name match takes precedence over the namespace handler" do
       assert {:ok, "flat:widget"} =
-               Message.format(
+               format_without_isolation(
                  "{$w :acme:price}",
                  %{w: "widget"},
                  locale: :en,
@@ -141,7 +153,9 @@ defmodule Localize.Message.NamespaceDispatchTest do
     end
 
     test "an unregistered namespace is an Unknown Function" do
-      assert unknown_function?(Message.format("{$w :acme:shout}", %{w: "hi"}, locale: :en))
+      assert unknown_function?(
+               format_without_isolation("{$w :acme:shout}", %{w: "hi"}, locale: :en)
+             )
     end
   end
 

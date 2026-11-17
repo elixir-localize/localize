@@ -5,6 +5,11 @@ defmodule Localize.Message.CustomFunctionTest do
 
   alias Localize.Message
 
+  # These tests are about function dispatch, not bidi isolation.
+  defp format_without_isolation(message, bindings, options \\ []) do
+    Message.format(message, bindings, [{:bidi, :none} | options])
+  end
+
   # ── Test function modules ──────────────────────────────────────
 
   defmodule UppercaseFunction do
@@ -66,7 +71,7 @@ defmodule Localize.Message.CustomFunctionTest do
   describe "per-call :functions option (Option A)" do
     test "dispatches to a custom function module" do
       assert {:ok, "HELLO"} =
-               Message.format(
+               format_without_isolation(
                  "{$val :upper}",
                  %{"val" => "hello"},
                  functions: %{"upper" => UppercaseFunction}
@@ -75,7 +80,7 @@ defmodule Localize.Message.CustomFunctionTest do
 
     test "passes MF2 options through to the custom function" do
       assert {:ok, result} =
-               Message.format(
+               format_without_isolation(
                  ~S({$val :echo style=fancy}),
                  %{"val" => "test"},
                  locale: :en,
@@ -106,15 +111,19 @@ defmodule Localize.Message.CustomFunctionTest do
       }
 
       assert {:ok, "HELLO"} =
-               Message.format("{$val :upper}", %{"val" => "hello"}, functions: functions)
+               format_without_isolation("{$val :upper}", %{"val" => "hello"},
+                 functions: functions
+               )
 
       assert {:ok, "olleh"} =
-               Message.format("{$val :reverse}", %{"val" => "hello"}, functions: functions)
+               format_without_isolation("{$val :reverse}", %{"val" => "hello"},
+                 functions: functions
+               )
     end
 
     test "custom function does not interfere with built-in functions" do
       assert {:ok, "1,234"} =
-               Message.format(
+               format_without_isolation(
                  "{$n :number}",
                  %{"n" => 1234},
                  locale: :en,
@@ -128,14 +137,14 @@ defmodule Localize.Message.CustomFunctionTest do
       Application.put_env(:localize, :mf2_functions, %{"upper" => UppercaseFunction})
 
       assert {:ok, "WORLD"} =
-               Message.format("{$val :upper}", %{"val" => "world"})
+               format_without_isolation("{$val :upper}", %{"val" => "world"})
     end
 
     test "app-config function receives MF2 options" do
       Application.put_env(:localize, :mf2_functions, %{"echo" => OptionEchoFunction})
 
       assert {:ok, result} =
-               Message.format(
+               format_without_isolation(
                  ~S({$val :echo style=bold}),
                  %{"val" => "test"},
                  locale: :de
@@ -152,7 +161,7 @@ defmodule Localize.Message.CustomFunctionTest do
 
       # Per-call should win — uppercase, not reverse
       assert {:ok, "HELLO"} =
-               Message.format(
+               format_without_isolation(
                  "{$val :custom}",
                  %{"val" => "hello"},
                  functions: %{"custom" => UppercaseFunction}
@@ -165,14 +174,14 @@ defmodule Localize.Message.CustomFunctionTest do
       Application.put_env(:localize, :mf2_functions, %{"number" => UppercaseFunction})
 
       assert {:ok, "1,234"} =
-               Message.format("{$n :number}", %{"n" => 1234}, locale: :en)
+               format_without_isolation("{$n :number}", %{"n" => 1234}, locale: :en)
     end
 
     test "unknown function with no registry entry is an unknown-function error" do
       Application.delete_env(:localize, :mf2_functions)
 
       assert {:error, %Localize.FormatError{reason: :unknown_function, detail: ":nonexistent"}} =
-               Message.format("{$val :nonexistent}", %{"val" => "hello"})
+               format_without_isolation("{$val :nonexistent}", %{"val" => "hello"})
     end
   end
 
@@ -184,7 +193,7 @@ defmodule Localize.Message.CustomFunctionTest do
       """
 
       assert {:ok, "Hello, ALICE!"} =
-               Message.format(
+               format_without_isolation(
                  message,
                  %{"name" => "alice"},
                  functions: %{"upper" => UppercaseFunction}

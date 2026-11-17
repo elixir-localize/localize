@@ -2,7 +2,7 @@
 //
 // Provides:
 //   nif_mf2_validate/1      - Parse an MF2 message and return normalized pattern or error
-//   nif_mf2_format/3        - Format an MF2 message with locale and JSON-encoded arguments
+//   nif_mf2_format/4        - Format an MF2 message with locale, JSON-encoded arguments and bidi isolation
 //   nif_collation_cmp/10    - Compare two strings using ICU collation with full option support
 //   nif_collation_sort/9    - Sort a list of strings by ICU sort keys in one call
 //   nif_plural_rule/4       - Select plural category using ICU PluralRules
@@ -491,20 +491,33 @@ static ERL_NIF_TERM nif_mf2_validate(ErlNifEnv* env, int argc,
                             make_binary_from_unistr(env, pattern));
 }
 
-// nif_mf2_format(message_binary, locale_binary, args_json_binary)
+// nif_mf2_format(message_binary, locale_binary, args_json_binary, bidi_int)
 //      -> {:ok, result} | {:error, reason}
+//
+// bidi_int chooses the bidirectional isolation strategy: -1 leaves ICU's
+// default, 0 isolates nothing, 1 is TR35's Default Bidi Strategy. ICU
+// before 79 has no isolation, so asking it for 1 returns
+// {:error, :bidi_unsupported} rather than text without isolation.
 static ERL_NIF_TERM nif_mf2_format(ErlNifEnv* env, int argc,
                                     const ERL_NIF_TERM argv[]) {
-    if (argc != 3) {
+    if (argc != 4) {
         return enif_make_badarg(env);
     }
 
     std::string message, locale_str, args_json;
+    int bidi;
     if (!get_string_capped(env, argv[0], message, MAX_MF2_BYTES) ||
         !get_string_capped(env, argv[1], locale_str, 256) ||
-        !get_string_capped(env, argv[2], args_json, MAX_MF2_BYTES)) {
+        !get_string_capped(env, argv[2], args_json, MAX_MF2_BYTES) ||
+        !enif_get_int(env, argv[3], &bidi)) {
         return enif_make_badarg(env);
     }
+
+#if U_ICU_VERSION_MAJOR_NUM < 79
+    if (bidi == 1) {
+        return enif_make_tuple2(env, atom_error, enif_make_atom(env, "bidi_unsupported"));
+    }
+#endif
 
     UErrorCode status = U_ZERO_ERROR;
     UParseError parseError;
@@ -517,6 +530,14 @@ static ERL_NIF_TERM nif_mf2_format(ErlNifEnv* env, int argc,
 
     Locale locale(locale_str.c_str());
     builder.setLocale(locale);
+
+#if U_ICU_VERSION_MAJOR_NUM >= 79
+    if (bidi == 0) {
+        builder.setBidiIsolationStrategy(U_MF_BIDI_OFF);
+    } else if (bidi == 1) {
+        builder.setBidiIsolationStrategy(U_MF_BIDI_DEFAULT);
+    }
+#endif
 
     UnicodeString umsg = UnicodeString::fromUTF8(message);
     builder.setPattern(umsg, parseError, status);
@@ -1281,7 +1302,7 @@ static ERL_NIF_TERM nif_unit_format(ErlNifEnv* env, int argc,
  * the regular scheduler. */
 static ErlNifFunc nif_funcs[] = {
     {"nif_mf2_validate",    1, nif_mf2_validate,  ERL_NIF_DIRTY_JOB_CPU_BOUND},
-    {"nif_mf2_format",      3, nif_mf2_format,    ERL_NIF_DIRTY_JOB_CPU_BOUND},
+    {"nif_mf2_format",      4, nif_mf2_format,    ERL_NIF_DIRTY_JOB_CPU_BOUND},
     {"nif_collation_cmp",  10, nif_collation_cmp, ERL_NIF_DIRTY_JOB_CPU_BOUND},
     {"nif_collation_sort",  9, nif_collation_sort, ERL_NIF_DIRTY_JOB_CPU_BOUND},
     {"nif_plural_rule",     4, nif_plural_rule,   0},

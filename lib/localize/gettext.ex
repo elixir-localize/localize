@@ -12,5 +12,5 @@ defmodule Localize.Gettext do
 
   use Gettext.Backend,
     otp_app: :localize,
-    interpolation: Localize.Gettext.Interpolation
+    interpolation: Localize.Gettext.Interpolation.Plain
 end

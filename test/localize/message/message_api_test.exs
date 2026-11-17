@@ -71,7 +71,7 @@ defmodule Localize.Message.ApiTest do
 
     test "formats a simple message" do
       assert Message.format("{{Hello {$name}!}}", %{"name" => "World"}, backend: :nif) ==
-               {:ok, "Hello World!"}
+               {:ok, "Hello \u2068World\u2069!"}
     end
 
     test "missing bindings return a BindError" do
@@ -90,14 +90,15 @@ defmodule Localize.Message.ApiTest do
     end
 
     test "keyword-list bindings are normalized" do
-      assert Message.format("{{Hi {$a}}}", [a: 1], backend: :nif) == {:ok, "Hi 1"}
+      assert Message.format("{{Hi {$a}}}", [a: 1], backend: :nif) == {:ok, "Hi \u20681\u2069"}
     end
 
     # Regression: the NIF path raised on a list element that is not a
     # `{name, value}` pair, and both backends raised on an improper list.
     test "a binding list element that is not a pair is skipped on either backend" do
       for backend <- [:elixir, :nif] do
-        assert Message.format("{{Hi {$a}}}", [{:a, 1}, :b], backend: backend) == {:ok, "Hi 1"}
+        assert Message.format("{{Hi {$a}}}", [{:a, 1}, :b], backend: backend) ==
+                 {:ok, "Hi \u20681\u2069"}
       end
     end
 
@@ -129,7 +130,7 @@ defmodule Localize.Message.ApiTest do
                "{{Hi {$a} {$b :number style=decimal}}}",
                %{a: 1, b: 2},
                backend: :nif
-             ) == {:ok, "Hi 1 2"}
+             ) == {:ok, "Hi \u20681\u2069 2"}
     end
   end
 

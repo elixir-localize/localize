@@ -15,21 +15,31 @@ defmodule Localize.Message.InflectionFunctionsTest do
     test "inflects a phrase for grammatical number" do
       assert {:ok, "lights on the patio"} =
                Message.format("{$w :i:inflect number=plural}", %{w: "light on the patio"},
+                 bidi: :none,
                  locale: :en
                )
     end
 
     test "inflects a phrase for grammatical case" do
       assert {:ok, "новым домом"} =
-               Message.format("{$w :i:inflect case=instrumental}", %{w: "новый дом"}, locale: :ru)
+               Message.format("{$w :i:inflect case=instrumental}", %{w: "новый дом"},
+                 bidi: :none,
+                 locale: :ru
+               )
     end
 
     test "inflects a phrase for grammatical gender, given as a string or an atom" do
       assert {:ok, "लड़की"} =
-               Message.format("{$w :i:inflect gender=feminine}", %{w: "लड़का"}, locale: :hi)
+               Message.format("{$w :i:inflect gender=feminine}", %{w: "लड़का"},
+                 bidi: :none,
+                 locale: :hi
+               )
 
       assert {:ok, "लड़की"} =
-               Message.format("{$w :i:inflect gender=$g}", %{w: "लड़का", g: :feminine}, locale: :hi)
+               Message.format("{$w :i:inflect gender=$g}", %{w: "लड़का", g: :feminine},
+                 bidi: :none,
+                 locale: :hi
+               )
     end
 
     test "a value that is not one of the feature's values is a word to agree with (upstream)" do
@@ -37,6 +47,7 @@ defmodule Localize.Message.InflectionFunctionsTest do
                Message.format(
                  "The {$object} {is :i:inflect number=$object} on.",
                  %{object: "lights"},
+                 bidi: :none,
                  locale: :en
                )
 
@@ -44,6 +55,7 @@ defmodule Localize.Message.InflectionFunctionsTest do
                Message.format(
                  "{$object :i:inflect definiteness=definite} {is :i:inflect number=$object} on.",
                  %{object: "lights"},
+                 bidi: :none,
                  locale: :en
                )
     end
@@ -54,10 +66,10 @@ defmodule Localize.Message.InflectionFunctionsTest do
           "What is your {$relationship :i:inflect case=genitive} name?"
 
       assert {:ok, "I didn't find a brother in your contacts. What is your brother’s name?"} =
-               Message.format(message, %{relationship: "brother"}, locale: :en)
+               Message.format(message, %{relationship: "brother"}, bidi: :none, locale: :en)
 
       assert {:ok, "I didn't find an aunt in your contacts. What is your aunt’s name?"} =
-               Message.format(message, %{relationship: "aunt"}, locale: :en)
+               Message.format(message, %{relationship: "aunt"}, bidi: :none, locale: :en)
     end
 
     test "several constraints apply together (upstream)" do
@@ -65,6 +77,7 @@ defmodule Localize.Message.InflectionFunctionsTest do
                Message.format(
                  "Foo {$name :i:inflect definiteness=definite number=plural gender=feminine} Bar",
                  %{name: "gato"},
+                 bidi: :none,
                  locale: :es
                )
     end
@@ -72,6 +85,7 @@ defmodule Localize.Message.InflectionFunctionsTest do
     test "an option that names no grammatical feature is an error (upstream)" do
       assert {:error, _} =
                Message.format("{$word :i:inflect bogusFeature=value}", %{word: "valid"},
+                 bidi: :none,
                  locale: :en
                )
 
@@ -79,6 +93,7 @@ defmodule Localize.Message.InflectionFunctionsTest do
                Message.format(
                  ".local $v = {$word :i:inflect bogusFeature=value} .match $v\n* {{fallback}}",
                  %{word: "valid"},
+                 bidi: :none,
                  locale: :en
                )
     end
@@ -96,11 +111,13 @@ defmodule Localize.Message.InflectionFunctionsTest do
             {"lights on the front porch", "The lights on the front porch are on"},
             {"light on the front porch", "The light on the front porch is on"}
           ] do
-        assert Message.format(message, %{object: object}, locale: :en) == {:ok, expected}
+        assert Message.format(message, %{object: object}, bidi: :none, locale: :en) ==
+                 {:ok, expected}
       end
 
       assert {:ok, "plural"} =
                Message.format("{$w :i:inflect to=$feature}", %{w: "lights", feature: "number"},
+                 bidi: :none,
                  locale: :en
                )
     end
@@ -111,6 +128,7 @@ defmodule Localize.Message.InflectionFunctionsTest do
                  "The defArticleInPreposition is " <>
                    "{$name :i:inflect number=singular case=accusative to=defArticleInPreposition}.",
                  %{name: "Bank"},
+                 bidi: :none,
                  locale: :de
                )
 
@@ -121,7 +139,8 @@ defmodule Localize.Message.InflectionFunctionsTest do
       * {{other}}
       """
 
-      assert {:ok, "matched"} = Message.format(message, %{name: "Fundort"}, locale: :de)
+      assert {:ok, "matched"} =
+               Message.format(message, %{name: "Fundort"}, bidi: :none, locale: :de)
     end
 
     test "two selectors match the gender and the number of one phrase (upstream)" do
@@ -138,12 +157,15 @@ defmodule Localize.Message.InflectionFunctionsTest do
       """
 
       assert {:ok, "gato is Masculine & Singular"} =
-               Message.format(message, %{name: "gato"}, locale: :es)
+               Message.format(message, %{name: "gato"}, bidi: :none, locale: :es)
     end
 
     test "an unknown to feature prints the operand and selects only the catch-all (upstream)" do
       assert {:ok, "valid"} =
-               Message.format("{$word :i:inflect to=bogus}", %{word: "valid"}, locale: :en)
+               Message.format("{$word :i:inflect to=bogus}", %{word: "valid"},
+                 bidi: :none,
+                 locale: :en
+               )
 
       message = """
       .local $v = {$word :i:inflect to=bogus} .match $v
@@ -151,7 +173,7 @@ defmodule Localize.Message.InflectionFunctionsTest do
       * {{other}}
       """
 
-      assert {:ok, "other"} = Message.format(message, %{word: "valid"}, locale: :en)
+      assert {:ok, "other"} = Message.format(message, %{word: "valid"}, bidi: :none, locale: :en)
     end
 
     test "without to, a selector matches the inflected phrase" do
@@ -162,7 +184,8 @@ defmodule Localize.Message.InflectionFunctionsTest do
       * {{other}}
       """
 
-      assert {:ok, "inflected"} = Message.format(message, %{word: "cat"}, locale: :en)
+      assert {:ok, "inflected"} =
+               Message.format(message, %{word: "cat"}, bidi: :none, locale: :en)
     end
 
     test "a concept operand is inflected, and a concept option value agrees" do
@@ -170,12 +193,16 @@ defmodule Localize.Message.InflectionFunctionsTest do
       {:ok, lights} = Localize.Inflection.Concept.new(:en, "lights")
 
       assert {:ok, "cats"} =
-               Message.format("{$c :i:inflect number=plural}", %{c: cat}, locale: :en)
+               Message.format("{$c :i:inflect number=plural}", %{c: cat},
+                 bidi: :none,
+                 locale: :en
+               )
 
       assert {:ok, "plural"} =
-               Message.format("{$c :i:inflect to=number}", %{c: lights}, locale: :en)
+               Message.format("{$c :i:inflect to=number}", %{c: lights}, bidi: :none, locale: :en)
 
-      assert {:ok, "are"} = Message.format("{is :i:inflect number=$c}", %{c: lights}, locale: :en)
+      assert {:ok, "are"} =
+               Message.format("{is :i:inflect number=$c}", %{c: lights}, bidi: :none, locale: :en)
     end
 
     test "a concept with display data renders its form, and a selector matches it (upstream)" do
@@ -183,6 +210,7 @@ defmodule Localize.Message.InflectionFunctionsTest do
                Message.format(
                  "{$unit :i:inflect gender=neuter case=genitive number=singular}",
                  %{unit: ru_semantic_concept()},
+                 bidi: :none,
                  locale: :ru
                )
 
@@ -193,36 +221,48 @@ defmodule Localize.Message.InflectionFunctionsTest do
       """
 
       assert {:ok, "matched genitive singular"} =
-               Message.format(message, %{unit: ru_semantic_concept()}, locale: :ru)
+               Message.format(message, %{unit: ru_semantic_concept()}, bidi: :none, locale: :ru)
     end
 
     test "a non-string option value is an error" do
       assert {:error, _} =
-               Message.format("{$w :i:inflect number=$n}", %{w: "light", n: 2}, locale: :en)
+               Message.format("{$w :i:inflect number=$n}", %{w: "light", n: 2},
+                 bidi: :none,
+                 locale: :en
+               )
 
-      assert {:error, _} = Message.format("{$w :i:inflect to=5}", %{w: "lights"}, locale: :en)
+      assert {:error, _} =
+               Message.format("{$w :i:inflect to=5}", %{w: "lights"}, bidi: :none, locale: :en)
     end
 
     test "an operand that is neither a string nor a concept is an error, not a crash" do
-      assert {:error, _} = Message.format("{$n :i:inflect case=dative}", %{n: 5}, locale: :ru)
+      assert {:error, _} =
+               Message.format("{$n :i:inflect case=dative}", %{n: 5}, bidi: :none, locale: :ru)
 
       {:ok, pronoun} = Localize.Inflection.PronounConcept.new(:en)
-      assert {:error, _} = Message.format("{$p :i:inflect}", %{p: pronoun}, locale: :en)
+
+      assert {:error, _} =
+               Message.format("{$p :i:inflect}", %{p: pronoun}, bidi: :none, locale: :en)
     end
   end
 
   describe ":i:pronoun" do
     test "re-inflects the operand pronoun" do
-      assert {:ok, "him"} = Message.format("{|he| :i:pronoun case=accusative}", %{}, locale: :en)
+      assert {:ok, "him"} =
+               Message.format("{|he| :i:pronoun case=accusative}", %{}, bidi: :none, locale: :en)
     end
 
     test "gives a pronoun another gender (upstream)" do
       assert {:ok, "his"} =
-               Message.format("{$p :i:pronoun gender=masculine}", %{p: "her"}, locale: :en)
+               Message.format("{$p :i:pronoun gender=masculine}", %{p: "her"},
+                 bidi: :none,
+                 locale: :en
+               )
     end
 
     test "a string that is no pronoun is an error (upstream)" do
-      assert {:error, _} = Message.format("{$p :i:pronoun}", %{p: "garbage"}, locale: :en)
+      assert {:error, _} =
+               Message.format("{$p :i:pronoun}", %{p: "garbage"}, bidi: :none, locale: :en)
     end
 
     test "a pronoun concept is an operand, and an option value to agree with (upstream)" do
@@ -230,10 +270,13 @@ defmodule Localize.Message.InflectionFunctionsTest do
       {:ok, he} = Localize.Inflection.PronounConcept.new(:en, initial_pronoun: "he")
 
       assert {:ok, "his"} =
-               Message.format("{$p :i:pronoun gender=masculine}", %{p: theirs}, locale: :en)
+               Message.format("{$p :i:pronoun gender=masculine}", %{p: theirs},
+                 bidi: :none,
+                 locale: :en
+               )
 
       assert {:ok, "his"} =
-               Message.format("{theirs :i:pronoun gender=$p}", %{p: he}, locale: :en)
+               Message.format("{theirs :i:pronoun gender=$p}", %{p: he}, bidi: :none, locale: :en)
     end
 
     test "a pronoun concept brings its own pronouns (upstream)" do
@@ -248,6 +291,7 @@ defmodule Localize.Message.InflectionFunctionsTest do
 
       assert {:ok, "xem xe"} =
                Message.format("{$np :i:pronoun case=accusative} {$np :i:pronoun}", %{np: xe},
+                 bidi: :none,
                  locale: :en
                )
     end
@@ -260,12 +304,20 @@ defmodule Localize.Message.InflectionFunctionsTest do
       * {{other phrase}}
       """
 
-      assert {:ok, "feminine phrase"} = Message.format(message, %{p: "she"}, locale: :en)
-      assert {:ok, "masculine phrase"} = Message.format(message, %{p: "him"}, locale: :en)
-      assert {:ok, "other phrase"} = Message.format(message, %{p: "they"}, locale: :en)
+      assert {:ok, "feminine phrase"} =
+               Message.format(message, %{p: "she"}, bidi: :none, locale: :en)
 
-      assert {:ok, "first"} = Message.format("{$p :i:pronoun to=person}", %{p: "we"}, locale: :en)
-      assert {:ok, ""} = Message.format("{$p :i:pronoun to=gender}", %{p: "they"}, locale: :en)
+      assert {:ok, "masculine phrase"} =
+               Message.format(message, %{p: "him"}, bidi: :none, locale: :en)
+
+      assert {:ok, "other phrase"} =
+               Message.format(message, %{p: "they"}, bidi: :none, locale: :en)
+
+      assert {:ok, "first"} =
+               Message.format("{$p :i:pronoun to=person}", %{p: "we"}, bidi: :none, locale: :en)
+
+      assert {:ok, ""} =
+               Message.format("{$p :i:pronoun to=gender}", %{p: "they"}, bidi: :none, locale: :en)
     end
 
     test "without to, a selector matches the pronoun" do
@@ -275,7 +327,7 @@ defmodule Localize.Message.InflectionFunctionsTest do
       * {{other}}
       """
 
-      assert {:ok, "him"} = Message.format(message, %{s: "he"}, locale: :en)
+      assert {:ok, "him"} = Message.format(message, %{s: "he"}, bidi: :none, locale: :en)
     end
 
     test "withReferent chooses the pronoun that agrees with the referent (upstream)" do
@@ -284,6 +336,7 @@ defmodule Localize.Message.InflectionFunctionsTest do
       for referent <- ["casas", casas] do
         assert {:ok, "mías"} =
                  Message.format("{$p :i:pronoun withReferent=$obj}", %{p: "mío", obj: referent},
+                   bidi: :none,
                    locale: :es
                  )
       end
@@ -294,6 +347,7 @@ defmodule Localize.Message.InflectionFunctionsTest do
                Message.format(
                  "{$p :i:pronoun to=gender withReferent=$obj}",
                  %{p: "her", obj: "cat"},
+                 bidi: :none,
                  locale: :en
                )
     end
@@ -301,11 +355,12 @@ defmodule Localize.Message.InflectionFunctionsTest do
     test "an operand or referent of another kind is an error, not a crash" do
       {:ok, cat} = Localize.Inflection.Concept.new(:en, "cat")
 
-      assert {:error, _} = Message.format("{$p :i:pronoun}", %{p: cat}, locale: :en)
-      assert {:error, _} = Message.format("{$p :i:pronoun}", %{p: 5}, locale: :en)
+      assert {:error, _} = Message.format("{$p :i:pronoun}", %{p: cat}, bidi: :none, locale: :en)
+      assert {:error, _} = Message.format("{$p :i:pronoun}", %{p: 5}, bidi: :none, locale: :en)
 
       assert {:error, _} =
                Message.format("{$p :i:pronoun withReferent=$obj}", %{p: "mío", obj: 5},
+                 bidi: :none,
                  locale: :es
                )
     end
@@ -316,15 +371,16 @@ defmodule Localize.Message.InflectionFunctionsTest do
       message = "Your meeting is in {$unit :i:quantify withValue=$n} from now"
 
       assert {:ok, "Your meeting is in 1 day from now"} =
-               Message.format(message, %{unit: "day", n: 1}, locale: :en)
+               Message.format(message, %{unit: "day", n: 1}, bidi: :none, locale: :en)
 
       assert {:ok, "Your meeting is in 2 days from now"} =
-               Message.format(message, %{unit: "day", n: 2}, locale: :en)
+               Message.format(message, %{unit: "day", n: 2}, bidi: :none, locale: :en)
 
       assert {:ok, "3 churches were found nearby"} =
                Message.format(
                  "{$unit :i:quantify withValue=$n} were found nearby",
                  %{unit: "church", n: 3},
+                 bidi: :none,
                  locale: :en
                )
     end
@@ -333,13 +389,13 @@ defmodule Localize.Message.InflectionFunctionsTest do
       message = "Hay {$unit :i:quantify withValue=$n} en el video"
 
       assert {:ok, "Hay 1 niño en el video"} =
-               Message.format(message, %{unit: "niño", n: 1}, locale: :es)
+               Message.format(message, %{unit: "niño", n: 1}, bidi: :none, locale: :es)
 
       assert {:ok, "Hay 1 niña en el video"} =
-               Message.format(message, %{unit: "niña", n: 1}, locale: :es)
+               Message.format(message, %{unit: "niña", n: 1}, bidi: :none, locale: :es)
 
       assert {:ok, "Hay 3 niños en el video"} =
-               Message.format(message, %{unit: "niño", n: 3}, locale: :es)
+               Message.format(message, %{unit: "niño", n: 3}, bidi: :none, locale: :es)
     end
 
     test "applies Russian numeral government in every case (upstream)" do
@@ -353,23 +409,31 @@ defmodule Localize.Message.InflectionFunctionsTest do
             {2, "2 километра 2 километров 2 километра 2 километрам 2 километрами 2 километрах"},
             {5, "5 километров 5 километров 5 километров 5 километрам 5 километрами 5 километрах"}
           ] do
-        assert Message.format(message, %{unit: "километр", n: n}, locale: :ru) == {:ok, expected}
+        assert Message.format(message, %{unit: "километр", n: n}, bidi: :none, locale: :ru) ==
+                 {:ok, expected}
       end
     end
 
     test "declines a Finnish noun after a numeral" do
       assert {:ok, "3 taloa"} =
-               Message.format("{$noun :i:quantify withValue=3}", %{noun: "talo"}, locale: :fi)
+               Message.format("{$noun :i:quantify withValue=3}", %{noun: "talo"},
+                 bidi: :none,
+                 locale: :fi
+               )
     end
 
     test "a missing withValue option is an error, not a crash" do
       assert {:error, _} =
-               Message.format("{$noun :i:quantify}", %{noun: "kilometer"}, locale: :en)
+               Message.format("{$noun :i:quantify}", %{noun: "kilometer"},
+                 bidi: :none,
+                 locale: :en
+               )
     end
 
     test "a non-numeric withValue is an error, not a crash" do
       assert {:error, _} =
                Message.format("{$noun :i:quantify withValue=|abc|}", %{noun: "kilometer"},
+                 bidi: :none,
                  locale: :en
                )
     end
@@ -379,6 +443,7 @@ defmodule Localize.Message.InflectionFunctionsTest do
                Message.format(
                  "{$noun :i:quantify withValue=2 withStyle=asWords}",
                  %{noun: "kilometer"},
+                 bidi: :none,
                  locale: :en
                )
     end
@@ -387,7 +452,10 @@ defmodule Localize.Message.InflectionFunctionsTest do
       {:ok, day} = Localize.Inflection.Concept.new(:en, "day")
 
       assert {:ok, "2 days"} =
-               Message.format("{$unit :i:quantify withValue=2}", %{unit: day}, locale: :en)
+               Message.format("{$unit :i:quantify withValue=2}", %{unit: day},
+                 bidi: :none,
+                 locale: :en
+               )
     end
 
     test "applies Russian numeral government to a concept's own forms (upstream)" do
@@ -408,6 +476,7 @@ defmodule Localize.Message.InflectionFunctionsTest do
                "5 dative,plural 5 instrumental,plural 5 prepositional,plural"}
           ] do
         assert Message.format(message, %{unit: ru_semantic_concept(), number: number},
+                 bidi: :none,
                  locale: :ru
                ) ==
                  {:ok, expected}
@@ -424,6 +493,7 @@ defmodule Localize.Message.InflectionFunctionsTest do
             {:he, "מכונית", 3, "3 מכוניות"}
           ] do
         assert Message.format("{$unit :i:quantify withValue=$n}", %{unit: unit, n: number},
+                 bidi: :none,
                  locale: locale
                ) == {:ok, expected}
       end
@@ -431,36 +501,51 @@ defmodule Localize.Message.InflectionFunctionsTest do
 
     test "a non-string operand is an error, not a crash" do
       assert {:error, _} =
-               Message.format("{$n :i:quantify withValue=2}", %{n: 5}, locale: :en)
+               Message.format("{$n :i:quantify withValue=2}", %{n: 5}, bidi: :none, locale: :en)
     end
 
     test "a Serbian fraction takes the genitive singular, whether a Decimal, a float or a literal (upstream)" do
       message = "{$unit :i:quantify withValue=$n}"
 
       for n <- [Decimal.new("1.1"), 1.1] do
-        assert {:ok, "1,1 брода"} = Message.format(message, %{unit: "брод", n: n}, locale: :sr)
-        assert {:ok, "1,1 земље"} = Message.format(message, %{unit: "земља", n: n}, locale: :sr)
+        assert {:ok, "1,1 брода"} =
+                 Message.format(message, %{unit: "брод", n: n}, bidi: :none, locale: :sr)
+
+        assert {:ok, "1,1 земље"} =
+                 Message.format(message, %{unit: "земља", n: n}, bidi: :none, locale: :sr)
       end
 
       assert {:ok, "1,1 брода"} =
-               Message.format("{$unit :i:quantify withValue=1.1}", %{unit: "брод"}, locale: :sr)
+               Message.format("{$unit :i:quantify withValue=1.1}", %{unit: "брод"},
+                 bidi: :none,
+                 locale: :sr
+               )
     end
 
     test "a Serbian whole Decimal takes the count's own agreement" do
       message = "{$unit :i:quantify withValue=$n}"
 
       assert {:ok, "1 брод"} =
-               Message.format(message, %{unit: "брод", n: Decimal.new("1")}, locale: :sr)
+               Message.format(message, %{unit: "брод", n: Decimal.new("1")},
+                 bidi: :none,
+                 locale: :sr
+               )
 
       assert {:ok, "5 бродова"} =
-               Message.format(message, %{unit: "брод", n: Decimal.new("5")}, locale: :sr)
+               Message.format(message, %{unit: "брод", n: Decimal.new("5")},
+                 bidi: :none,
+                 locale: :sr
+               )
     end
 
     test "a Croatian fraction is quantified alike from a Decimal and a float" do
       message = "{$unit :i:quantify withValue=$n}"
 
-      assert Message.format(message, %{unit: "brod", n: Decimal.new("1.1")}, locale: :hr) ==
-               Message.format(message, %{unit: "brod", n: 1.1}, locale: :hr)
+      assert Message.format(message, %{unit: "brod", n: Decimal.new("1.1")},
+               bidi: :none,
+               locale: :hr
+             ) ==
+               Message.format(message, %{unit: "brod", n: 1.1}, bidi: :none, locale: :hr)
     end
   end
 
@@ -469,10 +554,10 @@ defmodule Localize.Message.InflectionFunctionsTest do
       message = "¿Te gustan los videos sobre {$words :i:list withType=and}?"
 
       assert {:ok, "¿Te gustan los videos sobre gatos e idiomas?"} =
-               Message.format(message, %{words: ["gatos", "idiomas"]}, locale: :es)
+               Message.format(message, %{words: ["gatos", "idiomas"]}, bidi: :none, locale: :es)
 
       assert {:ok, "¿Te gustan los videos sobre idiomas y gatos?"} =
-               Message.format(message, %{words: ["idiomas", "gatos"]}, locale: :es)
+               Message.format(message, %{words: ["idiomas", "gatos"]}, bidi: :none, locale: :es)
     end
 
     test "an or list (upstream)" do
@@ -480,6 +565,7 @@ defmodule Localize.Message.InflectionFunctionsTest do
                Message.format(
                  "¿Te gustan los videos sobre {$words :i:list withType=or}?",
                  %{words: ["gatos", "idiomas"]},
+                 bidi: :none,
                  locale: :es
                )
     end
@@ -488,15 +574,21 @@ defmodule Localize.Message.InflectionFunctionsTest do
       message = "¿Te gustan los videos sobre {$words :i:list withType=and definiteness=definite}?"
 
       assert {:ok, "¿Te gustan los videos sobre el gato, la gata, los gatos y las gatas?"} =
-               Message.format(message, %{words: ["gato", "gata", "gatos", "gatas"]}, locale: :es)
+               Message.format(message, %{words: ["gato", "gata", "gatos", "gatas"]},
+                 bidi: :none,
+                 locale: :es
+               )
 
       assert {:ok, "¿Te gustan los videos sobre los gatos?"} =
-               Message.format(message, %{words: ["gatos"]}, locale: :es)
+               Message.format(message, %{words: ["gatos"]}, bidi: :none, locale: :es)
     end
 
     test "without a type the items are joined as they are (upstream)" do
       assert {:ok, "gatosidiomas"} =
-               Message.format("{$words :i:list}", %{words: ["gatos", "idiomas"]}, locale: :es)
+               Message.format("{$words :i:list}", %{words: ["gatos", "idiomas"]},
+                 bidi: :none,
+                 locale: :es
+               )
     end
 
     test "the separators and item affixes can be set (upstream)" do
@@ -504,6 +596,7 @@ defmodule Localize.Message.InflectionFunctionsTest do
                Message.format(
                  "{$words :i:list withItemDelimiter=|, | withBeforeLast=| y | withItemPrefix=|[| withItemSuffix=|]|}",
                  %{words: ["gato", "gata", "gatos"]},
+                 bidi: :none,
                  locale: :es
                )
 
@@ -511,21 +604,38 @@ defmodule Localize.Message.InflectionFunctionsTest do
                Message.format(
                  "{$words :i:list withType=and withAvoidItemAffixRedundancy=false}",
                  %{words: ["gato", "gata"]},
+                 bidi: :none,
                  locale: :es
                )
     end
 
     test "a bad operand, type, item or option is an error, not a crash" do
-      assert {:error, _} = Message.format("{$w :i:list withType=and}", %{w: "gatos"}, locale: :es)
+      assert {:error, _} =
+               Message.format("{$w :i:list withType=and}", %{w: "gatos"},
+                 bidi: :none,
+                 locale: :es
+               )
 
       assert {:error, _} =
-               Message.format("{$w :i:list withType=both}", %{w: ["gatos"]}, locale: :es)
+               Message.format("{$w :i:list withType=both}", %{w: ["gatos"]},
+                 bidi: :none,
+                 locale: :es
+               )
 
       assert {:error, _} =
-               Message.format("{$w :i:list withType=and}", %{w: ["gatos", 2]}, locale: :es)
+               Message.format("{$w :i:list withType=and}", %{w: ["gatos", 2]},
+                 bidi: :none,
+                 locale: :es
+               )
 
-      assert {:error, _} = Message.format("{$w :i:list withType=and}", %{w: []}, locale: :es)
-      assert {:error, _} = Message.format("{$w :i:list sizzle=yes}", %{w: ["gatos"]}, locale: :es)
+      assert {:error, _} =
+               Message.format("{$w :i:list withType=and}", %{w: []}, bidi: :none, locale: :es)
+
+      assert {:error, _} =
+               Message.format("{$w :i:list sizzle=yes}", %{w: ["gatos"]},
+                 bidi: :none,
+                 locale: :es
+               )
     end
   end
 
@@ -535,6 +645,7 @@ defmodule Localize.Message.InflectionFunctionsTest do
                Message.format(
                  "Your {$n :i:numeral withStyle=asWords withVariant=ordinal} meeting has been canceled",
                  %{n: 4},
+                 bidi: :none,
                  locale: :en
                )
 
@@ -542,21 +653,29 @@ defmodule Localize.Message.InflectionFunctionsTest do
                Message.format(
                  "You have {$count :i:numeral withStyle=asSpokenWords} messages",
                  %{count: 4},
+                 bidi: :none,
                  locale: :en
                )
     end
 
     test "words come from the spellout rule sets" do
       assert {:ok, "four"} =
-               Message.format("{$n :i:numeral withStyle=asWords}", %{n: 4}, locale: :en)
+               Message.format("{$n :i:numeral withStyle=asWords}", %{n: 4},
+                 bidi: :none,
+                 locale: :en
+               )
 
       assert {:ok, "ein­und­zwanzig"} =
-               Message.format("{$n :i:numeral withStyle=asWords}", %{n: 21}, locale: :de)
+               Message.format("{$n :i:numeral withStyle=asWords}", %{n: 21},
+                 bidi: :none,
+                 locale: :de
+               )
 
       assert {:ok, "две"} =
                Message.format(
                  "{$n :i:numeral withStyle=asWords withVariant=cardinal-feminine}",
                  %{n: 2},
+                 bidi: :none,
                  locale: :ru
                )
 
@@ -564,45 +683,64 @@ defmodule Localize.Message.InflectionFunctionsTest do
                Message.format(
                  "{$n :i:numeral withStyle=asWords withVariant=ordinal-feminine}",
                  %{n: 3},
+                 bidi: :none,
                  locale: :es
                )
     end
 
     test "ordinal digits come from the digits rule sets" do
       assert {:ok, "21st"} =
-               Message.format("{$n :i:numeral withStyle=asOrdinalDigits}", %{n: 21}, locale: :en)
+               Message.format("{$n :i:numeral withStyle=asOrdinalDigits}", %{n: 21},
+                 bidi: :none,
+                 locale: :en
+               )
 
       assert {:ok, "21e"} =
-               Message.format("{$n :i:numeral withStyle=asOrdinalDigits}", %{n: 21}, locale: :fr)
+               Message.format("{$n :i:numeral withStyle=asOrdinalDigits}", %{n: 21},
+                 bidi: :none,
+                 locale: :fr
+               )
 
       assert {:ok, "3.ª"} =
                Message.format(
                  "{$n :i:numeral withStyle=asDigits withVariant=ordinal-feminine}",
                  %{n: 3},
+                 bidi: :none,
                  locale: :es
                )
     end
 
     test "without a style, or as plain digits, the number is the locale's decimal format" do
-      assert {:ok, "1,234"} = Message.format("{$n :i:numeral}", %{n: 1234}, locale: :en)
+      assert {:ok, "1,234"} =
+               Message.format("{$n :i:numeral}", %{n: 1234}, bidi: :none, locale: :en)
 
       assert {:ok, "1,234"} =
-               Message.format("{$n :i:numeral withStyle=asDigits}", %{n: 1234}, locale: :en)
+               Message.format("{$n :i:numeral withStyle=asDigits}", %{n: 1234},
+                 bidi: :none,
+                 locale: :en
+               )
     end
 
     test "a variant with no rule set in the locale falls back to the default, as upstream does" do
       assert {:ok, "four"} =
                Message.format("{$n :i:numeral withStyle=asWords withVariant=bogus}", %{n: 4},
+                 bidi: :none,
                  locale: :en
                )
     end
 
     test "an unknown style or a non-number operand is an error, not a crash" do
       assert {:error, _} =
-               Message.format("{$n :i:numeral withStyle=asRunes}", %{n: 4}, locale: :en)
+               Message.format("{$n :i:numeral withStyle=asRunes}", %{n: 4},
+                 bidi: :none,
+                 locale: :en
+               )
 
       assert {:error, _} =
-               Message.format("{$n :i:numeral withStyle=asWords}", %{n: "four"}, locale: :en)
+               Message.format("{$n :i:numeral withStyle=asWords}", %{n: "four"},
+                 bidi: :none,
+                 locale: :en
+               )
     end
   end
 
@@ -615,6 +753,7 @@ defmodule Localize.Message.InflectionFunctionsTest do
           ] do
         assert {:error, _} =
                  Message.format(".local $v = #{declaration} .match $v\n* {{other}}", bindings,
+                   bidi: :none,
                    locale: :en
                  )
       end
@@ -627,6 +766,7 @@ defmodule Localize.Message.InflectionFunctionsTest do
                Message.format(
                  "You have {$count :i:numeral withStyle=asSpokenWords} messages",
                  %{count: 4},
+                 bidi: :none,
                  locale: :en,
                  output: :ssml
                )
@@ -644,7 +784,11 @@ defmodule Localize.Message.InflectionFunctionsTest do
             {"niño", 3, "Hay 3 niños en el video", "Hay tres niños en el video"}
           ] do
         assert {:ok, ssml} =
-                 Message.format(message, %{unit: unit, n: number}, locale: :es, output: :ssml)
+                 Message.format(message, %{unit: unit, n: number},
+                   bidi: :none,
+                   locale: :es,
+                   output: :ssml
+                 )
 
         assert print_and_speak(ssml) == {print, speak}
       end
@@ -669,6 +813,7 @@ defmodule Localize.Message.InflectionFunctionsTest do
           ] do
         assert {:ok, ssml} =
                  Message.format(message, %{unit: ru_semantic_concept(), number: number},
+                   bidi: :none,
                    locale: :ru,
                    output: :ssml
                  )
@@ -681,6 +826,7 @@ defmodule Localize.Message.InflectionFunctionsTest do
       # ar-u-nu-arab writes Arabic-Indic digits, as upstream's ar_SA does.
       assert {:ok, ssml} =
                Message.format("{$unit :i:quantify withValue=$n}", %{unit: "رسالة", n: 11},
+                 bidi: :none,
                  locale: "ar-u-nu-arab",
                  output: :ssml
                )
@@ -693,6 +839,7 @@ defmodule Localize.Message.InflectionFunctionsTest do
       # spellout rules of its own and inherits ar's.
       assert {:ok, ssml} =
                Message.format("{$unit :i:quantify withValue=$n}", %{unit: "رسالة", n: 3},
+                 bidi: :none,
                  locale: :"ar-SA",
                  output: :ssml
                )
@@ -707,7 +854,11 @@ defmodule Localize.Message.InflectionFunctionsTest do
             {:"fr-CH", 75, {"75", "septante-cinq"}}
           ] do
         assert {:ok, ssml} =
-                 Message.format("{$n :i:numeral}", %{n: number}, locale: locale, output: :ssml)
+                 Message.format("{$n :i:numeral}", %{n: number},
+                   bidi: :none,
+                   locale: locale,
+                   output: :ssml
+                 )
 
         assert print_and_speak(ssml) == expected
       end
@@ -716,6 +867,7 @@ defmodule Localize.Message.InflectionFunctionsTest do
     test "a result spoken as it is printed is written as text" do
       assert {:ok, "four"} =
                Message.format("{$n :i:numeral withStyle=asWords}", %{n: 4},
+                 bidi: :none,
                  locale: :en,
                  output: :ssml
                )
@@ -724,6 +876,7 @@ defmodule Localize.Message.InflectionFunctionsTest do
                Message.format(
                  "The {$object} {is :i:inflect number=$object} on.",
                  %{object: "lights"},
+                 bidi: :none,
                  locale: :en,
                  output: :ssml
                )
@@ -734,12 +887,14 @@ defmodule Localize.Message.InflectionFunctionsTest do
                Message.format(
                  "Tom & {$x} > {$n :i:numeral withStyle=asSpokenWords}",
                  %{x: "a<b", n: 4},
+                 bidi: :none,
                  locale: :en,
                  output: :ssml
                )
 
       assert {:ok, "<sub alias=\"say &quot;x&quot;\">x&amp;y</sub>"} =
                Message.format("{$w :i:inflect speak=|say \"x\"|}", %{w: "x&y"},
+                 bidi: :none,
                  locale: :en,
                  output: :ssml
                )
@@ -750,7 +905,11 @@ defmodule Localize.Message.InflectionFunctionsTest do
         ".local $q = {$unit :i:quantify withValue=$n} .local $r = {$q} {{Hay {$q}; {$r}}}"
 
       assert {:ok, ssml} =
-               Message.format(message, %{unit: "niña", n: 3}, locale: :es, output: :ssml)
+               Message.format(message, %{unit: "niña", n: 3},
+                 bidi: :none,
+                 locale: :es,
+                 output: :ssml
+               )
 
       assert print_and_speak(ssml) == {"Hay 3 niñas; 3 niñas", "Hay tres niñas; tres niñas"}
     end
@@ -758,24 +917,34 @@ defmodule Localize.Message.InflectionFunctionsTest do
     test "plain output is the default, and another output is an error" do
       message = "You have {$count :i:numeral withStyle=asSpokenWords} messages"
 
-      assert {:ok, "You have 4 messages"} = Message.format(message, %{count: 4}, locale: :en)
+      assert {:ok, "You have 4 messages"} =
+               Message.format(message, %{count: 4}, bidi: :none, locale: :en)
 
       assert {:ok, "You have 4 messages"} =
-               Message.format(message, %{count: 4}, locale: :en, output: :plain)
+               Message.format(message, %{count: 4}, bidi: :none, locale: :en, output: :plain)
 
-      assert {:error, _} = Message.format(message, %{count: 4}, locale: :en, output: :html)
+      assert {:error, _} =
+               Message.format(message, %{count: 4}, bidi: :none, locale: :en, output: :html)
     end
 
     test "format_to_iolist writes SSML, and format_to_safe_list stays plain" do
       message = "You have {$count :i:numeral withStyle=asSpokenWords} messages"
 
       assert {:ok, iolist, _bound, []} =
-               Message.format_to_iolist(message, %{count: 4}, locale: :en, output: :ssml)
+               Message.format_to_iolist(message, %{count: 4},
+                 bidi: :none,
+                 locale: :en,
+                 output: :ssml
+               )
 
       assert IO.iodata_to_binary(iolist) == "You have <sub alias=\"four\">4</sub> messages"
 
       assert {:ok, [{:text, "You have 4 messages"}]} =
-               Message.format_to_safe_list(message, %{count: 4}, locale: :en, output: :ssml)
+               Message.format_to_safe_list(message, %{count: 4},
+                 bidi: :none,
+                 locale: :en,
+                 output: :ssml
+               )
     end
   end
 

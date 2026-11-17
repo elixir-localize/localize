@@ -127,6 +127,26 @@ defmodule Localize.Message.Interpreter do
 
   @date_time_functions ["date", "time", "datetime"]
 
+  # TR35's Default Bidi Strategy isolates a placeholder by the
+  # directionality of its resolved value. As in ICU 79, the values of
+  # these functions have the locale's directionality; any other value,
+  # a `:string`, an unannotated variable or literal, or another function,
+  # has unknown directionality.
+  @locale_direction_functions [
+    "number",
+    "integer",
+    "offset",
+    "percent",
+    "currency",
+    "unit",
+    "date",
+    "time",
+    "datetime"
+  ]
+
+  # The `u:dir` values TR35 defines; any other is ignored, as `inherit`.
+  @u_dir_values ["ltr", "rtl", "auto", "inherit"]
+
   # TR35 §Date and Time Override Options: the only options a variable may
   # set, and the only ones an expression inherits from a date/time operand.
   @date_time_override_options ["timeZone", "hour12", "calendar"]
@@ -221,7 +241,7 @@ defmodule Localize.Message.Interpreter do
   # hand-built fragments the interpreter is expected to tolerate.
   def format_list(ast, bindings, options) when is_map(bindings) do
     bindings = normalize_binding_keys(bindings)
-    do_format_list(ast, bindings, options)
+    do_format_list(ast, bindings, Keyword.put_new(options, :bidi, default_bidi(options)))
   end
 
   # ── Top-level AST dispatch ────────────────────────────────────
@@ -496,10 +516,18 @@ defmodule Localize.Message.Interpreter do
     format_structured(ast, bindings_map(bindings), options)
   end
 
-  # Structured output is plain text nodes; SSML is a string format.
+  # Structured output is plain text nodes; SSML is a string format. TR35's
+  # Default Bidi Strategy is the default for a message formatted as a
+  # single string, so structured output isolates nothing unless asked.
   def format_structured(ast, bindings, options) when is_map(bindings) do
     bindings = normalize_binding_keys(bindings)
-    do_format_structured(ast, bindings, Keyword.delete(options, :output))
+
+    options =
+      options
+      |> Keyword.delete(:output)
+      |> Keyword.put_new(:bidi, :none)
+
+    do_format_structured(ast, bindings, options)
   end
 
   defp do_format_structured([{:complex, _, _} = complex], bindings, options) do
@@ -766,8 +794,11 @@ defmodule Localize.Message.Interpreter do
     case format_expression(operand, func, bindings, options) do
       {:ok, formatted, bound_names} ->
         bidi_mode = Keyword.get(options, :bidi, :none)
-        dir_override = extract_dir_attribute(attrs)
-        wrapped = apply_bidi_isolation(formatted, bidi_mode, dir_override, options)
+        dir_override = extract_u_dir({operand, func}, attrs, bindings, options)
+
+        wrapped =
+          apply_bidi_isolation(formatted, bidi_mode, dir_override, {operand, func}, options)
+
         {:text, IO.iodata_to_binary(wrapped), bound_names}
 
       {:unbound, name} ->
@@ -832,8 +863,11 @@ defmodule Localize.Message.Interpreter do
       {:ok, formatted, bound_names} ->
         formatted = output_value(formatted, operand, func, bindings, options)
         bidi_mode = Keyword.get(options, :bidi, :none)
-        dir_override = extract_dir_attribute(attrs)
-        wrapped = apply_bidi_isolation(formatted, bidi_mode, dir_override, options)
+        dir_override = extract_u_dir({operand, func}, attrs, bindings, options)
+
+        wrapped =
+          apply_bidi_isolation(formatted, bidi_mode, dir_override, {operand, func}, options)
+
         {:ok, wrapped, bound_names}
 
       other ->
@@ -841,16 +875,26 @@ defmodule Localize.Message.Interpreter do
     end
   end
 
-  defp format_part({:markup_open, _name, _options, _attrs}, _bindings, _options_kw) do
-    {:ok, "", []}
+  defp format_part({:markup_open, _name, markup_options, _attrs}, _bindings, _options_kw) do
+    markup_part(markup_options)
   end
 
-  defp format_part({:markup_close, _name, _options, _attrs}, _bindings, _options_kw) do
-    {:ok, "", []}
+  defp format_part({:markup_close, _name, markup_options, _attrs}, _bindings, _options_kw) do
+    markup_part(markup_options)
   end
 
-  defp format_part({:markup_standalone, _name, _options, _attrs}, _bindings, _options_kw) do
-    {:ok, "", []}
+  defp format_part({:markup_standalone, _name, markup_options, _attrs}, _bindings, _options_kw) do
+    markup_part(markup_options)
+  end
+
+  # Markup formats to nothing in a string. TR35 makes a `u:dir` option on
+  # markup a Bad Option error.
+  defp markup_part(markup_options) do
+    if Enum.any?(List.wrap(markup_options), &u_dir_option?/1) do
+      {:format_error, {:formatter_failed, "the u:dir option is not allowed on markup"}}
+    else
+      {:ok, "", []}
+    end
   end
 
   # ── SSML output ──────────────────────────────────────────────
@@ -3001,6 +3045,17 @@ defmodule Localize.Message.Interpreter do
     end
   end
 
+  # TR35's Default Bidi Strategy is the default for a message formatted as
+  # a single plain string; SSML output is markup for a speech synthesizer,
+  # which has no use for isolating controls.
+  defp default_bidi(options) do
+    if Keyword.get(options, :output) == :ssml do
+      :none
+    else
+      :default
+    end
+  end
+
   # A list of `{name, value}` bindings as a map. An entry that is not a pair
   # is ignored rather than raised on.
   defp bindings_map(bindings), do: for({name, value} <- bindings, into: %{}, do: {name, value})
@@ -3159,31 +3214,172 @@ defmodule Localize.Message.Interpreter do
 
   # ── Bidirectional text isolation ─────────────────────────────────
 
+  # The `u:dir` value of an expression, or nil: TR35's `u:dir` option,
+  # set by a literal or a variable, or a `u:dir` attribute, or, for a bare
+  # variable, the `u:dir` of the declaration that bound it, whose resolved
+  # value keeps it. A value TR35 does not define is ignored, as `inherit`
+  # is.
+  defp extract_u_dir({operand, func}, attrs, bindings, options) do
+    own_u_dir(func, bindings) || extract_dir_attribute(attrs) ||
+      declared_u_dir(operand, func, bindings, options)
+  end
+
+  defp own_u_dir(func, bindings) do
+    func
+    |> function_options()
+    |> Enum.find_value(fn option -> u_dir_option(option, bindings) end)
+  end
+
+  defp declared_u_dir({:variable, name}, nil, bindings, options) do
+    case options |> Keyword.get(:declaration_meta, %{}) |> Map.get(name) do
+      {_original, declared_func, _plural_operand} -> own_u_dir(declared_func, bindings)
+      _no_declaration -> nil
+    end
+  end
+
+  defp declared_u_dir(_operand, _func, _bindings, _options) do
+    nil
+  end
+
+  defp function_options({:function, _name, options}) when is_list(options) do
+    options
+  end
+
+  defp function_options(_func) do
+    []
+  end
+
+  defp u_dir_option({:option, name, value}, bindings)
+       when name in [{:namespace, "u", "dir"}, "u:dir"] do
+    u_dir_value(value, bindings)
+  end
+
+  defp u_dir_option(_option, _bindings) do
+    nil
+  end
+
+  defp u_dir_option?({:option, name, _value}) when name in [{:namespace, "u", "dir"}, "u:dir"] do
+    true
+  end
+
+  defp u_dir_option?(_option) do
+    false
+  end
+
+  defp u_dir_value({:literal, dir}, _bindings) when dir in @u_dir_values do
+    dir
+  end
+
+  defp u_dir_value({:variable, name}, bindings) do
+    case Map.get(bindings, name) do
+      dir when dir in @u_dir_values -> dir
+      _other -> nil
+    end
+  end
+
+  defp u_dir_value(_value, _bindings) do
+    nil
+  end
+
   defp extract_dir_attribute(attrs) do
     Enum.find_value(attrs, nil, fn
-      {:attribute, {:namespace, "u", "dir"}, {:literal, dir}} -> dir
-      {:attribute, "u:dir", {:literal, dir}} -> dir
+      {:attribute, {:namespace, "u", "dir"}, {:literal, dir}} when dir in @u_dir_values -> dir
+      {:attribute, "u:dir", {:literal, dir}} when dir in @u_dir_values -> dir
       _ -> nil
     end)
   end
 
-  defp apply_bidi_isolation(value, :none, nil, _options), do: value
+  # TR35's Default Bidi Strategy: a value of the message's directionality
+  # stands as it is unless `u:dir` asks for isolation; any other value is
+  # isolated, with LRI, RLI or FSI by its own directionality.
+  defp apply_bidi_isolation(value, :default, u_dir, expression, options) do
+    isolate? = u_dir in ["ltr", "rtl", "auto"]
 
-  defp apply_bidi_isolation(value, _mode, dir, _options) when dir != nil do
-    {open, close} = bidi_marks_for_dir(dir)
+    case value_direction(expression, u_dir, options) do
+      :ltr -> isolate_ltr(value, message_direction(options), isolate?)
+      :rtl -> [@rli, value, @pdi]
+      :unknown -> [@fsi, value, @pdi]
+    end
+  end
+
+  # TR35's strategy that performs no processing, as ICU's: nothing is
+  # isolated, whatever `u:dir` says.
+  defp apply_bidi_isolation(value, :none, _u_dir, _expression, _options) do
+    value
+  end
+
+  defp apply_bidi_isolation(value, _mode, u_dir, _expression, _options)
+       when u_dir in ["ltr", "rtl", "auto"] do
+    {open, close} = bidi_marks_for_dir(u_dir)
     [open, value, close]
   end
 
-  defp apply_bidi_isolation(value, :isolate, _dir, _options) do
+  defp apply_bidi_isolation(value, :isolate, _u_dir, _expression, _options) do
     [@fsi, value, @pdi]
   end
 
-  defp apply_bidi_isolation(value, :auto, _dir, options) do
+  defp apply_bidi_isolation(value, :auto, _u_dir, _expression, options) do
     if locale_is_rtl?(options) do
       [@fsi, value, @pdi]
     else
       value
     end
+  end
+
+  defp isolate_ltr(value, :ltr, false) do
+    value
+  end
+
+  defp isolate_ltr(value, _message_direction, _isolate?) do
+    [@lri, value, @pdi]
+  end
+
+  # As ICU 79 resolves it: the message has its locale's directionality.
+  defp message_direction(options) do
+    if locale_is_rtl?(options) do
+      :rtl
+    else
+      :ltr
+    end
+  end
+
+  # A `u:dir` of `ltr` or `rtl` sets the value's directionality. Otherwise
+  # a value of a locale-formatting function has the locale's
+  # directionality, and any other value an unknown one.
+  defp value_direction(_expression, "ltr", _options) do
+    :ltr
+  end
+
+  defp value_direction(_expression, "rtl", _options) do
+    :rtl
+  end
+
+  defp value_direction(expression, _u_dir, options) do
+    if expression_function(expression, options) in @locale_direction_functions do
+      message_direction(options)
+    else
+      :unknown
+    end
+  end
+
+  # The function an expression is formatted with: its own annotation, or,
+  # for a bare variable, the annotation of the declaration that bound it.
+  defp expression_function({_operand, {:function, raw_name, _options}}, _options_kw) do
+    function_name(raw_name)
+  end
+
+  defp expression_function({{:variable, name}, nil}, options) do
+    case options |> Keyword.get(:declaration_meta, %{}) |> Map.get(name) do
+      {_original, {:function, raw_name, _func_options}, _plural_operand} ->
+        function_name(raw_name)
+
+      _no_function ->
+        nil
+    end
+  end
+
+  defp expression_function(_expression, _options) do
+    nil
   end
 
   defp bidi_marks_for_dir("ltr"), do: {@lri, @pdi}

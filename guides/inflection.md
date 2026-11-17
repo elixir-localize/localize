@@ -328,32 +328,32 @@ Inflection is available inside MF2 messages through the `i:` namespace, with the
 
 * **`:i:numeral`** — writes a number in digits or words. `withStyle` is `asWords`, `asSpokenWords`, `asDigits` or `asOrdinalDigits`, and `withVariant` names one of the locale's RBNF rule sets, such as `ordinal` or `cardinal-feminine`.
 
-Any other option names a grammatical feature of the locale — `case`, `gender`, `number`, `definiteness` and so on — and constrains the result; an option that names no feature is an error. For `:i:inflect` and `:i:pronoun`, a value that is not one of the feature's values is a word to agree with, so `number=$object` takes the number of `$object`:
+Any other option names a grammatical feature of the locale — `case`, `gender`, `number`, `definiteness` and so on — and constrains the result; an option that names no feature is an error. For `:i:inflect` and `:i:pronoun`, a value that is not one of the feature's values is a word to agree with, so `number=$object` takes the number of `$object`. The `\u2068` and `\u2069` around each result are invisible bidi isolates, which MF2 adds by default (see the [MessageFormat 2 guide](message_formatting.md)):
 
 ```elixir
 iex> Localize.Message.format("{$w :i:inflect number=plural}", %{w: "light on the patio"}, locale: :en)
-{:ok, "lights on the patio"}
+{:ok, "\u2068lights on the patio\u2069"}
 
 iex> Localize.Message.format("The {$object} {is :i:inflect number=$object} on.", %{object: "lights"}, locale: :en)
-{:ok, "The lights are on."}
+{:ok, "The \u2068lights\u2069 \u2068are\u2069 on."}
 
 iex> Localize.Message.format("{$w :i:inflect to=number}", %{w: "lights"}, locale: :en)
-{:ok, "plural"}
+{:ok, "\u2068plural\u2069"}
 
 iex> Localize.Message.format("{|he| :i:pronoun case=accusative}", %{}, locale: :en)
-{:ok, "him"}
+{:ok, "\u2068him\u2069"}
 
 iex> Localize.Message.format("{$p :i:pronoun withReferent=$obj}", %{p: "mío", obj: "casas"}, locale: :es)
-{:ok, "mías"}
+{:ok, "\u2068mías\u2069"}
 
 iex> Localize.Message.format("{$noun :i:quantify withValue=5}", %{noun: "час"}, locale: :ru)
-{:ok, "5 часов"}
+{:ok, "\u20685 часов\u2069"}
 
 iex> Localize.Message.format("{$words :i:list withType=and}", %{words: ["gatos", "idiomas"]}, locale: :es)
-{:ok, "gatos e idiomas"}
+{:ok, "\u2068gatos e idiomas\u2069"}
 
 iex> Localize.Message.format("Your {$n :i:numeral withStyle=asWords withVariant=ordinal} meeting", %{n: 4}, locale: :en)
-{:ok, "Your fourth meeting"}
+{:ok, "Your \u2068fourth\u2069 meeting"}
 ```
 
 `:i:inflect` and `:i:pronoun` are selectors too, matching a `.match` key against what they would format, which is usually a feature given by `to`. An unknown `to` feature formats as the operand but matches only the catch-all. `:i:quantify`, `:i:list` and `:i:numeral` are not selectors.
@@ -365,7 +365,7 @@ iex> message = """
 ...> * {{The {$object} is on.}}
 ...> """
 iex> Localize.Message.format(message, %{object: "lights on the porch"}, locale: :en)
-{:ok, "The lights on the porch are on."}
+{:ok, "The \u2068lights on the porch\u2069 are on."}
 ```
 
 A phrase or noun operand may be a `Localize.Inflection.Concept` instead of a string, including one with forms of its own in `:display_data` (upstream's semantic concept), and a pronoun operand a `Localize.Inflection.PronounConcept`, which can carry pronouns of its own the same way. A concept is also an option value to agree with, so `gender=$p` takes the gender of the pronoun concept `$p`:
@@ -373,7 +373,7 @@ A phrase or noun operand may be a `Localize.Inflection.Concept` instead of a str
 ```elixir
 iex> {:ok, he} = Localize.Inflection.PronounConcept.new(:en, initial_pronoun: "he")
 iex> Localize.Message.format("{theirs :i:pronoun gender=$p}", %{p: he}, locale: :en)
-{:ok, "his"}
+{:ok, "\u2068his\u2069"}
 ```
 
 Results can have a spoken form as well as a printed one: *4* spoken as *four*, *1 niño* as *un niño*. A message formatted with `output: :ssml` is written as SSML for a speech synthesizer, as upstream's SSML output mode writes it: a result whose spoken form differs becomes a `<sub>` element with the spoken form as its alias, and all other text is escaped. Plain output, the default, gives the printed form.

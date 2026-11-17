@@ -7,7 +7,7 @@ defmodule Localize.Message.ListOptionsTest do
 
   defp format_with_locale(source, bindings, locale) do
     {:ok, parsed} = Parser.parse(source)
-    options = [locale: locale]
+    options = [locale: locale, bidi: :none]
 
     case Interpreter.format_list(parsed, bindings, options) do
       {:ok, iolist, _, _} -> :erlang.iolist_to_binary(iolist)

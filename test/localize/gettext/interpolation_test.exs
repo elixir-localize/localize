@@ -9,7 +9,7 @@ defmodule Localize.Gettext.InterpolationTest do
 
   describe "runtime_interpolate/2" do
     test "formats a simple MF2 message with bindings" do
-      assert {:ok, "Hello World!"} =
+      assert {:ok, "Hello \u2068World\u2069!"} =
                Interpolation.runtime_interpolate(
                  "{{Hello {$name}!}}",
                  %{name: "World"}
@@ -29,7 +29,7 @@ defmodule Localize.Gettext.InterpolationTest do
     end
 
     test "converts atom keys to string keys for MF2" do
-      assert {:ok, "Count: 42"} =
+      assert {:ok, "Count: \u206842\u2069"} =
                Interpolation.runtime_interpolate(
                  "{{Count: {$count}}}",
                  %{count: 42}
@@ -54,7 +54,7 @@ defmodule Localize.Gettext.InterpolationTest do
     test "formats a pre-parsed AST" do
       {:ok, parsed} = Localize.Message.Parser.parse("{{Hello {$name}!}}")
 
-      assert {:ok, "Hello World!"} =
+      assert {:ok, "Hello \u2068World\u2069!"} =
                Interpolation.do_interpolate(parsed, %{name: "World"})
     end
 
@@ -127,17 +127,17 @@ defmodule Localize.Gettext.InterpolationTest do
     end
 
     test "accepts keyword-list bindings" do
-      assert {:ok, "Hello World!"} =
+      assert {:ok, "Hello \u2068World\u2069!"} =
                Interpolation.runtime_interpolate("{{Hello {$name}!}}", name: "World")
     end
 
     test "accepts string-keyed map bindings" do
-      assert {:ok, "Hello World!"} =
+      assert {:ok, "Hello \u2068World\u2069!"} =
                Interpolation.runtime_interpolate("{{Hello {$name}!}}", %{"name" => "World"})
     end
 
     test "accepts string-keyed tuple-list bindings" do
-      assert {:ok, "Hello World!"} =
+      assert {:ok, "Hello \u2068World\u2069!"} =
                Interpolation.runtime_interpolate("{{Hello {$name}!}}", [{"name", "World"}])
     end
   end
@@ -156,7 +156,7 @@ defmodule Localize.Gettext.InterpolationTest do
     end
 
     test "interpolates bindings against the compile-time parsed AST" do
-      assert CompiledFixture.hello(%{name: "World"}) == {:ok, "Hello World!"}
+      assert CompiledFixture.hello(%{name: "World"}) == {:ok, "Hello \u2068World\u2069!"}
     end
 
     test "reports missing bindings with a partial message" do

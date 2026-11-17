@@ -1,7 +1,7 @@
 defmodule Localize.Message.FormatErrorTest do
   use ExUnit.Case, async: true
 
-  @opts [formatter_backend: :elixir]
+  @opts [formatter_backend: :elixir, bidi: :none]
 
   defp format_error(source, bindings) do
     case Localize.Message.format(source, bindings, @opts) do

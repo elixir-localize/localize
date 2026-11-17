@@ -76,6 +76,17 @@ defmodule Localize.Message do
     XML-escaped. SSML output is formatted by the Elixir interpreter
     whatever the `:backend`. The default is `:plain`.
 
+  * `:bidi` is the bidirectional isolation strategy. `:default`, the
+    default, is TR35's Default Bidi Strategy: a placeholder whose value
+    may not have the message's direction is wrapped in Unicode bidi
+    isolates (U+2066 to U+2069), so that a right-to-left value in a
+    left-to-right message, or the reverse, displays correctly. A value
+    of `:string`, an unannotated variable or a literal has no known
+    direction and is isolated with U+2068 and U+2069; a number or date
+    has the locale's direction and is isolated only in a right-to-left
+    message. The `u:dir` option of an expression sets its direction.
+    `:none` isolates nothing. SSML output isolates nothing.
+
   ### Returns
 
   * `{:ok, formatted_message}` on success.
@@ -87,7 +98,13 @@ defmodule Localize.Message do
   ### Examples
 
       iex> Localize.Message.format("{{Hello {$name}!}}", %{"name" => "World"})
+      {:ok, "Hello \\u2068World\\u2069!"}
+
+      iex> Localize.Message.format("{{Hello {$name}!}}", %{"name" => "World"}, bidi: :none)
       {:ok, "Hello World!"}
+
+      iex> Localize.Message.format("{{You have {$count :number} messages}}", %{"count" => 4})
+      {:ok, "You have 4 messages"}
 
       iex> Localize.Message.format("You have {$count :i:numeral withStyle=asSpokenWords} messages",
       ...>   %{"count" => 4}, locale: :en, output: :ssml)
@@ -178,22 +195,34 @@ defmodule Localize.Message do
   # The NIF takes strings, 64-bit integers and floats. A message whose
   # bindings hold anything else — a date, a `Decimal`, a unit, a list — is
   # formatted by the interpreter, as it is when the NIF is not loaded.
+  # ICU has TR35's Default Bidi Strategy and no isolation, but not the
+  # interpreter's `:isolate` and `:auto` modes, which the interpreter
+  # formats.
   defp format_nif(message, bindings, options) do
     bindings_map = normalize_bindings(bindings)
+    bidi = Keyword.get(options, :bidi, :default)
 
-    if Localize.Nif.mf2_arguments?(bindings_map),
-      do: format_with_nif(message, bindings, bindings_map, options),
-      else: format_elixir(message, bindings, options)
+    if bidi in [:default, :none] and Localize.Nif.mf2_arguments?(bindings_map) do
+      format_with_nif(message, bindings, bindings_map, bidi, options)
+    else
+      format_elixir(message, bindings, options)
+    end
   end
 
-  defp format_with_nif(message, bindings, bindings_map, options) do
+  defp format_with_nif(message, bindings, bindings_map, bidi, options) do
     with {:ok, message} <- maybe_trim(message, options[:trim]),
          {:ok, locale_string} <- resolve_locale_string(options),
          :ok <- check_unbound_variables(message, bindings_map) do
       message
-      |> Localize.Nif.mf2_format(locale_string, bindings_map)
+      |> Localize.Nif.mf2_format(locale_string, bindings_map, bidi: bidi)
       |> handle_nif_format(message, bindings, options)
     end
+  end
+
+  # ICU before 79 has no bidi isolation, so the interpreter formats a
+  # message that asks for it, and the two backends agree.
+  defp handle_nif_format({:error, :bidi_unsupported}, message, bindings, options) do
+    format_elixir(message, bindings, options)
   end
 
   defp handle_nif_format({:ok, ""}, message, bindings, options) do
@@ -349,6 +378,9 @@ defmodule Localize.Message do
   ### Examples
 
       iex> Localize.Message.format!("{{Hello {$name}!}}", %{"name" => "World"})
+      "Hello \\u2068World\\u2069!"
+
+      iex> Localize.Message.format!("{{Hello {$name}!}}", %{"name" => "World"}, bidi: :none)
       "Hello World!"
 
   """
@@ -387,6 +419,9 @@ defmodule Localize.Message do
   * `:output` is `:plain` or `:ssml`, as for `format/3`. The
     default is `:plain`.
 
+  * `:bidi` is `:default` or `:none`, as for `format/3`. The default
+    is `:default`.
+
   ### Returns
 
   * `{:ok, iolist, bound, unbound}` on success.
@@ -397,8 +432,11 @@ defmodule Localize.Message do
 
   ### Examples
 
-      iex> Localize.Message.format_to_iolist("{{Hello {$name}!}}", %{"name" => "World"})
+      iex> Localize.Message.format_to_iolist("{{Hello {$name}!}}", %{"name" => "World"}, bidi: :none)
       {:ok, ["Hello ", "World", "!"], ["name"], []}
+
+      iex> Localize.Message.format_to_iolist("{{Hello {$name}!}}", %{"name" => "World"})
+      {:ok, ["Hello ", ["\\u2068", "World", "\\u2069"], "!"], ["name"], []}
 
   """
   @spec format_to_iolist(String.t(), bindings(), options()) ::

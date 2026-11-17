@@ -25,12 +25,10 @@ defmodule Localize.Message.FormatterConformanceTest do
   `{"date": ms}` becomes a `DateTime` and `{"decimal": s}` becomes a
   `Decimal`.
 
-  Files whose `defaultTestProperties` request the WG `default` bidi
-  isolation strategy are run with `bidi: :isolate`, which is the
-  closest Localize equivalent. The `:isolate` mode wraps every
-  placeholder in FSI/PDI, whereas the WG default strategy leaves
-  placeholders with a known LTR direction unisolated — the handful of
-  cases where the two differ are excluded below.
+  Each case runs with the bidi isolation strategy its file or the case
+  itself asks for: `"bidiIsolation": "default"` as `bidi: :default`,
+  TR35's Default Bidi Strategy, and `"none"`, or no setting, as
+  `bidi: :none`.
 
   Cases the implementation cannot yet satisfy are excluded via
   `@exclusions`, each with a one-line reason. Remove entries as the
@@ -76,15 +74,7 @@ defmodule Localize.Message.FormatterConformanceTest do
   # Excluded cases, grouped per file as reason => [case indexes].
   # Every exclusion is a real, documented implementation gap; the
   # remaining cases in each file are asserted.
-  @exclusion_groups %{
-    "bidi.json" => %{
-      "WG default bidi strategy leaves known-LTR placeholders unisolated; :isolate wraps all placeholders" =>
-        [16, 19, 20]
-    },
-    "u-options.json" => %{
-      "u:dir/u:id expression options not implemented" => [1, 2, 3, 5, 6, 8]
-    }
-  }
+  @exclusion_groups %{}
 
   @exclusions (for {file, groups} <- @exclusion_groups,
                    {reason, indexes} <- groups,
@@ -114,8 +104,7 @@ defmodule Localize.Message.FormatterConformanceTest do
     default_locale = Map.get(defaults, "locale", "en-US")
     default_errors = Map.get(defaults, "expErrors", [])
 
-    bidi_options =
-      if Map.get(defaults, "bidiIsolation") == "default", do: [bidi: :isolate], else: []
+    default_bidi = Map.get(defaults, "bidiIsolation", "none")
 
     describe "MF2 WG `#{file}` — formatted output" do
       for {test_case, index} <- Enum.with_index(Map.fetch!(data, "tests")),
@@ -129,7 +118,14 @@ defmodule Localize.Message.FormatterConformanceTest do
         locale = Map.get(test_case, "locale", default_locale)
         raw_params = Map.get(test_case, "params", [])
         exp_errors = Map.get(test_case, "expErrors", default_errors)
-        format_options = [locale: locale] ++ bidi_options
+
+        bidi =
+          case Map.get(test_case, "bidiIsolation", default_bidi) do
+            "default" -> :default
+            _none -> :none
+          end
+
+        format_options = [locale: locale, bidi: bidi]
 
         title =
           test_case

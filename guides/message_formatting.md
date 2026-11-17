@@ -8,10 +8,17 @@ This guide explains how to use `Localize.Message` for formatting messages using 
 
 ```elixir
 iex> Localize.Message.format("Hello, {$name}!", %{"name" => "Alice"})
-{:ok, "Hello, Alice!"}
+{:ok, "Hello, \u2068Alice\u2069!"}
 
 iex> Localize.Message.format("You have {$count :number} items.", %{"count" => 1234})
 {:ok, "You have 1,234 items."}
+```
+
+The `\u2068` and `\u2069` around "Alice" are Unicode bidi isolates, which are invisible when displayed. MF2 wraps a placeholder in them when its value may not have the message's direction, so that a right-to-left name in a left-to-right sentence, or the reverse, displays correctly. A `:string`, an unannotated variable or a literal has no known direction and is isolated; a number or date has the locale's direction and is isolated only in a right-to-left message. This is TR35's Default Bidi Strategy, which `bidi: :none` turns off:
+
+```elixir
+iex> Localize.Message.format("Hello, {$name}!", %{"name" => "Alice"}, bidi: :none)
+{:ok, "Hello, Alice!"}
 ```
 
 ## Message structure
@@ -67,14 +74,14 @@ Variables are prefixed with `$` and refer to values passed as bindings at format
 
 ```elixir
 iex> Localize.Message.format("Hello, {$name}!", %{"name" => "World"})
-{:ok, "Hello, World!"}
+{:ok, "Hello, \u2068World\u2069!"}
 ```
 
 Bindings can be provided as a map with string keys or as a keyword list with atom keys:
 
 ```elixir
 iex> Localize.Message.format("Hello, {$name}!", name: "World")
-{:ok, "Hello, World!"}
+{:ok, "Hello, \u2068World\u2069!"}
 ```
 
 ## Literals
@@ -122,10 +129,10 @@ String coercion. Converts the operand to its string representation.
 
 ```elixir
 iex> Localize.Message.format("{$x :string}", %{"x" => 42})
-{:ok, "42"}
+{:ok, "\u206842\u2069"}
 
 iex> Localize.Message.format("{$flag :string}", %{"flag" => true})
-{:ok, "true"}
+{:ok, "\u2068true\u2069"}
 ```
 
 ### `:number`
@@ -510,7 +517,7 @@ iex> Localize.Message.format(~S"""
 ...> .local $greeting = {|Welcome|}
 ...> {{Dear {$first} {$last}, {$greeting}!}}
 ...> """, %{"first" => "Jane", "last" => "Doe"})
-{:ok, "Dear Jane Doe, Welcome!"}
+{:ok, "Dear \u2068Jane\u2069 \u2068Doe\u2069, \u2068Welcome\u2069!"}
 ```
 
 ### Plural selection
@@ -586,13 +593,13 @@ CLDR 49 promoted `:currency` and `:percent` from draft to Stable, with the same 
 
 ```elixir
 iex> Localize.Message.format("{$items :list}", %{"items" => ["apple", "banana", "cherry"]}, locale: :en)
-{:ok, "apple, banana, and cherry"}
+{:ok, "\u2068apple, banana, and cherry\u2069"}
 
 iex> Localize.Message.format("{$items :list}", %{"items" => [1234, 5678]}, locale: :de)
-{:ok, "1.234 und 5.678"}
+{:ok, "\u20681.234 und 5.678\u2069"}
 
 iex> Localize.Message.format("{$items :list}", %{"items" => [~D[2025-07-10], ~D[2025-08-15]]}, locale: :en)
-{:ok, "Jul 10, 2025 and Aug 15, 2025"}
+{:ok, "\u2068Jul 10, 2025 and Aug 15, 2025\u2069"}
 ```
 
 The function accepts a `style` (or `type`) option that maps to a CLDR list style. Recognised values:
@@ -611,10 +618,10 @@ The function accepts a `style` (or `type`) option that maps to a CLDR list style
 
 ```elixir
 iex> Localize.Message.format(~S({$items :list style=or}), %{"items" => ["red", "green", "blue"]}, locale: :en)
-{:ok, "red, green, or blue"}
+{:ok, "\u2068red, green, or blue\u2069"}
 
 iex> Localize.Message.format(~S({$items :list style=unit-narrow}), %{"items" => ["3", "ft", "7", "in"]}, locale: :en)
-{:ok, "3 ft 7 in"}
+{:ok, "\u20683 ft 7 in\u2069"}
 ```
 
 Embedding `:list` in a larger message is straightforward:
@@ -625,7 +632,7 @@ iex> Localize.Message.format(
 ...>   %{"items" => ["apple", "banana", "cherry"]},
 ...>   locale: :en
 ...> )
-{:ok, "You have apple, banana, and cherry in your cart."}
+{:ok, "You have \u2068apple, banana, and cherry\u2069 in your cart."}
 ```
 
 Passing a non-list operand returns a format error rather than crashing.
