@@ -152,10 +152,12 @@ defmodule Localize.NifTest do
 
         result ->
           assert result == {:ok, "a\u0001b"}
-          assert Nif.mf2_format("{$x}", "en", ~s({"x": "\\b\\f"})) == {:ok, "\b\f"}
-          assert Nif.mf2_format("{$x}", "en", ~s({"x": "\\ud83d\\ude00"})) == {:ok, "😀"}
+          assert Nif.mf2_format("{$x}", "en", ~s({"x": "\\b\\f"}), bidi: :none) == {:ok, "\b\f"}
 
-          assert Nif.mf2_format("{$x :number}", "en", ~s({"x": 1.0e20})) ==
+          assert Nif.mf2_format("{$x}", "en", ~s({"x": "\\ud83d\\ude00"}), bidi: :none) ==
+                   {:ok, "😀"}
+
+          assert Nif.mf2_format("{$x :number}", "en", ~s({"x": 1.0e20}), bidi: :none) ==
                    {:ok, "100,000,000,000,000,000,000"}
       end
     end
