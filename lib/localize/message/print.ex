@@ -140,7 +140,7 @@ defmodule Localize.Message.Print do
 
   defp options_to_iolist(options) do
     Enum.map(options, fn {:option, name, value} ->
-      [" ", name, "=", value_to_iolist(value)]
+      [" ", identifier_to_iolist(name), "=", value_to_iolist(value)]
     end)
   end
 
@@ -148,8 +148,8 @@ defmodule Localize.Message.Print do
 
   defp attrs_to_iolist(attrs) do
     Enum.map(attrs, fn
-      {:attribute, name, nil} -> [" @", name]
-      {:attribute, name, value} -> [" @", name, "=", value_to_iolist(value)]
+      {:attribute, name, nil} -> [" @", identifier_to_iolist(name)]
+      {:attribute, name, value} -> [" @", identifier_to_iolist(name), "=", value_to_iolist(value)]
     end)
   end
 

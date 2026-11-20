@@ -243,7 +243,7 @@ defmodule Localize.Message.Highlighter do
     Enum.map(options, fn {:option, name, value} ->
       [
         tok(:punctuation_bracket, " "),
-        tok(:property, name),
+        tok(:property, identifier_text(name)),
         tok(:punctuation_bracket, "="),
         value_tokens(value)
       ]
@@ -255,12 +255,12 @@ defmodule Localize.Message.Highlighter do
   defp attrs_tokens(attrs) do
     Enum.map(attrs, fn
       {:attribute, name, nil} ->
-        [tok(:punctuation_bracket, " "), tok(:attribute, "@" <> name)]
+        [tok(:punctuation_bracket, " "), tok(:attribute, "@" <> identifier_text(name))]
 
       {:attribute, name, value} ->
         [
           tok(:punctuation_bracket, " "),
-          tok(:attribute, "@" <> name),
+          tok(:attribute, "@" <> identifier_text(name)),
           tok(:punctuation_bracket, "="),
           value_tokens(value)
         ]
@@ -331,6 +331,15 @@ defmodule Localize.Message.Highlighter do
 
   defp identifier_tokens(name, class) when is_binary(name) do
     [tok(class, name)]
+  end
+
+  # An option or attribute name may be namespaced (`u:dir`).
+  defp identifier_text({:namespace, namespace, name}) do
+    namespace <> ":" <> name
+  end
+
+  defp identifier_text(name) when is_binary(name) do
+    name
   end
 
   defp variable_tokens(name) do

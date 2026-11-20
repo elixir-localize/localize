@@ -10,6 +10,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 * `Localize.Date`, `Localize.Time` and `Localize.DateTime` take a skeleton given as text, `format: {:skeleton, "yMMMd"}`, in `to_string/2`, `to_parts/2` and `parse/2` and as `:date_format` and `:time_format`. It is matched as the skeleton atom is and makes no atom, so a skeleton from message text or configuration can be passed as it comes.
 
+### Fixed
+
+* `Localize.Message.JSON` follows TR35's Interchange Data Model: `to_json/2` writes a namespaced option or attribute name (`u:dir`) as a string, and `from_json/1` returns an error for a malformed model where it raised, refuses text that is not an MF2 name, and takes a model without `declarations`.
+
+* The MF2 parser reads an unquoted literal as TR35's `1*name-char`, so `{01}`, `{1.}` and `{1x}` parse as literals where they were syntax errors.
+
+* `Localize.Message.canonical_message/2` and `Localize.Message.Highlighter.to_tokens/1` no longer raise on a message with a namespaced option or attribute, such as `{$n :number u:dir=ltr}`.
+
 ## [1.8.0] — November 17th, 2026
 
 ### Changed

@@ -16,8 +16,6 @@ Outstanding work on Localize. The design detail behind these items lives under [
 
 * [ ] **Message resource support** — read and write the Message Resource format of the Unicode message-resource working group, a file of named MessageFormat 2 messages with their comments and metadata, so a set of messages can be kept and loaded as a unit beside Gettext PO files. Scope to be settled before work starts: which draft of the format, and how a resource reaches `Localize.Message` and the `~t` sigil.
 
-* [ ] **MF2 interchange data model** — support TR35's Interchange Data Model for MessageFormat 2 messages (`tr35-messageFormat.md`, "Interchange Data Model"). `Localize.Message.JSON` already converts a parsed message to and from its JSON form and has not been checked against the current section; the first step is that audit, against the section and the working group's JSON schema, to say what is missing.
-
 ## In progress
 
 * [ ] **CLDR 49 upgrade** — the plan's items are closed bar item 11; the data is built from the final `release-49` (below). [plans/cldr-49.md](plans/cldr-49.md).
@@ -71,6 +69,8 @@ Outstanding work on Localize. The design detail behind these items lives under [
 * [ ] **`localize_emoji` sibling library** — plan item 11, a separate package on its own schedule. A Phoenix LiveView picker (`localize_emoji_live`) is out of scope for its 0.1.0.
 
 ## Done
+
+* [x] **MF2 interchange data model** â `Localize.Message.JSON` audited against TR35's Interchange Data Model and its `message.json` schema: namespaced names, a validating `from_json/1` that never raises, and the parser's `1*name-char` unquoted literal; every parseable conformance message is schema-checked and round-tripped. 2026-11-21.
 
 * [x] **Accept a date or time skeleton given as a string** — `format: {:skeleton, "yMMMd"}` in `Localize.Date`, `Localize.Time` and `Localize.DateTime`, for formatting and parsing, matched as the atom is with no atom made. 2026-11-21.
 

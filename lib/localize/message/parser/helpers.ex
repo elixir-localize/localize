@@ -36,6 +36,31 @@ defmodule Localize.Message.Parser.Helpers do
     {:number_literal, text}
   end
 
+  # TR35 Part 9: `unquoted-literal = 1*name-char`. Every code point is
+  # kept, and the text is a number literal only when the whole of it
+  # matches the `number-literal` production.
+  @doc false
+  def wrap_unquoted_literal(chars) do
+    text = List.to_string(chars)
+
+    if number_literal?(text) do
+      {:number_literal, text}
+    else
+      {:literal, text}
+    end
+  end
+
+  # number-literal = ["-"] (%x30 / (%x31-39 *DIGIT)) ["." 1*DIGIT]
+  #                  [%i"e" ["-" / "+"] 1*DIGIT]
+  @doc false
+  def number_literal?(text) when is_binary(text) do
+    Regex.match?(~r/\A-?(?:0|[1-9][0-9]*)(?:\.[0-9]+)?(?:[eE][-+]?[0-9]+)?\z/, text)
+  end
+
+  def number_literal?(_other) do
+    false
+  end
+
   @doc false
   def wrap_option([name, value]), do: {:option, name, value}
 

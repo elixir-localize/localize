@@ -223,14 +223,15 @@ defmodule Localize.Message.Parser.Combinator do
     {:number_literal, text}
   end
 
-  # unquoted-literal = name-char+ (but disambiguated: try number first, then name)
+  # unquoted-literal = 1*name-char. The whole run is read, and it is a
+  # number literal only when all of it matches `number-literal`.
   def unquoted_literal do
-    choice([
-      number_literal(),
-      times(name_char(), min: 1)
-      |> reduce(:to_nfc_string)
-      |> unwrap_and_tag(:literal)
-    ])
+    times(name_char(), min: 1)
+    |> reduce(:wrap_unquoted_literal)
+  end
+
+  def wrap_unquoted_literal(chars) do
+    Localize.Message.Parser.Helpers.wrap_unquoted_literal(chars)
   end
 
   # literal = quoted-literal / unquoted-literal

@@ -124,6 +124,7 @@ defmodule Localize.Message.Parser do
       wrap_identifier: 1,
       wrap_quoted_literal: 1,
       wrap_number_literal: 1,
+      wrap_unquoted_literal: 1,
       wrap_option: 1,
       wrap_attribute: 1,
       wrap_function: 1,
@@ -164,12 +165,8 @@ defmodule Localize.Message.Parser do
 
   # An unquoted literal keeps its code points, as a quoted one does.
   unquoted_literal_v =
-    choice([
-      number_literal(),
-      times(name_char(), min: 1)
-      |> reduce({List, :to_string, []})
-      |> unwrap_and_tag(:literal)
-    ])
+    times(name_char(), min: 1)
+    |> reduce(:wrap_unquoted_literal)
 
   literal_v = choice([quoted_literal(), unquoted_literal_v])
   defparsecp(:literal_p, literal_v)

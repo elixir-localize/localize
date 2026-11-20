@@ -495,7 +495,7 @@ Two areas are explicitly out of scope:
 
 | Feature | Status | Notes |
 |---------|--------|-------|
-| JSON interchange format | Implemented | `Localize.Message.JSON.to_json/2` and `from_json/1` for round-trip serialization to the TR35 §8 data model. |
+| JSON interchange format | Implemented | `Localize.Message.JSON.to_json/2` and `from_json/1` convert a message to and from TR35's [Interchange Data Model](https://www.unicode.org/reports/tr35/tr35-messageFormat.html#interchange-data-model) in its `message.json` form; every conformance message that parses is checked against the schema and round-tripped. |
 | Literal code points and key normalization | Implemented | Literals keep all their code points; keys and a `:string` selector's value are compared in NFC (TR35 NormalizeKey), and names are compared as if normalized. |
 | Bidirectional text handling | Partial | `:bidi` option (`:none`, `:isolate`, `:auto`) wraps placeholder output in Unicode isolate characters (FSI/PDI), and the `@u:dir` expression *attribute* overrides direction per expression. The `u:dir` / `u:id` expression *options* are not implemented, and the `:isolate` strategy isolates every placeholder where the WG default strategy leaves known-LTR placeholders unisolated. |
 
