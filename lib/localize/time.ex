@@ -63,7 +63,8 @@ defmodule Localize.Time do
   ### Options
 
   * `:format` is a standard format name (`:short`, `:medium`,
-    `:long`, `:full`), a format skeleton atom, a
+    `:long`, `:full`), a format skeleton as an atom (`:hms`) or
+    as text (`{:skeleton, "hms"}`), a
     `Localize.DateTime.SemanticSkeleton` or a format pattern
     string. The default is `:medium` for full times. For a
     partial time a standard format, or no format, derives its
@@ -110,6 +111,9 @@ defmodule Localize.Time do
       {:ok, "2:30 PM"}
 
       iex> Localize.Time.to_string(%{hour: 14, minute: 30}, locale: :de)
+      {:ok, "14:30"}
+
+      iex> Localize.Time.to_string(~T[14:30:00], format: {:skeleton, "Hm"}, locale: :en)
       {:ok, "14:30"}
 
   """
@@ -463,6 +467,12 @@ defmodule Localize.Time do
     end
   end
 
+  # A skeleton given as text takes the override as a skeleton atom does,
+  # with no atom made.
+  defp apply_hc_to_skeleton({:skeleton, skeleton}, language_tag) when is_binary(skeleton) do
+    {:skeleton, hour_cycle_skeleton_half(skeleton, language_tag)}
+  end
+
   defp apply_hc_to_skeleton(format, _language_tag), do: format
 
   defp hour_cycle_skeleton_atom(format, hc) do
@@ -581,6 +591,10 @@ defmodule Localize.Time do
 
   # A literal pattern keeps the hour symbol it was written with.
   defp hour_cycle_pattern(pattern, format, _language_tag) when is_binary(format), do: pattern
+
+  defp hour_cycle_pattern(pattern, {:skeleton, skeleton}, language_tag) do
+    apply_hour_cycle(pattern, language_tag, skeleton)
+  end
 
   defp hour_cycle_pattern(pattern, format, language_tag),
     do: apply_hour_cycle(pattern, language_tag, format)
@@ -756,6 +770,16 @@ defmodule Localize.Time do
     end
   end
 
+  # A skeleton given as text is matched as a skeleton atom is, with no atom
+  # made from it.
+  defp find_format(time, {:skeleton, skeleton}, locale_id, options) do
+    with {:ok, skeleton} <- Localize.DateTime.Format.Match.string_skeleton(skeleton) do
+      skeleton
+      |> resolve_skeleton({locale_id, cldr_calendar_for(time)}, options)
+      |> Localize.DateTime.Formatter.explain_unresolved(time, skeleton)
+    end
+  end
+
   # A time takes the formats of its calendar, as a date does: CLDR gives
   # each calendar its own `availableFormats`.
   defp find_format(time, format, locale_id, options) when is_atom(format) do
@@ -799,7 +823,7 @@ defmodule Localize.Time do
   # per TR35: the S field is stripped before resolution and appended
   # to the seconds field of the resolved pattern afterwards.
   defp resolve_skeleton(skeleton, {locale_id, _calendar} = lookup, options)
-       when is_atom(skeleton) do
+       when is_atom(skeleton) or is_binary(skeleton) do
     {skeleton, fraction_count} =
       Localize.DateTime.Format.Match.split_fractional_seconds(skeleton)
 
@@ -926,7 +950,7 @@ defmodule Localize.Time do
     `Calendar.ISO`. Anything that is not a calendar module, a CLDR
     calendar type included, is a `t:Localize.UnknownCalendarError.t/0`.
 
-  * `:format` is the format the text was written with, as `to_string/2` takes it: a standard format (`:short`, `:medium`, `:long` or `:full`), a skeleton atom such as `:Hm`, a `Localize.DateTime.SemanticSkeleton` or a pattern string such as `"HH'h'mm"`. The text is read with that format and no other, ISO 8601 included. A `:long` or a `:full` format reads a time with its zone and, as it is written for a value that has none, without it, and a semantic skeleton whose minutes are optional reads a time on the hour written without them. The default is `nil`: the text is read as ISO 8601 or in whichever of the locale's formats reads it first.
+  * `:format` is the format the text was written with, as `to_string/2` takes it: a standard format (`:short`, `:medium`, `:long` or `:full`), a skeleton as an atom such as `:Hm` or as text, `{:skeleton, "Hm"}`, a `Localize.DateTime.SemanticSkeleton` or a pattern string such as `"HH'h'mm"`. The text is read with that format and no other, ISO 8601 included. A `:long` or a `:full` format reads a time with its zone and, as it is written for a value that has none, without it, and a semantic skeleton whose minutes are optional reads a time on the hour written without them. The default is `nil`: the text is read as ISO 8601 or in whichever of the locale's formats reads it first.
 
   * `:as` is `:struct` or `:map`. `:map` returns only the fields the input
     actually carried, rather than completing them; a minute or second no

@@ -398,8 +398,41 @@ defmodule Localize.DateTime.Parser do
     end
   end
 
+  # A skeleton given as text is split as a skeleton atom is, and each half
+  # stays text: no atom is made for it, and the half is the format read
+  # whether or not a format of its name is known.
+  defp format_halves({:skeleton, skeleton}, locale) do
+    with {:ok, skeleton} <- Format.Match.string_skeleton(skeleton) do
+      string_skeleton_halves(skeleton, locale)
+    end
+  end
+
   defp format_halves(format, _locale),
     do: {:error, Localize.DateTimeFormatError.exception(format: format, reason: :invalid_format)}
+
+  defp string_skeleton_halves(skeleton, locale) do
+    case Format.Match.separate_date_and_time(skeleton) do
+      {date_fields, time_fields} ->
+        {:ok, {{:skeleton, date_fields}, {:skeleton, time_fields}, nil}}
+
+      nil ->
+        one_half_of_string_skeleton(skeleton, locale)
+    end
+  end
+
+  defp one_half_of_string_skeleton(skeleton, locale) do
+    cond do
+      Format.Match.only_fields?(skeleton, :date) ->
+        {:ok, {{:skeleton, skeleton}, nil, nil}}
+
+      Format.Match.only_fields?(skeleton, :time) ->
+        {:ok, {nil, {:skeleton, skeleton}, nil}}
+
+      true ->
+        {:error,
+         Localize.DateTimeUnresolvedFormatError.exception(format: skeleton, locale: locale)}
+    end
+  end
 
   defp semantic_half(_semantic, []), do: nil
   defp semantic_half(semantic, fields), do: %{semantic | fields: fields}

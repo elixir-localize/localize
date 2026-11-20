@@ -63,6 +63,18 @@ iex> Localize.Date.to_string(~D[2024-07-06], format: :yMMMdw, locale: :en)
 
 A date of another calendar is matched against that calendar's formats first and then against the Gregorian calendar's, which TR35 has most calendars inherit, so a Hebrew date's `:yw` is the locale's week of the year, "week 39 of 5786", and its `:yMMMdw` the Hebrew date with its week appended, "1 Tamuz 5786 (week: 39)". The Chinese and Dangi calendars, which TR35 excepts, take their own formats alone: "2026(bing-wu) (week: 18)".
 
+A skeleton that arrives as text, from a message or a configuration file, is given as `{:skeleton, text}`. It is matched as the atom of the same name is, and no atom is made from it, so text from outside can be passed as it comes. A string on its own is a pattern, not a skeleton:
+
+```elixir
+iex> Localize.Date.to_string(~D[2024-07-06], format: {:skeleton, "yMMMd"}, locale: :en)
+{:ok, "Jul 6, 2024"}
+
+iex> Localize.Date.to_string(~D[2024-07-06], format: "yMMMd", locale: :en)
+{:ok, "2024Jul6"}
+```
+
+`Localize.Time` and `Localize.DateTime` take `{:skeleton, text}` the same way, as do `:date_format` and `:time_format` and the `:format` of `parse/2`. Text that holds anything but date and time symbols returns an error.
+
 ### Semantic skeletons
 
 A classical skeleton names fields. A *semantic* skeleton names what you mean, and lets CLDR choose the fields — TR35 added these so that "a year, a month, a day and a weekday" does not have to be spelled `:yMMMEd` in every locale:

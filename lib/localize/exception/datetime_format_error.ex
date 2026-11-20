@@ -8,7 +8,7 @@ defmodule Localize.DateTimeFormatError do
   defexception [:format, :reason, :detail]
 
   @type t :: %__MODULE__{
-          format: String.t() | atom() | struct() | nil,
+          format: String.t() | atom() | struct() | {:skeleton, term()} | nil,
           reason: atom() | nil,
           detail: term()
         }

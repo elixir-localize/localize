@@ -69,7 +69,8 @@ defmodule Localize.DateTime do
   ### Options
 
   * `:format` is a standard format name (`:short`, `:medium`,
-    `:long`, `:full`), a format skeleton atom, a
+    `:long`, `:full`), a format skeleton as an atom (`:yMMMd`) or
+    as text (`{:skeleton, "yMMMd"}`), a
     `Localize.DateTime.SemanticSkeleton` or a format pattern
     string. The default is `:medium`. A standard format sets the
     width of the date and the time together; `:date_format` and
@@ -80,7 +81,8 @@ defmodule Localize.DateTime do
     writes for it, the format's fields without its zone.
 
   * `:date_format` and `:time_format` are standard format names,
-    skeleton atoms or semantic skeletons that set the date half
+    skeletons (an atom, or text as `{:skeleton, "yMMMd"}`) or
+    semantic skeletons that set the date half
     and the time half independently, each defaulting to `:format`. Use them for
     the common "full date, short time" pairing:
     `date_format: :full, time_format: :short` renders
@@ -133,6 +135,9 @@ defmodule Localize.DateTime do
 
       iex> Localize.DateTime.to_string(%{year: 2026, month: 6, day: 15, hour: 14}, locale: :en, prefer: :ascii)
       {:ok, "Jun 15, 2026, 2 PM"}
+
+      iex> Localize.DateTime.to_string(~N[2017-07-10 14:30:00], format: {:skeleton, "yMMMdHm"}, locale: :en)
+      {:ok, "Jul 10, 2017, 14:30"}
 
   """
   @spec to_string(map(), Keyword.t()) :: {:ok, String.t()} | {:error, Exception.t()}
@@ -225,6 +230,11 @@ defmodule Localize.DateTime do
         # Skeleton atom — resolve to a pattern from available_formats
         is_atom(format) ->
           format_with_skeleton(datetime, options, language_tag, format, output)
+
+        # Skeleton given as text — matched as a skeleton atom is, with no
+        # atom made from it.
+        match?({:skeleton, _text}, format) ->
+          format_with_string_skeleton(datetime, options, language_tag, format, output)
 
         true ->
           {:error,
@@ -546,7 +556,7 @@ defmodule Localize.DateTime do
   defp format_with_skeleton(datetime, options, locale_id, skeleton, output) do
     {skeleton, fraction_count} =
       skeleton
-      |> Localize.Time.hour_cycle_skeleton(Keyword.get(options, :locale, locale_id))
+      |> hour_cycle_skeleton(Keyword.get(options, :locale, locale_id))
       |> Localize.DateTime.Format.Match.split_fractional_seconds()
 
     with {:ok, available} <-
@@ -572,6 +582,23 @@ defmodule Localize.DateTime do
           output
         )
       end
+    end
+  end
+
+  # A skeleton here is an atom, or text where it was given as text or no
+  # atom of its name exists; `Localize.Time.hour_cycle_skeleton/2` takes
+  # text for a pattern and leaves it alone.
+  defp hour_cycle_skeleton(skeleton, locale) when is_binary(skeleton) do
+    Localize.Time.hour_cycle_skeleton_half(skeleton, locale)
+  end
+
+  defp hour_cycle_skeleton(skeleton, locale) do
+    Localize.Time.hour_cycle_skeleton(skeleton, locale)
+  end
+
+  defp format_with_string_skeleton(datetime, options, locale_id, {:skeleton, skeleton}, output) do
+    with {:ok, skeleton} <- Localize.DateTime.Format.Match.string_skeleton(skeleton) do
+      format_with_skeleton(datetime, options, locale_id, skeleton, output)
     end
   end
 
@@ -1084,6 +1111,10 @@ defmodule Localize.DateTime do
     end
   end
 
+  defp wrapper_length({:skeleton, skeleton}) when is_binary(skeleton) do
+    wrapper_length(skeleton)
+  end
+
   defp wrapper_length(_format), do: :medium
 
   defp length_for_date_fields(tokens) do
@@ -1161,7 +1192,7 @@ defmodule Localize.DateTime do
     a module that implements only the `Calendar` behaviour, returns a
     `t:Localize.UnknownCalendarError.t/0`.
 
-  * `:format` is the format the date and time were written with, as `to_string/2` takes it: a standard format (`:short`, `:medium`, `:long` or `:full`), a skeleton atom such as `:yMdHm`, a `Localize.DateTime.SemanticSkeleton`, or a pattern string such as `"d/M/y HH:mm"`. Each half is read with its part of it and with nothing else, ISO 8601 included. A standard format is the date's and the time's alike. A skeleton is split into its date fields and its time fields, and so is a semantic skeleton, its zone going with its time. A pattern, which writes its date fields in one run and its time fields in another, is split at the text between them, where the input is split too. The default is `nil`: the text is read as ISO 8601 or in whichever of the locale's formats reads it first.
+  * `:format` is the format the date and time were written with, as `to_string/2` takes it: a standard format (`:short`, `:medium`, `:long` or `:full`), a skeleton as an atom such as `:yMdHm` or as text, `{:skeleton, "yMdHm"}`, a `Localize.DateTime.SemanticSkeleton`, or a pattern string such as `"d/M/y HH:mm"`. Each half is read with its part of it and with nothing else, ISO 8601 included. A standard format is the date's and the time's alike. A skeleton is split into its date fields and its time fields, and so is a semantic skeleton, its zone going with its time. A pattern, which writes its date fields in one run and its time fields in another, is split at the text between them, where the input is split too. The default is `nil`: the text is read as ISO 8601 or in whichever of the locale's formats reads it first.
 
   * `:date_format` and `:time_format` are the formats the date and the time were written with, each as `Localize.Date.parse/2` and `Localize.Time.parse/2` take `:format`, and take the place of the halves of `:format`. A half with no format is read in any of the locale's formats.
 

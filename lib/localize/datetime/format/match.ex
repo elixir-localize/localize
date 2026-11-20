@@ -41,6 +41,11 @@ defmodule Localize.DateTime.Format.Match do
   # milliseconds in the day, so a split keeps them with the time.
   @time_symbols ~w(h H k K j J C m s S A v V z Z x X O a b B)
 
+  # The longest skeleton a caller may give as a string. Every symbol at its
+  # widest, six letters, fits in well under this; the bound keeps the work
+  # of matching text from outside to a fixed size.
+  @max_string_skeleton_bytes 64
+
   @hour ["k", "h", "K", "H"]
   @hour_12 ["h", "K"]
   @hour_24 ["H", "k"]
@@ -587,6 +592,37 @@ defmodule Localize.DateTime.Format.Match do
     {:ok, tokens} = tokenize_skeleton(skeleton)
 
     tokens != [] and Enum.all?(tokens, fn {symbol, _count} -> symbol in @zone_symbols end)
+  end
+
+  @doc false
+  # The skeleton a caller gives as text, `format: {:skeleton, "yMMMd"}`:
+  # one or more date and time symbols and nothing else, within a fixed
+  # length. A skeleton atom is the caller's own and is not checked this
+  # way; text is, since it is how a skeleton from outside arrives (a
+  # message's `{d, date, ::yMMMd}`), and it is matched as text, with no
+  # atom made from it.
+  @spec string_skeleton(term()) :: {:ok, String.t()} | {:error, Exception.t()}
+  def string_skeleton(skeleton)
+      when is_binary(skeleton) and byte_size(skeleton) in 1..@max_string_skeleton_bytes do
+    if skeleton_symbols?(skeleton) do
+      {:ok, skeleton}
+    else
+      {:error, invalid_string_skeleton(skeleton)}
+    end
+  end
+
+  def string_skeleton(skeleton) do
+    {:error, invalid_string_skeleton(skeleton)}
+  end
+
+  defp skeleton_symbols?(skeleton) do
+    skeleton
+    |> String.graphemes()
+    |> Enum.all?(&(&1 in @date_symbols or &1 in @time_symbols))
+  end
+
+  defp invalid_string_skeleton(skeleton) do
+    Localize.DateTimeFormatError.exception(format: {:skeleton, skeleton}, reason: :invalid_format)
   end
 
   @doc false

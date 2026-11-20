@@ -54,7 +54,8 @@ defmodule Localize.Date do
   ### Options
 
   * `:format` is a standard format name (`:short`, `:medium`,
-    `:long`, `:full`), a format skeleton atom, a
+    `:long`, `:full`), a format skeleton as an atom (`:yMMMd`) or
+    as text (`{:skeleton, "yMMMd"}`), a
     `Localize.DateTime.SemanticSkeleton` or a format pattern
     string. The default is `:medium`. For a partial date a
     standard format derives its skeleton from the fields present,
@@ -107,6 +108,9 @@ defmodule Localize.Date do
 
       iex> Localize.Date.to_string(%{year: 2024, month: 6}, format: :long, locale: :en)
       {:ok, "June 2024"}
+
+      iex> Localize.Date.to_string(~D[2017-07-10], format: {:skeleton, "yMMMd"}, locale: :en)
+      {:ok, "Jul 10, 2017"}
 
   """
   @spec to_string(map(), Keyword.t()) :: {:ok, String.t()} | {:error, Exception.t()}
@@ -389,6 +393,16 @@ defmodule Localize.Date do
     end
   end
 
+  # A skeleton given as text is matched as a skeleton atom is, with no atom
+  # made from it.
+  defp find_format(date, {:skeleton, skeleton}, locale_id, options) do
+    with {:ok, skeleton} <- Localize.DateTime.Format.Match.string_skeleton(skeleton) do
+      date
+      |> resolve_date_skeleton(skeleton, locale_id, options)
+      |> Localize.DateTime.Formatter.explain_unresolved(date, skeleton)
+    end
+  end
+
   defp find_format(date, format, locale_id, options) when is_atom(format) do
     cldr_calendar = cldr_calendar_for(date)
 
@@ -445,6 +459,19 @@ defmodule Localize.Date do
       locale_id,
       cldr_calendar_for(date)
     )
+  end
+
+  # A skeleton given as text names a format, and so its numbering, only
+  # where an atom of that name exists: every format id is one.
+  defp number_system_overrides_for(date, {:skeleton, skeleton}, locale_id)
+       when is_binary(skeleton) do
+    format_id = Localize.Utils.Helpers.existing_atom(skeleton)
+
+    if is_nil(format_id) do
+      %{}
+    else
+      number_system_overrides_for(date, format_id, locale_id)
+    end
   end
 
   defp number_system_overrides_for(_date, _format, _locale_id), do: %{}
@@ -698,7 +725,7 @@ defmodule Localize.Date do
     a module that implements only the `Calendar` behaviour, returns a
     `t:Localize.UnknownCalendarError.t/0`.
 
-  * `:format` is the format the text was written with, as `to_string/2` takes it: a standard format (`:short`, `:medium`, `:long` or `:full`), a skeleton atom such as `:yMd`, a `Localize.DateTime.SemanticSkeleton` or a pattern string such as `"d/M/y"`. The text is read with that format and no other, after the calendar's own notation, so a date written by a skeleton whose fields stand in another order than the locale's standard formats' reads back as itself: `mt`'s `:yMd` writes 3 April 2024 as "4/3/2024", which is 4 March where no format is given. A pattern string is read before the notation, which is never what it writes, and the notation where the pattern reads nothing. A format of fewer fields than a date has, such as `:yMMM`, needs `as: :map`. The default is `nil`: the text is read in whichever of the locale's formats reads it first.
+  * `:format` is the format the text was written with, as `to_string/2` takes it: a standard format (`:short`, `:medium`, `:long` or `:full`), a skeleton as an atom such as `:yMd` or as text, `{:skeleton, "yMd"}`, a `Localize.DateTime.SemanticSkeleton` or a pattern string such as `"d/M/y"`. The text is read with that format and no other, after the calendar's own notation, so a date written by a skeleton whose fields stand in another order than the locale's standard formats' reads back as itself: `mt`'s `:yMd` writes 3 April 2024 as "4/3/2024", which is 4 March where no format is given. A pattern string is read before the notation, which is never what it writes, and the notation where the pattern reads nothing. A format of fewer fields than a date has, such as `:yMMM`, needs `as: :map`. The default is `nil`: the text is read in whichever of the locale's formats reads it first.
 
   * `:reference_date` is the `t:Date.t/0` that partial input is completed
     against, taken in the calendar the input is read in. A week written

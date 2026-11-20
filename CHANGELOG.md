@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.9.0] — Unreleased
+
+### Added
+
+* `Localize.Date`, `Localize.Time` and `Localize.DateTime` take a skeleton given as text, `format: {:skeleton, "yMMMd"}`, in `to_string/2`, `to_parts/2` and `parse/2` and as `:date_format` and `:time_format`. It is matched as the skeleton atom is and makes no atom, so a skeleton from message text or configuration can be passed as it comes.
+
 ## [1.8.0] — November 17th, 2026
 
 ### Changed

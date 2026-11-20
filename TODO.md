@@ -6,8 +6,6 @@ Outstanding work on Localize. The design detail behind these items lives under [
 
 * [ ] **Settle the runtime `:persistent_term` writes under rule 14** — about forty sites write at runtime: per-locale data and caches, constants computed on first use, configuration setters and warn-once flags. Needs a decision on per-locale data; the options and their measured costs are in [plans/persistent-term-writes.md](plans/persistent-term-writes.md).
 
-* [ ] **Accept a date or time skeleton given as a string** — `Localize.Date`, `Localize.Time` and `Localize.DateTime` match a skeleton only as an atom (`format: :yMMMd`), and read a string as a pattern (`"yMMMd"` writes "2026Oct27"), so a skeleton from message text cannot be used without making an atom from it. Add a string form, such as `format: {:skeleton, "yMMMd"}`, matched by TR35 without creating an atom, so `localize_mf1` can format ICU's `{d, date, ::yMMMd}`, which returns an error today.
-
 * [ ] **Read CLDR's JSON in place of its XML wherever the JSON carries the data** (next release) — `data/xml_extractors.ex` reads XML for data the CLDR 49 JSON has with every attribute used: `pluralRanges`, `primaryZones` (`metaZones.xml`), the BCP 47 `timezone` (`_alias`, `_region`, `_preferred`) and `measure` files, `subdivisionContainment` (`subdivisions.xml`'s `subgroup`), `units` (`convertUnits` with `_special` and `_systems`, `unitConstants` with `_status`, `unitPrefixes`, `unitQuantities`) and `unitIdComponents`, and the grammatical derivations in `grammaticalFeatures`. `data/validity.ex` reads the BCP 47 XML for the `-u-` and `-t-` keys, which `cldr-bcp47` also carries. Add `bcp47` to `Localize.Data.CldrJson`'s converter types, then move each reader. Only these stay XML, having no JSON: `common/validity/*.xml`, the collation tailorings in `common/collation/` and `common/uca/FractionalUCA.txt`. Gate: every supplemental ETF and the locale hash manifest regenerate byte-identical, which deterministic encoding makes a direct comparison.
 
 * [ ] **Key the locale display-name data by the parts of a locale** — `Localize.Locale.LocaleDisplay.locale_name_from/4` and `Localize.Locale.LocaleDisplay.T.find_longest_language_match/3` still build `"en-GB"`-shaped identifiers from a tag's parts to probe each locale's `languages` display names, whose CLDR keys are such identifiers. Keying that per-locale data by `{language, script, territory, variants}` means regenerating every locale ETF, a new hash manifest and a CDN publish, so it is a data-version release of its own. The likely-subtag, language-alias and collation-tailoring tables were keyed by their parts in 1.6.1; found while fixing #70, 2026-11-02.
@@ -15,6 +13,10 @@ Outstanding work on Localize. The design detail behind these items lives under [
 * [ ] **Two German words, and the indefinite article in the plural** — `Localize.Inflection.inflect/3` reads an adjective and a noun alone as the upstream project does, the number singular unless asked for, so "kleine Häuser" in the dative is "kleinem Häusern", and an adjective form it does not read stays as it is, "alter Mann" in the genitive and "guter Wein" in the dative; and "ein kleines Haus" in the plural keeps "ein", which German drops. Three or more words agree throughout. Found by the 1.7.0 release review, 2026-11-09.
 
 * [ ] **Say what `validate_locale/1` answers when nothing matches, and for whom** — a valid tag CLDR has no data for (`tlh`) resolves to `:und`, and one too distant from every supported locale (`ja` under `[fr, de, en]`) resolves to the first supported locale; both are right for formatting, which is what `cldr_locale_id` is for. The docs should say that neither is a match for negotiation, which `localize_web` 1.4.0 tests for itself, and that the default locale belongs first in `:supported_locales`. The behaviour stays as it is (reviewed 2026-11-17).
+
+* [ ] **Message resource support** — read and write the Message Resource format of the Unicode message-resource working group, a file of named MessageFormat 2 messages with their comments and metadata, so a set of messages can be kept and loaded as a unit beside Gettext PO files. Scope to be settled before work starts: which draft of the format, and how a resource reaches `Localize.Message` and the `~t` sigil.
+
+* [ ] **MF2 interchange data model** — support TR35's Interchange Data Model for MessageFormat 2 messages (`tr35-messageFormat.md`, "Interchange Data Model"). `Localize.Message.JSON` already converts a parsed message to and from its JSON form and has not been checked against the current section; the first step is that audit, against the section and the working group's JSON schema, to say what is missing.
 
 ## In progress
 
@@ -69,6 +71,8 @@ Outstanding work on Localize. The design detail behind these items lives under [
 * [ ] **`localize_emoji` sibling library** — plan item 11, a separate package on its own schedule. A Phoenix LiveView picker (`localize_emoji_live`) is out of scope for its 0.1.0.
 
 ## Done
+
+* [x] **Accept a date or time skeleton given as a string** — `format: {:skeleton, "yMMMd"}` in `Localize.Date`, `Localize.Time` and `Localize.DateTime`, for formatting and parsing, matched as the atom is with no atom made. 2026-11-21.
 
 * [x] **Resolve keyword collation options once, not on every call** — `Localize.Collation.compare/3` and `sort/2` take a keyword list in one clause, which validates it and calls again with the resolved `Localize.Collation.Options` struct, and the struct in another, which is not validated again; the docs say to build the struct once (`Options.from_locale/1`, `Options.new/1`) for repeated calls. No cache, so no `:persistent_term` write. 2026-11-17.
 
