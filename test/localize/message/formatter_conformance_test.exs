@@ -34,10 +34,11 @@ defmodule Localize.Message.FormatterConformanceTest do
   `@exclusions`, each with a one-line reason. Remove entries as the
   gaps close.
 
-  To refresh the vendored JSONs from upstream:
+  To refresh the vendored JSONs from upstream, and to learn of test
+  files upstream has added:
 
-      curl -sL https://raw.githubusercontent.com/unicode-org/message-format-wg/main/test/tests/<file> \\
-        > test/support/data/mf2_conformance/<file>
+      mix localize.update_mf2_conformance
+
   """
 
   use ExUnit.Case, async: true

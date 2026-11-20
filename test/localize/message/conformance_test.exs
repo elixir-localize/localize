@@ -25,12 +25,11 @@ defmodule Localize.Message.ConformanceTest do
   `mf2_treesitter/test/conformance/runner.js`, which tests the
   same suite against the browser-side parser.
 
-  To refresh the vendored JSONs from upstream:
+  To refresh the vendored JSONs from upstream, and to learn of test
+  files upstream has added:
 
-      curl -sL https://raw.githubusercontent.com/unicode-org/message-format-wg/main/test/tests/syntax.json \\
-        > test/support/data/mf2_conformance/syntax.json
-      curl -sL https://raw.githubusercontent.com/unicode-org/message-format-wg/main/test/tests/syntax-errors.json \\
-        > test/support/data/mf2_conformance/syntax-errors.json
+      mix localize.update_mf2_conformance
+
   """
 
   use ExUnit.Case, async: true
