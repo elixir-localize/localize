@@ -132,13 +132,9 @@ defmodule Localize.Message.JSON do
   def to_json(ast, options \\ [])
 
   def to_json(ast, options) when is_list(ast) and is_keyword_list(options) do
-    result = convert_message(ast)
-
-    if json_value?(result) do
-      maybe_encode(result, options)
-    else
-      {:error, Localize.Utils.Helpers.invalid_value(ast, "an MF2 message AST")}
-    end
+    ast
+    |> convert_message()
+    |> checked_model(ast, options)
   end
 
   def to_json(_ast, options) when not is_keyword_list(options) do
@@ -146,6 +142,20 @@ defmodule Localize.Message.JSON do
   end
 
   def to_json(ast, _options) do
+    {:error, Localize.Utils.Helpers.invalid_value(ast, "an MF2 message AST")}
+  end
+
+  # A node the AST should not hold converts to `:invalid`, at the top
+  # or anywhere inside the model.
+  defp checked_model(%{} = model, ast, options) do
+    if json_value?(model) do
+      maybe_encode(model, options)
+    else
+      {:error, Localize.Utils.Helpers.invalid_value(ast, "an MF2 message AST")}
+    end
+  end
+
+  defp checked_model(:invalid, ast, _options) do
     {:error, Localize.Utils.Helpers.invalid_value(ast, "an MF2 message AST")}
   end
 

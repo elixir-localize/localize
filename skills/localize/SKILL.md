@@ -60,6 +60,7 @@ Read the reference for: rounding and digit options, significant digits via patte
 Localize.Date.to_string(~D[2026-07-06])                        # {:ok, "Jul 6, 2026"}
 Localize.Date.to_string(~D[2026-07-06], format: :full)         # {:ok, "Monday, July 6, 2026"}
 Localize.DateTime.to_string(dt, format: :yMMMdHm)              # skeleton — locale picks the layout
+Localize.DateTime.to_string(dt, format: {:skeleton, "yMMMdHm"})  # the same skeleton as text (from config or a message); makes no atom
 Localize.Interval.to_string(~D[2026-07-06], ~D[2026-07-09])    # {:ok, "Jul 6 – 9, 2026"} (thin spaces around the dash)
 Localize.DateTime.Relative.to_string(-3600)                    # {:ok, "1 hour ago"}
 Localize.Duration.to_string(duration)                          # {:ok, "11 months and 30 days"}

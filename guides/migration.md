@@ -145,7 +145,7 @@ defp deps do
     # {:ex_cldr_collation, "~> 2.0"},
 
     # Add this:
-    {:localize, "~> 1.8"}
+    {:localize, "~> 1.9"}
   ]
 end
 ```

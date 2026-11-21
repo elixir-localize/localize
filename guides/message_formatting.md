@@ -499,6 +499,26 @@ Returns a message in its canonical MF2 form: the source printed back from the pa
 
 Calculates the Jaro distance (0.0 to 1.0) between two messages, useful for detecting near-duplicate translations.
 
+### `Localize.Message.JSON.to_json/2` and `from_json/1`
+
+Convert a parsed message to and from TR35's [Interchange Data Model](https://www.unicode.org/reports/tr35/tr35-messageFormat.html#interchange-data-model): the logical form of a message as plain data, in the shape of the working group's [`message.json`](https://github.com/unicode-org/message-format-wg/blob/main/spec/data-model/message.json) schema. It exists so that tools — a translation system, a linter, a converter from another message format — can read and write messages without parsing MF2 syntax. It is not needed to format a message.
+
+```elixir
+iex> {:ok, ast} = Localize.Message.Parser.parse("Hello, {$name}!")
+iex> Localize.Message.JSON.to_json(ast)
+%{
+  "type" => "message",
+  "declarations" => [],
+  "pattern" => [
+    "Hello, ",
+    %{"type" => "expression", "arg" => %{"type" => "variable", "name" => "name"}},
+    "!"
+  ]
+}
+```
+
+`to_json(ast, encode: true)` returns JSON text. `from_json/1` takes the map or the text, checks its structure, and returns `{:ok, ast}` or `{:error, exception}`; `Localize.Message.Print.to_string/2` prints the AST back as MF2. The model keeps a message's meaning, not its spelling: whether a literal was quoted and the order of options are not kept.
+
 ## Complete examples
 
 ### Number formatting
