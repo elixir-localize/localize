@@ -12,6 +12,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+* `nil` given as a locale returns `Localize.InvalidLocaleError` from `Localize.validate_locale/1`, `Localize.put_locale/1` and `Localize.LanguageTag.best_match/3`, where it was read as the language code `nil` and resolved to the default locale. The language subtag `nil` (Nila) is refused as well, since its atom is `nil`: `nil-ID` resolved to Indonesian.
+
 * MF2's Default Bidi Strategy takes a message's direction from `Localize.Locale.direction/1`, so a Tifinagh (`zgh`) message is left to right, where it was isolated as right to left, and the 37 right-to-left scripts CLDR lists all count, where nine did.
 
 ## [1.9.0] — November 21st, 2026

@@ -340,6 +340,19 @@ defmodule Localize.LanguageTag do
 
   defp atomize_language(nil), do: {:ok, nil}
 
+  # `nil`, the code for Nila, is in CLDR's validity data, but its atom is
+  # `nil`, which a tag reads as "no language": `nil-ID` became Indonesian
+  # with the canonical id `-ID`. CLDR has no data for Nila, so the code is
+  # refused rather than misread.
+  defp atomize_language(value) when value in ["nil", "NIL", "Nil"] do
+    {:error,
+     Localize.InvalidSubtagError.exception(
+       key: :language,
+       value: value,
+       reason: :not_representable
+     )}
+  end
+
   defp atomize_language(value) when is_binary(value) do
     case Localize.Validity.Language.validate(value) do
       # Only a code in CLDR's language validity data reaches here, a closed set.
@@ -885,7 +898,10 @@ defmodule Localize.LanguageTag do
     end
   end
 
-  def best_match(desired, supported, distance) when is_atom(desired) and is_list(supported) do
+  # `nil` is not a locale, and falls to the error clause below rather than
+  # being read as the language subtag `nil`.
+  def best_match(desired, supported, distance)
+      when is_atom(desired) and not is_nil(desired) and is_list(supported) do
     best_match(Atom.to_string(desired), supported, distance)
   end
 
@@ -1092,7 +1108,7 @@ defmodule Localize.LanguageTag do
     end
   end
 
-  defp resolve_for_matching(locale, role) when is_atom(locale) do
+  defp resolve_for_matching(locale, role) when is_atom(locale) and not is_nil(locale) do
     resolve_for_matching(Atom.to_string(locale), role)
   end
 

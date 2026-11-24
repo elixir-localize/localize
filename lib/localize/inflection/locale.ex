@@ -42,7 +42,7 @@ defmodule Localize.Inflection.Locale do
   # Extensions (`-u-`, `-t-`, private use `-x-`) begin at the first
   # singleton subtag. They name no inflection data, and keeping them
   # made `ar-u-nu-arab` miss every rule keyed by `ar`.
-  def normalize(locale) when is_atom(locale) or is_binary(locale) do
+  def normalize(locale) when (is_atom(locale) and not is_nil(locale)) or is_binary(locale) do
     string = to_string(locale)
 
     if Regex.match?(@locale_pattern, string) do

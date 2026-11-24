@@ -1988,7 +1988,9 @@ defmodule Localize do
     `t:Localize.LanguageTag.t/0` with a populated `:cldr_locale_id`.
 
   * `{:error, Localize.InvalidLocaleError.t()}` if the locale
-    identifier cannot be parsed into a valid language tag.
+    identifier cannot be parsed into a valid language tag, or is
+    `nil`. The language code `nil` (Nila) is refused too, since its
+    atom is `nil`.
 
   * `{:error, Localize.UnknownLocaleError.t()}` if the locale
     parses successfully but does not match any known CLDR locale
@@ -2003,6 +2005,8 @@ defmodule Localize do
       iex> {:ok, tag} = Localize.validate_locale("pt_BR")
       iex> tag.cldr_locale_id
       :pt
+
+      iex> {:error, %Localize.InvalidLocaleError{}} = Localize.validate_locale(nil)
 
   """
   @spec validate_locale(Localize.LanguageTag.t() | String.t() | atom()) ::
@@ -2040,7 +2044,9 @@ defmodule Localize do
     end
   end
 
-  def validate_locale(locale_id) when is_atom(locale_id) do
+  # `nil` is not a locale. As an atom it would be read as the language
+  # subtag `nil` (Nila) and resolve to the default locale.
+  def validate_locale(locale_id) when is_atom(locale_id) and not is_nil(locale_id) do
     validate_locale(Atom.to_string(locale_id))
   end
 
