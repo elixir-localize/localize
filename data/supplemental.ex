@@ -46,6 +46,23 @@ defmodule Localize.Data.Supplemental do
   end
 
   @doc """
+  Generates the list of scripts written right to left from
+  `scriptMetadata.json`.
+
+  Returns the script subtags whose metadata has `"rtl": "YES"`, as a
+  sorted list of atoms such as `:Arab` and `:Hebr`.
+
+  """
+  def generate_rtl_scripts do
+    "scriptMetadata.json"
+    |> Localize.Data.read_json()
+    |> Map.fetch!("scriptMetadata")
+    |> Enum.filter(fn {_script, metadata} -> metadata["rtl"] == "YES" end)
+    |> Enum.map(fn {script, _metadata} -> String.to_atom(script) end)
+    |> Enum.sort()
+  end
+
+  @doc """
   Generates day period rules from `dayPeriods.json`.
 
   Returns a map with `:format` and `:selection` keys, each mapping a

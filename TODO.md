@@ -70,6 +70,8 @@ Outstanding work on Localize. The design detail behind these items lives under [
 
 ## Done
 
+* [x] **A locale's text direction** — `Localize.Locale.direction/1` from CLDR's script metadata (new supplemental `rtl_scripts.etf`), agreeing with the `characterOrder` of all 657 CLDR locales; the MF2 interpreter uses it in place of its own nine-script list, which had Tifinagh as right to left. 2026-11-24.
+
 * [x] **MF2 interchange data model** â `Localize.Message.JSON` audited against TR35's Interchange Data Model and its `message.json` schema: namespaced names, a validating `from_json/1` that never raises, and the parser's `1*name-char` unquoted literal; every parseable conformance message is schema-checked and round-tripped. 2026-11-21.
 
 * [x] **Accept a date or time skeleton given as a string** — `format: {:skeleton, "yMMMd"}` in `Localize.Date`, `Localize.Time` and `Localize.DateTime`, for formatting and parsing, matched as the atom is with no atom made. 2026-11-21.

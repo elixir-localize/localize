@@ -34,6 +34,16 @@ defmodule Localize.Message.BidiTest do
                "a " <> format("{$d :date}", %{"d" => ~D[2026-11-17]}, locale: :en, bidi: :none)
     end
 
+    test "the locale's direction is its script's, as CLDR records it" do
+      # Tifinagh (`zgh`) is written left to right and Hanifi Rohingya
+      # (`rhg`) right to left.
+      assert format("{{a {$n :number}}}", %{"n" => 3}, locale: "zgh") ==
+               "a " <> format("{$n :number}", %{"n" => 3}, locale: "zgh", bidi: :none)
+
+      assert format("{{a {$n :number}}}", %{"n" => 3}, locale: "rhg") ==
+               "a #{@rli}#{format("{$n :number}", %{"n" => 3}, locale: "rhg", bidi: :none)}#{@pdi}"
+    end
+
     test "a bare variable takes the direction of its declaration" do
       assert format(".input {$n :number} {{a {$n}}}", %{"n" => 3}, locale: :en) == "a 3"
       assert format(".local $s = {|b|} {{a {$s}}}", %{}, locale: :en) == "a #{@fsi}b#{@pdi}"

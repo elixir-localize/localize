@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.10.0] — Unreleased
+
+### Added
+
+* `Localize.Locale.direction/1` returns `{:ok, :ltr}` or `{:ok, :rtl}` for a locale, from its script as CLDR's script metadata records it, so `ar`, `ur` and `pa-Arab` are right to left. It answers for a locale whose data is not installed.
+
+### Fixed
+
+* MF2's Default Bidi Strategy takes a message's direction from `Localize.Locale.direction/1`, so a Tifinagh (`zgh`) message is left to right, where it was isolated as right to left, and the 37 right-to-left scripts CLDR lists all count, where nine did.
+
 ## [1.9.0] — November 21st, 2026
 
 ### Added

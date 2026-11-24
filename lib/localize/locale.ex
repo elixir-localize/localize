@@ -26,6 +26,9 @@ defmodule Localize.Locale do
   * `gettext_locale_id/2` — finds the best matching locale among
     a Gettext backend's known locales.
 
+  * `direction/1` — the direction a locale's text is written in,
+    `:ltr` or `:rtl`, from its script.
+
   """
 
   import Localize.Utils.Helpers, only: [is_keyword_list: 1]
@@ -257,6 +260,57 @@ defmodule Localize.Locale do
     case parent(locale) do
       {:ok, tag} -> tag
       {:error, exception} -> raise exception
+    end
+  end
+
+  @doc """
+  Returns the direction in which a locale's text is written.
+
+  The direction is that of the locale's script, as CLDR's script
+  metadata records it. A locale that names no script takes the one
+  CLDR's likely subtags give it, so `ar`, `ur` and `pa-Arab` are
+  right to left and `pa` is left to right. The answer does not depend
+  on which locales are configured, so it is given for a locale whose
+  data is not installed. A language CLDR has no script for, such as
+  `tlh`, is left to right.
+
+  ### Arguments
+
+  * `locale` is a locale identifier string or atom, or a
+    `t:Localize.LanguageTag.t/0`.
+
+  ### Returns
+
+  * `{:ok, :ltr}` or `{:ok, :rtl}`, or
+
+  * `{:error, exception}` when `locale` is not a valid locale.
+
+  ### Examples
+
+      iex> Localize.Locale.direction("ar")
+      {:ok, :rtl}
+
+      iex> Localize.Locale.direction(:"en-AU")
+      {:ok, :ltr}
+
+      iex> Localize.Locale.direction("pa-Arab")
+      {:ok, :rtl}
+
+  """
+  @spec direction(LanguageTag.t() | String.t() | atom()) ::
+          {:ok, :ltr | :rtl} | {:error, Exception.t()}
+  def direction(locale) do
+    with {:ok, tag} <- Localize.validate_locale(locale),
+         {:ok, expanded} <- LanguageTag.add_likely_subtags(tag) do
+      {:ok, script_direction(expanded.script)}
+    end
+  end
+
+  defp script_direction(script) do
+    if script in SupplementalData.rtl_scripts() do
+      :rtl
+    else
+      :ltr
     end
   end
 

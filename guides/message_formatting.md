@@ -14,7 +14,7 @@ iex> Localize.Message.format("You have {$count :number} items.", %{"count" => 12
 {:ok, "You have 1,234 items."}
 ```
 
-The `\u2068` and `\u2069` around "Alice" are Unicode bidi isolates, which are invisible when displayed. MF2 wraps a placeholder in them when its value may not have the message's direction, so that a right-to-left name in a left-to-right sentence, or the reverse, displays correctly. A `:string`, an unannotated variable or a literal has no known direction and is isolated; a number or date has the locale's direction and is isolated only in a right-to-left message. This is TR35's Default Bidi Strategy, which `bidi: :none` turns off:
+The `\u2068` and `\u2069` around "Alice" are Unicode bidi isolates, which are invisible when displayed. MF2 wraps a placeholder in them when its value may not have the message's direction, so that a right-to-left name in a left-to-right sentence, or the reverse, displays correctly. A `:string`, an unannotated variable or a literal has no known direction and is isolated; a number or date has the locale's direction, which `Localize.Locale.direction/1` returns, and is isolated only in a right-to-left message. This is TR35's Default Bidi Strategy, which `bidi: :none` turns off:
 
 ```elixir
 iex> Localize.Message.format("Hello, {$name}!", %{"name" => "Alice"}, bidi: :none)

@@ -180,9 +180,6 @@ defmodule Localize.Message.Interpreter do
 
   @pdi "\u2069"
 
-  # RTL scripts that trigger automatic bidi isolation
-  @rtl_scripts ~w(Arab Hebr Thaa Syrc Mand Samr Nkoo Tfng Adlm)a
-
   # ── Public API ─────────────────────────────────────────────────
 
   @doc """
@@ -3387,30 +3384,14 @@ defmodule Localize.Message.Interpreter do
   defp bidi_marks_for_dir("auto"), do: {@fsi, @pdi}
   defp bidi_marks_for_dir(_), do: {@fsi, @pdi}
 
+  # A locale that does not validate is not right-to-left.
   defp locale_is_rtl?(options) do
     locale = Keyword.get(options, :locale)
 
-    case locale do
-      nil ->
-        false
-
-      locale ->
-        rtl_script?(locale)
-    end
-  end
-
-  # A locale that does not validate, or whose script cannot be resolved,
-  # is not right-to-left.
-  defp rtl_script?(locale) do
-    case expanded_tag(locale) do
-      {:ok, expanded} -> expanded.script in @rtl_scripts
-      {:error, _unresolved} -> false
-    end
-  end
-
-  defp expanded_tag(locale) do
-    with {:ok, tag} <- Localize.validate_locale(locale) do
-      Localize.LanguageTag.add_likely_subtags(tag)
+    if is_nil(locale) do
+      false
+    else
+      Localize.Locale.direction(locale) == {:ok, :rtl}
     end
   end
 end

@@ -40,6 +40,23 @@ defmodule Localize.SupplementalDataTest do
     end
   end
 
+  describe "rtl_scripts/0" do
+    test "is the sorted list of scripts CLDR records as right to left" do
+      scripts = SupplementalData.rtl_scripts()
+
+      assert scripts == Enum.sort(scripts)
+      assert Enum.all?(scripts, &is_atom/1)
+
+      for script <- [:Arab, :Hebr, :Thaa, :Syrc, :Nkoo, :Adlm, :Rohg, :Yezi] do
+        assert script in scripts
+      end
+
+      for script <- [:Latn, :Cyrl, :Deva, :Hans, :Tfng] do
+        refute script in scripts
+      end
+    end
+  end
+
   describe "rbnf_locales/0" do
     test "is the sorted list of CLDR locales with RBNF rules of their own" do
       locales = SupplementalData.rbnf_locales()

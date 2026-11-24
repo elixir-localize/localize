@@ -101,6 +101,14 @@ defmodule Localize.SupplementalData do
     load_supplemental("rbnf_locales.etf")
   end
 
+  # The scripts CLDR's script metadata records as written right to left,
+  # as a sorted list of script subtag atoms such as `:Arab` and `:Hebr`.
+  @doc false
+  @spec rtl_scripts() :: [atom()]
+  def rtl_scripts do
+    load_supplemental("rtl_scripts.etf")
+  end
+
   # Day-period rules from CLDR dayPeriods.xml, keyed by rule-set type
   # (:format for the B/b format symbols, :selection for name
   # selection), then by language code string. Times are minutes since
