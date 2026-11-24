@@ -4,8 +4,6 @@ Outstanding work on Localize. The design detail behind these items lives under [
 
 ## Open
 
-* [ ] **Collation `alt` variants** — CLDR gives `zh` an `alt="short"` variant of its pinyin, stroke and zhuyin collations; the generator reads `<collation>` by type alone, so the short rules overwrite the full ones. Keep both and make the variant a user-visible option, as `alt` is elsewhere in Localize.
-
 * [ ] **Expansions in collation tailorings** — a rule's `/` expansion is ignored, and the contraction is placed after the expansion's target: CLDR's `&虫<重庆/庆` should sort 重庆 (Chongqing) as chóng, after 虫, and it sorts after 庆.
 
 * [ ] **Settle the runtime `:persistent_term` writes under rule 14** — about forty sites write at runtime: per-locale data and caches, constants computed on first use, configuration setters and warn-once flags. Needs a decision on per-locale data; the options and their measured costs are in [plans/persistent-term-writes.md](plans/persistent-term-writes.md).
@@ -73,6 +71,8 @@ Outstanding work on Localize. The design detail behind these items lives under [
 * [ ] **`localize_emoji` sibling library** — plan item 11, a separate package on its own schedule. A Phoenix LiveView picker (`localize_emoji_live`) is out of scope for its 0.1.0.
 
 ## Done
+
+* [x] **Collation `alt` forms** — the generator keeps CLDR's `alt="short"` forms beside the full ones and `:prefer` chooses between them; drafts below `contributed` and proposals are left out; `[last regular]` tailorings are written as a lead and a trail between the regular and the implicit weights, so the full zh rules fit 16 bits. 2026-11-25.
 
 * [x] **The default collation type and collation inheritance** — the default type is CLDR's `defaultCollation` (`zh` pinyin, `zh-Hant` stroke), and tailorings follow TR35's collation chain (`zh-Hant` and `yue` to `zh`, `nb` to `no`), both generated into `collation_inheritance.etf`. 2026-11-25.
 

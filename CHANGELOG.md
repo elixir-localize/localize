@@ -8,9 +8,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
+* Collation takes a `:prefer` option, `:standard` (the default) or `:short`, choosing between CLDR's full and `alt="short"` forms of a tailoring; `zh` has both for pinyin, stroke and zhuyin.
+
 * `Localize.Locale.direction/1` returns `{:ok, :ltr}` or `{:ok, :rtl}` for a locale, from its script as CLDR's script metadata records it, so `ar`, `ur` and `pa-Arab` are right to left. It answers for a locale whose data is not installed.
 
+### Changed
+
+* Collation tailorings CLDR marks as provisional or unconfirmed are no longer included, as for the rest of Localize's CLDR data: `ca`, `dz`, `wae`, `bal`, `sa` standard, `cs` digits-after and `de` eor now collate in their parent's or the root order.
+
 ### Fixed
+
+* Chinese collation uses CLDR's full pinyin, stroke and zhuyin rules, where the short forms had replaced them, and an unconfirmed proposal no longer replaces approved rules (`es` traditional, `fo`, `gu`, `hu`, `sl`, `sq`). Tailored Han sorts after every regular character, where it was interleaved with other scripts.
 
 * Collation takes a locale's default type from CLDR's `defaultCollation`, so `zh` sorts by pinyin and `zh-Hant` by stroke count, where both sorted in root order. Tailorings inherit along TR35's collation chain, so `zh-Hant`, `zh-Hant-HK` and `yue` take `zh`'s rules, where they had none.
 

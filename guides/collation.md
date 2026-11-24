@@ -206,6 +206,7 @@ All functions accept the following keyword options:
 |--------|--------|---------|-------------|
 | `:locale` | locale atom or string | `Localize.get_locale()` | Locale for tailoring and defaults. |
 | `:type` | `:standard`, `:search`, `:phonebook`, `:pinyin`, `:stroke`, `:traditional`, etc. | The locale's CLDR default | Collation type. The default is the locale's `defaultCollation`, such as `:pinyin` for `zh` and `:stroke` for `zh-Hant`, and `:standard` for a locale that declares none. |
+| `:prefer` | `:standard`, `:short` | `:standard` | The form of the type's tailoring when CLDR has alternatives. CLDR gives `zh` a short form of its pinyin, stroke and zhuyin collations, which orders fewer characters; a type with no short form uses its standard form. |
 | `:strength` | `:primary`, `:secondary`, `:tertiary`, `:quaternary`, `:identical` | `:tertiary` | Comparison depth. |
 | `:alternate` | `:non_ignorable`, `:shifted` | `:non_ignorable` | How to handle variable-weight characters (whitespace, punctuation). |
 | `:backwards` | `true`, `false` | `false` | Reverse level-2 (accent) comparison direction. |
@@ -316,7 +317,6 @@ The following table lists all locales with CLDR collation tailoring. Locales not
 | `ar` | standard, compat | Arabic script ordering with presentation form mappings. |
 | `as` | standard | Assamese — Bengali script ordering. |
 | `az` | standard, search | Azerbaijani — Latin with Turkish-style dotted/dotless i. |
-| `bal` | standard | Baluchi. |
 | `bal-Latn` | standard | Baluchi (Latin script). |
 | `be` | standard | Belarusian — Cyrillic ordering. |
 | `bg` | standard | Bulgarian — Cyrillic ordering. |
@@ -326,17 +326,16 @@ The following table lists all locales with CLDR collation tailoring. Locales not
 | `br` | standard | Breton. |
 | `bs` | standard, search | Bosnian — imports Croatian standard rules. |
 | `bs-Cyrl` | standard | Bosnian (Cyrillic) — imports Serbian rules. |
-| `ca` | standard, search | Catalan. |
+| `ca` | search | Catalan. |
 | `ceb` | standard | Cebuano. |
 | `chr` | standard | Cherokee — Cherokee script ordering. |
-| `cs` | standard, digits-after | Czech — č, ř, š, ž as separate letters. `digits-after` places digits after letters. |
+| `cs` | standard | Czech — č, ř, š, ž as separate letters. |
 | `cu` | standard | Church Slavic — Cyrillic with case-first:upper. |
 | `cy` | standard | Welsh — ch, dd, ff, ng, ll, ph, rh, th digraphs. |
 | `da` | standard, search | Danish — æ, ø, å after z; case-first:upper by default. |
-| `de` | phonebook, eor, search | German — phonebook expands ä→ae, ö→oe, ü→ue. EOR is European Ordering Rules. |
+| `de` | phonebook, search | German — phonebook expands ä→ae, ö→oe, ü→ue. |
 | `de-AT` | phonebook | Austrian German phonebook. |
 | `dsb` | standard | Lower Sorbian. |
-| `dz` | standard | Dzongkha — Tibetan script ordering. |
 | `ee` | standard | Ewe — additional letters ɖ, ɛ, ƒ, ɣ, ŋ, ɔ, ʋ. |
 | `el` | standard | Greek script ordering. |
 | `en-US-POSIX` | standard | POSIX sort order (codepoint-like). |
@@ -395,7 +394,6 @@ The following table lists all locales with CLDR collation tailoring. Locales not
 | `ps` | standard | Pashto — Arabic script ordering. |
 | `ro` | standard | Romanian — ă, â, î, ș, ț placement. |
 | `ru` | standard | Russian — Cyrillic ordering. |
-| `sa` | standard, traditional | Sanskrit — Devanagari ordering. |
 | `se` | standard, search | Northern Sami. |
 | `sgs` | standard | Samogitian. |
 | `si` | standard, dictionary | Sinhala — dictionary variant available. |
@@ -421,11 +419,12 @@ The following table lists all locales with CLDR collation tailoring. Locales not
 | `uz` | standard | Uzbek. |
 | `vi` | standard, traditional | Vietnamese — extensive accent and tone ordering. |
 | `vo` | standard | Volapük. |
-| `wae` | standard | Walser. |
 | `wo` | standard | Wolof. |
 | `yi` | standard | Yiddish — Hebrew script ordering. |
 | `yo` | standard | Yoruba — additional letters ẹ, ọ, ṣ, gb. |
-| `zh` | pinyin, stroke, unihan, zhuyin, private-pinyin | Chinese — pinyin (pronunciation), stroke (stroke count), zhuyin (Bopomofo), unihan (radical-stroke). |
+| `zh` | pinyin, stroke, unihan, zhuyin, private-pinyin | Chinese — pinyin (pronunciation), stroke (stroke count), zhuyin (Bopomofo), unihan (radical-stroke). Pinyin, stroke and zhuyin also have a short form, chosen with `prefer: :short`. |
+
+Collations CLDR marks as provisional or unconfirmed, and proposed alternatives, are not included, as they are left out of the rest of Localize's CLDR data.
 
 ## Sort keys
 

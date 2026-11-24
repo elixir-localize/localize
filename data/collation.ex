@@ -14,6 +14,11 @@ defmodule Localize.Data.Collation do
   # Types to skip — private and searchjl are internal only
   @skip_types MapSet.new(["private", "searchjl"])
 
+  # The draft statuses left out, as the JSON build leaves them out of the
+  # locale data (`Localize.Data.CldrJson` keeps `contributed` and above).
+  # A collation with an `alt="proposed…"` is a proposal, and unconfirmed.
+  @excluded_drafts ["provisional", "unconfirmed"]
+
   # BCP47 collation type abbreviations to CLDR XML type names
   @bcp47_to_cldr_type %{
     "phonebk" => "phonebook",
@@ -29,8 +34,14 @@ defmodule Localize.Data.Collation do
 
   Reads XML files from `../cldr_repo/common/collation/`, parses
   tailoring rules, resolves import directives, and returns a map of
-  `{cldr_locale_id, type_atom}` tuples to rule strings: `fr_CA.xml` is
+  `{cldr_locale_id, type_atom}` tuples to the type's rules: `fr_CA.xml` is
   `{:"fr-CA", :standard}`, and `root.xml`'s search collation `{:und, :search}`.
+
+  A type's rules are grouped by their `alt` form, as `alt` forms are
+  throughout the locale data: `:standard` for the collation with no `alt`,
+  and the `alt` value, such as `:short`, for each alternative. CLDR gives
+  `zh` a short form of its pinyin, stroke and zhuyin collations. An
+  `[import]` names a type, which is its `:standard` form.
 
   """
   def generate_collation_tailoring do
@@ -59,30 +70,29 @@ defmodule Localize.Data.Collation do
       end)
 
     raw_map =
-      all_raw
-      |> Enum.map(fn {language, type, rules} -> {{language, type}, rules} end)
-      |> Map.new()
+      Map.new(all_raw, fn {language, type, alt, rules} -> {{language, type, alt}, rules} end)
 
     # Phase 2: Resolve [import] directives
     raw_map
-    |> Enum.map(fn {{language, type}, rules} ->
-      resolved =
-        if String.contains?(rules, "[import") do
-          resolve_imports(rules, raw_map)
-        else
-          rules
-        end
-
-      {{language, type}, resolved}
-    end)
-    |> Enum.reject(fn {{_language, _type}, rules} ->
-      not has_ordering_rules?(rules) or rules == ""
-    end)
+    |> Enum.map(fn {key, rules} -> {key, resolve_all_imports(rules, raw_map)} end)
+    |> Enum.reject(fn {_key, rules} -> not has_ordering_rules?(rules) or rules == "" end)
     # Keyed by the CLDR locale a file is for, as the atom a validated tag
     # carries in `cldr_locale_id`, so a lookup uses the tag's id and builds
     # no identifier. The set is CLDR's and closed, so the atoms are made
     # here, at build time.
-    |> Map.new(fn {{locale, type}, rules} -> {{String.to_atom(locale), type}, rules} end)
+    |> Enum.group_by(
+      fn {{locale, type, _alt}, _rules} -> {String.to_atom(locale), type} end,
+      fn {{_locale, _type, alt}, rules} -> {alt, rules} end
+    )
+    |> Map.new(fn {key, forms} -> {key, Map.new(forms)} end)
+  end
+
+  defp resolve_all_imports(rules, raw_map) do
+    if String.contains?(rules, "[import") do
+      resolve_imports(rules, raw_map)
+    else
+      rules
+    end
   end
 
   @doc """
@@ -250,8 +260,8 @@ defmodule Localize.Data.Collation do
 
   defp root_search_entries(entries) do
     entries
-    |> Enum.filter(fn {_lang, type, _rules} -> type == :search end)
-    |> Enum.map(fn {"root", type, rules} -> {"und", type, rules} end)
+    |> Enum.filter(fn {_lang, type, _alt, _rules} -> type == :search end)
+    |> Enum.map(fn {"root", type, alt, rules} -> {"und", type, alt, rules} end)
   end
 
   @doc """
@@ -402,23 +412,39 @@ defmodule Localize.Data.Collation do
     doc
     |> xpath(~x"//collation"l,
       type: ~x"./@type"s,
+      alt: ~x"./@alt"s,
+      draft: ~x"./@draft"s,
       cr: ~x"./cr/text()"s
     )
-    |> Enum.flat_map(fn %{type: type, cr: cr} ->
-      if MapSet.member?(@skip_types, type) or cr == "" do
+    |> Enum.flat_map(fn %{type: type, alt: alt, draft: draft, cr: cr} ->
+      if MapSet.member?(@skip_types, type) or cr == "" or not published?(draft, alt) do
         []
       else
-        collation_entry(language, type, clean_rules(cr))
+        collation_entry(language, type, alt_form(alt), clean_rules(cr))
       end
     end)
   end
 
-  defp collation_entry(language, type, rules) do
+  defp collation_entry(language, type, alt, rules) do
     if has_ordering_rules?(rules) and rules != "" do
-      [{language, String.to_atom(type), rules}]
+      [{language, String.to_atom(type), alt, rules}]
     else
       []
     end
+  end
+
+  defp published?(draft, alt) do
+    draft not in @excluded_drafts and not String.starts_with?(alt, "proposed")
+  end
+
+  # A collation with no `alt` is the `:standard` form, as the locale data
+  # names an unqualified entry.
+  defp alt_form("") do
+    :standard
+  end
+
+  defp alt_form(alt) do
+    String.to_atom(alt)
   end
 
   defp clean_rules(cdata) do
@@ -477,7 +503,7 @@ defmodule Localize.Data.Collation do
   end
 
   defp resolve_import_tag({lang, type}, raw_map) do
-    imported_rule_lines(Map.get(raw_map, {lang, type}))
+    imported_rule_lines(Map.get(raw_map, {lang, type, :standard}))
   end
 
   defp resolve_import_tag(nil, _raw_map), do: []

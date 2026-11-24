@@ -251,6 +251,12 @@ defmodule Localize.Collation do
   * `:type` - collation type: `:standard` (default), `:search`, `:phonebook`,
     `:pinyin`, `:stroke`, `:unihan`, `:zhuyin`, `:searchjl`, `:eor`, or `:traditional`.
 
+  * `:prefer` - the form of the type's tailoring when CLDR has alternatives:
+    `:standard` (the default) or `:short`. CLDR gives `zh` a short form of its
+    pinyin, stroke and zhuyin collations, which orders fewer characters. A type
+    with no short form uses its standard form. The NIF backend uses ICU's
+    collation data, which has the standard form only.
+
   * `:ignore_accents` - `true` to ignore accent differences.
 
   * `:ignore_case` - `true` to ignore case differences.
@@ -397,6 +403,12 @@ defmodule Localize.Collation do
 
   * `:type` - collation type: `:standard` (default), `:search`, `:phonebook`,
     `:pinyin`, `:stroke`, `:unihan`, `:zhuyin`, `:searchjl`, `:eor`, or `:traditional`.
+
+  * `:prefer` - the form of the type's tailoring when CLDR has alternatives:
+    `:standard` (the default) or `:short`. CLDR gives `zh` a short form of its
+    pinyin, stroke and zhuyin collations, which orders fewer characters. A type
+    with no short form uses its standard form. The NIF backend uses ICU's
+    collation data, which has the standard form only.
 
   * `:ignore_accents` - `true` to ignore accent differences.
 
@@ -778,28 +790,29 @@ defmodule Localize.Collation do
         Keyword.get(extra_options, :type) ||
         LocaleDefaults.default_type(tag)
 
-    # The tailoring is the tag's CLDR locale's — `fr-CA` carries
-    # `[backwards 2]` where plain `fr` has no tailoring — or the first
-    # its parents have.
-    {tailoring_overlay, tailoring_option_overrides} =
-      case Tailoring.get_tailoring(tag, type) do
-        {overlay, overrides} -> {overlay, overrides}
-        nil -> {nil, []}
-      end
-
-    # When a tailoring overlay is present, normalization must be
-    # enabled so input is decomposed to NFD — the form used for
-    # overlay keys.
-    normalization =
-      if tailoring_overlay != nil, do: [normalization: true], else: []
-
     # Resolve shorthand options (`casing:`, `ignore_accents:`,
     # `ignore_case:`, `ignore_punctuation:`) into their canonical
     # struct fields (`:strength`, `:alternate`, etc.) by running
-    # them through `Options.new/1`. Then extract only the fields
+    # them through `Options.new/1`, which also validates `:prefer`
+    # before it chooses a tailoring. Then extract only the fields
     # that differ from the defaults so we don't overwrite locale,
     # U-extension, or tailoring-derived values.
     with %Options{} = resolved_extra <- Options.new(extra_options) do
+      # The tailoring is the tag's CLDR locale's — `fr-CA` carries
+      # `[backwards 2]` where plain `fr` has no tailoring — or the first
+      # on its collation chain, in the preferred form.
+      {tailoring_overlay, tailoring_option_overrides} =
+        case Tailoring.get_tailoring(tag, type, resolved_extra.prefer) do
+          {overlay, overrides} -> {overlay, overrides}
+          nil -> {nil, []}
+        end
+
+      # When a tailoring overlay is present, normalization must be
+      # enabled so input is decomposed to NFD — the form used for
+      # overlay keys.
+      normalization =
+        if tailoring_overlay != nil, do: [normalization: true], else: []
+
       defaults = Options.new()
 
       extra_overrides =

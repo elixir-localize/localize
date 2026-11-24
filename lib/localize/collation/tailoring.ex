@@ -28,26 +28,32 @@ defmodule Localize.Collation.Tailoring do
 
   @bidi_rlm <<0x200F::utf8>>
 
-  # Synthetic primary weights for the CLDR positional anchors. These
-  # need to satisfy two constraints:
+  # The forms a collation type's rules may take: `:standard`, the
+  # collation with no `alt`, and CLDR's `alt="short"` alternative.
+  @forms [:standard, :short]
+
+  # Synthetic primary weights for the CLDR positional anchors.
   #
-  # 1. Subsequent `<X<Y...` rules increment the primary each time.
-  #    Large tailorings (e.g. zh-pinyin, zh-stroke) produce 20,000+
-  #    primary entries, so the anchor plus the largest expected
-  #    increment must stay within the 16-bit primary weight range
-  #    that our sort-key serialization uses. Anchors too close to
-  #    0xFFFF cause overflow and break comparison.
-  #
-  # 2. The anchor should not collide with real DUCET primary weights
-  #    for characters that aren't in the overlay. The overlay overrides
-  #    per-codepoint, so a collision only matters for chars NOT in the
-  #    tailoring — those fall through to DUCET weights directly.
-  #
-  # We pick 0x8000 (32768) for `[last regular]`. This leaves ~33K
-  # primary slots before hitting the implicit-weight boundary (0xFB40),
-  # comfortably fitting the largest observed CJK tailoring (~24K
-  # primaries for zh-stroke).
-  @synthetic_last_regular 0x8000
+  # Rules after `&[last regular]` place characters after every regular
+  # primary and before the implicit weights of the Han characters they do
+  # not name, which begin at 0xFB40. The table's regular primaries end at
+  # 0xFB20, so there is no room for the 102,615 entries of zh stroke as
+  # single 16-bit primaries. Those rules are built from an anchor above the
+  # 16-bit range, where they can neither collide with a real primary nor
+  # overflow, and are then written as two elements each, as UTS #10 writes
+  # an implicit weight: a lead in 0xFB21..0xFB3F carrying the secondary and
+  # tertiary weights, then a trail in 0x8000..0xFFFF. The 31 leads give
+  # 1,015,808 places, so the pairs sort after every regular character and
+  # before the untailored Han.
+  @synthetic_last_regular 0x100000
+
+  @tailored_first_lead 0xFB21
+
+  @tailored_last_lead 0xFB3F
+
+  @tailored_trail_base 0x8000
+
+  @tailored_trail_span 0x8000
 
   @synthetic_first_regular 0x0300
 
@@ -120,27 +126,37 @@ defmodule Localize.Collation.Tailoring do
 
   * `type` - collation type atom (e.g., `:standard`, `:phonebook`, `:traditional`).
 
+  * `prefer` - the form of the type's rules: `:standard` (the default) or
+    `:short`, CLDR's `alt="short"` alternative. A locale whose type has no
+    such form takes its `:standard` form.
+
   ### Returns
 
   * `{overlay, option_overrides}` - a map of overlay entries and a keyword list of option overrides.
 
-  * `nil` - if no tailoring of that type exists for the locale or any locale on its collation chain, the root included.
+  * `nil` - if no tailoring of that type exists for the locale or any locale on its collation chain, the root included, or `prefer` is not a form.
 
   """
-  @spec get_tailoring(Localize.LanguageTag.t() | atom() | String.t(), atom()) ::
+  @spec get_tailoring(Localize.LanguageTag.t() | atom() | String.t(), atom(), atom()) ::
           {map(), keyword()} | nil
-  def get_tailoring(%Localize.LanguageTag{} = language_tag, type) do
-    cache_key = {:localize, :collation_tailoring, language_tag.cldr_locale_id, type}
+  def get_tailoring(locale, type, prefer \\ :standard)
+
+  def get_tailoring(%Localize.LanguageTag{} = language_tag, type, prefer) when prefer in @forms do
+    cache_key = {:localize, :collation_tailoring, language_tag.cldr_locale_id, type, prefer}
 
     case :persistent_term.get(cache_key, :unset) do
-      :unset -> cache_tailoring(cache_key, language_tag, type)
+      :unset -> cache_tailoring(cache_key, language_tag, type, prefer)
       cached -> cached
     end
   end
 
-  def get_tailoring(locale, type) do
+  def get_tailoring(%Localize.LanguageTag{}, _type, _prefer) do
+    nil
+  end
+
+  def get_tailoring(locale, type, prefer) do
     case Localize.validate_locale(locale) do
-      {:ok, language_tag} -> get_tailoring(language_tag, type)
+      {:ok, language_tag} -> get_tailoring(language_tag, type, prefer)
       {:error, _reason} -> nil
     end
   end
@@ -148,9 +164,9 @@ defmodule Localize.Collation.Tailoring do
   # The type is the caller's, so a type no tailoring has, which no locale or
   # parent can match, is answered without a lookup and without a key; each
   # such type would otherwise add a key that is never removed.
-  defp cache_tailoring(cache_key, language_tag, type) do
+  defp cache_tailoring(cache_key, language_tag, type, prefer) do
     if known_type?(type) do
-      result = tailoring_for(language_tag, type)
+      result = tailoring_for(language_tag, type, prefer)
       Localize.LiteralMemory.cache(cache_key, result)
       result
     else
@@ -158,20 +174,29 @@ defmodule Localize.Collation.Tailoring do
     end
   end
 
+  defp preferred_rules(nil, _prefer) do
+    nil
+  end
+
+  defp preferred_rules(forms, prefer) do
+    Map.get(forms, prefer) || Map.get(forms, :standard)
+  end
+
   defp known_type?(type) do
     Enum.any?(tailorings(), fn {{_locale_id, known}, _rules} -> known == type end)
   end
 
-  # The data is keyed by the CLDR locale a tailoring file is for. A locale
-  # takes the tailoring of the first locale on its collation chain that has
-  # one of the type.
-  defp tailoring_for(language_tag, type) do
+  # The data is keyed by the CLDR locale a tailoring file is for, and holds
+  # each type's rules by form. A locale takes the tailoring of the first
+  # locale on its collation chain that has one of the type, in the preferred
+  # form, or in its `:standard` form when it has no preferred one.
+  defp tailoring_for(language_tag, type, prefer) do
     tailorings = tailorings()
 
     rules =
       language_tag
       |> collation_chain()
-      |> Enum.find_value(&Map.get(tailorings, {&1, type}))
+      |> Enum.find_value(&preferred_rules(Map.get(tailorings, {&1, type}), prefer))
 
     if is_nil(rules) do
       nil
@@ -304,7 +329,10 @@ defmodule Localize.Collation.Tailoring do
     option_overrides =
       Enum.map(option_ops, fn {:option, key, value} -> {key, value} end)
 
-    overlay = apply_operations(ordering_ops)
+    overlay =
+      ordering_ops
+      |> apply_operations()
+      |> Map.new(fn {key, elements} -> {key, Enum.flat_map(elements, &encode_primary/1)} end)
 
     {overlay, option_overrides}
   end
@@ -708,6 +736,22 @@ defmodule Localize.Collation.Tailoring do
   defp compute_tailored_elements(anchor_elements, :tertiary) do
     {init, [{p, s, t, v}]} = Enum.split(anchor_elements, -1)
     init ++ [{p, s, t + 1, v}]
+  end
+
+  # A primary built from the `[last regular]` anchor is written as a lead
+  # and a trail; every other element is written as it is. The lead is
+  # bounded so that the pair never reaches the implicit Han weights.
+  defp encode_primary({primary, secondary, tertiary, variable})
+       when primary >= @synthetic_last_regular do
+    offset = primary - @synthetic_last_regular
+    lead = min(@tailored_first_lead + div(offset, @tailored_trail_span), @tailored_last_lead)
+    trail = @tailored_trail_base + rem(offset, @tailored_trail_span)
+
+    [{lead, secondary, tertiary, variable}, {trail, 0, 0, variable}]
+  end
+
+  defp encode_primary(element) do
+    [element]
   end
 
   # One branch per CLDR logical-position anchor ([first/last regular,

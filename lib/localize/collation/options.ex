@@ -20,6 +20,7 @@ defmodule Localize.Collation.Options do
             suppress_contractions: [],
             max_variable: :punct,
             type: :standard,
+            prefer: :standard,
             tailoring: nil,
             han_ordering: :implicit,
             backend: :elixir
@@ -32,7 +33,8 @@ defmodule Localize.Collation.Options do
     case_level: [false, true],
     case_first: [false, :upper, :lower],
     numeric: [false, true],
-    max_variable: [:space, :punct, :symbol, :currency]
+    max_variable: [:space, :punct, :symbol, :currency],
+    prefer: [:standard, :short]
   ]
 
   @type strength :: :primary | :secondary | :tertiary | :quaternary | :identical
@@ -53,6 +55,7 @@ defmodule Localize.Collation.Options do
           suppress_contractions: [non_neg_integer()],
           max_variable: max_variable(),
           type: atom(),
+          prefer: :standard | :short,
           tailoring: map() | nil,
           han_ordering: :implicit | :radical_stroke,
           backend: backend()
@@ -86,6 +89,10 @@ defmodule Localize.Collation.Options do
   * `:max_variable` - `:space`, `:punct` (default), `:symbol`, or `:currency`.
 
   * `:type` - `:standard` (default), `:search`, `:phonebook`, etc.
+
+  * `:prefer` - the form of the collation type's tailoring when CLDR has
+    alternatives: `:standard` (the default) or `:short`. A type with no
+    such form uses its `:standard` form.
 
   * `:ignore_accents` - `true` to ignore accent differences (sets `strength: :primary`).
 
