@@ -4,6 +4,10 @@ Outstanding work on Localize. The design detail behind these items lives under [
 
 ## Open
 
+* [ ] **Collation `alt` variants** — CLDR gives `zh` an `alt="short"` variant of its pinyin, stroke and zhuyin collations; the generator reads `<collation>` by type alone, so the short rules overwrite the full ones. Keep both and make the variant a user-visible option, as `alt` is elsewhere in Localize.
+
+* [ ] **Expansions in collation tailorings** — a rule's `/` expansion is ignored, and the contraction is placed after the expansion's target: CLDR's `&虫<重庆/庆` should sort 重庆 (Chongqing) as chóng, after 虫, and it sorts after 庆.
+
 * [ ] **Settle the runtime `:persistent_term` writes under rule 14** — about forty sites write at runtime: per-locale data and caches, constants computed on first use, configuration setters and warn-once flags. Needs a decision on per-locale data; the options and their measured costs are in [plans/persistent-term-writes.md](plans/persistent-term-writes.md).
 
 * [ ] **Read CLDR's JSON in place of its XML wherever the JSON carries the data** (next release) — `data/xml_extractors.ex` reads XML for data the CLDR 49 JSON has with every attribute used: `pluralRanges`, `primaryZones` (`metaZones.xml`), the BCP 47 `timezone` (`_alias`, `_region`, `_preferred`) and `measure` files, `subdivisionContainment` (`subdivisions.xml`'s `subgroup`), `units` (`convertUnits` with `_special` and `_systems`, `unitConstants` with `_status`, `unitPrefixes`, `unitQuantities`) and `unitIdComponents`, and the grammatical derivations in `grammaticalFeatures`. `data/validity.ex` reads the BCP 47 XML for the `-u-` and `-t-` keys, which `cldr-bcp47` also carries. Add `bcp47` to `Localize.Data.CldrJson`'s converter types, then move each reader. Only these stay XML, having no JSON: `common/validity/*.xml`, the collation tailorings in `common/collation/` and `common/uca/FractionalUCA.txt`. Gate: every supplemental ETF and the locale hash manifest regenerate byte-identical, which deterministic encoding makes a direct comparison.
@@ -69,6 +73,8 @@ Outstanding work on Localize. The design detail behind these items lives under [
 * [ ] **`localize_emoji` sibling library** — plan item 11, a separate package on its own schedule. A Phoenix LiveView picker (`localize_emoji_live`) is out of scope for its 0.1.0.
 
 ## Done
+
+* [x] **The default collation type and collation inheritance** — the default type is CLDR's `defaultCollation` (`zh` pinyin, `zh-Hant` stroke), and tailorings follow TR35's collation chain (`zh-Hant` and `yue` to `zh`, `nb` to `no`), both generated into `collation_inheritance.etf`. 2026-11-25.
 
 * [x] **`nil` is not a locale** — `validate_locale/1`, `put_locale/1` and `LanguageTag.best_match/3` return `InvalidLocaleError` for `nil`, which was read as the language code `nil` and resolved to the default locale; the subtag `nil` (Nila) is refused too, since its atom is `nil`. 2026-11-24.
 

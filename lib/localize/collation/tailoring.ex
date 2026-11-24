@@ -63,12 +63,6 @@ defmodule Localize.Collation.Tailoring do
 
   @synthetic_first_tertiary_ignorable 0x00
 
-  # The most parents a tailoring lookup walks before giving up. A chain
-  # drops a subtag or follows `parentLocales` at each step and ends at
-  # `und`, so eight covers any tag; the bound only guards against data
-  # that cycles.
-  @longest_parent_chain 8
-
   # The tailoring table (~500KB of rule strings) is loaded at runtime
   # on first use rather than embedded at compile time — embedding it
   # made this the largest beam in the library (~1.7MB) for data that
@@ -82,6 +76,38 @@ defmodule Localize.Collation.Tailoring do
       |> File.read!()
       |> :erlang.binary_to_term()
     end)
+  end
+
+  # Collation data inherits along its own chain (TR35): a locale's parent
+  # drops its last subtag unless the `collations` component of
+  # `parentLocales` names another, so `zh-Hant` takes `zh`'s data although
+  # its main parent is the root. The chains, and each locale's default
+  # collation type, are built from CLDR by the data pass, so a lookup is a
+  # map read that walks no parents and builds no identifier.
+  defp inheritance do
+    Localize.DataLoader.load({:localize, :collation_inheritance}, fn ->
+      "localize/supplemental_data/collation_inheritance.etf"
+      |> Localize.Priv.path()
+      |> File.read!()
+      |> :erlang.binary_to_term()
+    end)
+  end
+
+  @doc false
+  # The locales whose collation data a validated tag inherits, nearest
+  # first and ending with the root, `:und`.
+  @spec collation_chain(Localize.LanguageTag.t()) :: [atom(), ...]
+  def collation_chain(%Localize.LanguageTag{cldr_locale_id: locale_id}) do
+    Map.get(inheritance().chains, locale_id, [:und])
+  end
+
+  @doc false
+  # The collation type CLDR makes a validated tag's default: the
+  # `defaultCollation` of the first locale on its collation chain that
+  # declares one, such as `:pinyin` for `zh` and `:stroke` for `zh-Hant`.
+  @spec default_type(Localize.LanguageTag.t()) :: atom()
+  def default_type(%Localize.LanguageTag{cldr_locale_id: locale_id}) do
+    Map.get(inheritance().default_types, locale_id, :standard)
   end
 
   @doc """
@@ -98,7 +124,7 @@ defmodule Localize.Collation.Tailoring do
 
   * `{overlay, option_overrides}` - a map of overlay entries and a keyword list of option overrides.
 
-  * `nil` - if no tailoring exists for the locale, for any of its parents, or for the root.
+  * `nil` - if no tailoring of that type exists for the locale or any locale on its collation chain, the root included.
 
   """
   @spec get_tailoring(Localize.LanguageTag.t() | atom() | String.t(), atom()) ::
@@ -124,7 +150,7 @@ defmodule Localize.Collation.Tailoring do
   # such type would otherwise add a key that is never removed.
   defp cache_tailoring(cache_key, language_tag, type) do
     if known_type?(type) do
-      result = tailoring_for(language_tag, type, @longest_parent_chain)
+      result = tailoring_for(language_tag, type)
       Localize.LiteralMemory.cache(cache_key, result)
       result
     else
@@ -136,29 +162,21 @@ defmodule Localize.Collation.Tailoring do
     Enum.any?(tailorings(), fn {{_locale_id, known}, _rules} -> known == type end)
   end
 
-  # The data is keyed by the CLDR locale a tailoring file is for, which a
-  # validated tag carries as its `cldr_locale_id`, so the lookup uses that
-  # id and builds no identifier from the tag's parts. A locale without a
-  # tailoring takes the first its parents have, following CLDR's inheritance
-  # through `Localize.Locale.parent/1` down to `und`, where every chain ends
-  # with `Localize.NoParentError`. A chain revisits a locale on the way
-  # (`en`, `en-Latn`, `en`, `und`), so the walk is bounded by length, not by
-  # the locales seen.
-  defp tailoring_for(_language_tag, _type, 0) do
-    nil
-  end
+  # The data is keyed by the CLDR locale a tailoring file is for. A locale
+  # takes the tailoring of the first locale on its collation chain that has
+  # one of the type.
+  defp tailoring_for(language_tag, type) do
+    tailorings = tailorings()
 
-  defp tailoring_for(language_tag, type, steps) do
-    case Map.get(tailorings(), {language_tag.cldr_locale_id, type}) do
-      nil -> parent_tailoring(language_tag, type, steps - 1)
-      rules -> build_tailoring(rules)
-    end
-  end
+    rules =
+      language_tag
+      |> collation_chain()
+      |> Enum.find_value(&Map.get(tailorings, {&1, type}))
 
-  defp parent_tailoring(language_tag, type, steps) do
-    case Localize.Locale.parent(language_tag) do
-      {:ok, parent} -> tailoring_for(parent, type, steps)
-      {:error, _no_parent} -> nil
+    if is_nil(rules) do
+      nil
+    else
+      build_tailoring(rules)
     end
   end
 

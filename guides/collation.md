@@ -205,7 +205,7 @@ All functions accept the following keyword options:
 | Option | Values | Default | Description |
 |--------|--------|---------|-------------|
 | `:locale` | locale atom or string | `Localize.get_locale()` | Locale for tailoring and defaults. |
-| `:type` | `:standard`, `:search`, `:phonebook`, `:pinyin`, `:stroke`, `:traditional`, etc. | `:standard` | Collation type. |
+| `:type` | `:standard`, `:search`, `:phonebook`, `:pinyin`, `:stroke`, `:traditional`, etc. | The locale's CLDR default | Collation type. The default is the locale's `defaultCollation`, such as `:pinyin` for `zh` and `:stroke` for `zh-Hant`, and `:standard` for a locale that declares none. |
 | `:strength` | `:primary`, `:secondary`, `:tertiary`, `:quaternary`, `:identical` | `:tertiary` | Comparison depth. |
 | `:alternate` | `:non_ignorable`, `:shifted` | `:non_ignorable` | How to handle variable-weight characters (whitespace, punctuation). |
 | `:backwards` | `true`, `false` | `false` | Reverse level-2 (accent) comparison direction. |

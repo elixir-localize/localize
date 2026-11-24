@@ -134,6 +134,7 @@ defmodule Localize.Data do
     {"unit_grammatical_derivations.etf",
      &Localize.Data.XmlExtractors.generate_unit_grammatical_derivations/0},
     {"collation_tailoring.etf", &Localize.Data.Collation.generate_collation_tailoring/0},
+    {"collation_inheritance.etf", &Localize.Data.Collation.generate_collation_inheritance/0},
     {"coverage_levels.etf", &Localize.Data.Supplemental.generate_coverage_levels/0},
     {"measurement_systems.etf", &Localize.Data.XmlExtractors.generate_measurement_systems/0},
     {"measurement_data.etf", &Localize.Data.XmlExtractors.generate_measurement_data/0}

@@ -16,11 +16,6 @@ defmodule Localize.Collation.Tailoring.LocaleDefaults do
     "no" => [case_first: :upper]
   }
 
-  @locale_type_defaults %{
-    "de" => :standard,
-    "es" => :standard
-  }
-
   @doc """
   Get option overrides for a locale.
 
@@ -78,20 +73,26 @@ defmodule Localize.Collation.Tailoring.LocaleDefaults do
 
   ### Returns
 
-  The default collation type atom for the locale, or `:standard`.
+  The collation type CLDR makes the locale's default, from the
+  `defaultCollation` of the first locale on its collation chain that
+  declares one, or `:standard`. A locale that does not validate is
+  `:standard`.
 
   ### Examples
 
       iex> Localize.Collation.Tailoring.LocaleDefaults.default_type("de")
       :standard
 
-      iex> Localize.Collation.Tailoring.LocaleDefaults.default_type("es")
-      :standard
+      iex> Localize.Collation.Tailoring.LocaleDefaults.default_type("zh")
+      :pinyin
+
+      iex> Localize.Collation.Tailoring.LocaleDefaults.default_type("zh-Hant")
+      :stroke
 
   """
   @spec default_type(Localize.LanguageTag.t() | atom() | String.t()) :: atom()
   def default_type(%Localize.LanguageTag{} = language_tag) do
-    Map.get(@locale_type_defaults, language_of(language_tag), :standard)
+    Localize.Collation.Tailoring.default_type(language_tag)
   end
 
   def default_type(locale) do

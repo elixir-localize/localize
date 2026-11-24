@@ -85,6 +85,169 @@ defmodule Localize.Data.Collation do
     |> Map.new(fn {{locale, type}, rules} -> {{String.to_atom(locale), type}, rules} end)
   end
 
+  @doc """
+  Generates the collation inheritance data from the CLDR collation XML
+  and the `collations` component of `parentLocales.json`.
+
+  TR35 gives collation data its own inheritance. A locale's parent is the
+  one the `collations` component of `parentLocales` names; otherwise the
+  one the main `parentLocales` names, except through its
+  `localeRules="nonlikelyScript"` element, which TR35 does not apply to
+  collations; otherwise the locale with its last subtag dropped. So
+  `zh-Hant`, whose main parent is the root, takes its collation data from
+  `zh`, `yue` from `zh-Hant`, and `nb` from `no`. A locale's default collation type is the `defaultCollation`
+  of the first locale on that chain that declares one: `pinyin` for `zh`
+  and `stroke` for `zh-Hant` and its children.
+
+  Returns a map with two keys, both keyed by every CLDR locale id as the
+  atom a validated tag carries in `cldr_locale_id`:
+
+  * `:chains` maps a locale to the locales on its collation chain that
+    have collation data, nearest first and ending with `:und`. A locale
+    whose chain has only `:und` is left out.
+
+  * `:default_types` maps a locale to its default collation type, for
+    the locales whose default is not `:standard`.
+
+  """
+  def generate_collation_inheritance do
+    collation_dir = collation_source_dir()
+
+    defaults =
+      collation_dir
+      |> File.ls!()
+      |> Enum.filter(&String.ends_with?(&1, ".xml"))
+      |> Enum.flat_map(&default_collation(collation_dir, &1))
+      |> Map.new()
+
+    data_locales =
+      generate_collation_tailoring()
+      |> Map.keys()
+      |> Enum.map(fn {locale, _type} -> Atom.to_string(locale) end)
+      |> MapSet.new()
+      |> MapSet.union(MapSet.new(Map.keys(defaults)))
+      |> MapSet.put("und")
+
+    parents = collation_parents()
+
+    chains =
+      Map.new(Localize.SupplementalData.all_locale_ids(), fn locale ->
+        {locale, collation_chain(Atom.to_string(locale), parents)}
+      end)
+
+    # Every CLDR locale id is already an atom, and so is every collation
+    # locale and type, which are CLDR's closed sets.
+    %{
+      chains:
+        for {locale, chain} <- chains,
+            data_chain = Enum.filter(chain, &MapSet.member?(data_locales, &1)),
+            data_chain != ["und"],
+            into: %{} do
+          {locale, Enum.map(data_chain, &String.to_atom/1)}
+        end,
+      default_types:
+        for {locale, chain} <- chains,
+            type = Enum.find_value(chain, &Map.get(defaults, &1)),
+            type not in [nil, "standard"],
+            into: %{} do
+          {locale, String.to_atom(type)}
+        end
+    }
+  end
+
+  # A file's `defaultCollation`, keyed by its locale as a chain names it.
+  defp default_collation(collation_dir, filename) do
+    locale =
+      case Path.basename(filename, ".xml") do
+        "root" -> "und"
+        name -> String.replace(name, "_", "-")
+      end
+
+    xml =
+      collation_dir
+      |> Path.join(filename)
+      |> File.read!()
+      |> then(&Regex.replace(~r/<!DOCTYPE[^>]*>/, &1, ""))
+
+    case xpath(SweetXml.parse(xml), ~x"//collations/defaultCollation/text()"s) do
+      "" -> []
+      type -> [{locale, type}]
+    end
+  end
+
+  # The collation parents `supplementalData.xml` names, as `%{"nb" => "no"}`.
+  # The main component's explicit entries apply, but not its `localeRules`
+  # element, whose short list holds `zh_Hant`; the `collations` component's
+  # entries are read last, so they win.
+  defp collation_parents do
+    xml =
+      [Localize.Data.cldr_repo_dir(), "common", "supplemental", "supplementalData.xml"]
+      |> Path.join()
+      |> File.read!()
+      |> then(&Regex.replace(~r/<!DOCTYPE[^>]*>/, &1, ""))
+      |> SweetXml.parse()
+
+    groups =
+      xpath(xml, ~x"//parentLocales"l,
+        component: ~x"./@component"s,
+        entries: [
+          ~x"./parentLocale"l,
+          parent: ~x"./@parent"s,
+          locales: ~x"./@locales"s,
+          rules: ~x"./@localeRules"s
+        ]
+      )
+
+    main = Enum.filter(groups, &(&1.component == ""))
+    collations = Enum.filter(groups, &("collations" in String.split(&1.component)))
+
+    Map.merge(parent_entries(main), parent_entries(collations))
+  end
+
+  defp parent_entries(groups) do
+    for %{entries: entries} <- groups,
+        %{parent: parent, locales: locales, rules: ""} <- entries,
+        locale <- String.split(locales),
+        into: %{} do
+      {cldr_locale_name(locale), cldr_locale_name(parent)}
+    end
+  end
+
+  defp cldr_locale_name("root") do
+    "und"
+  end
+
+  defp cldr_locale_name(name) do
+    String.replace(name, "_", "-")
+  end
+
+  # The locale, then each collation parent, ending with `und`.
+  defp collation_chain(locale, parents) do
+    locale
+    |> Stream.unfold(fn
+      nil -> nil
+      current -> {current, collation_parent(current, parents)}
+    end)
+    |> Enum.to_list()
+  end
+
+  defp collation_parent("und", _parents) do
+    nil
+  end
+
+  defp collation_parent(locale, parents) do
+    Map.get_lazy(parents, locale, fn -> truncated(locale) end)
+  end
+
+  defp truncated(locale) do
+    subtags = String.split(locale, "-")
+
+    case Enum.drop(subtags, -1) do
+      [] -> "und"
+      parent -> Enum.join(parent, "-")
+    end
+  end
+
   defp root_search_entries(entries) do
     entries
     |> Enum.filter(fn {_lang, type, _rules} -> type == :search end)
