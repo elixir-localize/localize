@@ -218,6 +218,13 @@ defmodule Localize.Calendar do
     default) for the full name, "Gregorian Calendar", or `:menu` for the
     short name CLDR gives for a menu of calendars, "Gregorian".
 
+  * `:capitalization` is the context the name stands in, as CLDR's
+    context transforms case it: `:middle_of_sentence` (the default)
+    leaves the name as CLDR writes it, `:begin_sentence` titlecases its
+    first word, and `:ui_list_or_menu` or `:stand_alone` case it as the
+    display locale's data says, so a French language name is "Français"
+    in a menu. See `Localize.ContextTransform`.
+
   ### Returns
 
   * `{:ok, name}` where `name` is the localized display name.
@@ -270,6 +277,7 @@ defmodule Localize.Calendar do
     :calendar
     |> Localize.Locale.LocaleDisplay.type_name(calendar_type, name_options)
     |> calendar_name(calendar_type, name_options[:prefer])
+    |> capitalize_name(:calendar, options)
   end
 
   def display_name(:date_time_field, field, options)
@@ -284,11 +292,14 @@ defmodule Localize.Calendar do
       |> get_in([style, :display_name])
       |> unwrap_localized_name()
       |> wrap_or_invalid(field, "a known date-time field")
+      |> capitalize_name(:date_time_field, options)
     end
   end
 
   def display_name(:era, era_index, options) when is_keyword_list(options) do
-    lookup_calendar_field(:eras, era_index, options, "a valid era index", style: :wide)
+    :eras
+    |> lookup_calendar_field(era_index, options, "a valid era index", style: :wide)
+    |> capitalize_name(:era, options)
   end
 
   def display_name(:quarter, quarter, options)
@@ -297,11 +308,15 @@ defmodule Localize.Calendar do
   end
 
   def display_name(:month, month, options) when month in 1..13 and is_keyword_list(options) do
-    lookup_calendar_field(:months, month, options, "1..13")
+    :months
+    |> lookup_calendar_field(month, options, "1..13")
+    |> capitalize_name(:month, options)
   end
 
   def display_name(:day_of_week, day, options) when day in 1..7 and is_keyword_list(options) do
-    lookup_calendar_field(:days, day, options, "1..7 (ISO day)")
+    :days
+    |> lookup_calendar_field(day, options, "1..7 (ISO day)")
+    |> capitalize_name(:day_of_week, options)
   end
 
   def display_name(:day_period, period, options) when is_keyword_list(options) do
@@ -330,6 +345,60 @@ defmodule Localize.Calendar do
        allowed_values: @display_name_types,
        context: "Calendar.display_name"
      )}
+  end
+
+  # Applies the `:capitalization` option with the CLDR context-transform
+  # usage of the name: format or stand-alone month and day names, eras,
+  # date-time fields and calendar names. Quarters and day periods have no
+  # usage, and narrow months, days and eras are left as they are.
+  defp capitalize_name(result, type, options) do
+    style = Keyword.get(options, :style, :wide)
+    context = Keyword.get(options, :context, :format)
+
+    case calendar_usage(type, style, context) do
+      nil ->
+        result
+
+      usage ->
+        locale = Keyword.get(options, :locale, Localize.get_locale())
+        Localize.ContextTransform.capitalize(result, usage, options, locale)
+    end
+  end
+
+  defp calendar_usage(type, :narrow, _context) when type in [:month, :day_of_week, :era] do
+    nil
+  end
+
+  defp calendar_usage(:month, _style, :stand_alone) do
+    :month_standalone_except_narrow
+  end
+
+  defp calendar_usage(:month, _style, _context) do
+    :month_format_except_narrow
+  end
+
+  defp calendar_usage(:day_of_week, _style, :stand_alone) do
+    :day_standalone_except_narrow
+  end
+
+  defp calendar_usage(:day_of_week, _style, _context) do
+    :day_format_except_narrow
+  end
+
+  defp calendar_usage(:era, :abbreviated, _context) do
+    :era_abbr
+  end
+
+  defp calendar_usage(:era, _style, _context) do
+    :era_name
+  end
+
+  defp calendar_usage(:date_time_field, _style, _context) do
+    :calendar_field
+  end
+
+  defp calendar_usage(:calendar, _style, _context) do
+    :key_value
   end
 
   @doc """

@@ -109,6 +109,15 @@ defmodule Localize.SupplementalData do
     load_supplemental("rtl_scripts.etf")
   end
 
+  # Every locale's context transforms, from the JSON's resolved
+  # `contextTransforms.json`: locale atom to usage to context to
+  # `:titlecase_firstword` or `:no_change`. A locale with none is absent.
+  @doc false
+  @spec context_transforms() :: %{atom() => %{atom() => %{atom() => atom()}}}
+  def context_transforms do
+    load_supplemental("context_transforms.etf")
+  end
+
   # Day-period rules from CLDR dayPeriods.xml, keyed by rule-set type
   # (:format for the B/b format symbols, :selection for name
   # selection), then by language code string. Times are minutes since

@@ -1060,6 +1060,13 @@ defmodule Localize.Currency do
   * `:locale` is a locale identifier atom or a
     `t:Localize.LanguageTag.t/0`. The default is `:en`.
 
+  * `:capitalization` is the context the name stands in, as CLDR's
+    context transforms case it: `:middle_of_sentence` (the default)
+    leaves the name as CLDR writes it, `:begin_sentence` titlecases its
+    first word, and `:ui_list_or_menu` or `:stand_alone` case it as the
+    display locale's data says, so a French language name is "Français"
+    in a menu. See `Localize.ContextTransform`.
+
   ### Returns
 
   * `{:ok, display_name}` where `display_name` is a string.
@@ -1085,7 +1092,8 @@ defmodule Localize.Currency do
   end
 
   def display_name(%__MODULE__{name: name}, options) when is_keyword_list(options) do
-    {:ok, name}
+    locale = Keyword.get(options, :locale, Localize.get_locale())
+    Localize.ContextTransform.capitalize({:ok, name}, :currency_name, options, locale)
   end
 
   def display_name(currency_code, options) do

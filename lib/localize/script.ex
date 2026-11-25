@@ -64,6 +64,13 @@ defmodule Localize.Script do
     is not found in the specified locale, falls back to the
     default locale. The default is `false`.
 
+  * `:capitalization` is the context the name stands in, as CLDR's
+    context transforms case it: `:middle_of_sentence` (the default)
+    leaves the name as CLDR writes it, `:begin_sentence` titlecases its
+    first word, and `:ui_list_or_menu` or `:stand_alone` case it as the
+    display locale's data says, so a French language name is "Français"
+    in a menu. See `Localize.ContextTransform`.
+
   ### Returns
 
   * `{:ok, name}` where `name` is the localized script name.
@@ -97,13 +104,16 @@ defmodule Localize.Script do
          {:ok, fallback} <- validate_fallback(Keyword.get(options, :fallback, false)),
          {:ok, script_atom} <- normalize_script_code(script),
          {:ok, language_tag} <- Localize.validate_locale(locale) do
-      case lookup_script(script_atom, language_tag, style) do
-        {:ok, _} = result ->
-          result
+      result =
+        case lookup_script(script_atom, language_tag, style) do
+          {:ok, _} = result ->
+            result
 
-        {:error, _} = error ->
-          display_name_fallback(fallback, script_atom, style, error)
-      end
+          {:error, _} = error ->
+            display_name_fallback(fallback, script_atom, style, error)
+        end
+
+      Localize.ContextTransform.capitalize(result, :script, options, language_tag)
     end
   end
 

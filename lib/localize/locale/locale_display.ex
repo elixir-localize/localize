@@ -60,6 +60,13 @@ defmodule Localize.Locale.LocaleDisplay do
     bare subtag codes rather than translated names, which is what
     TR35 specifies for a locale carrying no display names.
 
+  * `:capitalization` is the context the name stands in, as CLDR's
+    context transforms case it: `:middle_of_sentence` (the default)
+    leaves the name as CLDR writes it, `:begin_sentence` titlecases its
+    first word, and `:ui_list_or_menu` or `:stand_alone` case it as the
+    display locale's data says, so a French language name is "Français"
+    in a menu. See `Localize.ContextTransform`.
+
   ### Returns
 
   * `{:ok, string}` representing a presentation-ready name.
@@ -163,7 +170,8 @@ defmodule Localize.Locale.LocaleDisplay do
         |> extension_display_names(display_locale, display_names, options)
         |> join_subtags(display_names)
 
-      {:ok, format_display_name(language_name, subtag_names, extension_names, display_names)}
+      name = format_display_name(language_name, subtag_names, extension_names, display_names)
+      Localize.ContextTransform.capitalize({:ok, name}, :languages, options, display_locale)
     end
   end
 

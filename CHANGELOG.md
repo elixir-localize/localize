@@ -8,6 +8,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
+* `Localize.ContextTransform` cases a name for the context it stands in, from CLDR's context transforms (new supplemental `context_transforms.etf`). Display names take a `:capitalization` option, so a French language name is "Français" in a menu and a month "Janvier" standing alone.
+
 * Collation takes a `:prefer` option, `:standard` (the default) or `:short`, choosing between CLDR's full and `alt="short"` forms of a tailoring; `zh` has both for pinyin, stroke and zhuyin.
 
 * `Localize.Locale.direction/1` returns `{:ok, :ltr}` or `{:ok, :rtl}` for a locale, from its script as CLDR's script metadata records it, so `ar`, `ur` and `pa-Arab` are right to left. It answers for a locale whose data is not installed.

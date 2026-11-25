@@ -271,6 +271,23 @@ iex> names[:usca]
 
 The name maps carry all recorded style alternatives for each code, which is why the values are style-keyed maps. The companion functions `Localize.Language.languages_for/1`, `Localize.Script.scripts_for/1`, and `Localize.Territory.Subdivision.subdivisions_for/1` return just the codes that have names in the given locale.
 
+## Capitalization for context
+
+CLDR writes a name as it appears in the middle of a sentence, so French language and month names are in lower case. A menu of languages, or a month heading a calendar, capitalizes them, and CLDR records for each locale which kinds of name change case where. The `:capitalization` option of `Localize.Language.display_name/2`, `Localize.Script.display_name/2`, `Localize.Locale.LocaleDisplay.display_name/2`, `Localize.Calendar.display_name/3` and `Localize.Currency.display_name/2` applies it:
+
+```elixir
+iex> Localize.Language.display_name("fr", locale: :fr)
+{:ok, "français"}
+
+iex> Localize.Language.display_name("fr", locale: :fr, capitalization: :ui_list_or_menu)
+{:ok, "Français"}
+
+iex> Localize.Calendar.display_name(:month, 1, locale: :fr, context: :stand_alone, capitalization: :stand_alone)
+{:ok, "Janvier"}
+```
+
+`:middle_of_sentence`, the default, leaves the name as it is, and `:begin_sentence` titlecases its first word in every locale. `:ui_list_or_menu` and `:stand_alone` follow the locale: German, which already capitalizes nouns, has no transforms, and European Portuguese keeps language names in lower case in a menu. `Localize.ContextTransform.transform/4` applies a transform to any name.
+
 ## Preference option summary
 
 Every display-name function takes the same `:prefer` option, and each module supports the subset its data can supply. `:style` remains accepted as the older spelling.

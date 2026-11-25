@@ -109,6 +109,7 @@ defmodule Localize.Data do
     {"parent_locales.etf", &Localize.Data.Supplemental.generate_parent_locales/0},
     {"rbnf_locales.etf", &Localize.Data.Supplemental.generate_rbnf_locales/0},
     {"rtl_scripts.etf", &Localize.Data.Supplemental.generate_rtl_scripts/0},
+    {"context_transforms.etf", &Localize.Data.Supplemental.generate_context_transforms/0},
     {"day_periods.etf", &Localize.Data.Supplemental.generate_day_periods/0},
     {"territories.etf", &Localize.Data.Supplemental.generate_territories/0},
     {"territory_codes.etf", &Localize.Data.Supplemental.generate_territory_codes/0},

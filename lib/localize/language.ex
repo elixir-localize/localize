@@ -69,6 +69,13 @@ defmodule Localize.Language do
     is not found in the specified locale, falls back to the
     default locale. The default is `false`.
 
+  * `:capitalization` is the context the name stands in, as CLDR's
+    context transforms case it: `:middle_of_sentence` (the default)
+    leaves the name as CLDR writes it, `:begin_sentence` titlecases its
+    first word, and `:ui_list_or_menu` or `:stand_alone` case it as the
+    display locale's data says, so a French language name is "Français"
+    in a menu. See `Localize.ContextTransform`.
+
   ### Returns
 
   * `{:ok, name}` where `name` is the localized language name.
@@ -118,10 +125,13 @@ defmodule Localize.Language do
          {:ok, fallback} <- validate_fallback(Keyword.get(options, :fallback, false)),
          {:ok, language_tag} <- Localize.validate_locale(language),
          {:ok, display_tag} <- Localize.validate_locale(locale) do
-      case lookup_language(language_tag, display_tag, style) do
-        {:ok, _} = result -> result
-        {:error, _} = error -> maybe_fallback_lookup(error, fallback, language_tag, style)
-      end
+      result =
+        case lookup_language(language_tag, display_tag, style) do
+          {:ok, _} = result -> result
+          {:error, _} = error -> maybe_fallback_lookup(error, fallback, language_tag, style)
+        end
+
+      Localize.ContextTransform.capitalize(result, :languages, options, display_tag)
     end
   end
 

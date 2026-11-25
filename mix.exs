@@ -166,7 +166,7 @@ defmodule Localize.MixProject do
       Protocols: ~r/^Localize\.Chars(\.|$)/,
       Numbers: ~r/Localize\.(Number|MinimalPairs)(?!\w*Error)/,
       "Dates and Times": ~r/^Localize\.(Date|Time|Interval|Duration)(?!\w*Error)/,
-      Locale: ~r/Localize\.Locale(?!\w*Error)/,
+      Locale: ~r/Localize\.(Locale|ContextTransform)(?!\w*Error)/,
       "Language Tag": ~r/Localize\.(LanguageTag|Rfc5646)(?!\w*Error)/,
       Calendars: ~r/Localize.Calendar(?!\w*Error)/,
       Currencies: ~r/Localize.Currency(?!\w*Error)/,

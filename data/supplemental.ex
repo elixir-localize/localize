@@ -63,6 +63,58 @@ defmodule Localize.Data.Supplemental do
   end
 
   @doc """
+  Generates every locale's context transforms from `contextTransforms.json`
+  in the JSON's `cldr-misc-full` package.
+
+  A context transform says how a name is cased where it stands in a given
+  context: French language names, "français" in a sentence, are
+  "Français" in a menu. The JSON is resolved, so a locale's transforms are
+  complete in its own file, and a locale without one has none.
+
+  Returns a map of locale name atom to a map of usage atom, such as
+  `:languages` or `:month_standalone_except_narrow`, to a map of context
+  atom, `:ui_list_or_menu` or `:stand_alone`, to the transform,
+  `:titlecase_firstword` or `:no_change`. A locale with no transforms is
+  left out.
+
+  """
+  def generate_context_transforms do
+    for locale <- Localize.Data.source_locale_names(),
+        path =
+          Localize.Data.locale_source_path(locale, "cldr-misc-full", "contextTransforms.json"),
+        File.exists?(path),
+        transforms = context_transforms(path, locale),
+        map_size(transforms) > 0,
+        into: %{} do
+      # CLDR's locale names, usages, contexts and transforms are closed sets.
+      {String.to_atom(locale), transforms}
+    end
+  end
+
+  defp context_transforms(path, locale) do
+    path
+    |> File.read!()
+    |> :json.decode()
+    |> get_in(["main", locale, "contextTransforms"])
+    |> Map.new(fn {usage, contexts} ->
+      {cldr_key_atom(usage),
+       Map.new(contexts, fn {context, transform} ->
+         {cldr_key_atom(context), cldr_key_atom(transform)}
+       end)}
+    end)
+  end
+
+  # "month-format-except-narrow" → :month_format_except_narrow,
+  # "uiListOrMenu" → :ui_list_or_menu, "titlecase-firstword" →
+  # :titlecase_firstword.
+  defp cldr_key_atom(key) do
+    key
+    |> Macro.underscore()
+    |> String.replace("-", "_")
+    |> String.to_atom()
+  end
+
+  @doc """
   Generates day period rules from `dayPeriods.json`.
 
   Returns a map with `:format` and `:selection` keys, each mapping a
