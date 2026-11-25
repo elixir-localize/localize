@@ -22,6 +22,8 @@ defmodule Localize.Collation.Options do
             type: :standard,
             prefer: :standard,
             tailoring: nil,
+            contractions: nil,
+            reorder_mapping: nil,
             han_ordering: :implicit,
             backend: :elixir
 
@@ -57,6 +59,8 @@ defmodule Localize.Collation.Options do
           type: atom(),
           prefer: :standard | :short,
           tailoring: map() | nil,
+          contractions: map() | nil,
+          reorder_mapping: (non_neg_integer() -> non_neg_integer()) | nil,
           han_ordering: :implicit | :radical_stroke,
           backend: backend()
         }
@@ -311,11 +315,40 @@ defmodule Localize.Collation.Options do
         nil -> {nil, []}
       end
 
-    new()
-    |> struct(tailoring_option_overrides)
-    |> struct(Localize.Collation.Tailoring.LocaleDefaults.options_for(language_tag))
-    |> struct(u_options)
-    |> Map.put(:tailoring, tailoring_overlay)
+    contractions = Localize.Collation.Tailoring.contraction_lengths(language_tag, type, :standard)
+
+    options =
+      new()
+      |> struct(tailoring_option_overrides)
+      |> struct(Localize.Collation.Tailoring.LocaleDefaults.options_for(language_tag))
+      |> struct(u_options)
+      |> Map.put(:tailoring, tailoring_overlay)
+      |> Map.put(:contractions, contractions)
+
+    Map.put(
+      options,
+      :reorder_mapping,
+      resolve_reorder_mapping(options.reorder, tailoring_option_overrides, fn ->
+        Localize.Collation.Tailoring.reorder_mapping(language_tag, type, :standard)
+      end)
+    )
+  end
+
+  @doc false
+  # The mapping for the resolved `:reorder` codes: none for none, the one
+  # cached with the tailoring when they are the tailoring's own, and
+  # otherwise one built once for these options.
+  @spec resolve_reorder_mapping([atom()], keyword(), (-> function() | nil)) :: function() | nil
+  def resolve_reorder_mapping([], _tailoring_option_overrides, _cached) do
+    nil
+  end
+
+  def resolve_reorder_mapping(reorder, tailoring_option_overrides, cached) do
+    if reorder == Keyword.get(tailoring_option_overrides, :reorder) do
+      cached.()
+    else
+      Localize.Collation.Reorder.build_mapping(reorder)
+    end
   end
 
   @doc false

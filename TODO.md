@@ -72,6 +72,8 @@ Outstanding work on Localize. The design detail behind these items lives under [
 
 ## Done
 
+* [x] **Tailored collation performance** — the overlay is cached with a contraction index (`Table.contraction_index/1`) and its `[reorder]` mapping, and resolved options carry both; a `zh-Hant` key went from 10 ms to 0.1 ms. The cache is keyed by the source locale and form, so locales that inherit a tailoring share one copy. Numeric collation now reads the tailoring. 2026-11-25.
+
 * [x] **Expansions in collation tailorings** — a relation's extension (`/`) is appended after elements placed from the current position, and resets map by the rules applied so far; tailored positions are fractional paths numbered at the end, so `&虫<重庆/庆` lands between 虫 and 崇. Matches ICU for zh, hu, sv, no, fo, fi traditional and es. 2026-11-25.
 
 * [x] **Collation `alt` forms** — the generator keeps CLDR's `alt="short"` forms beside the full ones and `:prefer` chooses between them; drafts below `contributed` and proposals are left out; `[last regular]` tailorings are written as a lead and a trail between the regular and the implicit weights, so the full zh rules fit 16 bits. 2026-11-25.

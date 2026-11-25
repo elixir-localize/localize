@@ -350,7 +350,7 @@ defmodule Localize.Collation do
     processed = Variable.process(elements, options.alternate, variable_range)
 
     processed =
-      case Reorder.build_mapping(options.reorder) do
+      case reorder_mapping(options) do
         nil ->
           processed
 
@@ -361,6 +361,20 @@ defmodule Localize.Collation do
       end
 
     SortKey.build(processed, options, original_string)
+  end
+
+  # The mapping resolved with the options, or, for options built by hand,
+  # one built from their `:reorder` codes.
+  defp reorder_mapping(%Options{reorder: [], reorder_mapping: nil}) do
+    nil
+  end
+
+  defp reorder_mapping(%Options{reorder: reorder, reorder_mapping: nil}) do
+    Reorder.build_mapping(reorder)
+  end
+
+  defp reorder_mapping(%Options{reorder_mapping: reorder_mapping}) do
+    reorder_mapping
   end
 
   @doc """
@@ -556,11 +570,34 @@ defmodule Localize.Collation do
     else
       produce_standard(
         codepoints,
-        options.tailoring,
+        tailoring_lookup(options),
         options.suppress_contractions,
         options.han_ordering
       )
     end
+  end
+
+  # The tailoring as element production reads it: `nil`, or the overlay with
+  # its contraction index. An overlay given without one, in options built by
+  # hand, has its index built here, once per string.
+  defp tailoring_lookup(%Options{tailoring: nil}) do
+    nil
+  end
+
+  defp tailoring_lookup(%Options{tailoring: overlay, contractions: nil}) do
+    {overlay, Table.contraction_index(overlay)}
+  end
+
+  defp tailoring_lookup(%Options{tailoring: overlay, contractions: contractions}) do
+    {overlay, contractions}
+  end
+
+  defp match_with_tailoring(codepoints, nil) do
+    Table.longest_match(codepoints)
+  end
+
+  defp match_with_tailoring(codepoints, {overlay, contractions}) do
+    Table.longest_match_with_overlay(codepoints, overlay, contractions)
   end
 
   defp produce_standard(codepoints, overlay, suppress, han_ordering) do
@@ -599,7 +636,7 @@ defmodule Localize.Collation do
           do_produce(rest, [elements | acc], overlay, suppress, han_ordering)
       end
     else
-      case Table.longest_match_with_overlay(codepoints, overlay) do
+      case match_with_tailoring(codepoints, overlay) do
         {matched, elements, remaining} when is_list(elements) ->
           {final_elements, final_remaining} =
             try_discontiguous_match(matched, elements, remaining)
@@ -684,21 +721,22 @@ defmodule Localize.Collation do
     Localize.Collation.Unicode.combining_class(cp)
   end
 
+  # Numeric collation reads the tailoring as the standard path does.
   defp produce_with_numeric(codepoints, options) do
-    pairs = collect_ce_pairs(codepoints, [], options.han_ordering)
+    pairs = collect_ce_pairs(codepoints, [], tailoring_lookup(options), options.han_ordering)
     Localize.Collation.Numeric.process_elements(pairs)
   end
 
-  defp collect_ce_pairs([], acc, _han_ordering), do: Enum.reverse(acc)
+  defp collect_ce_pairs([], acc, _tailoring, _han_ordering), do: Enum.reverse(acc)
 
-  defp collect_ce_pairs(codepoints, acc, han_ordering) do
-    case Table.longest_match(codepoints) do
+  defp collect_ce_pairs(codepoints, acc, tailoring, han_ordering) do
+    case match_with_tailoring(codepoints, tailoring) do
       {matched, elements, remaining} when is_list(elements) ->
-        collect_ce_pairs(remaining, [{matched, elements} | acc], han_ordering)
+        collect_ce_pairs(remaining, [{matched, elements} | acc], tailoring, han_ordering)
 
       {:unmapped, cp, remaining} ->
         elements = resolve_unmapped(cp, han_ordering)
-        collect_ce_pairs(remaining, [{[cp], elements} | acc], han_ordering)
+        collect_ce_pairs(remaining, [{[cp], elements} | acc], tailoring, han_ordering)
 
       :done ->
         Enum.reverse(acc)
@@ -829,9 +867,15 @@ defmodule Localize.Collation do
         |> struct(extra_overrides)
         |> Map.put(:type, type)
         |> Map.put(:tailoring, tailoring_overlay)
+        |> Map.put(:contractions, Tailoring.contraction_lengths(tag, type, resolved_extra.prefer))
         |> Map.put(:han_ordering, han_ordering_for(type))
 
-      {:ok, options}
+      reorder_mapping =
+        Options.resolve_reorder_mapping(options.reorder, tailoring_option_overrides, fn ->
+          Tailoring.reorder_mapping(tag, type, resolved_extra.prefer)
+        end)
+
+      {:ok, Map.put(options, :reorder_mapping, reorder_mapping)}
     end
   end
 

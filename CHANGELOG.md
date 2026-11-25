@@ -18,6 +18,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+* Collation in a tailored locale no longer reads every key of the tailoring for each character, nor rebuilds its script reordering for each key: a `zh-Hant` sort key took 10 ms and takes 0.1 ms. A tailoring that several locales inherit is cached once, where each kept a 13 MB copy.
+
+* Collation with `numeric: true` keeps the locale's tailoring, where it collated as the root: Swedish sorted å and ö among the a and o.
+
 * Collation applies a tailoring's expansions (`&虫<重庆/庆`) after the current position, and maps a reset by the rules applied so far, as TR35 specifies. So 重庆 sorts as chóng, Hungarian ccs as a doubled cs, and þ beside th in Swedish, Norwegian, Faroese, Greenlandic and traditional Finnish, all as ICU sorts them.
 
 * Chinese collation uses CLDR's full pinyin, stroke and zhuyin rules, where the short forms had replaced them, and an unconfirmed proposal no longer replaces approved rules (`es` traditional, `fo`, `gu`, `hu`, `sl`, `sq`). Tailored Han sorts after every regular character, where it was interleaved with other scripts.

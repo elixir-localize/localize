@@ -149,11 +149,9 @@ defmodule Localize.Collation.Tailoring do
   def get_tailoring(locale, type, prefer \\ :standard)
 
   def get_tailoring(%Localize.LanguageTag{} = language_tag, type, prefer) when prefer in @forms do
-    cache_key = {:localize, :collation_tailoring, language_tag.cldr_locale_id, type, prefer}
-
-    case :persistent_term.get(cache_key, :unset) do
-      :unset -> cache_tailoring(cache_key, language_tag, type, prefer)
-      cached -> cached
+    case cached_tailoring(language_tag, type, prefer) do
+      {overlay, option_overrides, _contractions, _reorder_mapping} -> {overlay, option_overrides}
+      nil -> nil
     end
   end
 
@@ -168,47 +166,102 @@ defmodule Localize.Collation.Tailoring do
     end
   end
 
-  # The type is the caller's, so a type no tailoring has, which no locale or
-  # parent can match, is answered without a lookup and without a key; each
-  # such type would otherwise add a key that is never removed.
-  defp cache_tailoring(cache_key, language_tag, type, prefer) do
-    if known_type?(type) do
-      result = tailoring_for(language_tag, type, prefer)
-      Localize.LiteralMemory.cache(cache_key, result)
-      result
-    else
-      nil
+  @doc false
+  # The `Localize.Collation.Table.contraction_index/1` of the overlay
+  # `get_tailoring/3` returns, built once with it, or `nil` when there is
+  # no tailoring.
+  @spec contraction_lengths(Localize.LanguageTag.t(), atom(), atom()) :: map() | nil
+  def contraction_lengths(%Localize.LanguageTag{} = language_tag, type, prefer)
+      when prefer in @forms do
+    case cached_tailoring(language_tag, type, prefer) do
+      {_overlay, _option_overrides, contractions, _reorder_mapping} -> contractions
+      nil -> nil
     end
   end
 
-  defp preferred_rules(nil, _prefer) do
+  def contraction_lengths(_language_tag, _type, _prefer) do
     nil
   end
 
-  defp preferred_rules(forms, prefer) do
-    Map.get(forms, prefer) || Map.get(forms, :standard)
+  @doc false
+  # The `Localize.Collation.Reorder.build_mapping/1` of the tailoring's own
+  # `[reorder]` codes, built once with it, or `nil` when it has none.
+  @spec reorder_mapping(Localize.LanguageTag.t(), atom(), atom()) :: function() | nil
+  def reorder_mapping(%Localize.LanguageTag{} = language_tag, type, prefer)
+      when prefer in @forms do
+    case cached_tailoring(language_tag, type, prefer) do
+      {_overlay, _option_overrides, _contractions, reorder_mapping} -> reorder_mapping
+      nil -> nil
+    end
   end
 
-  defp known_type?(type) do
-    Enum.any?(tailorings(), fn {{_locale_id, known}, _rules} -> known == type end)
+  def reorder_mapping(_language_tag, _type, _prefer) do
+    nil
+  end
+
+  # The cache is keyed by the source of the rules: the first locale on the
+  # collation chain with a tailoring of the type, and the form found there.
+  # So every locale that inherits a tailoring shares one entry (zh-Hant,
+  # zh-Hant-HK and yue share zh's stroke rules, 13 MB built), a preference
+  # a type has no form for shares the standard entry, and a type no
+  # tailoring has makes no key at all. The keys are CLDR's closed set. An
+  # entry holds the overlay with its contraction index, so a lookup never
+  # reads every key, and with the mapping of its `[reorder]` codes, so a
+  # sort key does not build it again.
+  defp cached_tailoring(language_tag, type, prefer) do
+    case tailoring_source(language_tag, type, prefer) do
+      nil -> nil
+      {locale_id, form, rules} -> cached_tailoring(locale_id, type, form, rules)
+    end
+  end
+
+  defp cached_tailoring(locale_id, type, form, rules) do
+    cache_key = {:localize, :collation_tailoring, locale_id, type, form}
+
+    case :persistent_term.get(cache_key, :unset) do
+      :unset -> cache_tailoring(cache_key, rules)
+      cached -> cached
+    end
+  end
+
+  defp cache_tailoring(cache_key, rules) do
+    result =
+      rules
+      |> build_tailoring()
+      |> with_contraction_index()
+
+    Localize.LiteralMemory.cache(cache_key, result)
+    result
+  end
+
+  defp with_contraction_index({overlay, option_overrides}) do
+    reorder = Keyword.get(option_overrides, :reorder, [])
+
+    {overlay, option_overrides, Table.contraction_index(overlay),
+     Localize.Collation.Reorder.build_mapping(reorder)}
   end
 
   # The data is keyed by the CLDR locale a tailoring file is for, and holds
   # each type's rules by form. A locale takes the tailoring of the first
   # locale on its collation chain that has one of the type, in the preferred
   # form, or in its `:standard` form when it has no preferred one.
-  defp tailoring_for(language_tag, type, prefer) do
+  defp tailoring_source(language_tag, type, prefer) do
     tailorings = tailorings()
 
-    rules =
-      language_tag
-      |> collation_chain()
-      |> Enum.find_value(&preferred_rules(Map.get(tailorings, {&1, type}), prefer))
+    language_tag
+    |> collation_chain()
+    |> Enum.find_value(&source_form(&1, Map.get(tailorings, {&1, type}), prefer))
+  end
 
-    if is_nil(rules) do
-      nil
-    else
-      build_tailoring(rules)
+  defp source_form(_locale_id, nil, _prefer) do
+    nil
+  end
+
+  defp source_form(locale_id, forms, prefer) do
+    cond do
+      Map.has_key?(forms, prefer) -> {locale_id, prefer, Map.fetch!(forms, prefer)}
+      Map.has_key?(forms, :standard) -> {locale_id, :standard, Map.fetch!(forms, :standard)}
+      true -> nil
     end
   end
 

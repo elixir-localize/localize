@@ -248,19 +248,31 @@ defmodule Localize.Collation.Table do
 
   * `overlay` - a tailoring overlay map, or `nil` for root-only lookups.
 
+  * `contractions` - the overlay's `contraction_index/1`, or `nil` to build
+    it for this call.
+
   ### Returns
 
   Same as `longest_match/1`.
 
   """
-  @spec longest_match_with_overlay([non_neg_integer()], map() | nil) ::
+  @spec longest_match_with_overlay([non_neg_integer()], map() | nil, map() | nil) ::
           {[non_neg_integer()], [Element.t()], [non_neg_integer()]}
           | {:unmapped, non_neg_integer(), [non_neg_integer()]}
           | :done
-  def longest_match_with_overlay(codepoints, nil), do: longest_match(codepoints)
+  def longest_match_with_overlay(codepoints, overlay, contractions \\ nil)
 
-  def longest_match_with_overlay([cp | rest] = _codepoints, overlay) when is_map(overlay) do
-    overlay_max_len = overlay_max_contraction_length(cp, overlay)
+  def longest_match_with_overlay(codepoints, nil, _contractions), do: longest_match(codepoints)
+
+  # Without an index, one is built for this call. `Localize.Collation`
+  # passes the one built with the tailoring, so a lookup reads one entry.
+  def longest_match_with_overlay(codepoints, overlay, nil) when is_map(overlay) do
+    longest_match_with_overlay(codepoints, overlay, contraction_index(overlay))
+  end
+
+  def longest_match_with_overlay([cp | rest] = _codepoints, overlay, contractions)
+      when is_map(overlay) do
+    overlay_max_len = Map.get(contractions, cp, 0)
 
     overlay_result =
       if overlay_max_len > 0 do
@@ -283,7 +295,7 @@ defmodule Localize.Collation.Table do
     end
   end
 
-  def longest_match_with_overlay([], _overlay), do: :done
+  def longest_match_with_overlay([], _overlay, _contractions), do: :done
 
   defp match_overlay_contraction(len, available, cp, rest, overlay) do
     if len <= length(available) do
@@ -303,14 +315,26 @@ defmodule Localize.Collation.Table do
     end
   end
 
-  defp overlay_max_contraction_length(cp, overlay) do
-    overlay
-    |> Map.keys()
-    |> Enum.reduce(0, fn
-      ^cp, acc -> max(acc, 1)
-      key, acc when is_tuple(key) and elem(key, 0) == cp -> max(acc, tuple_size(key))
-      _, acc -> acc
-    end)
+  @doc false
+  # For each code point that begins a key of a tailoring overlay, the length
+  # of the longest key it begins, so that a longest-match lookup tries only
+  # the lengths that can match rather than reading every key of the overlay.
+  @spec contraction_index(map()) :: %{non_neg_integer() => pos_integer()}
+  def contraction_index(overlay) when is_map(overlay) do
+    Enum.reduce(overlay, %{}, fn {key, _elements}, index -> index_key(key, index) end)
+  end
+
+  defp index_key(codepoint, index) when is_integer(codepoint) do
+    Map.update(index, codepoint, 1, &max(&1, 1))
+  end
+
+  defp index_key(key, index) when is_tuple(key) and tuple_size(key) > 0 do
+    length = tuple_size(key)
+    Map.update(index, elem(key, 0), length, &max(&1, length))
+  end
+
+  defp index_key(_key, index) do
+    index
   end
 
   # GenServer
