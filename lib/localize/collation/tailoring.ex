@@ -38,14 +38,21 @@ defmodule Localize.Collation.Tailoring do
   # primary and before the implicit weights of the Han characters they do
   # not name, which begin at 0xFB40. The table's regular primaries end at
   # 0xFB20, so there is no room for the 102,615 entries of zh stroke as
-  # single 16-bit primaries. Those rules are built from an anchor above the
-  # 16-bit range, where they can neither collide with a real primary nor
-  # overflow, and are then written as two elements each, as UTS #10 writes
-  # an implicit weight: a lead in 0xFB21..0xFB3F carrying the secondary and
-  # tertiary weights, then a trail in 0x8000..0xFFFF. The 31 leads give
-  # 1,015,808 places, so the pairs sort after every regular character and
-  # before the untailored Han.
-  @synthetic_last_regular 0x100000
+  # single 16-bit primaries.
+  #
+  # Such a rule is given a position rather than a weight while the rules
+  # are applied: `{:tailored, path}`, where paths compare as lists. A
+  # relation after a relation increments the last component; a relation
+  # after a reset to a position inserts below it, `path ++ [-index, 1]`, so
+  # that `&虫<重庆` falls between 虫 and the character after it, and a later
+  # insertion at the same place sorts before an earlier one, as TR35 has
+  # it. Once every rule is applied the positions are numbered in order and
+  # each is written as two elements, as UTS #10 writes an implicit weight:
+  # a lead in 0xFB21..0xFB3F carrying the secondary and tertiary weights,
+  # then a trail in 0x8000..0xFFFF. The 31 leads give 1,015,808 places, so
+  # the pairs sort after every regular character and before the untailored
+  # Han.
+  @last_regular_position {:tailored, [0]}
 
   @tailored_first_lead 0xFB21
 
@@ -332,7 +339,7 @@ defmodule Localize.Collation.Tailoring do
     overlay =
       ordering_ops
       |> apply_operations()
-      |> Map.new(fn {key, elements} -> {key, Enum.flat_map(elements, &encode_primary/1)} end)
+      |> encode_positions()
 
     {overlay, option_overrides}
   end
@@ -548,9 +555,8 @@ defmodule Localize.Collation.Tailoring do
   defp parse_operator("<"), do: {:primary, false}
   defp parse_operator("="), do: {:identical, false}
 
-  # Split "chars/expansion" — for now we record the target chars
-  # and ignore the expansion (expansion support requires changes
-  # to the collation engine to generate expansion sort keys).
+  # Splits "chars/extension" into the relation string and its extension
+  # string (TR35 "Expansions").
   defp split_expansion(str) do
     str = String.trim(str)
 
@@ -589,89 +595,99 @@ defmodule Localize.Collation.Tailoring do
     Table.ensure_loaded()
 
     {overlay, _state} =
-      Enum.reduce(ops, {%{}, nil}, fn op, {overlay, state} ->
-        apply_operation(op, overlay, state)
+      ops
+      |> Enum.with_index()
+      |> Enum.reduce({%{}, nil}, fn {op, index}, {overlay, state} ->
+        apply_operation(op, index, overlay, state)
       end)
 
     overlay
   end
 
-  defp apply_operation({:reset, cps}, overlay, _state) do
-    elements = lookup_elements(cps)
-    {overlay, {:after, elements}}
+  # The state is `{:after, elements, insertion}`: the elements of the
+  # position the next relation is placed after, and, when that position
+  # was set by a reset, the reset's insertion component (see
+  # `@last_regular_position`), or `nil` after a relation. A reset is
+  # mapped according to the rules applied so far, as TR35 has it, so
+  # `&cs<<<ccs/cs` resets to the Hungarian letter cs.
+  defp apply_operation({:reset, cps}, index, overlay, _state) do
+    {overlay, {:after, current_elements(cps, overlay), -index}}
   end
 
-  defp apply_operation({:reset_before, level, cps}, overlay, _state) do
-    elements = lookup_elements(cps)
-    adjusted = adjust_before(elements, level)
-    {overlay, {:after, adjusted}}
+  defp apply_operation({:reset_before, level, cps}, index, overlay, _state) do
+    adjusted = adjust_before(current_elements(cps, overlay), level)
+    {overlay, {:after, adjusted, -index}}
   end
 
-  # Positional anchors like `&[last regular]` or `&[first
-  # primary ignorable]`. Semantically these insert subsequent
-  # `<X<Y...` rules at a specific boundary in the primary-weight
-  # spectrum. We map each anchor to a synthetic element whose
-  # primary is outside the DUCET range so subsequent `<*` rules
-  # get incrementing primaries that won't collide with real
-  # DUCET entries. This unlocks thousands of Han ordering rules
-  # in the CJK tailorings (pinyin, stroke, zhuyin).
-  defp apply_operation({:reset_special, anchor_str}, overlay, _state) do
-    elements = synthetic_anchor_elements(anchor_str)
-    {overlay, {:after, elements}}
+  # Positional anchors like `&[last regular]` or `&[first primary
+  # ignorable]` insert the rules that follow at a boundary of the primary
+  # weights; see `synthetic_anchor_elements/1`.
+  defp apply_operation({:reset_special, anchor_str}, index, overlay, _state) do
+    {overlay, {:after, synthetic_anchor_elements(anchor_str), -index}}
   end
 
-  # Expansion: target sorts at `level` relative to the
-  # expansion's collation elements. E.g., ccs/cs means
-  # ccs produces the same elements as cs but at tertiary
-  # level below.
-  defp apply_operation({level, target_cps, expansion_cps}, overlay, _state)
-       when level in [:primary, :secondary, :tertiary, :identical] do
-    expansion_key = Parser.codepoints_to_key(expansion_cps)
-
-    expansion_elements =
-      case Map.get(overlay, expansion_key) do
-        nil -> lookup_elements(expansion_cps)
-        elements -> elements
-      end
-
-    new_elements =
-      if level == :identical do
-        expansion_elements
-      else
-        compute_tailored_elements(expansion_elements, level)
-      end
-
+  # A relation with an extension string (TR35 "Expansions"): the relation
+  # string's elements are placed at `level` after the current position, as
+  # for any relation, and the extension's elements, as they are mapped so
+  # far, are appended unchanged. Only the regular elements are the position
+  # for the next relation. `&虫<重庆/庆` places 重庆 primary-after 虫,
+  # followed by the elements of 庆, and `&cs<<<ccs/cs` makes Hungarian ccs a
+  # tertiary variant of cs followed by cs.
+  defp apply_operation(
+         {:identical, target_cps, extension_cps},
+         _index,
+         overlay,
+         {:after, anchor_elements, _insertion} = state
+       ) do
     key = Parser.codepoints_to_key(target_cps)
-    new_overlay = Map.put(overlay, key, new_elements)
-    {new_overlay, {:after, new_elements}}
+    elements = anchor_elements ++ extension_elements(extension_cps, overlay)
+
+    {Map.put(overlay, key, elements), state}
   end
 
-  # Identical (=): target gets the same elements as the anchor
-  defp apply_operation({:identical, cps}, overlay, {:after, anchor_elements} = state) do
-    key = Parser.codepoints_to_key(cps)
-    new_overlay = Map.put(overlay, key, anchor_elements)
-    # State stays the same — next entry still relative to anchor
-    {new_overlay, state}
+  defp apply_operation(
+         {level, target_cps, extension_cps},
+         _index,
+         overlay,
+         {:after, anchor_elements, insertion}
+       )
+       when level in [:primary, :secondary, :tertiary] do
+    regular_elements = compute_tailored_elements(anchor_elements, level, insertion)
+    key = Parser.codepoints_to_key(target_cps)
+    elements = regular_elements ++ extension_elements(extension_cps, overlay)
+
+    {Map.put(overlay, key, elements), {:after, regular_elements, nil}}
   end
 
-  defp apply_operation({:identical, _cps}, overlay, nil) do
+  defp apply_operation({level, _target_cps, _extension_cps}, _index, overlay, nil)
+       when level in [:primary, :secondary, :tertiary, :identical] do
     {overlay, nil}
   end
 
-  defp apply_operation({level, cps}, overlay, {:after, anchor_elements})
-       when level in [:primary, :secondary, :tertiary] do
-    new_elements = compute_tailored_elements(anchor_elements, level)
+  # Identical (=): the target takes the position's elements, and the
+  # position is unchanged for the next relation.
+  defp apply_operation({:identical, cps}, _index, overlay, {:after, anchor_elements, _} = state) do
     key = Parser.codepoints_to_key(cps)
-    new_overlay = Map.put(overlay, key, new_elements)
-    {new_overlay, {:after, new_elements}}
+    {Map.put(overlay, key, anchor_elements), state}
   end
 
-  defp apply_operation({level, _cps}, overlay, nil)
+  defp apply_operation({:identical, _cps}, _index, overlay, nil) do
+    {overlay, nil}
+  end
+
+  defp apply_operation({level, cps}, _index, overlay, {:after, anchor_elements, insertion})
+       when level in [:primary, :secondary, :tertiary] do
+    new_elements = compute_tailored_elements(anchor_elements, level, insertion)
+    key = Parser.codepoints_to_key(cps)
+    {Map.put(overlay, key, new_elements), {:after, new_elements, nil}}
+  end
+
+  defp apply_operation({level, _cps}, _index, overlay, nil)
        when level in [:primary, :secondary, :tertiary] do
     {overlay, nil}
   end
 
-  defp apply_operation(other, overlay, state) do
+  defp apply_operation(other, _index, overlay, state) do
     require Logger
 
     Logger.debug(
@@ -680,6 +696,40 @@ defmodule Localize.Collation.Tailoring do
     )
 
     {overlay, state}
+  end
+
+  # A reset's elements as the rules applied so far map it: the tailored
+  # elements of the string, whose overlay key is its NFD form, or else
+  # those of the base table.
+  defp current_elements(cps, overlay) do
+    key =
+      cps
+      |> List.to_string()
+      |> :unicode.characters_to_nfd_binary()
+      |> String.to_charlist()
+      |> Parser.codepoints_to_key()
+
+    case Map.get(overlay, key) do
+      nil -> lookup_elements(cps)
+      elements -> elements
+    end
+  end
+
+  # The extension's elements as the tailoring maps them so far: the whole
+  # extension if it is tailored, else each code point's tailored or base
+  # elements.
+  defp extension_elements(cps, overlay) do
+    case Map.get(overlay, Parser.codepoints_to_key(cps)) do
+      nil -> Enum.flat_map(cps, &codepoint_elements(&1, overlay))
+      elements -> elements
+    end
+  end
+
+  defp codepoint_elements(cp, overlay) do
+    case Map.get(overlay, Parser.codepoints_to_key([cp])) do
+      nil -> lookup_elements([cp])
+      elements -> elements
+    end
   end
 
   defp lookup_elements(cps) do
@@ -706,7 +756,7 @@ defmodule Localize.Collation.Tailoring do
 
     adjusted =
       case level do
-        1 -> {p - 1, s, t, v}
+        1 -> {primary_before(p), s, t, v}
         2 -> {p, s - 1, t, v}
         3 -> {p, s, t - 1, v}
       end
@@ -714,7 +764,7 @@ defmodule Localize.Collation.Tailoring do
     init ++ [adjusted]
   end
 
-  defp compute_tailored_elements([], level) do
+  defp compute_tailored_elements([], level, _insertion) do
     # Fallback for unmapped anchors — use a synthetic element
     case level do
       :primary -> [Element.new(1, 0x0020, 0x0002)]
@@ -723,34 +773,75 @@ defmodule Localize.Collation.Tailoring do
     end
   end
 
-  defp compute_tailored_elements(anchor_elements, :primary) do
+  defp compute_tailored_elements(anchor_elements, :primary, insertion) do
     {init, [{p, _s, _t, v}]} = Enum.split(anchor_elements, -1)
-    init ++ [{p + 1, 0x0020, 0x0002, v}]
+    init ++ [{primary_after(p, insertion), 0x0020, 0x0002, v}]
   end
 
-  defp compute_tailored_elements(anchor_elements, :secondary) do
+  defp compute_tailored_elements(anchor_elements, :secondary, _insertion) do
     {init, [{p, s, _t, v}]} = Enum.split(anchor_elements, -1)
     init ++ [{p, s + 1, 0x0002, v}]
   end
 
-  defp compute_tailored_elements(anchor_elements, :tertiary) do
+  defp compute_tailored_elements(anchor_elements, :tertiary, _insertion) do
     {init, [{p, s, t, v}]} = Enum.split(anchor_elements, -1)
     init ++ [{p, s, t + 1, v}]
   end
 
-  # A primary built from the `[last regular]` anchor is written as a lead
-  # and a trail; every other element is written as it is. The lead is
-  # bounded so that the pair never reaches the implicit Han weights.
-  defp encode_primary({primary, secondary, tertiary, variable})
-       when primary >= @synthetic_last_regular do
-    offset = primary - @synthetic_last_regular
-    lead = min(@tailored_first_lead + div(offset, @tailored_trail_span), @tailored_last_lead)
-    trail = @tailored_trail_base + rem(offset, @tailored_trail_span)
+  # The primary after a position: the next sibling after a relation, a new
+  # child below it after a reset. A base weight is followed by the next.
+  defp primary_after({:tailored, path}, nil) do
+    {init, [last]} = Enum.split(path, -1)
+    {:tailored, init ++ [last + 1]}
+  end
+
+  defp primary_after({:tailored, path}, insertion) do
+    {:tailored, path ++ [insertion, 1]}
+  end
+
+  defp primary_after(primary, _insertion) do
+    primary + 1
+  end
+
+  # The primary just before a position: after every descendant of the
+  # previous sibling, which `:infinity`, sorting after every integer, gives.
+  defp primary_before({:tailored, path}) do
+    {init, [last]} = Enum.split(path, -1)
+    {:tailored, init ++ [last - 1, :infinity]}
+  end
+
+  defp primary_before(primary) do
+    primary - 1
+  end
+
+  # Numbers the positions in order and writes each as a lead and a trail.
+  defp encode_positions(overlay) do
+    numbers =
+      for {_key, elements} <- overlay,
+          {{:tailored, path}, _secondary, _tertiary, _variable} <- elements,
+          uniq: true do
+        path
+      end
+      |> Enum.sort()
+      |> Enum.with_index()
+      |> Map.new()
+
+    Map.new(overlay, fn {key, elements} ->
+      {key, Enum.flat_map(elements, &encode_primary(&1, numbers))}
+    end)
+  end
+
+  # The lead is bounded so that the pair never reaches the implicit Han
+  # weights.
+  defp encode_primary({{:tailored, path}, secondary, tertiary, variable}, numbers) do
+    number = Map.fetch!(numbers, path)
+    lead = min(@tailored_first_lead + div(number, @tailored_trail_span), @tailored_last_lead)
+    trail = @tailored_trail_base + rem(number, @tailored_trail_span)
 
     [{lead, secondary, tertiary, variable}, {trail, 0, 0, variable}]
   end
 
-  defp encode_primary(element) do
+  defp encode_primary(element, _numbers) do
     [element]
   end
 
@@ -761,7 +852,7 @@ defmodule Localize.Collation.Tailoring do
     primary =
       cond do
         String.contains?(str, "[last regular]") ->
-          @synthetic_last_regular
+          @last_regular_position
 
         String.contains?(str, "[first regular]") ->
           @synthetic_first_regular
@@ -785,7 +876,7 @@ defmodule Localize.Collation.Tailoring do
           @synthetic_first_tertiary_ignorable
 
         true ->
-          @synthetic_last_regular
+          @last_regular_position
       end
 
     [Element.new(primary, 0x0020, 0x0002)]

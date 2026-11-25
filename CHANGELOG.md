@@ -18,6 +18,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+* Collation applies a tailoring's expansions (`&虫<重庆/庆`) after the current position, and maps a reset by the rules applied so far, as TR35 specifies. So 重庆 sorts as chóng, Hungarian ccs as a doubled cs, and þ beside th in Swedish, Norwegian, Faroese, Greenlandic and traditional Finnish, all as ICU sorts them.
+
 * Chinese collation uses CLDR's full pinyin, stroke and zhuyin rules, where the short forms had replaced them, and an unconfirmed proposal no longer replaces approved rules (`es` traditional, `fo`, `gu`, `hu`, `sl`, `sq`). Tailored Han sorts after every regular character, where it was interleaved with other scripts.
 
 * Collation takes a locale's default type from CLDR's `defaultCollation`, so `zh` sorts by pinyin and `zh-Hant` by stroke count, where both sorted in root order. Tailorings inherit along TR35's collation chain, so `zh-Hant`, `zh-Hant-HK` and `yue` take `zh`'s rules, where they had none.

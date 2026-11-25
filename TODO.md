@@ -4,7 +4,7 @@ Outstanding work on Localize. The design detail behind these items lives under [
 
 ## Open
 
-* [ ] **Expansions in collation tailorings** — a rule's `/` expansion is ignored, and the contraction is placed after the expansion's target: CLDR's `&虫<重庆/庆` should sort 重庆 (Chongqing) as chóng, after 虫, and it sorts after 庆.
+* [ ] **Context before in collation tailorings** — TR35's `|` (a prefix such as `う|ゝ`, ゝ after う) is not parsed, so the 47 such rules in `ja`, for the kana iteration marks ゝゞヽヾ, produce keys that never match and the marks stay untailored.
 
 * [ ] **Settle the runtime `:persistent_term` writes under rule 14** — about forty sites write at runtime: per-locale data and caches, constants computed on first use, configuration setters and warn-once flags. Needs a decision on per-locale data; the options and their measured costs are in [plans/persistent-term-writes.md](plans/persistent-term-writes.md).
 
@@ -71,6 +71,8 @@ Outstanding work on Localize. The design detail behind these items lives under [
 * [ ] **`localize_emoji` sibling library** — plan item 11, a separate package on its own schedule. A Phoenix LiveView picker (`localize_emoji_live`) is out of scope for its 0.1.0.
 
 ## Done
+
+* [x] **Expansions in collation tailorings** — a relation's extension (`/`) is appended after elements placed from the current position, and resets map by the rules applied so far; tailored positions are fractional paths numbered at the end, so `&虫<重庆/庆` lands between 虫 and 崇. Matches ICU for zh, hu, sv, no, fo, fi traditional and es. 2026-11-25.
 
 * [x] **Collation `alt` forms** — the generator keeps CLDR's `alt="short"` forms beside the full ones and `:prefer` chooses between them; drafts below `contributed` and proposals are left out; `[last regular]` tailorings are written as a lead and a trail between the regular and the implicit weights, so the full zh rules fit 16 bits. 2026-11-25.
 
