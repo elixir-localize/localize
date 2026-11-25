@@ -264,6 +264,141 @@ defmodule Localize.Locale do
   end
 
   @doc """
+  Returns a locale's fallback chain: the CLDR locale and each of its parents, in the order to try them.
+
+  An application that keeps text by locale, such as a table of translations keyed by language, looks a key up in each locale of the chain until one has it: `fr-CA` then `fr`, or `en-AU` then `en-001` then `en`. The chain follows CLDR's parent locales, which are not always the truncation of the identifier: `pt-AO` falls back to `pt-PT` before `pt`, and `zh-Hant-HK` to `zh-Hant`, never to `zh`, whose script differs.
+
+  Each entry is the CLDR locale whose data a step resolves to, as `Localize.validate_locale/1` resolves it, so the chain lists the locales Localize is configured for: with only `en` and `fr` configured, `fr-CA` gives `[:fr]`. The root locale, `und`, holds no text of its own and is left out, so a locale that resolves to it gives an empty chain.
+
+  ### Arguments
+
+  * `locale` is a locale identifier string or atom, or a `t:Localize.LanguageTag.t/0`.
+
+  * `options` is a keyword list of options.
+
+  ### Options
+
+  * `:supported` is a list of locales to keep, as locale identifier atoms or strings or `t:Localize.LanguageTag.t/0`, so a chain lists only the locales text is kept for. An entry that is not a valid locale is ignored. The default is `nil`, which keeps the whole chain.
+
+  ### Returns
+
+  * `{:ok, chain}`, where `chain` is a list of CLDR locale id atoms, nearest first, or
+
+  * `{:error, exception}` when `locale` is not a valid locale or an option is not valid.
+
+  ### Examples
+
+      iex> Localize.Locale.fallback_chain("fr-CA")
+      {:ok, [:"fr-CA", :fr]}
+
+      iex> Localize.Locale.fallback_chain("en-AU")
+      {:ok, [:"en-AU", :"en-001", :en]}
+
+      iex> Localize.Locale.fallback_chain("zh-HK")
+      {:ok, [:"zh-Hant-HK", :"zh-Hant"]}
+
+      iex> Localize.Locale.fallback_chain("en-AU", supported: [:en, :fr])
+      {:ok, [:en]}
+
+  """
+  @doc since: "1.10.0"
+  @spec fallback_chain(LanguageTag.t() | String.t() | atom(), Keyword.t()) ::
+          {:ok, [atom()]} | {:error, Exception.t()}
+  def fallback_chain(locale, options \\ [])
+
+  def fallback_chain(nil, options) when is_list(options) do
+    {:error, Localize.InvalidLocaleError.exception(locale_id: "nil")}
+  end
+
+  def fallback_chain(locale, options) when is_list(options) do
+    with {:ok, supported} <- chain_supported(Keyword.get(options, :supported)),
+         {:ok, tag} <- Localize.validate_locale(locale) do
+      {:ok, tag |> locale_chain() |> keep_supported(supported)}
+    end
+  end
+
+  def fallback_chain(_locale, options) do
+    {:error, Localize.Utils.Helpers.invalid_options(options)}
+  end
+
+  # A locale that resolves to the root has no data of its own and no
+  # chain; any other walks its parents until the root, which is left out.
+  defp locale_chain(%LanguageTag{cldr_locale_id: :und}) do
+    []
+  end
+
+  defp locale_chain(%LanguageTag{cldr_locale_id: locale_id} = tag) do
+    tag
+    |> walk_chain([locale_id])
+    |> Enum.uniq()
+  end
+
+  defp walk_chain(%LanguageTag{} = tag, acc) do
+    case parent(tag) do
+      {:ok, parent} -> walk_chain_parent(parent, acc)
+      {:error, _root_has_no_parent} -> Enum.reverse(acc)
+    end
+  end
+
+  defp walk_chain_parent(%LanguageTag{language: :und, script: nil, territory: nil}, acc) do
+    Enum.reverse(acc)
+  end
+
+  defp walk_chain_parent(%LanguageTag{} = parent, acc) do
+    case cldr_locale_id_from(parent) do
+      {:ok, :und} -> Enum.reverse(acc)
+      {:ok, locale_id} -> walk_chain(parent, [locale_id | acc])
+      {:error, _exception} -> Enum.reverse(acc)
+    end
+  end
+
+  defp keep_supported(chain, nil) do
+    chain
+  end
+
+  defp keep_supported(chain, supported) do
+    Enum.filter(chain, &MapSet.member?(supported, &1))
+  end
+
+  defp chain_supported(nil) do
+    {:ok, nil}
+  end
+
+  defp chain_supported(supported) when is_list(supported) do
+    ids =
+      Enum.flat_map(supported, fn locale ->
+        case supported_locale_id(locale) do
+          {:ok, locale_id} -> [locale_id]
+          {:error, _exception} -> []
+        end
+      end)
+
+    {:ok, MapSet.new(ids)}
+  end
+
+  defp chain_supported(supported) do
+    {:error,
+     Localize.InvalidValueError.exception(
+       value: supported,
+       expected: "a list of locales for the :supported option"
+     )}
+  end
+
+  # A supported entry is compared by the CLDR locale it names: an atom is
+  # taken as the locale id it is, and anything else is resolved.
+  defp supported_locale_id(locale) when is_atom(locale) and not is_nil(locale) do
+    {:ok, locale}
+  end
+
+  defp supported_locale_id(nil) do
+    {:error, Localize.InvalidLocaleError.exception(locale_id: "nil")}
+  end
+
+  defp supported_locale_id(locale) do
+    cldr_locale_id_from(locale)
+  end
+
+  @doc """
   Returns the direction in which a locale's text is written.
 
   The direction is that of the locale's script, as CLDR's script

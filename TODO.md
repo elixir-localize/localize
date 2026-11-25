@@ -6,8 +6,6 @@ Outstanding work on Localize. The design detail behind these items lives under [
 
 * [ ] **MF2 `:relativeTime` function** — "3 days ago" inside a message, from `Localize.DateTime.Relative`, as a namespaced extension like the `i:*` functions. From the Mishka CMS review, 2026-11-25.
 
-* [ ] **Public locale fallback chain** — `Localize.Locale.parent/1` gives one step; a function returning the whole CLDR chain (`fr-CA` → `fr` → root) for key-and-language translation tables. `localize_translate` builds one internally. From the Mishka CMS review, 2026-11-25.
-
 * [ ] **Migration from Gettext's `%{}` syntax to MF2** — a tool that rewrites `.pot`/`.po` msgids and msgstrs and source calls from `%{name}` to `{$name}`, and `ngettext` pairs to `.match`. From the Mishka CMS review, 2026-11-25.
 
 * [ ] **Context before in collation tailorings** — TR35's `|` (a prefix such as `う|ゝ`, ゝ after う) is not parsed, so the 47 such rules in `ja`, for the kana iteration marks ゝゞヽヾ, produce keys that never match and the marks stay untailored.
@@ -77,6 +75,8 @@ Outstanding work on Localize. The design detail behind these items lives under [
 * [ ] **`localize_emoji` sibling library** — plan item 11, a separate package on its own schedule. A Phoenix LiveView picker (`localize_emoji_live`) is out of scope for its 0.1.0.
 
 ## Done
+
+* [x] **Public locale fallback chain** — `Localize.Locale.fallback_chain/2`, moved from `localize_translate`'s `locale_chain/2` (same chains on 32 locales checked against it); `localize_translate` is to call it once 1.10 is on hex. 2026-11-25.
 
 * [x] **Parse an MF2 message once** — `Localize.Message.parse/2` returns a `Localize.Message.Parsed` that the format functions take; formatting skips parsing and data-model validation (127 → 67 µs on a plural message). 2026-11-25.
 
