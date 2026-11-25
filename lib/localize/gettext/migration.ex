@@ -54,7 +54,7 @@ defmodule Localize.Gettext.Migration do
 
   ### Arguments
 
-  * `messages` is a catalog as `Expo.PO.parse_file/2` or `Expo.PO.parse_string/2` returns it.
+  * `catalog` is a catalog as `Expo.PO.parse_file/2` or `Expo.PO.parse_string/2` returns it.
 
   * `options` is a keyword list of options.
 
@@ -72,7 +72,7 @@ defmodule Localize.Gettext.Migration do
 
   * `{:ok, messages, renames}`, where `messages` is the converted catalog and `renames` lists each msgid and plural msgid that changed, with its context, in the order they appear, or
 
-  * `{:error, exception}` when `messages` is not an `Expo.Messages` struct.
+  * `{:error, exception}` when `catalog` is not an `Expo.Messages` struct or an option is not valid.
 
   ### Examples
 
@@ -116,15 +116,21 @@ defmodule Localize.Gettext.Migration do
 
   ### Arguments
 
-  * `messages` is a catalog as `Expo.PO.parse_file/2` returns it.
+  * `catalog` is a catalog as `Expo.PO.parse_file/2` or `Expo.PO.parse_string/2` returns it.
 
-  * `options` is a keyword list of the `:locale` and `:source_locale` options `convert/2` takes.
+  * `options` is a keyword list of options.
+
+  ### Options
+
+  * `:locale` is the catalog's language, for its plural forms. The default is its `Language` header.
+
+  * `:source_locale` is the language msgids are written in. The default is `"en"`.
 
   ### Returns
 
   * `{:ok, keys}`, a set of `t:plural_key/0`, or
 
-  * `{:error, exception}` when `messages` is not an `Expo.Messages` struct or an option is not valid.
+  * `{:error, exception}` when `catalog` is not an `Expo.Messages` struct or an option is not valid.
 
   ### Examples
 

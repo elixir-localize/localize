@@ -2011,6 +2011,7 @@ defmodule Localize do
   """
   @spec validate_locale(Localize.LanguageTag.t() | String.t() | atom()) ::
           {:ok, Localize.LanguageTag.t()} | {:error, Exception.t()}
+  def validate_locale(locale)
 
   # A struct built by hand can carry fields of the wrong shape, which are
   # reported as an invalid locale rather than raised on.
