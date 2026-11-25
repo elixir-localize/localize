@@ -25,7 +25,7 @@ Localize.Number.to_string(1234.5, format: :currency, currency: :USD)
 Localize.Number.to_string(-1234.56, format: :accounting, currency: :USD)   # negatives in parens
 #=> {:ok, "($1,234.56)"}
 Localize.Number.to_string(1234, format: :currency_long, currency: :USD)
-#=> {:ok, "1,234 US dollars"}
+#=> {:ok, "1,234.00 US dollars"}
 Localize.Number.to_string(1234, format: :currency_long_with_symbol, currency: :USD)
 #=> {:ok, "$1,234.00 US dollars"}
 Localize.Number.to_string(0.456, format: :percent)                         # multiplies by 100
@@ -150,15 +150,15 @@ The `.` and `,` in patterns are placeholders — the locale substitutes its own 
 
 ## Number systems
 
-`:number_system` takes a system name (`:latn`, `:arab`, `:thai`, ...) or a type (`:default`, `:native`). A system must be valid for the locale — `:thai` digits with an English locale is an error. The `-u-nu-` locale extension does the same thing and travels with the locale.
+`:number_system` takes a system name (`:latn`, `:arab`, `:thai`, ...) or a type (`:default`, `:native`). Any CLDR numbering system works with any locale, taking the locale's separators: `:thai` digits in English are "๑,๒๓๔". An unknown system name is an error. The `-u-nu-` locale extension does the same thing and travels with the locale.
 
 ```elixir
 Localize.Number.to_string(1234, number_system: :thai, locale: :th)
 #=> {:ok, "๑,๒๓๔"}
 Localize.Number.to_string(1234, locale: "ar-u-nu-arab")                      # plain :ar defaults to latn digits
 #=> {:ok, "١٬٢٣٤"}
-Localize.Number.to_string(1234, number_system: :thai)
-#=> {:error, %Localize.UnknownNumberSystemError{number_system: :thai, locale: :en, reason: :not_for_locale}}
+Localize.Number.to_string(1234, number_system: :thai)                       # any system, any locale
+#=> {:ok, "๑,๒๓๔"}
 ```
 
 ## Per-locale differences

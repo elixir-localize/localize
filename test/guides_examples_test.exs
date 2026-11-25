@@ -1,6 +1,7 @@
 defmodule Localize.GuidesExamplesTest do
   @moduledoc """
-  Executes every `iex>` example in the README and the guides.
+  Executes every `iex>` example in the README and the guides, and every
+  `#=>`-annotated example in the Claude Code skill and the cheatsheets.
 
   Those files carry more example code than the module docs do — 600-odd
   examples — and none of it is reachable by `doctest`. The definition-of-done
@@ -59,6 +60,75 @@ defmodule Localize.GuidesExamplesTest do
     |> Enum.reduce({[], nil, nil}, &classify/2)
     |> flush()
     |> Enum.reverse()
+  end
+
+  # The skill and the cheatsheets write an example as code with its result
+  # on a `#=>` line beneath it, or after it on the same line. Only an
+  # `elixir` fence holding a `#=>` is read, so a fence of configuration is
+  # not run, and not one whose results annotate indented lines, the body
+  # of a module shown for illustration. Within a fence, the lines since the
+  # last result or blank line are one example: a `#=>` documents its
+  # result, and a blank line ends an example that documents none, such as
+  # one binding a value for the next.
+  @doc false
+  def extract_annotated(path) do
+    path
+    |> File.read!()
+    |> elixir_fences()
+    |> Enum.filter(&annotated_fence?/1)
+    |> Enum.flat_map(&annotated_examples/1)
+  end
+
+  defp elixir_fences(text) do
+    ~r/^```elixir\n(.*?)^```/ms
+    |> Regex.scan(text, capture: :all_but_first)
+    |> List.flatten()
+  end
+
+  defp annotated_fence?(fence) do
+    String.contains?(fence, "#=>") and not Regex.match?(~r/^\s+[^\s#].*#=>/m, fence)
+  end
+
+  defp annotated_examples(fence) do
+    {examples, _chunk} =
+      fence
+      |> String.split("\n")
+      |> Enum.reduce({[], []}, &annotate/2)
+      |> close_chunk(nil)
+
+    Enum.reverse(examples)
+  end
+
+  defp annotate(line, {examples, chunk}) do
+    trimmed = String.trim(line)
+
+    cond do
+      String.starts_with?(trimmed, "#=>") ->
+        close_chunk({examples, chunk}, strip(trimmed, "#=>"))
+
+      String.contains?(line, "#=>") ->
+        [code, result] = String.split(line, "#=>", parts: 2)
+        close_chunk({examples, [code | chunk]}, String.trim(result))
+
+      trimmed == "" ->
+        close_chunk({examples, chunk}, nil)
+
+      true ->
+        {examples, [line | chunk]}
+    end
+  end
+
+  defp close_chunk({examples, []}, _documented) do
+    {examples, []}
+  end
+
+  defp close_chunk({examples, chunk}, documented) do
+    expression =
+      chunk
+      |> Enum.reverse()
+      |> Enum.join("\n")
+
+    {[{expression, documented} | examples], []}
   end
 
   # Walks the file a line at a time, accumulating {examples, expression,
@@ -163,31 +233,43 @@ defmodule Localize.GuidesExamplesTest do
     @path path
 
     test "every example in #{path} still produces what it documents" do
-      examples = extract(@path)
+      check_examples(@path, extract(@path))
+    end
+  end
 
-      # Examples in a file run in sequence and may bind for the next one,
-      # exactly as a doctest block does.
-      Localize.put_locale(Localize.default_locale())
+  for path <- Path.wildcard("skills/**/*.md") ++ Path.wildcard("cheatsheets/*.md") do
+    @path path
 
-      # An example may print, as the `IO.puts(ansi)` one in the message
-      # formatting guide does. Its output is captured, as a doctest's would
-      # be, so it does not land in the middle of the test run.
-      {{failures, checked, _binding}, _output} =
-        ExUnit.CaptureIO.with_io(fn ->
-          Enum.reduce(examples, {[], 0, []}, fn {expression, documented}, {bad, n, binding} ->
-            if excused?(expression) do
-              {bad, n, binding}
-            else
-              evaluate(expression, documented, bad, n, binding)
-            end
-          end)
-        end)
+    test "every annotated example in #{path} still produces what it documents" do
+      check_examples(@path, extract_annotated(@path))
+    end
+  end
 
-      assert failures == [],
-             "#{@path}: #{length(failures)} of #{checked} examples no longer match.\n\n" <>
-               Enum.map_join(Enum.reverse(failures), "\n\n", fn {expression, documented, actual} ->
-                 "  iex> #{expression}\n  documented: #{inspect(documented)}\n  actual:     #{String.slice(actual, 0, 200)}"
-               end)
+  defp check_examples(path, examples) do
+    # Examples in a file run in sequence and may bind for the next one,
+    # exactly as a doctest block does.
+    Localize.put_locale(Localize.default_locale())
+
+    # An example may print, as the `IO.puts(ansi)` one in the message
+    # formatting guide does. Its output is captured, as a doctest's would
+    # be, so it does not land in the middle of the test run.
+    {{failures, checked, _binding}, _output} =
+      ExUnit.CaptureIO.with_io(fn ->
+        Enum.reduce(examples, {[], 0, []}, &check_example/2)
+      end)
+
+    assert failures == [],
+           "#{path}: #{length(failures)} of #{checked} examples no longer match.\n\n" <>
+             Enum.map_join(Enum.reverse(failures), "\n\n", fn {expression, documented, actual} ->
+               "  #{expression}\n  documented: #{inspect(documented)}\n  actual:     #{String.slice(actual, 0, 200)}"
+             end)
+  end
+
+  defp check_example({expression, documented}, {bad, n, binding}) do
+    if excused?(expression) do
+      {bad, n, binding}
+    else
+      evaluate(expression, documented, bad, n, binding)
     end
   end
 end

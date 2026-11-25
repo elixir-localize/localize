@@ -38,7 +38,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 * A namespaced option, such as `acme:style=fancy`, given to an application's MF2 function or namespace handler no longer raises `Protocol.UndefinedError`; it arrives by its written name.
 
-* `Localize.Message.format/3` with `backend: :nif` formats a message calling `:percent`, `:currency`, `:offset`, `:unit`, `:list`, an `:i:` function or an application's own function with the interpreter. ICU 78 formatted none of them, so they came back as `{$n}`.
+* `Localize.Message.format/3` with `backend: :nif` formats a message calling `:percent`, `:currency`, `:offset`, `:unit`, a `:localize:` or `:i:` function, or an application's own function with the interpreter. ICU 78 formatted none of them, so they came back as `{$n}`.
 
 * `Localize.Gettext.Interpolation` reads Gettext's own `%{name}` placeholder as an MF2 variable, so Ecto's and Ash's validation messages, and `errors.po` translations of them, interpolate. They formatted as `should be at least %count character(s)`.
 

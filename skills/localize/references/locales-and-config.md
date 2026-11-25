@@ -194,5 +194,5 @@ Localize.available_locale_id?(:en)                                 # is it a CLD
 Localize.available_locale_id?("tlh")
 #=> false
 length(Localize.all_locale_ids())                                  # the full CLDR universe (also all_locale_ids(:modern))
-#=> 766
+#=> 657
 ```

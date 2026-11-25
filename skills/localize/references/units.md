@@ -182,7 +182,7 @@ Localize.Unit.display_name("kilometer")
 #=> {:ok, "kilometers"}
 Localize.Unit.display_name("kilometer", locale: :fr)
 #=> {:ok, "kilomètres"}
-Localize.Unit.display_name("kilometer", format: :short)
+Localize.Unit.display_name("kilometer", style: :short)
 #=> {:ok, "km"}
 ```
 

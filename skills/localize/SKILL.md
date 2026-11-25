@@ -63,7 +63,7 @@ Localize.DateTime.to_string(dt, format: :yMMMdHm)              # skeleton — lo
 Localize.DateTime.to_string(dt, format: {:skeleton, "yMMMdHm"})  # the same skeleton as text (from config or a message); makes no atom
 Localize.Interval.to_string(~D[2026-07-06], ~D[2026-07-09])    # {:ok, "Jul 6 – 9, 2026"} (thin spaces around the dash)
 Localize.DateTime.Relative.to_string(-3600)                    # {:ok, "1 hour ago"}
-Localize.Duration.to_string(duration)                          # {:ok, "11 months and 30 days"}
+Localize.Duration.to_string(duration)                          # {:ok, "11 months, 30 days"}
 ```
 
 Prefer style atoms (`:short`/`:medium`/`:long`/`:full`) or skeletons (`:yMd`, `:yMMMEd`, `:Hm`) over literal pattern strings — skeletons let each locale arrange fields its own way. Read the reference for: pattern symbols, time zones, week/quarter fields, non-Gregorian calendars, `to_time_string` clock-style durations.
@@ -105,7 +105,7 @@ Read the reference for: strength levels (accent/case-insensitive matching), `ign
 
 ```elixir
 Localize.Message.format("{{Hello {$name}!}}", %{"name" => "World"})
-# {:ok, "Hello World!"}
+# {:ok, "Hello \u2068World\u2069!"} (U+2068/U+2069 isolate the placeholder)
 
 Localize.Message.format(
   ".input {$count :number}\n.match $count\n1 {{You have one file}}\n* {{You have {$count} files}}",

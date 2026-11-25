@@ -19,18 +19,19 @@ MF2 puts plural/gender/select logic inside the (translatable) message instead of
 * A message starting with `.` or `{{` is complex: `.input` / `.local` declarations first, then a `{{...}}` pattern or `.match` variants.
 * Escapes in pattern text: `\{`, `\}`, `\\`.
 * Markup: `{#b}bold{/b}`, self-closing `{#img src=|x.jpg| /}` — carried as structure, never interpreted.
+* Bidi isolation: by TR35's Default Bidi Strategy a placeholder whose direction is unknown, such as a string, is wrapped in U+2068 … U+2069, so right-to-left text cannot reorder the sentence around it. The results below show it as `\u2068` … `\u2069`. Pass `bidi: :none` where the output is not rendered text, such as a log line.
 
 ```elixir
 Localize.Message.format("Hello, {$name}!", %{"name" => "Alice"})
-#=> {:ok, "Hello, Alice!"}
+#=> {:ok, "Hello, \u2068Alice\u2069!"}
 Localize.Message.format("Hello, {$name}!", name: "Alice")                     # keyword bindings work too
-#=> {:ok, "Hello, Alice!"}
+#=> {:ok, "Hello, \u2068Alice\u2069!"}
 Localize.Message.format("{{Hello {$name}!}}", %{"name" => "World"})           # quoted pattern
-#=> {:ok, "Hello World!"}
+#=> {:ok, "Hello \u2068World\u2069!"}
 Localize.Message.format("Literal \\{brace\\} and {$x}", %{"x" => 1})
-#=> {:ok, "Literal {brace} and 1"}
+#=> {:ok, "Literal {brace} and \u20681\u2069"}
 Localize.Message.format(".local $g = {|Welcome|}\n{{Dear {$name}, {$g}!}}", %{"name" => "Jane"})
-#=> {:ok, "Dear Jane, Welcome!"}
+#=> {:ok, "Dear \u2068Jane\u2069, \u2068Welcome\u2069!"}
 ```
 
 ## format/3 options
@@ -83,17 +84,19 @@ Localize.Message.format("{$when :date style=full}", %{"when" => ~D[2026-07-06]})
 Localize.Message.format("{|2026-07-06| :date style=long}")                    # ISO literals parse
 #=> {:ok, "July 6, 2026"}
 Localize.Message.format("{$dt :datetime dateStyle=long timeStyle=short}", %{"dt" => ~N[2026-07-06 14:30:00]})
-#=> {:ok, "July 6, 2026, 2:30 PM"}
+#=> {:ok, "July 6, 2026 at 2:30 PM"}
 Localize.Message.format("{$x :string}", %{"x" => 42})                         # String.Chars coercion
-#=> {:ok, "42"}
+#=> {:ok, "\u206842\u2069"}
 Localize.Message.format("{$n :offset add=1}", %{"n" => 5})                    # also subtract=
 #=> {:ok, "6"}
-Localize.Message.format("{$items :list}", %{"items" => ["apple", "banana", "cherry"]})
-#=> {:ok, "apple, banana, and cherry"}
-Localize.Message.format("{$items :list style=or}", %{"items" => ["red", "green", "blue"]})
-#=> {:ok, "red, green, or blue"}
-Localize.Message.format("{$items :list}", %{"items" => [1234, 5678]}, locale: :de)  # elements format locale-aware
-#=> {:ok, "1.234 und 5.678"}
+Localize.Message.format("{$items :localize:list}", %{"items" => ["apple", "banana", "cherry"]})
+#=> {:ok, "\u2068apple, banana, and cherry\u2069"}
+Localize.Message.format("{$items :localize:list style=or}", %{"items" => ["red", "green", "blue"]})
+#=> {:ok, "\u2068red, green, or blue\u2069"}
+Localize.Message.format("{$items :localize:list}", %{"items" => [1234, 5678]}, locale: :de)  # elements format locale-aware
+#=> {:ok, "\u20681.234 und 5.678\u2069"}
+Localize.Message.format("{$n :localize:relativeTime unit=day}", %{"n" => -1})  # Localize's own functions are in the localize namespace
+#=> {:ok, "yesterday"}
 ```
 
 Function option summary: `:number`/`:integer`/`:offset` take `minimumFractionDigits`, `maximumFractionDigits`, `useGrouping` (`auto`/`always`/`min2`/`never`), `numberingSystem`, `select`; `:currency` requires `currency=`, plus `currencyDisplay` (`symbol`/`narrowSymbol`/`code`) and `currencySign` (`standard`/`accounting`); `:unit` takes `unit=` (unless the operand is a `Localize.Unit`) and `unitDisplay` (`long`/`short`/`narrow`); `:date`/`:time` take `style=` (`short`/`medium`/`long`/`full`); `:datetime` takes `style=`, `dateStyle=`, `timeStyle=`; `:list` takes `style=` (`and`, `or`, `unit`, each with `-short`/`-narrow` variants). The datetime output uses the locale's Unicode variant (a U+202F before AM/PM in English).
@@ -160,7 +163,7 @@ Localize.Message.format_to_safe_list("{#b}oops")
 
 ## Custom functions
 
-Implement `Localize.Message.Function` (a `format/3` callback returning `{:ok, string}` or `{:error, reason}`) and register per-call with `functions:` or globally with `config :localize, :mf2_functions, %{"name" => Module}`. Per-call beats config beats built-ins; an unknown function name silently falls back to `to_string/1`.
+Implement `Localize.Message.Function` (a `format/3` callback returning `{:ok, string}` or `{:error, reason}`) and register per-call with `functions:` or globally with `config :localize, :mf2_functions, %{"name" => Module}`. Per-call beats config beats built-ins; an unknown function name is an `:unknown_function` error.
 
 ```elixir
 defmodule Shout do
@@ -169,9 +172,9 @@ defmodule Shout do
   def format(value, _function_options, _options), do: {:ok, String.upcase(to_string(value))}
 end
 Localize.Message.format("{$name :shout}", %{"name" => "alice"}, functions: %{"shout" => Shout})
-#=> {:ok, "ALICE"}
-Localize.Message.format("{$name :nosuch}", %{"name" => "alice"})              # unknown fn = to_string passthrough
-#=> {:ok, "alice"}
+#=> {:ok, "\u2068ALICE\u2069"}
+Localize.Message.format("{$name :nosuch}", %{"name" => "alice"})              # an unknown function is an error
+#=> {:error, %Localize.FormatError{value: "{$name :nosuch}", function: :format, reason: :unknown_function, ...}}
 ```
 
 ## Sigils and canonical form

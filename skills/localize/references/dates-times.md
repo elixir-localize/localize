@@ -53,7 +53,7 @@ Localize.Date.to_string(%{year: 2026, month: 7}, format: :yMMM)                #
 
 ```elixir
 Localize.DateTime.to_string(~N[2026-07-06 14:30:00], date_format: :full, time_format: :short, prefer: :ascii)
-#=> {:ok, "Monday, July 6, 2026, 2:30 PM"}
+#=> {:ok, "Monday, July 6, 2026 at 2:30 PM"}
 ```
 
 ## The :prefer option
@@ -121,7 +121,7 @@ Localize.DateTime.to_string(nyc, format: "HH:mm vvvv")                          
 Localize.DateTime.to_string(nyc, format: "ZZZZ")
 #=> {:ok, "GMT-04:00"}
 Localize.DateTime.to_string(~U[2026-07-06 14:30:00Z], format: :full, prefer: :ascii)
-#=> {:ok, "Monday, July 6, 2026, 2:30:00 PM Coordinated Universal Time"}
+#=> {:ok, "Monday, July 6, 2026 at 2:30:00 PM Coordinated Universal Time"}
 ```
 
 ## Hour cycle, calendars, digits
@@ -146,9 +146,9 @@ Localize.Interval.to_string(~D[2026-07-06], ~D[2026-07-09])
 #=> {:ok, "Jul 6\u2009–\u20099, 2026"}
 Localize.Interval.to_string(~D[2026-01-15], ~D[2026-03-20])                      # month differs, both shown
 #=> {:ok, "Jan 15\u2009–\u2009Mar 20, 2026"}
-Localize.Interval.to_string(~D[2026-07-06], ~D[2026-07-09], style: :month_and_day, format: :long)
+Localize.Interval.to_string(~D[2026-07-06], ~D[2026-07-09], fields: :month_and_day, format: :long)
 #=> {:ok, "Mon, Jul 6\u2009–\u2009Thu, Jul 9"}
-Localize.Interval.to_string(~D[2026-01-15], ~D[2026-03-20], style: :year_and_month)
+Localize.Interval.to_string(~D[2026-01-15], ~D[2026-03-20], fields: :year_and_month)
 #=> {:ok, "Jan\u2009–\u2009Mar 2026"}
 Localize.Interval.to_string(~D[2026-07-06], nil)                                 # open-ended
 #=> {:ok, "Jul 6, 2026\u2009–"}
@@ -156,8 +156,8 @@ Localize.Interval.to_string(~D[2026-07-06], nil, locale: :ja)
 #=> {:ok, "2026/07/06～"}
 Localize.Interval.to_string(~T[10:00:00], ~T[12:30:00], prefer: :ascii)
 #=> {:ok, "10:00:00 AM\u2009–\u200912:30:00 PM"}
-Localize.Interval.to_string(~N[2026-07-06 12:00:00], ~N[2026-07-06 14:00:00], time_format: :short, prefer: :ascii)
-#=> {:ok, "Jul 6, 2026, 12:00 PM\u2009–\u20092:00 PM"}
+Localize.Interval.to_string(~N[2026-07-06 12:00:00], ~N[2026-07-06 14:00:00], time_format: :short, prefer: :ascii)  # CLDR has no ASCII interval pattern
+#=> {:ok, "Jul 6, 2026, 12:00\u2009–\u20092:00\u202FPM"}
 Localize.Interval.to_string(nil, nil)
 #=> {:error, %Localize.DateTimeInvalidInputError{type: :datetime}}
 ```
@@ -172,13 +172,13 @@ A `Localize.Duration` is an amount of elapsed time (not two endpoints). Build wi
 Localize.Duration.new(~D[2026-01-01], ~D[2026-12-31])
 #=> {:ok, %Localize.Duration{year: 0, month: 11, day: 30, hour: 0, minute: 0, second: 0, microsecond: {0, 6}}}
 Localize.Duration.new!(~D[2026-01-01], ~D[2026-12-31]) |> Localize.Duration.to_string()
-#=> {:ok, "11 months and 30 days"}
+#=> {:ok, "11 months, 30 days"}
 Localize.Duration.new!(~D[2026-01-01], ~D[2026-12-31]) |> Localize.Duration.to_string(format: :narrow)
-#=> {:ok, "11m and 30d"}
+#=> {:ok, "11m 30d"}
 Localize.Duration.new_from_seconds(3665) |> Localize.Duration.to_string()
-#=> {:ok, "1 hour, 1 minute, and 5 seconds"}
+#=> {:ok, "1 hour, 1 minute, 5 seconds"}
 Localize.Duration.new_from_seconds(3665) |> Localize.Duration.to_string(except: [:second])
-#=> {:ok, "1 hour and 1 minute"}
+#=> {:ok, "1 hour, 1 minute"}
 Localize.Duration.new!(~D[2026-01-01], ~D[2026-12-31]) |> Localize.Duration.to_string(locale: :fr)
 #=> {:ok, "11\u00A0mois et 30\u00A0jours"}
 ```
@@ -221,19 +221,23 @@ Localize.DateTime.Relative.to_string(-3600, unit: :bogus)
 
 ## Standalone month/day/era names
 
-`Localize.Calendar.localize/3` returns one localized name from a date — parts `:era`, `:quarter`, `:month`, `:day_of_week`, `:days_of_week` (list of tuples), `:am_pm`. Options: `format: :wide | :abbreviated | :narrow`, `era: :variant` ("CE" vs "AD"), `am_pm: :variant`, `context: :stand_alone`. Returns a bare string (not a tuple).
+`Localize.Calendar.localize/3` returns one localized name from a date — parts `:era`, `:quarter`, `:month`, `:day_of_week`, `:days_of_week` (list of tuples), `:am_pm`. Options: `style: :wide | :abbreviated | :narrow` (default `:wide`), `era: :variant` ("CE" vs "AD"), `am_pm: :variant`, `context: :stand_alone`. Returns `{:ok, name}` or `{:error, exception}`; `localize!/3` returns the bare name.
 
 ```elixir
 Localize.Calendar.localize(~D[2026-07-06], :month)
-#=> "Jul"
-Localize.Calendar.localize(~D[2026-07-06], :month, format: :wide, locale: :fr)
-#=> "juillet"
-Localize.Calendar.localize(~D[2026-07-06], :day_of_week)
-#=> "Mon"
-Localize.Calendar.localize(~D[2026-07-06], :era, era: :variant)
-#=> "CE"
-Localize.Calendar.localize(~D[2026-07-06], :days_of_week, locale: :de)
-#=> [{1, "Mo."}, {2, "Di."}, {3, "Mi."}, {4, "Do."}, {5, "Fr."}, {6, "Sa."}, {7, "So."}]
+#=> {:ok, "July"}
+Localize.Calendar.localize(~D[2026-07-06], :month, style: :abbreviated)
+#=> {:ok, "Jul"}
+Localize.Calendar.localize(~D[2026-07-06], :month, locale: :fr)
+#=> {:ok, "juillet"}
+Localize.Calendar.localize(~D[2026-07-06], :day_of_week, style: :abbreviated)
+#=> {:ok, "Mon"}
+Localize.Calendar.localize(~D[2026-07-06], :era, era: :variant, style: :abbreviated)
+#=> {:ok, "CE"}
+Localize.Calendar.localize(~D[2026-07-06], :days_of_week, locale: :de, style: :abbreviated)
+#=> {:ok, [{1, "Mo."}, {2, "Di."}, {3, "Mi."}, {4, "Do."}, {5, "Fr."}, {6, "Sa."}, {7, "So."}]}
+Localize.Calendar.localize!(~D[2026-07-06], :month)
+#=> "July"
 ```
 
 ## Errors

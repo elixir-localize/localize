@@ -94,7 +94,7 @@ Localize.DateTime.to_string(~N[2025-07-10 14:30:45], prefer: :ascii)
 ```elixir
 Localize.DateTime.to_string(~N[2025-07-10 14:30:45],
   date_format: :full, time_format: :short, locale: :en, prefer: :ascii)
-#=> {:ok, "Thursday, July 10, 2025, 2:30 PM"}
+#=> {:ok, "Thursday, July 10, 2025 at 2:30 PM"}
 ```
 
 ## Relative time formatting
