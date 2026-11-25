@@ -194,3 +194,40 @@ iex> Localize.LanguageTag.match_distance("en-AU", "en-GB")
 iex> Localize.LanguageTag.match_distance("en", "fr")
 84
 ```
+
+## Fallback chains
+
+`Localize.Locale.fallback_chain/2` returns the locales to try, nearest first, when an application keeps its own text by locale, such as a table of translations keyed by language. The chain follows CLDR's parent locales, which are not always the identifier with its last subtag removed: `en-AU` falls back to `en-001` before `en`, and `zh-HK` stays in Traditional Chinese rather than falling back to `zh`.
+
+```elixir
+iex> Localize.Locale.fallback_chain("fr-CA")
+{:ok, [:"fr-CA", :fr]}
+
+iex> Localize.Locale.fallback_chain("en-AU")
+{:ok, [:"en-AU", :"en-001", :en]}
+
+iex> Localize.Locale.fallback_chain("zh-HK")
+{:ok, [:"zh-Hant-HK", :"zh-Hant"]}
+```
+
+The root locale holds no text of its own, so it is left out. The `:supported` option keeps only the locales text is kept for:
+
+```elixir
+iex> Localize.Locale.fallback_chain("en-AU", supported: [:en, :fr])
+{:ok, [:en]}
+```
+
+## Text direction
+
+`Localize.Locale.direction/1` returns whether a locale's text runs left to right or right to left, from its script as CLDR's script metadata records it. It answers for a locale whose data is not installed, and it is what MF2's Default Bidi Strategy reads:
+
+```elixir
+iex> Localize.Locale.direction("ar")
+{:ok, :rtl}
+
+iex> Localize.Locale.direction("pa-Arab")
+{:ok, :rtl}
+
+iex> Localize.Locale.direction(:"en-AU")
+{:ok, :ltr}
+```

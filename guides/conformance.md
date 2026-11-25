@@ -70,8 +70,8 @@ Two areas are explicitly out of scope:
 
 | Feature | Status | Notes |
 |---------|--------|-------|
-| Character order (LTR/RTL) | Partial | Data ships and is readable — `Localize.Locale.get(:ar, [:layout])` gives `%{character_order: :rtl, line_order: :ttb}` — but there is no dedicated accessor and nothing in the library consumes it. |
-| Line order | Partial | Same `:layout` map; `:ttb` for every locale CLDR records. |
+| Character order (LTR/RTL) | Implemented | `Localize.Locale.direction/1` returns `{:ok, :ltr}` or `{:ok, :rtl}` from the locale's script, as CLDR's script metadata records it, and MF2's Default Bidi Strategy reads it. The `:layout` map, `Localize.Locale.get(:ar, [:layout])`, carries the same answer for locales CLDR records. |
+| Line order | Partial | The `:layout` map alone, with no dedicated accessor; `:ttb` for every locale CLDR records. |
 
 ### Character Elements
 
@@ -129,7 +129,7 @@ Two areas are explicitly out of scope:
 
 | Feature | Status | Notes |
 |---------|--------|-------|
-| Capitalization by context | Not implemented | No context-dependent capitalization for display names. |
+| Capitalization by context | Implemented | `Localize.ContextTransform.transform/4`, and the `:capitalization` option of the language, script, locale, calendar and currency display names. |
 
 ### Segmentation
 
@@ -357,7 +357,7 @@ Two areas are explicitly out of scope:
 
 | Feature | Status | Notes |
 |---------|--------|-------|
-| Locale-specific tailoring rules | Implemented | 110 locale/type pairs covering 97 languages, extracted from CLDR XML. |
+| Locale-specific tailoring rules | Implemented | 146 locale/type pairs covering 106 languages, extracted from CLDR XML. Provisional and unconfirmed tailorings are left out. |
 | Relation operators (`<`, `<<`, `<<<`, `<<<<`, `=`) | Implemented | |
 | Contractions (multi-character) | Implemented | |
 | Expansions (slash notation) | Implemented | e.g., `ccs/cs` in Hungarian. |
@@ -532,9 +532,11 @@ The MessageFormat working group conformance suite — including the WG `:test:fu
 * Language display names
 * Locale display names
 * Plural rules (cardinal, ordinal, ranges)
-* Collation with locale tailoring (97 languages)
+* Collation with locale tailoring (106 languages)
 * MessageFormat 2 parsing and interpretation
 * Quotation marks and ellipsis formatting
+* Context-dependent capitalization
+* Character order (LTR/RTL) by locale
 
 ### Separate libraries
 
@@ -543,10 +545,8 @@ The MessageFormat working group conformance suite — including the WG `:test:fu
 
 ### Not implemented
 
-* Context-dependent capitalization
 * Collation alphabetic index (UI bucketing)
 * Coordinate unit formatting (N/S/E/W)
-* Layout direction data
 * Coverage level assessment
 
 ### Not in scope for Localize

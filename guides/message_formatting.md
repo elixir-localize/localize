@@ -461,15 +461,23 @@ Within quoted literals (inside `| |`):
 Configure Gettext to use MF2 interpolation:
 
 ```elixir
-use Gettext, otp_app: :my_app, interpolation: Localize.Gettext.Interpolation
+defmodule MyApp.Gettext do
+  use Gettext.Backend,
+    otp_app: :my_app,
+    interpolation: Localize.Gettext.Interpolation
+end
 ```
 
 Messages in `.po` files then use MF2 syntax:
 
-```
+```text
 msgid "You have {$count :number} items."
 msgstr "Sie haben {$count :number} Artikel."
 ```
+
+Gettext's own `%{name}` placeholder is read as the MF2 variable `{$name}`, so messages that arrive in Gettext's syntax, such as Ecto's and Ash's validation messages and the `errors.po` translations of them, interpolate as they did before the backend changed.
+
+`mix localize.gettext.mf2` converts an existing application's catalogs, and the msgids of its `gettext` calls, HEEx templates included, from `%{name}` to MF2, and with `--plurals` writes each `ngettext` entry it can as one `.match` message. It converts an entry only where every lookup of it changes with it, so a domain looked up with msgids computed at runtime, as `errors` is, keeps its msgids. Run it on a clean working tree and review the diff; the task's documentation describes its options.
 
 ## API reference
 
@@ -477,7 +485,7 @@ msgstr "Sie haben {$count :number} Artikel."
 
 Formats an MF2 message with bindings.
 
-* `message` is an MF2 message string.
+* `message` is an MF2 message string, or a `Localize.Message.Parsed` struct that `Localize.Message.parse/2` returns.
 
 * `bindings` is a map with string keys or a keyword list.
 

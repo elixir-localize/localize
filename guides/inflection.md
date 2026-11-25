@@ -306,7 +306,7 @@ Base separators come from Localize's own CLDR list patterns; every behavior is v
 
 ## Units of measure
 
-Unit formatting integrates with the engine through the `:inflect` option of `Localize.Unit.to_string/2`: when a requested `:grammatical_case` has no CLDR pattern, the engine inflects the nominative pattern text using the same numeral-government rules as `Localize.Inflection.quantify/4`. `inflect: :safe` never emits a guessed form; `inflect: :always` also enables suffix-exemplar guessing. `Localize.Unit.grammatical_gender/2` resolves a unit's gender from CLDR data or the engine. The MF2 `:unit` function accepts the same controls as `grammaticalCase` and `inflect` options. See the [unit formatting guide](https://hexdocs.pm/localize/unit_formatting.html) for details.
+Unit formatting integrates with the engine through the `:inflect` option of `Localize.Unit.to_string/2`: when a requested `:grammatical_case` has no CLDR pattern, the engine inflects the nominative pattern text using the same numeral-government rules as `Localize.Inflection.quantify/4`. `inflect: :safe` never emits a guessed form; `inflect: :always` also enables suffix-exemplar guessing. `Localize.Unit.grammatical_gender/2` resolves a unit's gender from CLDR data or the engine. The MF2 `:unit` function accepts the same controls as its `localize:grammaticalCase` and `localize:inflect` options. See the [unit formatting guide](https://hexdocs.pm/localize/unit_formatting.html) for details.
 
 ```elixir
 iex> unit = Localize.Unit.new!(2, "kilometer")

@@ -317,7 +317,6 @@ The following table lists all locales with CLDR collation tailoring. Locales not
 | `ar` | standard, compat | Arabic script ordering with presentation form mappings. |
 | `as` | standard | Assamese — Bengali script ordering. |
 | `az` | standard, search | Azerbaijani — Latin with Turkish-style dotted/dotless i. |
-| `bal-Latn` | standard | Baluchi (Latin script). |
 | `be` | standard | Belarusian — Cyrillic ordering. |
 | `bg` | standard | Bulgarian — Cyrillic ordering. |
 | `blo` | standard | Anii. |
