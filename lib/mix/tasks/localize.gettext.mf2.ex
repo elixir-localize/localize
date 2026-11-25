@@ -270,7 +270,9 @@ defmodule Mix.Tasks.Localize.Gettext.Mf2 do
 
     {catalogs_changed, renames, catalog_errors} = summarize_catalogs(catalog_counts)
     sources_changed = Enum.count(source_reports, fn {_path, report} -> report.rewritten > 0 end)
-    rewritten = Enum.sum_by(source_reports, fn {_path, report} -> report.rewritten end)
+
+    rewritten =
+      Enum.reduce(source_reports, 0, fn {_path, report}, sum -> sum + report.rewritten end)
 
     shell.info(
       "Catalogs: #{catalogs_changed} of #{length(catalog_counts)} #{verb}, #{renames} msgids renamed."

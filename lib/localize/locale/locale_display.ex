@@ -25,7 +25,8 @@ defmodule Localize.Locale.LocaleDisplay do
           {:language_display, :standard | :dialect},
           {:key_value_display, :whole | :separate},
           {:prefer, atom()},
-          {:locale, atom() | String.t() | Localize.LanguageTag.t()}
+          {:locale, atom() | String.t() | Localize.LanguageTag.t()},
+          {:capitalization, Localize.ContextTransform.context()}
         ]
 
   @doc """

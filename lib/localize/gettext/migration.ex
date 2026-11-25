@@ -373,7 +373,7 @@ defmodule Localize.Gettext.Migration do
       |> Enum.reduce({[], []}, &call_replacements(source, &1, context, &2))
 
     kept = outermost(replacements)
-    rewritten = Enum.sum_by(kept, fn {_start, _stop, _text, count} -> count end)
+    rewritten = Enum.reduce(kept, 0, fn {_start, _stop, _text, count}, sum -> sum + count end)
 
     converted =
       kept
