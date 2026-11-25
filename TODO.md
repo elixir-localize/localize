@@ -20,8 +20,6 @@ Outstanding work on Localize. The design detail behind these items lives under [
 
 ## In progress
 
-* [ ] **Migration from Gettext's `%{}` syntax to MF2** — `mix localize.gettext.mf2` converts catalogs and `gettext` calls together (on Mishka: 2,034 catalog msgids and 489 call msgids, no translation orphaned), and `convert/2` with `plurals:` writes plural entries as `.match` (Timex, 35 languages: 829 of 840 entries, none choosing differently from Gettext). Remaining: rewrite `ngettext` calls as `gettext` with the count in the bindings, and a `--plurals` option on the task.
-
 * [ ] **CLDR 49 upgrade** — the plan's items are closed bar item 11; the data is built from the final `release-49` (below). [plans/cldr-49.md](plans/cldr-49.md).
 
 ## Blocked
@@ -73,6 +71,8 @@ Outstanding work on Localize. The design detail behind these items lives under [
 * [ ] **`localize_emoji` sibling library** — plan item 11, a separate package on its own schedule. A Phoenix LiveView picker (`localize_emoji_live`) is out of scope for its 0.1.0.
 
 ## Done
+
+* [x] **Migration from Gettext's `%{}` syntax to MF2** — `mix localize.gettext.mf2` (`Localize.Gettext.Migration`): catalogs, literal calls and, with `--plurals`, `ngettext` to `.match`, converting only entries whose every lookup changes with them (`--trust` for noop-fed dynamic lookups). On Mishka with `--trust default --trust mishka_gervaz`: 702 msgids, `errors` and sibling-repository entries kept, no lookup lost its entry; on Timex nothing, as it looks up a variable domain. 2026-11-25.
 
 * [x] **MF2 `:relativeTime` function** — unnamespaced, as `:list` is (user, 2026-11-25), on `Localize.DateTime.Relative`, which now takes a `Decimal`; the NIF backend leaves messages calling a function ICU does not format to the interpreter. 2026-11-25.
 

@@ -180,6 +180,7 @@ defmodule Localize.Gettext.MigrationTest do
             ~S|gettext("heredoc {$h}\n")|,
             ~S|gettext("a, b (c) {$d}", d: ?))|,
             ~S|gettext("plain")|,
+            ~S|gettext("sigil {$x}")|,
             ~S|Gettext.dgettext(MyApp.Gettext, "errors", msg, [])|
           ] do
         assert converted =~ line, line
@@ -189,9 +190,9 @@ defmodule Localize.Gettext.MigrationTest do
     test "reports a msgid that is not a string literal and holds a placeholder" do
       {converted, report} = converted_sample()
 
-      assert report.rewritten == 13
-      assert [%{line: 9, call: "gettext"}, %{line: 18, call: "gettext"}] = report.skipped
-      assert converted =~ ~S|gettext(~s"sigil %{x}")|
+      assert report.rewritten == 14
+      assert [%{line: 18, call: "gettext"}] = report.skipped
+      assert converted =~ ~S|gettext("interp #{1} %{z}")|
     end
 
     test "gives a msgid the conversion its catalog entry gets, and a file that still parses" do
@@ -435,6 +436,158 @@ defmodule Localize.Gettext.MigrationTest do
 
       assert log =~ "not valid MF2"
       assert Interpolation.mf2_source(latin1) == latin1
+    end
+  end
+
+  describe "convert_source/2 with plural entries" do
+    @plural_sample Path.expand(
+                     "../../support/fixtures/gettext_migration/plural_source.ex.txt",
+                     __DIR__
+                   )
+    @file_key {nil, "%{count} file", "%{count} files"}
+    @menu_key {"menu", "%{count} file", "%{count} files"}
+    @message ".local $plural_count = {$count :number}\n.match $plural_count\none {{{$count} file}}\n* {{{$count} files}}"
+
+    defp converted_plural_sample(plurals) do
+      {:ok, converted, report} =
+        Migration.convert_source(File.read!(@plural_sample), plurals: plurals)
+
+      {String.replace(converted, inspect(@message), ~S|"MSG"|), report}
+    end
+
+    test "rewrites each plural call as the singular call, with the count in its bindings" do
+      plurals = %{
+        "default" => MapSet.new([@file_key, @menu_key]),
+        "errors" => MapSet.new([@file_key, @menu_key])
+      }
+
+      {converted, report} = converted_plural_sample(plurals)
+
+      for line <- [
+            ~S|def a(n), do: gettext(MSG, count: n)|,
+            ~S|def b(n), do: gettext(MSG, name: "x", count: n)|,
+            ~S|def c(n), do: gettext(MSG, [name: "x", count: n])|,
+            ~S|def d(n), do: gettext(MSG, %{name: "x", count: n})|,
+            ~S|def e(n, b), do: gettext(MSG, Map.put(Map.new(b), :count, n))|,
+            ~S|def f(n), do: dgettext("errors", MSG, count: length(n))|,
+            ~S|def g(n), do: pgettext("menu", MSG, count: n)|,
+            ~S|def h(n), do: dpgettext("errors", "menu", MSG, count: n)|,
+            ~S|def i(n), do: Gettext.dgettext(MyApp.Gettext, "errors", MSG, [count: n])|,
+            ~S|def j, do: gettext_noop(MSG)|,
+            ~S|def m(n), do: gettext(MSG, title: gettext("Hi {$x}", x: 1), count: n)|
+          ] do
+        assert converted =~ String.replace(line, "MSG", ~S|"MSG"|), line
+      end
+
+      assert converted =~ ~S|def l(n), do: ngettext("{$count} item", "{$count} items", n)|
+      assert {:ok, _ast} = Code.string_to_quoted(String.replace(converted, ~S|"MSG"|, ~S|"x"|))
+
+      assert [
+               %{
+                 line: 12,
+                 call: "dngettext",
+                 reason: "the domain of a plural call is not a string literal"
+               }
+             ] =
+               report.skipped
+    end
+
+    test "converts a call only where its domain agreed to convert the entry" do
+      {converted, _report} = converted_plural_sample(%{"errors" => MapSet.new([@file_key])})
+
+      assert converted =~ ~S|def a(n), do: ngettext("{$count} file", "{$count} files", n)|
+      assert converted =~ ~S|def f(n), do: dgettext("errors", "MSG", count: length(n))|
+
+      assert converted =~
+               ~S|def g(n), do: pngettext("menu", "{$count} file", "{$count} files", n)|
+    end
+
+    test "takes one set of keys for every domain" do
+      {converted, _report} = converted_plural_sample(MapSet.new([@file_key]))
+
+      assert converted =~ ~S|def a(n), do: gettext("MSG", count: n)|
+      assert converted =~ ~S|def f(n), do: dgettext("errors", "MSG", count: length(n))|
+    end
+
+    test "gives a call the msgid its catalog entry gets" do
+      catalog =
+        Expo.PO.parse_string!(~S"""
+        msgid "%{count} file"
+        msgid_plural "%{count} files"
+        msgstr[0] ""
+        msgstr[1] ""
+        """)
+
+      {:ok, keys} = Migration.convertible_plurals(catalog)
+      {:ok, converted, _renames} = Migration.convert(catalog, plurals: keys)
+      [entry] = converted.messages
+
+      {:ok, source, _report} =
+        Migration.convert_source(~S|ngettext("%{count} file", "%{count} files", n)|,
+          plurals: keys
+        )
+
+      assert source == "gettext(" <> inspect(IO.iodata_to_binary(entry.msgid)) <> ", count: n)"
+    end
+
+    test "returns an error, never raises, for options it cannot use" do
+      for options <- [
+            [plurals: :yes],
+            [plurals: MapSet.new(), source_locale: "not a locale!"],
+            [plurals: [1]]
+          ] do
+        assert {:error, %{__exception__: true}} = Migration.convert_source("x", options),
+               inspect(options)
+      end
+    end
+  end
+
+  describe "lookups/2 and :only" do
+    test "reports each lookup's domain, context and msgid, or :dynamic for an expression" do
+      source = ~S"""
+      gettext("Hello %{name}", name: n)
+      dgettext("errors", message, opts)
+      Gettext.dgettext(MyApp.Gettext, domain, "x")
+      dpngettext("d", ctx, "%{count} a", "%{count} as", n)
+      """
+
+      assert {:ok, [plain, errors, variable, plural]} = Migration.lookups(source)
+      assert %{domain: "default", context: nil, msgid: "Hello %{name}", line: 1} = plain
+      assert %{domain: "errors", msgid: :dynamic, line: 2} = errors
+      assert %{domain: :dynamic, msgid: "x"} = variable
+
+      assert %{domain: "d", context: :dynamic, msgid: "%{count} a", msgid_plural: "%{count} as"} =
+               plural
+
+      assert {:error, %Localize.InvalidValueError{}} = Migration.lookups(nil)
+    end
+
+    test "converts only the calls and entries :only names" do
+      only = %{"default" => MapSet.new([{nil, "Hello %{name}"}])}
+
+      source =
+        ~S|gettext("Hello %{name}") <> gettext("Bye %{name}") <> dgettext("errors", "Hello %{name}")|
+
+      assert {:ok, converted, %{rewritten: 1}} = Migration.convert_source(source, only: only)
+
+      assert converted ==
+               ~S|gettext("Hello {$name}") <> gettext("Bye %{name}") <> dgettext("errors", "Hello %{name}")|
+
+      {:ok, catalog} =
+        Expo.PO.parse_string(
+          ~s|msgid "Hello %{name}"\nmsgstr ""\n\nmsgid "Bye %{name}"\nmsgstr ""\n|
+        )
+
+      {:ok, converted_catalog, renames} = Migration.convert(catalog, only: only["default"])
+
+      assert Enum.map(converted_catalog.messages, &IO.iodata_to_binary(&1.msgid)) == [
+               "Hello {$name}",
+               "Bye %{name}"
+             ]
+
+      assert [%{from: "Hello %{name}"}] = renames
+      assert {:error, %{__exception__: true}} = Migration.convert(catalog, only: [:x])
+      assert {:error, %{__exception__: true}} = Migration.convert_source("x", only: [:x])
     end
   end
 end

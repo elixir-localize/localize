@@ -1,0 +1,15 @@
+defmodule Y do
+  def a(n), do: ngettext("%{count} file", "%{count} files", n)
+  def b(n), do: ngettext("%{count} file", "%{count} files", n, name: "x")
+  def c(n), do: ngettext("%{count} file", "%{count} files", n, [name: "x"])
+  def d(n), do: ngettext("%{count} file", "%{count} files", n, %{name: "x"})
+  def e(n, b), do: ngettext("%{count} file", "%{count} files", n, b)
+  def f(n), do: dngettext("errors", "%{count} file", "%{count} files", length(n))
+  def g(n), do: pngettext("menu", "%{count} file", "%{count} files", n)
+  def h(n), do: dpngettext("errors", "menu", "%{count} file", "%{count} files", n)
+  def i(n), do: Gettext.dngettext(MyApp.Gettext, "errors", "%{count} file", "%{count} files", n, [])
+  def j, do: ngettext_noop("%{count} file", "%{count} files")
+  def k(n, d), do: dngettext(d, "%{count} file", "%{count} files", n)
+  def l(n), do: ngettext("%{count} item", "%{count} items", n)
+  def m(n), do: ngettext("%{count} file", "%{count} files", n, title: gettext("Hi %{x}", x: 1))
+end

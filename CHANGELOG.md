@@ -8,7 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
-* `mix localize.gettext.mf2` converts an application's Gettext catalogs and the msgids of its `gettext` calls, HEEx templates included, from `%{name}` to MF2, so each message formats as before. `Localize.Gettext.Migration.convert/1` and `convert_source/1` do the work.
+* `mix localize.gettext.mf2` converts an application's Gettext catalogs and `gettext` calls, HEEx templates included, from `%{name}` to MF2, and with `--plurals` `ngettext` to `.match`. It converts only entries whose every lookup changes with them, so a domain looked up dynamically, as `errors` is, keeps its msgids.
 
 * `Localize.Gettext.Migration.convert/2` with `plurals:` writes a Gettext plural entry as one `.match` message that chooses the form Gettext chooses for every count; `convertible_plurals/2` tells which entries can be.
 
