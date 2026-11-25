@@ -20,7 +20,7 @@ Outstanding work on Localize. The design detail behind these items lives under [
 
 ## In progress
 
-* [ ] **Migration from Gettext's `%{}` syntax to MF2** — `mix localize.gettext.mf2` converts catalogs and `gettext` calls together (on Mishka: 2,034 catalog msgids and 489 call msgids, no translation orphaned). Remaining: `ngettext` pairs to `.match`, mapping each language's Gettext plural forms to CLDR categories.
+* [ ] **Migration from Gettext's `%{}` syntax to MF2** — `mix localize.gettext.mf2` converts catalogs and `gettext` calls together (on Mishka: 2,034 catalog msgids and 489 call msgids, no translation orphaned), and `convert/2` with `plurals:` writes plural entries as `.match` (Timex, 35 languages: 829 of 840 entries, none choosing differently from Gettext). Remaining: rewrite `ngettext` calls as `gettext` with the count in the bindings, and a `--plurals` option on the task.
 
 * [ ] **CLDR 49 upgrade** — the plan's items are closed bar item 11; the data is built from the final `release-49` (below). [plans/cldr-49.md](plans/cldr-49.md).
 

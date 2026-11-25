@@ -192,7 +192,7 @@ defmodule Localize.Gettext.Interpolation do
 
   * Any other message with a `%{name}` placeholder is read as Gettext text: its `\\`, `{` and `}` are escaped and its placeholders become variables. It is written as a simple message, or quoted as a pattern `{{…}}` where it begins with whitespace or `.`, which a simple message cannot, so its text is kept exactly. A placeholder whose name MF2 cannot take as a variable name, such as `%{1x}`, is kept as text.
 
-  * A message with no `%{name}` placeholder is returned as it is.
+  * A message with no `%{name}` placeholder, or one that is not valid UTF-8, is returned as it is.
 
   The variables are formatted as the MF2 messages of the backend are, with bidi isolation by default.
 
@@ -222,6 +222,11 @@ defmodule Localize.Gettext.Interpolation do
   @spec mf2_source(String.t()) :: String.t()
   def mf2_source(message) when is_binary(message) do
     cond do
+      # A message that is not UTF-8, as from a catalog in another charset,
+      # is left for the formatter to refuse, which returns it unchanged.
+      not String.valid?(message) ->
+        message
+
       not Regex.match?(@any_legacy_placeholder, message) ->
         message
 
@@ -239,7 +244,11 @@ defmodule Localize.Gettext.Interpolation do
   # placeholder that is not valid MF2 as the text it was written as.
   @spec __gettext_text__(String.t()) :: String.t()
   def __gettext_text__(message) when is_binary(message) do
-    quote_legacy(message)
+    if String.valid?(message) do
+      quote_legacy(message)
+    else
+      message
+    end
   end
 
   # A message in Gettext's syntax as MF2: the text escaped, each placeholder

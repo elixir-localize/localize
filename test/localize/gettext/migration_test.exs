@@ -254,4 +254,187 @@ defmodule Localize.Gettext.MigrationTest do
       end
     end
   end
+
+  describe "plural entries" do
+    @ru_forms ["%{count} день назад", "%{count} дня назад", "%{count} дней назад"]
+
+    defp plural_catalog(language, plural_forms, forms) do
+      msgstrs =
+        forms
+        |> Enum.with_index()
+        |> Enum.map_join("\n", fn {form, index} -> ~s|msgstr[#{index}] "#{form}"| end)
+
+      header =
+        if is_nil(language) do
+          ""
+        else
+          ~s|msgid ""\nmsgstr ""\n"Language: #{language}\\n"\n"Plural-Forms: #{plural_forms}\\n"\n\n|
+        end
+
+      Expo.PO.parse_string!(
+        header <>
+          ~s|msgid "%{count} day ago"\nmsgid_plural "%{count} days ago"\n| <> msgstrs <> "\n"
+      )
+    end
+
+    defp converted_entry(catalog, options \\ [plurals: true]) do
+      {:ok, converted, renames} = Migration.convert(catalog, options)
+      [message] = converted.messages
+      {message, renames}
+    end
+
+    defp gettext_choice(language, plural_forms, forms, count) do
+      plural_info = Gettext.Plural.init(%{locale: language, plural_forms_header: plural_forms})
+
+      Interpolation.runtime_interpolate(
+        Enum.at(forms, Gettext.Plural.plural(plural_info, count)),
+        %{count: count}
+      )
+    end
+
+    test "becomes one .match message for the msgid and one for the msgstr" do
+      catalog =
+        plural_catalog(
+          "ru",
+          "nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);",
+          @ru_forms
+        )
+
+      {message, renames} = converted_entry(catalog)
+
+      assert %Expo.Message.Singular{} = message
+
+      assert IO.iodata_to_binary(message.msgid) ==
+               ".local $plural_count = {$count :number}\n.match $plural_count\none {{{$count} day ago}}\n* {{{$count} days ago}}"
+
+      assert IO.iodata_to_binary(message.msgstr) ==
+               ".local $plural_count = {$count :number}\n.match $plural_count\none {{{$count} день назад}}\nfew {{{$count} дня назад}}\n* {{{$count} дней назад}}"
+
+      assert [
+               %{
+                 context: nil,
+                 from: "%{count} day ago",
+                 from_plural: "%{count} days ago",
+                 to: _to
+               }
+             ] = renames
+    end
+
+    test "chooses the form Gettext chooses, for every count, in each language" do
+      for {language, plural_forms, forms} <- [
+            {"ru",
+             "nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);",
+             @ru_forms},
+            {"fr", "nplurals=2; plural=(n != 1);", ["%{count} jour", "%{count} jours"]},
+            {"fr", "nplurals=2; plural=(n > 1);", ["%{count} jour", "%{count} jours"]},
+            {"pl",
+             "nplurals=3; plural=(n==1 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);",
+             ["%{count} dzień", "%{count} dni", "%{count} dni."]},
+            {"ja", "nplurals=1; plural=0;", ["%{count}日前"]},
+            {"ar",
+             "nplurals=6; plural=(n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 && n%100<=10 ? 3 : n%100>=11 ? 4 : 5);",
+             ~w(z o t f m x) |> Enum.map(&"%{count} #{&1}")}
+          ] do
+        {message, _renames} = converted_entry(plural_catalog(language, plural_forms, forms))
+        {:ok, _locale} = Localize.put_locale(language)
+
+        for count <- Enum.to_list(0..250) ++ [1000, 1001, 1011, 100_000, 1_000_000] do
+          assert {language, count,
+                  Interpolation.runtime_interpolate(IO.iodata_to_binary(message.msgstr), %{
+                    count: count
+                  })} ==
+                   {language, count, gettext_choice(language, plural_forms, forms, count)}
+        end
+      end
+    end
+
+    test "takes an exact key for a count Gettext and CLDR place apart" do
+      {message, _renames} =
+        converted_entry(
+          plural_catalog("fr", "nplurals=2; plural=(n != 1);", ["%{count} jour", "%{count} jours"])
+        )
+
+      assert IO.iodata_to_binary(message.msgstr) =~ "0 {{{$count} jours}}\none {{{$count} jour}}"
+    end
+
+    test "converts a template and an untranslated catalog" do
+      {template, _renames} = converted_entry(plural_catalog(nil, nil, ["", ""]))
+      assert IO.iodata_to_binary(template.msgstr) == ""
+
+      assert IO.iodata_to_binary(template.msgid) =~
+               ".match $plural_count\none {{{$count} day ago}}"
+
+      {untranslated, _renames} =
+        converted_entry(plural_catalog("de", "nplurals=2; plural=(n != 1);", ["", ""]))
+
+      assert IO.iodata_to_binary(untranslated.msgstr) == ""
+    end
+
+    test "leaves an entry whose formula splits a CLDR category without end as a plural entry" do
+      catalog =
+        plural_catalog("en", "nplurals=2; plural=(n%10==1 ? 0 : 1);", [
+          "%{count} day ago",
+          "%{count} days ago"
+        ])
+
+      assert Migration.convertible_plurals(catalog) == {:ok, MapSet.new()}
+      {message, renames} = converted_entry(catalog)
+
+      assert %Expo.Message.Plural{} = message
+      assert IO.iodata_to_binary(message.msgid) == "{$count} day ago"
+      assert Enum.all?(renames, &(not Map.has_key?(&1, :from_plural)))
+    end
+
+    test "leaves an entry with a form that is not UTF-8 as a plural entry" do
+      catalog =
+        plural_catalog("fr", "nplurals=2; plural=(n > 1);", [
+          <<"%{count} p", 0xE4, "ev">>,
+          "%{count} jours"
+        ])
+
+      assert Migration.convertible_plurals(catalog) == {:ok, MapSet.new()}
+      assert {%Expo.Message.Plural{}, _renames} = converted_entry(catalog)
+    end
+
+    test "converts only the entries a set of keys names, and none by default" do
+      catalog =
+        plural_catalog("fr", "nplurals=2; plural=(n > 1);", ["%{count} jour", "%{count} jours"])
+
+      {:ok, keys} = Migration.convertible_plurals(catalog)
+
+      assert {%Expo.Message.Singular{}, _renames} = converted_entry(catalog, plurals: keys)
+      assert {%Expo.Message.Plural{}, _renames} = converted_entry(catalog, plurals: MapSet.new())
+      assert {%Expo.Message.Plural{}, _renames} = converted_entry(catalog, [])
+    end
+
+    test "returns an error, never raises, for options it cannot use" do
+      catalog =
+        plural_catalog("fr", "nplurals=2; plural=(n > 1);", ["%{count} jour", "%{count} jours"])
+
+      for options <- [
+            [plurals: :yes],
+            [plurals: true, source_locale: 42],
+            [plurals: true, source_locale: "not a locale!"]
+          ] do
+        assert {:error, %{__exception__: true}} = Migration.convert(catalog, options),
+               inspect(options)
+      end
+
+      assert {:error, %{__exception__: true}} = Migration.convertible_plurals(nil)
+    end
+  end
+
+  describe "a message that is not UTF-8" do
+    test "is returned unchanged by the interpolator, never raised on" do
+      latin1 = <<"p", 0xE4, "ev %{count}">>
+
+      log =
+        capture_log(fn ->
+          assert Interpolation.runtime_interpolate(latin1, %{count: 1}) == {:ok, latin1}
+        end)
+
+      assert log =~ "not valid MF2"
+      assert Interpolation.mf2_source(latin1) == latin1
+    end
+  end
 end

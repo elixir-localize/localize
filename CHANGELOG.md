@@ -10,6 +10,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 * `mix localize.gettext.mf2` converts an application's Gettext catalogs and the msgids of its `gettext` calls, HEEx templates included, from `%{name}` to MF2, so each message formats as before. `Localize.Gettext.Migration.convert/1` and `convert_source/1` do the work.
 
+* `Localize.Gettext.Migration.convert/2` with `plurals:` writes a Gettext plural entry as one `.match` message that chooses the form Gettext chooses for every count; `convertible_plurals/2` tells which entries can be.
+
 * An MF2 `:relativeTime` function formats "in 3 days" or "yesterday" from a number with a `unit`, or from a date or time against `relativeTo`, with `style` and `numeric` options. `Localize.DateTime.Relative` takes a `Decimal`.
 
 * `Localize.Locale.fallback_chain/2` returns a locale's CLDR fallback chain as locale ids, nearest first and without the root, as `fr-CA` → `fr` and `pt-AO` → `pt-PT` → `pt`. It is `localize_translate`'s `locale_chain/2` walk, moved here so applications with their own translation tables need not depend on it.
