@@ -157,4 +157,101 @@ defmodule Localize.Gettext.MigrationTest do
       assert {:error, %Localize.InvalidValueError{}} = Migration.convert(value)
     end
   end
+
+  describe "convert_source/1" do
+    @sample Path.expand("../../support/fixtures/gettext_migration/sample_source.ex.txt", __DIR__)
+
+    defp converted_sample do
+      {:ok, converted, report} = Migration.convert_source(File.read!(@sample))
+      {converted, report}
+    end
+
+    test "rewrites the msgids of every Gettext macro and function" do
+      {converted, _report} = converted_sample()
+
+      for line <- [
+            ~S|gettext("Hello {$name}", name: "x")|,
+            ~S|dgettext("errors", "must be one of \\{a, b\\}: {$value}", value: 1)|,
+            ~S|ngettext("{$count} file", "{$count} files", 3)|,
+            ~S|dpngettext("d", "ctx", "{$n} x", "{$n} xs", 2, n: 2)|,
+            ~S|Gettext.dgettext(MyApp.Gettext, "errors", "is {$x}", x: 1)|,
+            ~S|gettext_noop("{{.markup}}")|,
+            ~S|gettext("nested {$a}", a: gettext("inner {$b}", b: 1))|,
+            ~S|gettext("heredoc {$h}\n")|,
+            ~S|gettext("a, b (c) {$d}", d: ?))|,
+            ~S|gettext("plain")|,
+            ~S|Gettext.dgettext(MyApp.Gettext, "errors", msg, [])|
+          ] do
+        assert converted =~ line, line
+      end
+    end
+
+    test "reports a msgid that is not a string literal and holds a placeholder" do
+      {converted, report} = converted_sample()
+
+      assert report.rewritten == 13
+      assert [%{line: 9, call: "gettext"}, %{line: 18, call: "gettext"}] = report.skipped
+      assert converted =~ ~S|gettext(~s"sigil %{x}")|
+    end
+
+    test "gives a msgid the conversion its catalog entry gets, and a file that still parses" do
+      {converted, _report} = converted_sample()
+
+      assert {:ok, _ast} = Code.string_to_quoted(converted)
+      assert {:ok, ^converted, %{rewritten: 0}} = Migration.convert_source(converted)
+
+      {:ok, catalog} =
+        Expo.PO.parse_string(~S"""
+        msgid "Hello %{name}"
+        msgstr ""
+
+        msgid "must be one of {a, b}: %{value}"
+        msgstr ""
+        """)
+
+      {:ok, catalog, _renames} = Migration.convert(catalog)
+
+      for message <- catalog.messages do
+        assert converted =~ inspect(IO.iodata_to_binary(message.msgid))
+      end
+    end
+
+    test "converts calls in a HEEx template" do
+      template =
+        ~S|<p>{gettext("Hi %{name}", name: @n)}</p><%= dgettext("x", "Bye %{n}", n: 1) %>|
+
+      assert Migration.convert_source(template) ==
+               {:ok,
+                ~S|<p>{gettext("Hi {$name}", name: @n)}</p><%= dgettext("x", "Bye {$n}", n: 1) %>|,
+                %{rewritten: 2, skipped: []}}
+    end
+
+    test "leaves text with no call, an unclosed call and a non-Gettext call as they are" do
+      for source <- [
+            "",
+            "no calls here",
+            ~S|gettext("open %{x}"|,
+            ~S|mygettext("x %{y}")|,
+            ~S|@gettext("x %{y}")|
+          ] do
+        assert Migration.convert_source(source) == {:ok, source, %{rewritten: 0, skipped: []}},
+               source
+      end
+    end
+
+    test "makes no atom from the source" do
+      name = "unseen_binding_#{System.unique_integer([:positive])}"
+
+      assert {:ok, _source, %{rewritten: 1}} =
+               Migration.convert_source("gettext(\"x %{y}\", #{name}: 1)")
+
+      assert_raise ArgumentError, fn -> String.to_existing_atom(name) end
+    end
+
+    test "returns an error for anything but a string" do
+      for value <- [nil, 42, ~c"gettext"] do
+        assert {:error, %Localize.InvalidValueError{}} = Migration.convert_source(value)
+      end
+    end
+  end
 end

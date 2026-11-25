@@ -1,0 +1,19 @@
+defmodule X do
+  use Gettext, backend: MyApp.Gettext
+  def a, do: gettext("Hello %{name}", name: "x")
+  def b, do: dgettext("errors", "must be one of {a, b}: %{value}", value: 1)
+  def c, do: ngettext("%{count} file", "%{count} files", 3)
+  def d, do: dpngettext("d", "ctx", "%{n} x", "%{n} xs", 2, n: 2)
+  def e, do: Gettext.dgettext(MyApp.Gettext, "errors", "is %{x}", x: 1)
+  def f, do: gettext_noop(".markup")
+  def g, do: gettext(~s"sigil %{x}")
+  def h, do: gettext("plain")
+  def i, do: gettext("nested %{a}", a: gettext("inner %{b}", b: 1))
+  # comment gettext("in comment %{c}")
+  def j, do: gettext("""
+  heredoc %{h}
+  """)
+  def k(msg), do: Gettext.dgettext(MyApp.Gettext, "errors", msg, [])
+  def l, do: gettext("a, b (c) %{d}", d: ?))
+  def m, do: gettext("interp #{1} %{z}")
+end

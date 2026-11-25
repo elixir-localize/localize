@@ -20,7 +20,7 @@ Outstanding work on Localize. The design detail behind these items lives under [
 
 ## In progress
 
-* [ ] **Migration from Gettext's `%{}` syntax to MF2** — catalogs convert with `Localize.Gettext.Migration.convert/1` (equivalent on 24,255 strings of Mishka's and `localize_pad`'s catalogs). Remaining: rewrite the `gettext` calls' msgid literals in source to the renamed msgids, a mix task over `priv/gettext` and the source, and `ngettext` pairs to `.match`.
+* [ ] **Migration from Gettext's `%{}` syntax to MF2** — `mix localize.gettext.mf2` converts catalogs and `gettext` calls together (on Mishka: 2,034 catalog msgids and 489 call msgids, no translation orphaned). Remaining: `ngettext` pairs to `.match`, mapping each language's Gettext plural forms to CLDR categories.
 
 * [ ] **CLDR 49 upgrade** — the plan's items are closed bar item 11; the data is built from the final `release-49` (below). [plans/cldr-49.md](plans/cldr-49.md).
 

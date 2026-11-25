@@ -8,7 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
-* `Localize.Gettext.Migration.convert/1` converts a Gettext catalog from `%{name}` to MF2, so each converted message formats as the original did, and lists the msgids it renamed for the source to follow.
+* `mix localize.gettext.mf2` converts an application's Gettext catalogs and the msgids of its `gettext` calls, HEEx templates included, from `%{name}` to MF2, so each message formats as before. `Localize.Gettext.Migration.convert/1` and `convert_source/1` do the work.
 
 * An MF2 `:relativeTime` function formats "in 3 days" or "yesterday" from a number with a `unit`, or from a date or time against `relativeTo`, with `style` and `numeric` options. `Localize.DateTime.Relative` takes a `Decimal`.
 
