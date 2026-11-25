@@ -91,6 +91,18 @@ defmodule Localize.Message.CustomFunctionTest do
       assert result =~ "style=fancy"
     end
 
+    test "passes a namespaced option by its written name, without raising" do
+      assert {:ok, result} =
+               format_without_isolation(
+                 ~S({$val :echo acme:style=fancy style=plain}),
+                 %{"val" => "test"},
+                 locale: :en,
+                 functions: %{"echo" => OptionEchoFunction}
+               )
+
+      assert result =~ "style=plain"
+    end
+
     test "custom function can return an error" do
       {:ok, parsed} = Localize.Message.Parser.parse("{$val :fail}")
 

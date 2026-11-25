@@ -478,9 +478,12 @@ Two areas are explicitly out of scope:
 
 ### Localize-specific MF2 functions (not in the spec)
 
+Localize's own functions and options are in the `localize` namespace, which is reserved. `:list` and the `:unit` options `grammaticalCase`, `grammaticalGender` and `inflect` are still read without it, deprecated until 2.0.
+
 | Function | Notes |
 |----------|-------|
-| `:list` | Formats a list operand by delegating to `Localize.List.to_string/2`. Each element is itself formatted via `Localize.Chars`, so a list of dates, numbers, units, etc. picks up the message's locale and forwarded options. Supports a `style` (or `type`) option whose values map to CLDR list styles: `"and"`, `"and-short"`, `"and-narrow"`, `"or"`, `"or-short"`, `"or-narrow"`, `"unit"`, `"unit-short"`, `"unit-narrow"`. Default is `"and"`. |
+| `:localize:relativeTime` | Formats a relative time, "in 3 days" or "yesterday", from a number with a `unit` or from a date or time against `relativeTo`, as `Localize.DateTime.Relative.to_string/2` does. |
+| `:localize:list` | Formats a list operand by delegating to `Localize.List.to_string/2`. Each element is itself formatted via `Localize.Chars`, so a list of dates, numbers, units, etc. picks up the message's locale and forwarded options. Supports a `style` (or `type`) option whose values map to CLDR list styles: `"and"`, `"and-short"`, `"and-narrow"`, `"or"`, `"or-short"`, `"or-narrow"`, `"unit"`, `"unit-short"`, `"unit-narrow"`. Default is `"and"`. |
 
 ### MF2 Error Handling
 

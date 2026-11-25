@@ -38,8 +38,13 @@ defmodule Localize.Message.Namespace do
 
   ## Reserved namespaces
 
-  The single-letter namespaces `i` and `u` are reserved and never
+  The namespaces `localize`, `i` and `u` are reserved and never
   route to a user handler:
+
+  * `localize` holds Localize's own functions and options, those TR35
+    does not define: `:localize:list`, `:localize:relativeTime` and the
+    `:unit` options `localize:grammaticalCase`,
+    `localize:grammaticalGender` and `localize:inflect`.
 
   * `i` is the namespace the Unicode inflection project gives its
     functions, and Localize's built-in inflection functions live

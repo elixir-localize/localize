@@ -11,7 +11,7 @@ defmodule Localize.Message do
 
   # The functions ICU's MF2 formats as the interpreter does. ICU 78 formats
   # no other function: `:percent`, `:currency`, `:offset`, `:unit`,
-  # Localize's own `:list`, `:relativeTime` and `:i:` functions, and an
+  # Localize's own `:localize:` and `:i:` functions, and an
   # application's, come back as a fallback such as `{$n}`, so a message
   # with any of them is formatted by the interpreter.
   @icu_functions ["number", "integer", "string", "date", "time", "datetime"]

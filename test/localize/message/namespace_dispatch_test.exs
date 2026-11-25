@@ -103,6 +103,21 @@ defmodule Localize.Message.NamespaceDispatchTest do
   end
 
   describe "reserved namespaces" do
+    test "localize: never routes to a user handler, and is Localize's own" do
+      assert unknown_function?(
+               format_without_isolation("{$w :localize:shout}", %{w: "hi"},
+                 locale: :en,
+                 namespaces: %{"localize" => AcmeNamespace}
+               )
+             )
+
+      assert {:ok, "a and b"} =
+               format_without_isolation("{$w :localize:list}", %{w: ["a", "b"]},
+                 locale: :en,
+                 namespaces: %{"localize" => AcmeNamespace}
+               )
+    end
+
     test "u: never routes to a user handler even when one is registered" do
       assert unknown_function?(
                format_without_isolation("{$w :u:shout}", %{w: "hi"},

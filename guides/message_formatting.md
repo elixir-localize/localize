@@ -290,14 +290,14 @@ The `style`, `dateStyle` and `timeStyle` options of earlier MessageFormat 2 draf
 {$when :datetime dateStyle=long timeStyle=short}
 ```
 
-### `:relativeTime`
+### `:localize:relativeTime`
 
-Formats a relative time, such as "in 3 days", "yesterday" or "2 hours ago". It is Localize's own function, not one of TR35's, and formats as `Localize.DateTime.Relative.to_string/2` does.
+Formats a relative time, such as "in 3 days", "yesterday" or "2 hours ago". It is Localize's own function, not one of TR35's, so it is in the `localize` namespace, and formats as `Localize.DateTime.Relative.to_string/2` does.
 
-```
-{$count :relativeTime unit=day}
-{$published :relativeTime relativeTo=$now}
-{$elapsed :relativeTime style=short numeric=always}
+```text
+{$count :localize:relativeTime unit=day}
+{$published :localize:relativeTime relativeTo=$now}
+{$elapsed :localize:relativeTime style=short numeric=always}
 ```
 
 The operand is a number of `unit`s, or of seconds when there is no `unit`, or a date or time, or an ISO 8601 string of one, whose difference from `relativeTo` is formatted.
@@ -632,22 +632,34 @@ The Localize MF2 implementation targets the [Unicode MessageFormat 2.0 specifica
 | `:percent` | Stable | Percent format via `Localize.Number` |
 | `:currency` | Stable | Currency format via `Localize.Number` |
 | `:unit` | Extended | Unit format via `Localize.Unit` |
-| `:list` | Localize | Locale-aware list join via `Localize.List` |
+| `:localize:list` | Localize | Locale-aware list join via `Localize.List` |
+| `:localize:relativeTime` | Localize | Relative time via `Localize.DateTime.Relative` |
 
 CLDR 49 promoted `:currency` and `:percent` from draft to Stable, with the same implementations as before, so nothing here changed except their standing in the specification.
 
-### `:list` — locale-aware list formatting
+### The `localize` namespace
 
-`:list` is a Localize-specific extension that takes a list operand and formats it as a localized conjunction or disjunction by delegating to `Localize.List.to_string/2`. Each element of the list is itself formatted via `Localize.Chars`, so a list of dates, numbers, units, currencies, or any other type with a `Localize.Chars` implementation is rendered locale-aware end-to-end with no extra work from the message author.
+TR35 asks an implementation to put the functions and options it adds in a namespace of its own, so they cannot collide with ones a later version of the specification defines. Localize's are in the `localize` namespace: the functions `:localize:list` and `:localize:relativeTime`, and the `:unit` options `localize:grammaticalCase`, `localize:grammaticalGender` and `localize:inflect`.
+
+```text
+{$items :localize:list style=or}
+{$distance :unit unit=kilometer localize:grammaticalCase=instrumental}
+```
+
+The namespace is reserved, as `i` and `u` are: a handler registered for it through `Localize.Message.Namespace` is never consulted. `:list` and the three `:unit` options shipped before the namespace, and are still read without it; they are deprecated and will be removed in Localize 2.0.
+
+### `:localize:list` — locale-aware list formatting
+
+`:localize:list` is a Localize-specific extension that takes a list operand and formats it as a localized conjunction or disjunction by delegating to `Localize.List.to_string/2`. Each element of the list is itself formatted via `Localize.Chars`, so a list of dates, numbers, units, currencies, or any other type with a `Localize.Chars` implementation is rendered locale-aware end-to-end with no extra work from the message author.
 
 ```elixir
-iex> Localize.Message.format("{$items :list}", %{"items" => ["apple", "banana", "cherry"]}, locale: :en)
+iex> Localize.Message.format("{$items :localize:list}", %{"items" => ["apple", "banana", "cherry"]}, locale: :en)
 {:ok, "\u2068apple, banana, and cherry\u2069"}
 
-iex> Localize.Message.format("{$items :list}", %{"items" => [1234, 5678]}, locale: :de)
+iex> Localize.Message.format("{$items :localize:list}", %{"items" => [1234, 5678]}, locale: :de)
 {:ok, "\u20681.234 und 5.678\u2069"}
 
-iex> Localize.Message.format("{$items :list}", %{"items" => [~D[2025-07-10], ~D[2025-08-15]]}, locale: :en)
+iex> Localize.Message.format("{$items :localize:list}", %{"items" => [~D[2025-07-10], ~D[2025-08-15]]}, locale: :en)
 {:ok, "\u2068Jul 10, 2025 and Aug 15, 2025\u2069"}
 ```
 
@@ -666,18 +678,18 @@ The function accepts a `style` (or `type`) option that maps to a CLDR list style
 | `"unit-narrow"` | `:unit_narrow` | Narrowest unit-list join |
 
 ```elixir
-iex> Localize.Message.format(~S({$items :list style=or}), %{"items" => ["red", "green", "blue"]}, locale: :en)
+iex> Localize.Message.format(~S({$items :localize:list style=or}), %{"items" => ["red", "green", "blue"]}, locale: :en)
 {:ok, "\u2068red, green, or blue\u2069"}
 
-iex> Localize.Message.format(~S({$items :list style=unit-narrow}), %{"items" => ["3", "ft", "7", "in"]}, locale: :en)
+iex> Localize.Message.format(~S({$items :localize:list style=unit-narrow}), %{"items" => ["3", "ft", "7", "in"]}, locale: :en)
 {:ok, "\u20683 ft 7 in\u2069"}
 ```
 
-Embedding `:list` in a larger message is straightforward:
+Embedding `:localize:list` in a larger message is straightforward:
 
 ```elixir
 iex> Localize.Message.format(
-...>   "You have {$items :list} in your cart.",
+...>   "You have {$items :localize:list} in your cart.",
 ...>   %{"items" => ["apple", "banana", "cherry"]},
 ...>   locale: :en
 ...> )

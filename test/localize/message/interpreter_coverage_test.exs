@@ -206,25 +206,31 @@ defmodule Localize.Message.InterpreterCoverageTest do
     end
   end
 
-  describe ":list styles" do
+  describe ":localize:list styles" do
     test "and-short" do
       assert {:ok, ["a, b, & c"], ["l"], []} =
-               format("{$l :list style=and-short}", %{"l" => ["a", "b", "c"]}, locale: :en)
+               format("{$l :localize:list style=and-short}", %{"l" => ["a", "b", "c"]},
+                 locale: :en
+               )
     end
 
     test "and-narrow" do
       assert {:ok, ["a, b, c"], ["l"], []} =
-               format("{$l :list style=and-narrow}", %{"l" => ["a", "b", "c"]}, locale: :en)
+               format("{$l :localize:list style=and-narrow}", %{"l" => ["a", "b", "c"]},
+                 locale: :en
+               )
     end
 
     test "unit" do
       assert {:ok, ["a, b, c"], ["l"], []} =
-               format("{$l :list style=unit}", %{"l" => ["a", "b", "c"]}, locale: :en)
+               format("{$l :localize:list style=unit}", %{"l" => ["a", "b", "c"]}, locale: :en)
     end
 
     test "unit-short" do
       assert {:ok, ["a, b, c"], ["l"], []} =
-               format("{$l :list style=unit-short}", %{"l" => ["a", "b", "c"]}, locale: :en)
+               format("{$l :localize:list style=unit-short}", %{"l" => ["a", "b", "c"]},
+                 locale: :en
+               )
     end
   end
 

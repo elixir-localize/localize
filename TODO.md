@@ -4,8 +4,6 @@ Outstanding work on Localize. The design detail behind these items lives under [
 
 ## Open
 
-* [ ] **A `localize` MF2 namespace** — move Localize's own functions to `:localize:relativeTime` (unreleased, no alias) and `:localize:list` (`:list` kept as a deprecated alias until 2.0), and namespace every non-spec option Localize accepts on a standard function as `localize:option`, keeping a shipped spelling as a deprecated alias. Decided 2026-11-25; before the 1.10 release.
-
 * [ ] **Context before in collation tailorings** — TR35's `|` (a prefix such as `う|ゝ`, ゝ after う) is not parsed, so the 47 such rules in `ja`, for the kana iteration marks ゝゞヽヾ, produce keys that never match and the marks stay untailored.
 
 * [ ] **Settle the runtime `:persistent_term` writes under rule 14** — about forty sites write at runtime: per-locale data and caches, constants computed on first use, configuration setters and warn-once flags. Needs a decision on per-locale data; the options and their measured costs are in [plans/persistent-term-writes.md](plans/persistent-term-writes.md).
@@ -73,6 +71,8 @@ Outstanding work on Localize. The design detail behind these items lives under [
 * [ ] **`localize_emoji` sibling library** — plan item 11, a separate package on its own schedule. A Phoenix LiveView picker (`localize_emoji_live`) is out of scope for its 0.1.0.
 
 ## Done
+
+* [x] **A `localize` MF2 namespace** — `:localize:list`, `:localize:relativeTime` and the `:unit` options `localize:grammaticalCase`, `localize:grammaticalGender`, `localize:inflect`; the namespace is reserved; `:list` and the bare options are deprecated aliases until 2.0. 2026-11-25.
 
 * [x] **Migration from Gettext's `%{}` syntax to MF2** — `mix localize.gettext.mf2` (`Localize.Gettext.Migration`): catalogs, literal calls and, with `--plurals`, `ngettext` to `.match`, converting only entries whose every lookup changes with them (`--trust` for noop-fed dynamic lookups). On Mishka with `--trust default --trust mishka_gervaz`: 702 msgids, `errors` and sibling-repository entries kept, no lookup lost its entry; on Timex nothing, as it looks up a variable domain. 2026-11-25.
 

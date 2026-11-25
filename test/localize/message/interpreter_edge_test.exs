@@ -219,27 +219,31 @@ defmodule Localize.Message.InterpreterEdgeTest do
     end
   end
 
-  describe ":list function options" do
+  describe ":localize:list function options" do
     test "maps the style option onto CLDR list styles" do
       assert {:ok, ["a b c"], ["items"], []} =
-               format("{$items :list style=unit-narrow}", %{"items" => ["a", "b", "c"]},
+               format("{$items :localize:list style=unit-narrow}", %{"items" => ["a", "b", "c"]},
                  locale: :en
                )
     end
 
     test "accepts type as an alias for style" do
       assert {:ok, ["a, b, or c"], ["items"], []} =
-               format("{$items :list type=or-short}", %{"items" => ["a", "b", "c"]}, locale: :en)
+               format("{$items :localize:list type=or-short}", %{"items" => ["a", "b", "c"]},
+                 locale: :en
+               )
     end
 
     test "rejects unknown style names" do
       assert {:format_error, {:formatter_failed, %Localize.InvalidValueError{}}} =
-               format("{$items :list style=bogus}", %{"items" => ["a", "b"]}, locale: :en)
+               format("{$items :localize:list style=bogus}", %{"items" => ["a", "b"]},
+                 locale: :en
+               )
     end
 
     test "rejects a non-list operand" do
       assert {:format_error, {:formatter_failed, reason}} =
-               format("{$items :list}", %{"items" => "not-a-list"}, locale: :en)
+               format("{$items :localize:list}", %{"items" => "not-a-list"}, locale: :en)
 
       assert reason =~ "requires a list operand"
     end

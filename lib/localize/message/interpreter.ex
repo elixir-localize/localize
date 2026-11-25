@@ -37,7 +37,12 @@ defmodule Localize.Message.Interpreter do
   #
   # ### Localize extensions (not in the MF2 specification)
   #
-  # * `:list` — format a list operand as a locale-aware
+  # Localize's own functions and options are in the `localize`
+  # namespace, as TR35 asks of an implementation's additions. `:list`
+  # and the `:unit` options `grammaticalCase`, `grammaticalGender` and
+  # `inflect` shipped without it and are still read, deprecated.
+  #
+  # * `:localize:list` — format a list operand as a locale-aware
   #   conjunction or disjunction by delegating to
   #   `Localize.List.to_string/2`. Each element is itself
   #   formatted via `Localize.Chars`, so a list of dates,
@@ -142,10 +147,10 @@ defmodule Localize.Message.Interpreter do
     "date",
     "time",
     "datetime",
-    "relativeTime"
+    "localize:relativeTime"
   ]
 
-  # `:relativeTime`'s option values, as `Localize.DateTime.Relative` takes
+  # `:localize:relativeTime`'s option values, as `Localize.DateTime.Relative` takes
   # them. The unit names are its `known_units/0`; the styles are
   # ECMA-402's, `long` being Localize's `:standard`.
   @relative_time_units Map.new(
@@ -1197,25 +1202,30 @@ defmodule Localize.Message.Interpreter do
 
   # ── List formatting ────────────────────────────────────────────
 
-  defp format_with_function("list", value, func_opts, options) when is_list(value) do
+  defp format_with_function("localize:list", value, func_opts, options) when is_list(value) do
     localize_opts = resolve_locale_options(options)
     localize_opts = map_list_options(localize_opts, func_opts)
     Localize.List.to_string(value, localize_opts)
   end
 
-  defp format_with_function("list", value, _func_opts, _options) do
-    {:error, "the :list function requires a list operand, got #{inspect(value)}"}
+  defp format_with_function("localize:list", value, _func_opts, _options) do
+    {:error, "the :localize:list function requires a list operand, got #{inspect(value)}"}
+  end
+
+  # `:list` shipped before the `localize` namespace, and is deprecated.
+  defp format_with_function("list", value, func_opts, options) do
+    format_with_function("localize:list", value, func_opts, options)
   end
 
   # ── Relative time formatting ──────────────────────────────────────
   #
-  # `:relativeTime` is Localize's own, not a function of TR35: "in 3 days",
+  # `:localize:relativeTime` is Localize's own, not a function of TR35: "in 3 days",
   # "yesterday". Its operand is a number of `unit`s, or of seconds with no
   # unit, or a date or time whose difference from `relativeTo` (the
   # current time by default) is formatted, as `Localize.DateTime.Relative`
   # formats them.
 
-  defp format_with_function("relativeTime", value, func_opts, options) do
+  defp format_with_function("localize:relativeTime", value, func_opts, options) do
     with {:ok, operand} <- relative_time_operand(value),
          {:ok, relative_options} <- relative_time_options(func_opts, options) do
       Localize.DateTime.Relative.to_string(operand, relative_options)
@@ -1537,7 +1547,7 @@ defmodule Localize.Message.Interpreter do
   defp resolve_namespace_handler(name, options) do
     case String.split(name, ":", parts: 2) do
       [namespace, local_name]
-      when namespace not in ["i", "u"] and local_name != "" ->
+      when namespace not in ["i", "u", "localize"] and local_name != "" ->
         case lookup_namespace(namespace, options) do
           {:ok, module} -> {:ok, module, local_name}
           :not_found -> :not_found
@@ -2534,9 +2544,9 @@ defmodule Localize.Message.Interpreter do
   defp map_unit_options(localize_opts, func_opts) do
     localize_opts
     |> add_unit_display(func_opts[:unitDisplay])
-    |> add_unit_grammar(:grammatical_case, func_opts[:grammaticalCase])
-    |> add_unit_grammar(:grammatical_gender, func_opts[:grammaticalGender])
-    |> add_unit_inflect(func_opts[:inflect])
+    |> add_unit_grammar(:grammatical_case, localize_option(func_opts, :grammaticalCase))
+    |> add_unit_grammar(:grammatical_gender, localize_option(func_opts, :grammaticalGender))
+    |> add_unit_inflect(localize_option(func_opts, :inflect))
   end
 
   defp add_unit_display(opts, "long"), do: Keyword.put(opts, :format, :long)
@@ -2552,6 +2562,20 @@ defmodule Localize.Message.Interpreter do
   end
 
   defp add_unit_grammar(opts, _key, _value), do: opts
+
+  # Localize's own option on a standard function, written in the
+  # `localize` namespace, or deprecated, without it, as it shipped.
+  defp localize_option(func_opts, :grammaticalCase) do
+    Map.get(func_opts, :"localize:grammaticalCase", func_opts[:grammaticalCase])
+  end
+
+  defp localize_option(func_opts, :grammaticalGender) do
+    Map.get(func_opts, :"localize:grammaticalGender", func_opts[:grammaticalGender])
+  end
+
+  defp localize_option(func_opts, :inflect) do
+    Map.get(func_opts, :"localize:inflect", func_opts[:inflect])
+  end
 
   # `:safe` inflects only through attested dictionary paths; `:always`
   # also enables suffix-exemplar guessing. Anything else leaves the
@@ -2921,7 +2945,7 @@ defmodule Localize.Message.Interpreter do
 
   # ── List option mapping ────────────────────────────────────────
   #
-  # Maps the MF2 `:list` function options onto the keyword
+  # Maps the MF2 `:localize:list` function options onto the keyword
   # arguments expected by `Localize.List.to_string/2`. Recognised
   # MF2 option names:
   #
@@ -3013,7 +3037,7 @@ defmodule Localize.Message.Interpreter do
 
           :error ->
             {:error,
-             "the #{option} option of :relativeTime must be one of " <>
+             "the #{option} option of :localize:relativeTime must be one of " <>
                "#{Enum.join(Enum.sort(Map.keys(choices)), ", ")}, got #{inspect(value)}"}
         end
     end
@@ -3047,13 +3071,13 @@ defmodule Localize.Message.Interpreter do
 
       :error ->
         {:error,
-         "the relativeTo option of :relativeTime must be a date or time, got #{inspect(value)}"}
+         "the relativeTo option of :localize:relativeTime must be a date or time, got #{inspect(value)}"}
     end
   end
 
   defp relative_time_baseline(value) do
     {:error,
-     "the relativeTo option of :relativeTime must be a date or time, got #{inspect(value)}"}
+     "the relativeTo option of :localize:relativeTime must be a date or time, got #{inspect(value)}"}
   end
 
   defp put_present(options, _key, nil) do
@@ -3234,6 +3258,12 @@ defmodule Localize.Message.Interpreter do
   # string as written, so that no message can add an atom. Every name a
   # built-in clause reads is an atom in this module, so exists: the
   # built-in clauses read atoms and nothing else.
+  # A namespaced name, `{:namespace, "localize", "inflect"}` from the
+  # parser, is written as it reads, `localize:inflect`, as a function's is.
+  defp option_key({:namespace, namespace, name}) do
+    option_key(namespace <> ":" <> name)
+  end
+
   defp option_key(name) do
     Helpers.existing_atom(name) || name
   end

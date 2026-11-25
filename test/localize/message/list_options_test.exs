@@ -15,31 +15,47 @@ defmodule Localize.Message.ListOptionsTest do
     end
   end
 
-  describe ":list — default style" do
+  describe ":list without the localize namespace (deprecated)" do
+    test "formats as :localize:list does, with its options" do
+      bindings = %{"items" => ["red", "green", "blue"]}
+
+      assert format("{$items :list style=or}", bindings) ==
+               format("{$items :localize:list style=or}", bindings)
+
+      assert format("{$items :list}", bindings) == "red, green, and blue"
+    end
+
+    test "returns the error :localize:list returns for an operand that is not a list" do
+      assert {:error, %Localize.FormatError{}} =
+               Localize.Message.format("{$items :list}", %{"items" => 3}, locale: :en)
+    end
+  end
+
+  describe ":localize:list — default style" do
     test "joins three string elements with the standard 'and' conjunction" do
       assert "apple, banana, and cherry" =
-               format("{$items :list}", %{"items" => ["apple", "banana", "cherry"]})
+               format("{$items :localize:list}", %{"items" => ["apple", "banana", "cherry"]})
     end
 
     test "two elements use the locale's two-element pattern" do
       assert "apple and banana" =
-               format("{$items :list}", %{"items" => ["apple", "banana"]})
+               format("{$items :localize:list}", %{"items" => ["apple", "banana"]})
     end
 
     test "single element renders the element by itself" do
-      assert "apple" = format("{$items :list}", %{"items" => ["apple"]})
+      assert "apple" = format("{$items :localize:list}", %{"items" => ["apple"]})
     end
 
     test "empty list renders as an empty string" do
-      assert "" = format("{$items :list}", %{"items" => []})
+      assert "" = format("{$items :localize:list}", %{"items" => []})
     end
   end
 
-  describe ":list — style option" do
+  describe ":localize:list — style option" do
     test "style=or uses the disjunctive pattern" do
       assert "apple, banana, or cherry" =
                format(
-                 ~S({$items :list style=or}),
+                 ~S({$items :localize:list style=or}),
                  %{"items" => ["apple", "banana", "cherry"]}
                )
     end
@@ -47,7 +63,7 @@ defmodule Localize.Message.ListOptionsTest do
     test "style=or-narrow uses the narrow disjunctive pattern" do
       assert "a, b, or c" =
                format(
-                 ~S({$items :list style=or-narrow}),
+                 ~S({$items :localize:list style=or-narrow}),
                  %{"items" => ["a", "b", "c"]}
                )
     end
@@ -55,7 +71,7 @@ defmodule Localize.Message.ListOptionsTest do
     test "style=unit-narrow joins with no conjunction" do
       assert "a b c" =
                format(
-                 ~S({$items :list style=unit-narrow}),
+                 ~S({$items :localize:list style=unit-narrow}),
                  %{"items" => ["a", "b", "c"]}
                )
     end
@@ -63,7 +79,7 @@ defmodule Localize.Message.ListOptionsTest do
     test "style=and is the default standard list style" do
       assert "a, b, and c" =
                format(
-                 ~S({$items :list style=and}),
+                 ~S({$items :localize:list style=and}),
                  %{"items" => ["a", "b", "c"]}
                )
     end
@@ -71,17 +87,17 @@ defmodule Localize.Message.ListOptionsTest do
     test "type option is accepted as an alias for style" do
       assert "apple, banana, or cherry" =
                format(
-                 ~S({$items :list type=or}),
+                 ~S({$items :localize:list type=or}),
                  %{"items" => ["apple", "banana", "cherry"]}
                )
     end
   end
 
-  describe ":list — locale-aware element formatting" do
+  describe ":localize:list — locale-aware element formatting" do
     test "numbers are formatted with the message's locale" do
       assert "1.234 und 5.678" =
                format_with_locale(
-                 "{$items :list}",
+                 "{$items :localize:list}",
                  %{"items" => [1234, 5678]},
                  "de"
                )
@@ -90,7 +106,7 @@ defmodule Localize.Message.ListOptionsTest do
     test "floats use the locale's decimal separator" do
       assert "1.234,5 und 5.678,9" =
                format_with_locale(
-                 "{$items :list}",
+                 "{$items :localize:list}",
                  %{"items" => [1234.5, 5678.9]},
                  "de"
                )
@@ -99,7 +115,7 @@ defmodule Localize.Message.ListOptionsTest do
     test "dates use the locale's calendar pattern" do
       assert "Jul 10, 2025 and Aug 15, 2025" =
                format(
-                 "{$items :list}",
+                 "{$items :localize:list}",
                  %{"items" => [~D[2025-07-10], ~D[2025-08-15]]}
                )
     end
@@ -109,36 +125,36 @@ defmodule Localize.Message.ListOptionsTest do
       {:ok, kg} = Localize.Unit.new(3, "kilogram")
 
       assert "42 kilometers and 3 kilograms" =
-               format("{$items :list}", %{"items" => [km, kg]})
+               format("{$items :localize:list}", %{"items" => [km, kg]})
     end
 
     test "atoms fall through to Kernel.to_string" do
       assert "foo and bar" =
-               format("{$items :list}", %{"items" => [:foo, :bar]})
+               format("{$items :localize:list}", %{"items" => [:foo, :bar]})
     end
 
     test "French locale uses 'et' as the conjunction" do
       assert "a, b et c" =
                format_with_locale(
-                 "{$items :list}",
+                 "{$items :localize:list}",
                  %{"items" => ["a", "b", "c"]},
                  "fr"
                )
     end
   end
 
-  describe ":list — interpolation in larger messages" do
+  describe ":localize:list — interpolation in larger messages" do
     test "list expression embedded in surrounding text" do
       assert "You have apple, banana, and cherry in your cart." =
                format(
-                 "You have {$items :list} in your cart.",
+                 "You have {$items :localize:list} in your cart.",
                  %{"items" => ["apple", "banana", "cherry"]}
                )
     end
 
     test "list expression in a quoted-pattern complex message" do
       message = """
-      .input {$items :list}
+      .input {$items :localize:list}
       {{Available: {$items}}}\
       """
 
@@ -147,9 +163,9 @@ defmodule Localize.Message.ListOptionsTest do
     end
   end
 
-  describe ":list — error handling" do
+  describe ":localize:list — error handling" do
     test "non-list operand returns a format error" do
-      {:ok, parsed} = Parser.parse("{$item :list}")
+      {:ok, parsed} = Parser.parse("{$item :localize:list}")
 
       assert {:format_error, {:formatter_failed, detail}} =
                Interpreter.format_list(parsed, %{"item" => "not a list"}, locale: "en")
@@ -158,7 +174,7 @@ defmodule Localize.Message.ListOptionsTest do
     end
 
     test "invalid style atom surfaces as an error from Localize.List" do
-      {:ok, parsed} = Parser.parse(~S({$items :list style=nonexistent}))
+      {:ok, parsed} = Parser.parse(~S({$items :localize:list style=nonexistent}))
 
       assert {:format_error, _reason} =
                Interpreter.format_list(parsed, %{"items" => ["a", "b"]}, locale: "en")
@@ -170,7 +186,7 @@ defmodule Localize.Message.ListOptionsTest do
     # downstream `Localize.List` rejected the unknown style.
     test "unknown style name does not create an atom" do
       bogus = "ZZZ_list_style_#{System.unique_integer([:positive])}"
-      {:ok, parsed} = Parser.parse(~S({$items :list style=) <> bogus <> ~S(}))
+      {:ok, parsed} = Parser.parse(~S({$items :localize:list style=) <> bogus <> ~S(}))
 
       assert {:format_error, _reason} =
                Interpreter.format_list(parsed, %{"items" => ["a", "b"]}, locale: "en")

@@ -8,11 +8,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
+* The MF2 `localize` namespace holds Localize's own functions and options: `:localize:list`, `:localize:relativeTime` and the `:unit` options `localize:grammaticalCase`, `localize:grammaticalGender` and `localize:inflect`. It is reserved, as `i` and `u` are.
+
 * `mix localize.gettext.mf2` converts an application's Gettext catalogs and `gettext` calls, HEEx templates included, from `%{name}` to MF2, and with `--plurals` `ngettext` to `.match`. It converts only entries whose every lookup changes with them, so a domain looked up dynamically, as `errors` is, keeps its msgids.
 
 * `Localize.Gettext.Migration.convert/2` with `plurals:` writes a Gettext plural entry as one `.match` message that chooses the form Gettext chooses for every count; `convertible_plurals/2` tells which entries can be.
 
-* An MF2 `:relativeTime` function formats "in 3 days" or "yesterday" from a number with a `unit`, or from a date or time against `relativeTo`, with `style` and `numeric` options. `Localize.DateTime.Relative` takes a `Decimal`.
+* An MF2 `:localize:relativeTime` function formats "in 3 days" or "yesterday" from a number with a `unit`, or from a date or time against `relativeTo`, with `style` and `numeric` options. `Localize.DateTime.Relative` takes a `Decimal`.
 
 * `Localize.Locale.fallback_chain/2` returns a locale's CLDR fallback chain as locale ids, nearest first and without the root, as `fr-CA` → `fr` and `pt-AO` → `pt-PT` → `pt`. It is `localize_translate`'s `locale_chain/2` walk, moved here so applications with their own translation tables need not depend on it.
 
@@ -28,7 +30,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 * Collation tailorings CLDR marks as provisional or unconfirmed are no longer included, as for the rest of Localize's CLDR data: `ca`, `dz`, `wae`, `bal`, `sa` standard, `cs` digits-after and `de` eor now collate in their parent's or the root order.
 
+### Deprecated
+
+* The MF2 function `:list` and the `:unit` options `grammaticalCase`, `grammaticalGender` and `inflect` without the `localize` namespace. They are still read, and will be removed in 2.0.
+
 ### Fixed
+
+* A namespaced option, such as `acme:style=fancy`, given to an application's MF2 function or namespace handler no longer raises `Protocol.UndefinedError`; it arrives by its written name.
 
 * `Localize.Message.format/3` with `backend: :nif` formats a message calling `:percent`, `:currency`, `:offset`, `:unit`, `:list`, an `:i:` function or an application's own function with the interpreter. ICU 78 formatted none of them, so they came back as `{$n}`.
 

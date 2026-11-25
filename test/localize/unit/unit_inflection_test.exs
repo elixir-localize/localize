@@ -177,9 +177,9 @@ defmodule Localize.Unit.InflectionTest do
   end
 
   describe "MF2 :unit grammar options" do
-    test "grammaticalCase maps onto the CLDR case-keyed patterns" do
+    test "localize:grammaticalCase maps onto the CLDR case-keyed patterns" do
       assert Localize.Message.format(
-               "{$d :unit unit=kilometer grammaticalCase=instrumental}",
+               "{$d :unit unit=kilometer localize:grammaticalCase=instrumental}",
                %{d: 2},
                locale: :ru
              ) == {:ok, "2 километрами"}
@@ -187,7 +187,7 @@ defmodule Localize.Unit.InflectionTest do
 
     test "inflect enables the engine fallback" do
       assert Localize.Message.format(
-               "{$d :unit unit=kilometer grammaticalCase=prepositional inflect=safe}",
+               "{$d :unit unit=kilometer localize:grammaticalCase=prepositional localize:inflect=safe}",
                %{d: 2},
                locale: :ru
              ) == {:ok, "2 километрах"}
@@ -195,7 +195,7 @@ defmodule Localize.Unit.InflectionTest do
 
     test "unknown grammaticalCase values are ignored" do
       assert Localize.Message.format(
-               "{$d :unit unit=kilometer grammaticalCase=bogus}",
+               "{$d :unit unit=kilometer localize:grammaticalCase=bogus}",
                %{d: 2},
                locale: :ru
              ) == {:ok, "2 километра"}
@@ -204,7 +204,38 @@ defmodule Localize.Unit.InflectionTest do
     test "options apply to Localize.Unit operands too" do
       {:ok, unit} = Localize.Unit.new(2, "kilometer")
 
-      assert Localize.Message.format("{$u :unit grammaticalCase=instrumental}", %{u: unit},
+      assert Localize.Message.format(
+               "{$u :unit localize:grammaticalCase=instrumental}",
+               %{u: unit},
+               locale: :ru
+             ) == {:ok, "2 километрами"}
+    end
+  end
+
+  describe "MF2 :unit grammar options without the localize namespace (deprecated)" do
+    test "grammaticalCase, grammaticalGender and inflect are still read" do
+      assert Localize.Message.format(
+               "{$d :unit unit=kilometer grammaticalCase=prepositional inflect=safe}",
+               %{d: 2},
+               locale: :ru
+             ) == {:ok, "2 километрах"}
+
+      assert Localize.Message.format(
+               "{$d :unit unit=kilometer grammaticalGender=masculine}",
+               %{d: 2},
+               locale: :ru
+             ) ==
+               Localize.Message.format(
+                 "{$d :unit unit=kilometer localize:grammaticalGender=masculine}",
+                 %{d: 2},
+                 locale: :ru
+               )
+    end
+
+    test "the namespaced option wins over the deprecated one" do
+      assert Localize.Message.format(
+               "{$d :unit unit=kilometer grammaticalCase=bogus localize:grammaticalCase=instrumental}",
+               %{d: 2},
                locale: :ru
              ) == {:ok, "2 километрами"}
     end
