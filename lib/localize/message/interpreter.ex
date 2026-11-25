@@ -141,8 +141,19 @@ defmodule Localize.Message.Interpreter do
     "unit",
     "date",
     "time",
-    "datetime"
+    "datetime",
+    "relativeTime"
   ]
+
+  # `:relativeTime`'s option values, as `Localize.DateTime.Relative` takes
+  # them. The unit names are its `known_units/0`; the styles are
+  # ECMA-402's, `long` being Localize's `:standard`.
+  @relative_time_units Map.new(
+                         Localize.DateTime.Relative.known_units(),
+                         &{Atom.to_string(&1), &1}
+                       )
+  @relative_time_styles %{"long" => :standard, "short" => :short, "narrow" => :narrow}
+  @relative_time_numeric %{"auto" => :auto, "always" => :always}
 
   # The `u:dir` values TR35 defines; any other is ignored, as `inherit`.
   @u_dir_values ["ltr", "rtl", "auto", "inherit"]
@@ -1194,6 +1205,21 @@ defmodule Localize.Message.Interpreter do
 
   defp format_with_function("list", value, _func_opts, _options) do
     {:error, "the :list function requires a list operand, got #{inspect(value)}"}
+  end
+
+  # ── Relative time formatting ──────────────────────────────────────
+  #
+  # `:relativeTime` is Localize's own, not a function of TR35: "in 3 days",
+  # "yesterday". Its operand is a number of `unit`s, or of seconds with no
+  # unit, or a date or time whose difference from `relativeTo` (the
+  # current time by default) is formatted, as `Localize.DateTime.Relative`
+  # formats them.
+
+  defp format_with_function("relativeTime", value, func_opts, options) do
+    with {:ok, operand} <- relative_time_operand(value),
+         {:ok, relative_options} <- relative_time_options(func_opts, options) do
+      Localize.DateTime.Relative.to_string(operand, relative_options)
+    end
   end
 
   # ── Inflection (`i:` namespace) ──────────────────────────────────
@@ -2938,6 +2964,104 @@ defmodule Localize.Message.Interpreter do
     # a valid list style; `Localize.List.to_string/2` rejects it via
     # its existing `InvalidValueError` path.
     Keyword.put(opts, :list_style, :__invalid_mf2_list_style__)
+  end
+
+  # A date or time operand, or an ISO 8601 literal of one, is measured
+  # against `relativeTo`; anything else is a number.
+  defp relative_time_operand(%struct{} = value)
+       when struct in [Date, Time, NaiveDateTime, DateTime] do
+    {:ok, value}
+  end
+
+  defp relative_time_operand(value) when is_binary(value) do
+    case date_time_literal(value) do
+      {:ok, date_or_datetime} -> {:ok, date_or_datetime}
+      :error -> ensure_number(value)
+    end
+  end
+
+  defp relative_time_operand(value) do
+    ensure_number(value)
+  end
+
+  defp relative_time_options(func_opts, options) do
+    with {:ok, unit} <- relative_time_choice(func_opts, :unit, @relative_time_units),
+         {:ok, style} <- relative_time_choice(func_opts, :style, @relative_time_styles),
+         {:ok, numeric} <- relative_time_choice(func_opts, :numeric, @relative_time_numeric),
+         {:ok, relative_to} <- relative_time_baseline(Map.get(func_opts, :relativeTo)) do
+      relative_options =
+        [locale: Keyword.get(options, :locale, Localize.get_locale())]
+        |> put_present(:unit, unit)
+        |> put_present(:format, style)
+        |> put_present(:numeric, numeric)
+        |> put_present(:relative_to, relative_to)
+
+      {:ok, relative_options}
+    end
+  end
+
+  # An option's value is one of a known set of names, never made an atom.
+  defp relative_time_choice(func_opts, option, choices) do
+    case Map.get(func_opts, option) do
+      nil ->
+        {:ok, nil}
+
+      value ->
+        case Map.fetch(choices, choice_name(value)) do
+          {:ok, choice} ->
+            {:ok, choice}
+
+          :error ->
+            {:error,
+             "the #{option} option of :relativeTime must be one of " <>
+               "#{Enum.join(Enum.sort(Map.keys(choices)), ", ")}, got #{inspect(value)}"}
+        end
+    end
+  end
+
+  defp choice_name(value) when is_binary(value) do
+    value
+  end
+
+  defp choice_name(value) when is_atom(value) do
+    Atom.to_string(value)
+  end
+
+  defp choice_name(_value) do
+    nil
+  end
+
+  defp relative_time_baseline(nil) do
+    {:ok, nil}
+  end
+
+  defp relative_time_baseline(%struct{} = value)
+       when struct in [Date, Time, NaiveDateTime, DateTime] do
+    {:ok, value}
+  end
+
+  defp relative_time_baseline(value) when is_binary(value) do
+    case date_time_literal(value) do
+      {:ok, date_or_datetime} ->
+        {:ok, date_or_datetime}
+
+      :error ->
+        {:error,
+         "the relativeTo option of :relativeTime must be a date or time, got #{inspect(value)}"}
+    end
+  end
+
+  defp relative_time_baseline(value) do
+    {:error,
+     "the relativeTo option of :relativeTime must be a date or time, got #{inspect(value)}"}
+  end
+
+  defp put_present(options, _key, nil) do
+    options
+  end
+
+  defp put_present(options, key, value) do
+    Keyword.put(options, key, value)
   end
 
   # ── Type coercion and validation ───────────────────────────────

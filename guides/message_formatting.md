@@ -290,6 +290,25 @@ The `style`, `dateStyle` and `timeStyle` options of earlier MessageFormat 2 draf
 {$when :datetime dateStyle=long timeStyle=short}
 ```
 
+### `:relativeTime`
+
+Formats a relative time, such as "in 3 days", "yesterday" or "2 hours ago". It is Localize's own function, not one of TR35's, and formats as `Localize.DateTime.Relative.to_string/2` does.
+
+```
+{$count :relativeTime unit=day}
+{$published :relativeTime relativeTo=$now}
+{$elapsed :relativeTime style=short numeric=always}
+```
+
+The operand is a number of `unit`s, or of seconds when there is no `unit`, or a date or time, or an ISO 8601 string of one, whose difference from `relativeTo` is formatted.
+
+| Option | Values | Description |
+|--------|--------|-------------|
+| `unit` | `second`, `minute`, `hour`, `day`, `week`, `month`, `quarter`, `year`, `mon` to `sun` | The unit of a number, or the unit to count a difference in (default: the largest whole unit). |
+| `style` | `long`, `short`, `narrow` | The length of the unit's name (default: `long`). |
+| `numeric` | `auto`, `always` | `auto` names an offset of -2 to 2 where the locale has a name, such as "tomorrow"; `always` writes the number (default: `auto`). |
+| `relativeTo` | a date or time, or an ISO 8601 literal | The baseline of a date or time operand (default: the current time). |
+
 ## Declarations
 
 Declarations appear at the start of a complex message, before the body.
@@ -490,6 +509,16 @@ Formats an MF2 message into an iolist with binding tracking.
 * `{:ok, iolist, bound_variables, unbound_variables}` on success.
 
 * `{:error, iolist, bound_variables, unbound_variables}` when variables cannot be resolved.
+
+### `Localize.Message.parse/2`
+
+Parses an MF2 message and checks it against TR35's data-model rules once, returning a `Localize.Message.Parsed` struct. `format/3`, `format_to_iolist/3` and `format_to_safe_list/3` take the struct in place of the string and skip both steps, so messages kept as data, such as translations in a database, are parsed once and formatted many times.
+
+**Returns:**
+
+* `{:ok, parsed}` on success.
+
+* `{:error, exception}`, where the exception is a `Localize.ParseError` for invalid syntax or a `Localize.FormatError` for a data-model error.
 
 ### `Localize.Message.canonical_message/2`
 

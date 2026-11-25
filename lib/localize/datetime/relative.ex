@@ -30,7 +30,7 @@ defmodule Localize.DateTime.Relative do
 
   ### Arguments
 
-  * `relative` is a number of `:unit`s, which may be fractional, or a number of seconds when there is no `:unit`. It may instead be a `t:Date.t/0`, `t:Time.t/0`, `t:NaiveDateTime.t/0` or `t:DateTime.t/0`, whose difference from `:relative_to` is formatted.
+  * `relative` is a number of `:unit`s, an integer, float or `t:Decimal.t/0`, which may be fractional, or a number of seconds when there is no `:unit`. It may instead be a `t:Date.t/0`, `t:Time.t/0`, `t:NaiveDateTime.t/0` or `t:DateTime.t/0`, whose difference from `:relative_to` is formatted.
 
   * `options` is a keyword list of options.
 
@@ -73,7 +73,10 @@ defmodule Localize.DateTime.Relative do
       {:ok, "next month"}
 
   """
-  @spec to_string(number() | Date.t() | Time.t() | NaiveDateTime.t() | DateTime.t(), Keyword.t()) ::
+  @spec to_string(
+          number() | Decimal.t() | Date.t() | Time.t() | NaiveDateTime.t() | DateTime.t(),
+          Keyword.t()
+        ) ::
           {:ok, String.t()} | {:error, Exception.t()}
   def to_string(relative, options \\ [])
 
@@ -115,7 +118,10 @@ defmodule Localize.DateTime.Relative do
       "yesterday"
 
   """
-  @spec to_string!(number() | Date.t() | Time.t() | NaiveDateTime.t() | DateTime.t(), Keyword.t()) ::
+  @spec to_string!(
+          number() | Decimal.t() | Date.t() | Time.t() | NaiveDateTime.t() | DateTime.t(),
+          Keyword.t()
+        ) ::
           String.t()
   def to_string!(relative, options \\ []) do
     case to_string(relative, options) do
@@ -161,7 +167,10 @@ defmodule Localize.DateTime.Relative do
        ]}
 
   """
-  @spec to_parts(number() | Date.t() | Time.t() | NaiveDateTime.t() | DateTime.t(), Keyword.t()) ::
+  @spec to_parts(
+          number() | Decimal.t() | Date.t() | Time.t() | NaiveDateTime.t() | DateTime.t(),
+          Keyword.t()
+        ) ::
           {:ok, [%{type: atom(), value: String.t()}]} | {:error, Exception.t()}
   def to_parts(relative, options \\ [])
 
@@ -207,7 +216,10 @@ defmodule Localize.DateTime.Relative do
       [%{type: :literal, value: "yesterday"}]
 
   """
-  @spec to_parts!(number() | Date.t() | Time.t() | NaiveDateTime.t() | DateTime.t(), Keyword.t()) ::
+  @spec to_parts!(
+          number() | Decimal.t() | Date.t() | Time.t() | NaiveDateTime.t() | DateTime.t(),
+          Keyword.t()
+        ) ::
           [%{type: atom(), value: String.t()}]
   def to_parts!(relative, options \\ []) do
     case to_parts(relative, options) do
@@ -313,6 +325,12 @@ defmodule Localize.DateTime.Relative do
     end
   end
 
+  defp named_form(%Decimal{} = relative, unit_data, :auto) do
+    if Decimal.integer?(relative) do
+      named_form(Decimal.to_integer(relative), unit_data, :auto)
+    end
+  end
+
   defp named_form(_relative, _unit_data, _numeric), do: nil
 
   # The number is formatted for the locale, and the pattern is chosen by the
@@ -321,8 +339,8 @@ defmodule Localize.DateTime.Relative do
   # pattern ("in 0 days"), as ECMA-402 has it; TR35 does not say which
   # pattern zero takes (user, 2026-10-06, `plans/tr35-audit.md`).
   defp pattern_parts(relative, unit, unit_data, locale) do
-    direction = if relative < 0, do: :relative_past, else: :relative_future
-    magnitude = abs(relative)
+    direction = if negative?(relative), do: :relative_past, else: :relative_future
+    magnitude = magnitude(relative)
 
     case direction_pattern_parts(magnitude, unit, unit_data, direction, locale) do
       {:ok, parts} -> parts
@@ -337,6 +355,12 @@ defmodule Localize.DateTime.Relative do
     end
   end
 
+  defp negative?(%Decimal{} = relative), do: Decimal.negative?(relative)
+  defp negative?(relative), do: relative < 0
+
+  defp magnitude(%Decimal{} = relative), do: Decimal.abs(relative)
+  defp magnitude(relative), do: abs(relative)
+
   # As in ECMA-402's `formatToParts`, every part of the number carries the
   # unit.
   defp with_unit(parts, unit), do: Enum.map(parts, &Map.put(&1, :unit, unit))
@@ -345,8 +369,18 @@ defmodule Localize.DateTime.Relative do
 
   # A number with a unit is a count of that unit, whole or fractional.
   defp relative_count(relative, _relative_to, unit, _locale)
-       when is_number(relative) and not is_nil(unit) do
+       when (is_number(relative) or is_struct(relative, Decimal)) and not is_nil(unit) do
     {:ok, {relative, unit}}
+  end
+
+  # A `Decimal` number of seconds is counted as its whole seconds are.
+  defp relative_count(%Decimal{} = relative, relative_to, nil, locale) do
+    seconds =
+      relative
+      |> Decimal.round(0, :down)
+      |> Decimal.to_integer()
+
+    relative_count(seconds, relative_to, nil, locale)
   end
 
   # A number with no unit is a number of seconds. Seconds have no calendar,
@@ -466,7 +500,7 @@ defmodule Localize.DateTime.Relative do
     {:error,
      Localize.InvalidValueError.exception(
        value: relative,
-       expected: "an integer, float, Date, Time, NaiveDateTime or DateTime"
+       expected: "an integer, float, Decimal, Date, Time, NaiveDateTime or DateTime"
      )}
   end
 

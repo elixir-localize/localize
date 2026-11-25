@@ -1085,4 +1085,28 @@ defmodule Localize.DateTime.RelativeTest do
       assert :quarter in units
     end
   end
+
+  describe "a Decimal" do
+    test "formats as the same number does" do
+      for {decimal, number} <- [{"2.5", 2.5}, {"-1", -1}, {"0", 0}, {"3", 3}, {"-1.5", -1.5}],
+          unit <- [:day, :hour, :month],
+          locale <- [:en, :fr, :ar],
+          numeric <- [:auto, :always] do
+        options = [unit: unit, locale: locale, numeric: numeric]
+
+        assert {decimal, options, Relative.to_string(Decimal.new(decimal), options)} ==
+                 {decimal, options, Relative.to_string(number, options)}
+      end
+    end
+
+    test "takes the named form for a whole value, however it is written" do
+      assert Relative.to_string(Decimal.new("1.0"), unit: :day) == {:ok, "tomorrow"}
+      assert Relative.to_string(Decimal.new("1.5"), unit: :day) == {:ok, "in 1.5 days"}
+    end
+
+    test "counts whole seconds with no unit" do
+      assert Relative.to_string(Decimal.new("7200.9"), []) == {:ok, "in 2 hours"}
+      assert Relative.to_string(Decimal.new("-90"), []) == {:ok, "2 minutes ago"}
+    end
+  end
 end

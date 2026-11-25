@@ -8,6 +8,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
+* An MF2 `:relativeTime` function formats "in 3 days" or "yesterday" from a number with a `unit`, or from a date or time against `relativeTo`, with `style` and `numeric` options. `Localize.DateTime.Relative` takes a `Decimal`.
+
 * `Localize.Locale.fallback_chain/2` returns a locale's CLDR fallback chain as locale ids, nearest first and without the root, as `fr-CA` → `fr` and `pt-AO` → `pt-PT` → `pt`. It is `localize_translate`'s `locale_chain/2` walk, moved here so applications with their own translation tables need not depend on it.
 
 * `Localize.Message.parse/2` parses and validates an MF2 message once into a `Localize.Message.Parsed` struct, which `format/3`, `format_to_iolist/3` and `format_to_safe_list/3` take, so messages kept as data skip both steps on every format.
@@ -23,6 +25,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 * Collation tailorings CLDR marks as provisional or unconfirmed are no longer included, as for the rest of Localize's CLDR data: `ca`, `dz`, `wae`, `bal`, `sa` standard, `cs` digits-after and `de` eor now collate in their parent's or the root order.
 
 ### Fixed
+
+* `Localize.Message.format/3` with `backend: :nif` formats a message calling `:percent`, `:currency`, `:offset`, `:unit`, `:list`, an `:i:` function or an application's own function with the interpreter. ICU 78 formatted none of them, so they came back as `{$n}`.
 
 * `Localize.Gettext.Interpolation` reads Gettext's own `%{name}` placeholder as an MF2 variable, so Ecto's and Ash's validation messages, and `errors.po` translations of them, interpolate. They formatted as `should be at least %count character(s)`.
 

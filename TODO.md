@@ -4,8 +4,6 @@ Outstanding work on Localize. The design detail behind these items lives under [
 
 ## Open
 
-* [ ] **MF2 `:relativeTime` function** — "3 days ago" inside a message, from `Localize.DateTime.Relative`, as a namespaced extension like the `i:*` functions. From the Mishka CMS review, 2026-11-25.
-
 * [ ] **Migration from Gettext's `%{}` syntax to MF2** — a tool that rewrites `.pot`/`.po` msgids and msgstrs and source calls from `%{name}` to `{$name}`, and `ngettext` pairs to `.match`. From the Mishka CMS review, 2026-11-25.
 
 * [ ] **Context before in collation tailorings** — TR35's `|` (a prefix such as `う|ゝ`, ゝ after う) is not parsed, so the 47 such rules in `ja`, for the kana iteration marks ゝゞヽヾ, produce keys that never match and the marks stay untailored.
@@ -75,6 +73,8 @@ Outstanding work on Localize. The design detail behind these items lives under [
 * [ ] **`localize_emoji` sibling library** — plan item 11, a separate package on its own schedule. A Phoenix LiveView picker (`localize_emoji_live`) is out of scope for its 0.1.0.
 
 ## Done
+
+* [x] **MF2 `:relativeTime` function** — unnamespaced, as `:list` is (user, 2026-11-25), on `Localize.DateTime.Relative`, which now takes a `Decimal`; the NIF backend leaves messages calling a function ICU does not format to the interpreter. 2026-11-25.
 
 * [x] **Public locale fallback chain** — `Localize.Locale.fallback_chain/2`, moved from `localize_translate`'s `locale_chain/2` (same chains on 32 locales checked against it); `localize_translate` is to call it once 1.10 is on hex. 2026-11-25.
 

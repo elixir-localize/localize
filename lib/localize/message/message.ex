@@ -9,6 +9,13 @@ defmodule Localize.Message do
   import Kernel, except: [to_string: 1]
   import Localize.Utils.Helpers, only: [is_keyword_list: 1]
 
+  # The functions ICU's MF2 formats as the interpreter does. ICU 78 formats
+  # no other function: `:percent`, `:currency`, `:offset`, `:unit`,
+  # Localize's own `:list`, `:relativeTime` and `:i:` functions, and an
+  # application's, come back as a fallback such as `{$n}`, so a message
+  # with any of them is formatted by the interpreter.
+  @icu_functions ["number", "integer", "string", "date", "time", "datetime"]
+
   # Bindings are a map or a list of `{name, value}` pairs, recognised by the
   # first entry as `is_keyword_list/1` recognises options.
   defguardp is_bindings(bindings)
@@ -217,15 +224,17 @@ defmodule Localize.Message do
 
   # The NIF takes strings, 64-bit integers and floats. A message whose
   # bindings hold anything else — a date, a `Decimal`, a unit, a list — is
-  # formatted by the interpreter, as it is when the NIF is not loaded.
-  # ICU has TR35's Default Bidi Strategy and no isolation, but not the
-  # interpreter's `:isolate` and `:auto` modes, which the interpreter
-  # formats.
+  # formatted by the interpreter, as it is when the NIF is not loaded, and
+  # so is a message calling a function ICU does not format
+  # (`@icu_functions`). ICU has TR35's Default Bidi Strategy and no
+  # isolation, but not the interpreter's `:isolate` and `:auto` modes,
+  # which the interpreter formats.
   defp format_nif(message, bindings, options) do
     bindings_map = normalize_bindings(bindings)
     bidi = Keyword.get(options, :bidi, :default)
 
-    if bidi in [:default, :none] and Localize.Nif.mf2_arguments?(bindings_map) do
+    if bidi in [:default, :none] and Localize.Nif.mf2_arguments?(bindings_map) and
+         icu_functions_only?(message, options) do
       format_with_nif(message, bindings, bindings_map, bidi, options)
     else
       format_elixir(message, bindings, options)
@@ -307,6 +316,51 @@ defmodule Localize.Message do
       [] -> :ok
       unbound -> {:error, Localize.BindError.exception(unbound: unbound)}
     end
+  end
+
+  # A message ICU cannot parse is left to ICU, which reports the error.
+  defp icu_functions_only?(%Parsed{ast: ast}, _options) do
+    ast
+    |> message_functions([])
+    |> Enum.all?(&(&1 in @icu_functions))
+  end
+
+  defp icu_functions_only?(message, options) do
+    source =
+      if options[:trim] == true do
+        String.trim(message)
+      else
+        message
+      end
+
+    case Parser.parse(source) do
+      {:ok, ast} -> icu_functions_only?(%Parsed{source: source, ast: ast}, options)
+      {:error, _reason} -> true
+    end
+  end
+
+  # The name of every function a message calls, in its declarations,
+  # selectors and patterns. A namespaced name is never one of ICU's.
+  defp message_functions({:function, name, _options}, acc) when is_binary(name) do
+    [name | acc]
+  end
+
+  defp message_functions({:function, _namespaced, _options}, acc) do
+    [:namespaced | acc]
+  end
+
+  defp message_functions(term, acc) when is_tuple(term) do
+    term
+    |> Tuple.to_list()
+    |> message_functions(acc)
+  end
+
+  defp message_functions(list, acc) when is_list(list) do
+    Enum.reduce(list, acc, &message_functions/2)
+  end
+
+  defp message_functions(_term, acc) do
+    acc
   end
 
   defp message_source(%Parsed{source: source}) do
