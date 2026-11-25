@@ -4,7 +4,7 @@ defmodule Localize.Message do
   with functions to parse and interpolate messages.
 
   """
-  alias Localize.Message.{Interpreter, Parser, Print}
+  alias Localize.Message.{Interpreter, Parsed, Parser, Print}
 
   import Kernel, except: [to_string: 1]
   import Localize.Utils.Helpers, only: [is_keyword_list: 1]
@@ -38,7 +38,7 @@ defmodule Localize.Message do
 
   ### Arguments
 
-  * `message` is an MF2 message string.
+  * `message` is an MF2 message string, or a message parsed by `parse/2`.
 
   * `bindings` is a map or keyword list of arguments that
     are used to replace placeholders in the message.
@@ -114,13 +114,24 @@ defmodule Localize.Message do
 
   @type backend :: :nif | :elixir
 
-  @spec format(String.t(), bindings(), options()) ::
+  @spec format(String.t() | Parsed.t(), bindings(), options()) ::
           {:ok, String.t()} | {:error, Exception.t()}
 
   def format(message, bindings \\ %{}, options \\ [])
 
   def format(message, bindings, options)
       when is_binary(message) and is_bindings(bindings) and is_keyword_list(options) do
+    with :ok <- validate_bindings(bindings),
+         :ok <- validate_output(options) do
+      case backend(options) do
+        :nif -> format_nif(message, bindings, Keyword.delete(options, :backend))
+        :elixir -> format_elixir(message, bindings, Keyword.delete(options, :backend))
+      end
+    end
+  end
+
+  def format(%Parsed{} = message, bindings, options)
+      when is_bindings(bindings) and is_keyword_list(options) do
     with :ok <- validate_bindings(bindings),
          :ok <- validate_output(options) do
       case backend(options) do
@@ -137,8 +148,9 @@ defmodule Localize.Message do
   defp invalid_arguments(_message, _bindings, options) when not is_keyword_list(options),
     do: {:error, Localize.Utils.Helpers.invalid_options(options)}
 
-  defp invalid_arguments(message, _bindings, _options) when not is_binary(message),
-    do: {:error, Localize.Utils.Helpers.invalid_value(message, "an MF2 message string")}
+  defp invalid_arguments(message, _bindings, _options)
+       when not is_binary(message) and not is_struct(message, Parsed),
+       do: {:error, Localize.Utils.Helpers.invalid_value(message, "an MF2 message string")}
 
   defp invalid_arguments(_message, bindings, _options), do: invalid_bindings(bindings)
 
@@ -168,6 +180,13 @@ defmodule Localize.Message do
     {:error, Localize.Utils.Helpers.invalid_value(bindings, "a map or keyword list of bindings")}
   end
 
+  # A parsed message was trimmed, parsed and validated by `parse/2`.
+  defp format_elixir(%Parsed{source: source, ast: ast}, bindings, options) do
+    with {:ok, _language_tag} <- validate_locale_option(options) do
+      format_ast(source, ast, bindings, options)
+    end
+  end
+
   defp format_elixir(message, bindings, options) do
     # Validate the locale up front so an invalid `:locale` option is
     # reported on the Elixir backend just as it is on the NIF backend,
@@ -175,20 +194,24 @@ defmodule Localize.Message do
     with {:ok, message} <- maybe_trim(message, options[:trim]),
          {:ok, _language_tag} <- validate_locale_option(options),
          {:ok, parsed} <- parse_and_validate(message, :format) do
-      format_options =
-        options
-        |> Keyword.put_new(:locale, Localize.get_locale())
+      format_ast(message, parsed, bindings, options)
+    end
+  end
 
-      case Interpreter.format_list(parsed, bindings, format_options) do
-        {:ok, iolist, _bound, []} ->
-          {:ok, :erlang.iolist_to_binary(iolist)}
+  defp format_ast(message, parsed, bindings, options) do
+    format_options =
+      options
+      |> Keyword.put_new(:locale, Localize.get_locale())
 
-        {:error, _iolist, _bound, unbound} ->
-          {:error, Localize.BindError.exception(unbound: unbound)}
+    case Interpreter.format_list(parsed, bindings, format_options) do
+      {:ok, iolist, _bound, []} ->
+        {:ok, :erlang.iolist_to_binary(iolist)}
 
-        {:format_error, payload} ->
-          {:error, format_error_from_payload(message, :format, payload)}
-      end
+      {:error, _iolist, _bound, unbound} ->
+        {:error, Localize.BindError.exception(unbound: unbound)}
+
+      {:format_error, payload} ->
+        {:error, format_error_from_payload(message, :format, payload)}
     end
   end
 
@@ -206,6 +229,23 @@ defmodule Localize.Message do
       format_with_nif(message, bindings, bindings_map, bidi, options)
     else
       format_elixir(message, bindings, options)
+    end
+  end
+
+  # ICU formats from the source, so a parsed message passes its source,
+  # and its parsed form for the unbound-variable check.
+  defp format_with_nif(
+         %Parsed{source: source, ast: ast} = message,
+         bindings,
+         bindings_map,
+         bidi,
+         options
+       ) do
+    with {:ok, locale_string} <- resolve_locale_string(options),
+         :ok <- check_unbound_ast(ast, bindings_map) do
+      source
+      |> Localize.Nif.mf2_format(locale_string, bindings_map, bidi: bidi)
+      |> handle_nif_format(message, bindings, options)
     end
   end
 
@@ -244,7 +284,7 @@ defmodule Localize.Message do
   defp handle_nif_format({:error, detail}, message, _bindings, _options) do
     {:error,
      Localize.ParseError.exception(
-       input: message,
+       input: message_source(message),
        reason: :invalid_message_format,
        detail: detail
      )}
@@ -253,21 +293,28 @@ defmodule Localize.Message do
   @dialyzer {:nowarn_function, check_unbound_variables: 2}
   defp check_unbound_variables(message, bindings_map) do
     case Parser.parse(message) do
-      {:ok, ast} ->
-        required = extract_required_variables(ast)
-        provided = MapSet.new(Map.keys(bindings_map))
-        unbound = MapSet.difference(required, provided) |> MapSet.to_list()
-
-        if unbound == [] do
-          :ok
-        else
-          {:error, Localize.BindError.exception(unbound: unbound)}
-        end
-
-      {:error, _reason} ->
-        # Let the NIF handle parse errors
-        :ok
+      {:ok, ast} -> check_unbound_ast(ast, bindings_map)
+      # Let the NIF handle parse errors
+      {:error, _reason} -> :ok
     end
+  end
+
+  defp check_unbound_ast(ast, bindings_map) do
+    required = extract_required_variables(ast)
+    provided = MapSet.new(Map.keys(bindings_map))
+
+    case MapSet.to_list(MapSet.difference(required, provided)) do
+      [] -> :ok
+      unbound -> {:error, Localize.BindError.exception(unbound: unbound)}
+    end
+  end
+
+  defp message_source(%Parsed{source: source}) do
+    source
+  end
+
+  defp message_source(message) do
+    message
   end
 
   defp extract_required_variables(ast) do
@@ -354,6 +401,50 @@ defmodule Localize.Message do
   defp binding_name(name), do: name
 
   @doc """
+  Parses and validates an MF2 message once, so it can be formatted many times.
+
+  `format/3`, `format_to_iolist/3` and `format_to_safe_list/3` parse a message given as a string, and check it against TR35's data-model rules, on every call. An application that keeps its messages as data, such as translations a site's editors write into a database, parses each message once and formats the returned `t:Localize.Message.Parsed.t/0`, which skips both steps. Parsing also validates a message when it is saved, before any visitor sees it.
+
+  ### Arguments
+
+  * `message` is an MF2 message string.
+
+  * `options` is a keyword list of options.
+
+  ### Options
+
+  * `:trim` determines if the message is trimmed of whitespace before it is parsed. The default is `false`.
+
+  ### Returns
+
+  * `{:ok, parsed}`, where `parsed` is a `t:Localize.Message.Parsed.t/0`, or
+
+  * `{:error, exception}`: a `Localize.ParseError` for a message that is not valid MF2 syntax, a `Localize.FormatError` for one that breaks a data-model rule, such as a `.match` with no `*` variant, or a `Localize.InvalidValueError` for arguments of the wrong type.
+
+  ### Examples
+
+      iex> {:ok, parsed} = Localize.Message.parse(".input {$count :number}\\n.match $count\\none {{One item}}\\n* {{{$count} items}}")
+      iex> Localize.Message.format(parsed, %{"count" => 1})
+      {:ok, "One item"}
+      iex> Localize.Message.format(parsed, %{"count" => 3})
+      {:ok, "3 items"}
+
+      iex> {:error, %Localize.FormatError{}} = Localize.Message.parse(".input {$n :number}\\n.match $n\\none {{One}}")
+
+  """
+  @spec parse(String.t(), options()) :: {:ok, Parsed.t()} | {:error, Exception.t()}
+  def parse(message, options \\ [])
+
+  def parse(message, options) when is_binary(message) and is_keyword_list(options) do
+    with {:ok, message} <- maybe_trim(message, options[:trim]),
+         {:ok, ast} <- parse_and_validate(message, :parse) do
+      {:ok, %Parsed{source: message, ast: ast}}
+    end
+  end
+
+  def parse(message, options), do: invalid_arguments(message, %{}, options)
+
+  @doc """
   Formats a message and returns the result or raises on error.
 
   Same as `format/3` but returns the formatted string directly
@@ -361,7 +452,7 @@ defmodule Localize.Message do
 
   ### Arguments
 
-  * `message` is an MF2 message string.
+  * `message` is an MF2 message string, or a message parsed by `parse/2`.
 
   * `bindings` is a map or keyword list of arguments.
 
@@ -384,7 +475,7 @@ defmodule Localize.Message do
       "Hello World!"
 
   """
-  @spec format!(String.t(), bindings(), options()) :: String.t() | no_return
+  @spec format!(String.t() | Parsed.t(), bindings(), options()) :: String.t() | no_return
 
   def format!(message, bindings \\ %{}, options \\ []) do
     case format(message, bindings, options) do
@@ -401,7 +492,7 @@ defmodule Localize.Message do
 
   ### Arguments
 
-  * `message` is an MF2 message string.
+  * `message` is an MF2 message string, or a message parsed by `parse/2`.
 
   * `bindings` is a map or keyword list of arguments that
     are used to replace placeholders in the message.
@@ -439,7 +530,7 @@ defmodule Localize.Message do
       {:ok, ["Hello ", ["\\u2068", "World", "\\u2069"], "!"], ["name"], []}
 
   """
-  @spec format_to_iolist(String.t(), bindings(), options()) ::
+  @spec format_to_iolist(String.t() | Parsed.t(), bindings(), options()) ::
           {:ok, list(), list(), list()}
           | {:error, list(), list(), list()}
           | {:error, Exception.t()}
@@ -454,6 +545,14 @@ defmodule Localize.Message do
          {:ok, message} <- maybe_trim(message, options[:trim]),
          {:ok, parsed} <- parse_and_validate(message, :format_to_iolist) do
       Interpreter.format_list(parsed, bindings, options)
+    end
+  end
+
+  def format_to_iolist(%Parsed{ast: ast}, bindings, options)
+      when is_bindings(bindings) and is_keyword_list(options) do
+    with :ok <- validate_bindings(bindings),
+         :ok <- validate_output(options) do
+      Interpreter.format_list(ast, bindings, options)
     end
   end
 
@@ -475,7 +574,7 @@ defmodule Localize.Message do
 
   ### Arguments
 
-  * `message` is an MF2 message in binary form.
+  * `message` is an MF2 message string, or a message parsed by `parse/2`.
 
   * `bindings` is a map or keyword list of variable bindings.
     The default is `%{}`.
@@ -524,30 +623,39 @@ defmodule Localize.Message do
           {:text, String.t()}
           | {:markup, String.t(), %{String.t() => term()}, [safe_node()]}
 
-  @spec format_to_safe_list(String.t(), bindings(), options()) ::
+  @spec format_to_safe_list(String.t() | Parsed.t(), bindings(), options()) ::
           {:ok, [safe_node()]} | {:error, Exception.t()}
 
   def format_to_safe_list(message, bindings \\ %{}, options \\ [])
+
+  def format_to_safe_list(%Parsed{source: source, ast: ast}, bindings, options)
+      when is_bindings(bindings) and is_keyword_list(options) do
+    format_structured(source, ast, bindings, options)
+  end
 
   def format_to_safe_list(message, bindings, options)
       when is_binary(message) and is_bindings(bindings) and is_keyword_list(options) do
     with {:ok, message} <- maybe_trim(message, options[:trim]),
          {:ok, parsed} <- parse_and_validate(message, :format_to_safe_list) do
-      case Interpreter.format_structured(parsed, bindings, options) do
-        {:ok, nodes, _bound, _unbound} ->
-          {:ok, nodes}
-
-        {:error, _nodes, _bound, unbound} ->
-          {:error, Localize.BindError.exception(unbound: unbound)}
-
-        {:format_error, payload} ->
-          {:error, format_error_from_payload(message, :format, payload)}
-      end
+      format_structured(message, parsed, bindings, options)
     end
   end
 
   def format_to_safe_list(message, bindings, options),
     do: invalid_arguments(message, bindings, options)
+
+  defp format_structured(message, parsed, bindings, options) do
+    case Interpreter.format_structured(parsed, bindings, options) do
+      {:ok, nodes, _bound, _unbound} ->
+        {:ok, nodes}
+
+      {:error, _nodes, _bound, unbound} ->
+        {:error, Localize.BindError.exception(unbound: unbound)}
+
+      {:format_error, payload} ->
+        {:error, format_error_from_payload(message, :format, payload)}
+    end
+  end
 
   # `Parser.parse/1` checks syntax only; the TR35 data-model rules are a
   # separate pass (see `Localize.Message.Validator`). Every entry point
@@ -642,7 +750,7 @@ defmodule Localize.Message do
 
   ### Arguments
 
-  * `message` is an MF2 message string.
+  * `message` is an MF2 message string, or a message parsed by `parse/2`.
 
   * `bindings` is a map of variable bindings.
 
@@ -665,7 +773,7 @@ defmodule Localize.Message do
       [text: "Hello World!"]
 
   """
-  @spec format_to_safe_list!(String.t(), bindings(), options()) :: [safe_node()]
+  @spec format_to_safe_list!(String.t() | Parsed.t(), bindings(), options()) :: [safe_node()]
 
   def format_to_safe_list!(message, bindings \\ %{}, options \\ []) do
     case format_to_safe_list(message, bindings, options) do

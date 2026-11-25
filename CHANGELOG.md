@@ -8,6 +8,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
+* `Localize.Message.parse/2` parses and validates an MF2 message once into a `Localize.Message.Parsed` struct, which `format/3`, `format_to_iolist/3` and `format_to_safe_list/3` take, so messages kept as data skip both steps on every format.
+
 * `Localize.ContextTransform` cases a name for the context it stands in, from CLDR's context transforms (new supplemental `context_transforms.etf`). Display names take a `:capitalization` option, so a French language name is "Français" in a menu and a month "Janvier" standing alone.
 
 * Collation takes a `:prefer` option, `:standard` (the default) or `:short`, choosing between CLDR's full and `alt="short"` forms of a tailoring; `zh` has both for pinyin, stroke and zhuyin.
