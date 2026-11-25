@@ -27,6 +27,10 @@ defmodule Localize.Gettext.Interpolation do
       gettext("{{Hello {$name}!}}", %{name: "World"})
       #=> "Hello \\u2068World\\u2069!"
 
+  ### Gettext's own placeholders
+
+  Ecto, Ash and Phoenix write their messages for Gettext's default interpolation, such as Ecto's `"should be at least %{count} character(s)"`, and an application's `errors.po` translates them in the same syntax. This interpolator reads `%{name}` as the MF2 variable `{$name}`, so those messages interpolate in a backend whose own messages are MF2. See `mf2_source/1`.
+
   ### Bidirectional isolation
 
   Messages are formatted with TR35's Default Bidi Strategy, the default of
@@ -38,6 +42,17 @@ defmodule Localize.Gettext.Interpolation do
   """
 
   @behaviour Gettext.Interpolation
+
+  # Gettext's own placeholder, `%{name}`, as Ecto, Ash and Phoenix write
+  # their messages. `@legacy_placeholder` is one whose name MF2 accepts as a
+  # variable name; `@any_legacy_placeholder` is any, so one MF2 cannot name
+  # is kept as text rather than read as MF2 syntax.
+  @legacy_placeholder ~r/%\{([\p{L}_][\p{L}\p{N}_.-]*)\}/u
+  @any_legacy_placeholder ~r/%\{[^{}]*\}/u
+  @whole_legacy_placeholder ~r/\A%\{[\p{L}_][\p{L}\p{N}_.-]*\}\z/u
+
+  # A message in MF2's complex form, or a quoted pattern.
+  @mf2_shaped ~r/\A\s*(?:\.(?:input|local|match)(?=[\s{$])|\{\{)/u
 
   @doc """
   Sentinel bindings that cause `runtime_interpolate/2` and
@@ -74,13 +89,13 @@ defmodule Localize.Gettext.Interpolation do
   @spec interpolate(String.t(), map(), Keyword.t()) ::
           {:ok, String.t()} | {:missing_bindings, String.t(), [atom() | String.t()]}
   def interpolate(message, %{__localize_skip_interpolation__: _}, _format_options) do
-    {:ok, message}
+    {:ok, mf2_source(message)}
   end
 
   def interpolate(message, bindings, format_options) do
     string_bindings = normalize_gettext_bindings(bindings)
 
-    case Localize.Message.format(message, string_bindings, format_options) do
+    case Localize.Message.format(mf2_source(message), string_bindings, format_options) do
       {:ok, formatted} ->
         {:ok, formatted}
 
@@ -120,7 +135,10 @@ defmodule Localize.Gettext.Interpolation do
   @doc false
   @spec __compile_interpolate__(term(), term(), Macro.Env.t(), Keyword.t()) :: Macro.t()
   def __compile_interpolate__(message, bindings, caller, format_options) do
-    message = expand_to_binary!(message, caller)
+    message =
+      message
+      |> expand_to_binary!(caller)
+      |> mf2_source()
 
     # Syntax first, then the TR35 data-model rules, so a mis-authored
     # msgid fails the build rather than surfacing at runtime. Parsing and
@@ -162,6 +180,80 @@ defmodule Localize.Gettext.Interpolation do
 
   defp mis_authored(message, {reason, detail}) do
     "invalid MF2 message #{inspect(message)}: #{reason} (#{detail})"
+  end
+
+  @doc """
+  Returns a Gettext message as MF2 source, reading Gettext's own `%{name}` placeholder as the MF2 variable `{$name}`.
+
+  Ecto, Ash and Phoenix write their messages for Gettext's default interpolation, such as Ecto's `"should be at least %{count} character(s)"`, and an application's `errors.po` translates them in the same syntax. In MF2, `%{count}` is the text `%` followed by the literal `count`, so without this such a message would format as `"should be at least %count character(s)"`. `Localize.Message.format/3` keeps MF2's reading; this interpolator, which serves Gettext, reads Gettext's.
+
+  * A message in MF2's complex form, or a quoted pattern `{{…}}`, has each `%{name}` replaced by `{$name}`.
+
+  * Any other message with a `%{name}` placeholder is read as Gettext text: its `\\`, `{` and `}` are escaped, its placeholders become variables, and it is quoted as a pattern, so a message that begins with `.` or holds a brace is still formatted. A placeholder whose name MF2 cannot take as a variable name, such as `%{1x}`, is kept as text.
+
+  * A message with no `%{name}` placeholder is returned as it is.
+
+  The variables are formatted as the MF2 messages of the backend are, with bidi isolation by default.
+
+  ### Arguments
+
+  * `message` is a Gettext msgid or msgstr.
+
+  ### Returns
+
+  * The message as MF2 source.
+
+  ### Examples
+
+      iex> Localize.Gettext.Interpolation.mf2_source("should be at least %{count} character(s)")
+      "{{should be at least {$count} character(s)}}"
+
+      iex> Localize.Gettext.Interpolation.mf2_source("{{Hello {$name}!}}")
+      "{{Hello {$name}!}}"
+
+      iex> Localize.Gettext.Interpolation.mf2_source("must be one of {a, b}: %{value}")
+      "{{must be one of \\\\{a, b\\\\}: {$value}}}"
+
+  """
+  @spec mf2_source(String.t()) :: String.t()
+  def mf2_source(message) when is_binary(message) do
+    cond do
+      not Regex.match?(@any_legacy_placeholder, message) ->
+        message
+
+      Regex.match?(@mf2_shaped, message) ->
+        Regex.replace(@legacy_placeholder, message, "{$\\1}")
+
+      true ->
+        quote_legacy(message)
+    end
+  end
+
+  # A message in Gettext's syntax as an MF2 quoted pattern: the text
+  # escaped, each placeholder a variable.
+  defp quote_legacy(message) do
+    pattern =
+      @any_legacy_placeholder
+      |> Regex.split(message, include_captures: true)
+      |> Enum.map_join(&legacy_piece/1)
+
+    "{{" <> pattern <> "}}"
+  end
+
+  defp legacy_piece("%{" <> rest = piece) do
+    if Regex.match?(@whole_legacy_placeholder, piece) do
+      "{$" <> rest
+    else
+      escape_text(piece)
+    end
+  end
+
+  defp legacy_piece(text) do
+    escape_text(text)
+  end
+
+  defp escape_text(text) do
+    Regex.replace(~r/[\\{}]/u, text, "\\\\\\0")
   end
 
   @impl Gettext.Interpolation

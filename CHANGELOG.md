@@ -20,6 +20,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+* `Localize.Gettext.Interpolation` reads Gettext's own `%{name}` placeholder as an MF2 variable, so Ecto's and Ash's validation messages, and `errors.po` translations of them, interpolate. They formatted as `should be at least %count character(s)`.
+
 * Collation in a tailored locale no longer reads every key of the tailoring for each character, nor rebuilds its script reordering for each key: a `zh-Hant` sort key took 10 ms and takes 0.1 ms. A tailoring that several locales inherit is cached once, where each kept a 13 MB copy.
 
 * Collation with `numeric: true` keeps the locale's tailoring, where it collated as the root: Swedish sorted å and ö among the a and o.

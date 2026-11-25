@@ -1,0 +1,17 @@
+## Translations in Gettext's own syntax, as phx.gen writes an errors.po for
+## Ecto's validation messages.
+msgid ""
+msgstr ""
+"Language: fr\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+msgid "can't be blank"
+msgstr "doit être renseigné"
+
+msgid "should be at least %{count} character(s)"
+msgid_plural "should be at least %{count} character(s)"
+msgstr[0] "doit contenir au moins %{count} caractère"
+msgstr[1] "doit contenir au moins %{count} caractères"
+
+msgid "must be less than %{number}"
+msgstr "doit être inférieur à %{number}"

@@ -200,4 +200,135 @@ defmodule Localize.Gettext.InterpolationTest do
       end
     end
   end
+
+  describe "Gettext's own %{name} placeholders" do
+    defmodule LegacyCompiledFixture do
+      require Localize.Gettext.Interpolation
+
+      def at_least(bindings) do
+        Localize.Gettext.Interpolation.compile_interpolate(
+          :translation,
+          "should be at least %{count} character(s)",
+          bindings
+        )
+      end
+
+      def plural(bindings) do
+        Localize.Gettext.Interpolation.compile_interpolate(
+          :translation,
+          ".input {$count :number}\n.match $count\none {{%{count} file}}\n* {{%{count} files}}",
+          bindings
+        )
+      end
+    end
+
+    defp error_message({message, options}) do
+      # As a Phoenix application's `translate_error/1` does.
+      if count = options[:count] do
+        Gettext.dngettext(Localize.Test.LegacyGettext, "errors", message, message, count, options)
+      else
+        Gettext.dgettext(Localize.Test.LegacyGettext, "errors", message, options)
+      end
+    end
+
+    test "are read as MF2 variables, as Gettext reads them" do
+      assert Interpolation.runtime_interpolate("should be at least %{count} character(s)", %{
+               count: 3
+             }) ==
+               {:ok, "should be at least \u20683\u2069 character(s)"}
+
+      assert Interpolation.runtime_interpolate("%{a} and %{b_2}", a: "x", b_2: "y") ==
+               {:ok, "\u2068x\u2069 and \u2068y\u2069"}
+    end
+
+    test "keep the rest of a Gettext message as text" do
+      for {message, expected} <- [
+            {"must be one of {a, b}: %{value}", "must be one of {a, b}: \u2068v\u2069"},
+            {".po file %{value} is missing", ".po file \u2068v\u2069 is missing"},
+            {"back\\slash %{value}", "back\\slash \u2068v\u2069"},
+            {"  indented %{value}", "  indented \u2068v\u2069"},
+            {"%{value}", "\u2068v\u2069"}
+          ] do
+        assert Interpolation.runtime_interpolate(message, %{value: "v"}) == {:ok, expected},
+               inspect(message)
+      end
+    end
+
+    test "are read in an MF2 message's patterns" do
+      message = ".input {$n :number}\n.match $n\none {{%{n} file}}\n* {{%{n} files}}"
+
+      assert Interpolation.runtime_interpolate(message, %{n: 1}) == {:ok, "1 file"}
+      assert Interpolation.runtime_interpolate(message, %{n: 2}) == {:ok, "2 files"}
+    end
+
+    test "keep a placeholder whose name MF2 cannot take as text" do
+      assert Interpolation.runtime_interpolate("price %{1x} odd", %{}) == {:ok, "price %{1x} odd"}
+
+      assert Interpolation.runtime_interpolate("%{} and %{n}", %{n: 2}) ==
+               {:ok, "%{} and \u20682\u2069"}
+    end
+
+    test "leave MF2 messages and plain text as they are" do
+      for message <- [
+            "{{Hello {$name}!}}",
+            "can't be blank",
+            ".input {$n :number}\n{{n}}",
+            "50% off"
+          ] do
+        assert Interpolation.mf2_source(message) == message, inspect(message)
+      end
+    end
+
+    test "report a missing binding as Gettext does" do
+      assert Interpolation.runtime_interpolate("%{missing} here", %{}) ==
+               {:missing_bindings, "%{missing} here", [:missing]}
+    end
+
+    test "are read at compile time" do
+      assert LegacyCompiledFixture.at_least(%{count: 3}) ==
+               {:ok, "should be at least \u20683\u2069 character(s)"}
+
+      assert LegacyCompiledFixture.plural(%{count: 1}) == {:ok, "1 file"}
+      assert LegacyCompiledFixture.plural(%{count: 5}) == {:ok, "5 files"}
+    end
+
+    test "give the skip sentinel the message as MF2 source" do
+      sentinel = Interpolation.skip_interpolation_sentinel()
+
+      assert Interpolation.runtime_interpolate("at least %{count}", sentinel) ==
+               {:ok, "{{at least {$count}}}"}
+
+      assert LegacyCompiledFixture.at_least(sentinel) ==
+               {:ok, "{{should be at least {$count} character(s)}}"}
+    end
+
+    test "translate Ecto's validation messages through a backend with MF2 interpolation" do
+      Gettext.put_locale(Localize.Test.LegacyGettext, "en")
+
+      assert error_message(
+               {"should be at least %{count} character(s)", count: 3, validation: :length}
+             ) ==
+               "should be at least \u20683\u2069 character(s)"
+
+      assert error_message({"must be less than %{number}", number: 10, validation: :number}) ==
+               "must be less than \u206810\u2069"
+
+      Gettext.put_locale(Localize.Test.LegacyGettext, "fr")
+
+      assert error_message(
+               {"should be at least %{count} character(s)", count: 1, validation: :length}
+             ) ==
+               "doit contenir au moins \u20681\u2069 caractère"
+
+      assert error_message(
+               {"should be at least %{count} character(s)", count: 3, validation: :length}
+             ) ==
+               "doit contenir au moins \u20683\u2069 caractères"
+
+      assert error_message({"must be less than %{number}", number: 10, validation: :number}) ==
+               "doit être inférieur à \u206810\u2069"
+
+      assert error_message({"can't be blank", validation: :required}) == "doit être renseigné"
+    end
+  end
 end
