@@ -328,6 +328,7 @@ defmodule Localize.MixProject do
     [
       {:decimal, "~> 2.0 or ~> 3.0"},
       {:gettext, "~> 1.0"},
+      {:expo, "~> 1.1"},
       {:ex_doc, "~> 0.18", only: [:dev, :release]},
       {:nimble_parsec, "~> 1.0", runtime: false},
       {:elixir_make, "~> 0.4", runtime: false, optional: true},

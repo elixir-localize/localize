@@ -4,8 +4,6 @@ Outstanding work on Localize. The design detail behind these items lives under [
 
 ## Open
 
-* [ ] **Migration from Gettext's `%{}` syntax to MF2** — a tool that rewrites `.pot`/`.po` msgids and msgstrs and source calls from `%{name}` to `{$name}`, and `ngettext` pairs to `.match`. From the Mishka CMS review, 2026-11-25.
-
 * [ ] **Context before in collation tailorings** — TR35's `|` (a prefix such as `う|ゝ`, ゝ after う) is not parsed, so the 47 such rules in `ja`, for the kana iteration marks ゝゞヽヾ, produce keys that never match and the marks stay untailored.
 
 * [ ] **Settle the runtime `:persistent_term` writes under rule 14** — about forty sites write at runtime: per-locale data and caches, constants computed on first use, configuration setters and warn-once flags. Needs a decision on per-locale data; the options and their measured costs are in [plans/persistent-term-writes.md](plans/persistent-term-writes.md).
@@ -21,6 +19,8 @@ Outstanding work on Localize. The design detail behind these items lives under [
 * [ ] **Message resource support** — read and write the Message Resource format of the Unicode message-resource working group, a file of named MessageFormat 2 messages with their comments and metadata, so a set of messages can be kept and loaded as a unit beside Gettext PO files. Scope to be settled before work starts: which draft of the format, and how a resource reaches `Localize.Message` and the `~t` sigil.
 
 ## In progress
+
+* [ ] **Migration from Gettext's `%{}` syntax to MF2** — catalogs convert with `Localize.Gettext.Migration.convert/1` (equivalent on 24,255 strings of Mishka's and `localize_pad`'s catalogs). Remaining: rewrite the `gettext` calls' msgid literals in source to the renamed msgids, a mix task over `priv/gettext` and the source, and `ngettext` pairs to `.match`.
 
 * [ ] **CLDR 49 upgrade** — the plan's items are closed bar item 11; the data is built from the final `release-49` (below). [plans/cldr-49.md](plans/cldr-49.md).
 

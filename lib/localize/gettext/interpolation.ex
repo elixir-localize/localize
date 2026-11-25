@@ -49,6 +49,7 @@ defmodule Localize.Gettext.Interpolation do
   # is kept as text rather than read as MF2 syntax.
   @legacy_placeholder ~r/%\{([\p{L}_][\p{L}\p{N}_.-]*)\}/u
   @any_legacy_placeholder ~r/%\{[^{}]*\}/u
+  @needs_quoting ~r/\A[\s.]/u
   @whole_legacy_placeholder ~r/\A%\{[\p{L}_][\p{L}\p{N}_.-]*\}\z/u
 
   # A message in MF2's complex form, or a quoted pattern.
@@ -189,7 +190,7 @@ defmodule Localize.Gettext.Interpolation do
 
   * A message in MF2's complex form, or a quoted pattern `{{…}}`, has each `%{name}` replaced by `{$name}`.
 
-  * Any other message with a `%{name}` placeholder is read as Gettext text: its `\\`, `{` and `}` are escaped, its placeholders become variables, and it is quoted as a pattern, so a message that begins with `.` or holds a brace is still formatted. A placeholder whose name MF2 cannot take as a variable name, such as `%{1x}`, is kept as text.
+  * Any other message with a `%{name}` placeholder is read as Gettext text: its `\\`, `{` and `}` are escaped and its placeholders become variables. It is written as a simple message, or quoted as a pattern `{{…}}` where it begins with whitespace or `.`, which a simple message cannot, so its text is kept exactly. A placeholder whose name MF2 cannot take as a variable name, such as `%{1x}`, is kept as text.
 
   * A message with no `%{name}` placeholder is returned as it is.
 
@@ -206,13 +207,16 @@ defmodule Localize.Gettext.Interpolation do
   ### Examples
 
       iex> Localize.Gettext.Interpolation.mf2_source("should be at least %{count} character(s)")
-      "{{should be at least {$count} character(s)}}"
+      "should be at least {$count} character(s)"
 
       iex> Localize.Gettext.Interpolation.mf2_source("{{Hello {$name}!}}")
       "{{Hello {$name}!}}"
 
       iex> Localize.Gettext.Interpolation.mf2_source("must be one of {a, b}: %{value}")
-      "{{must be one of \\\\{a, b\\\\}: {$value}}}"
+      "must be one of \\\\{a, b\\\\}: {$value}"
+
+      iex> Localize.Gettext.Interpolation.mf2_source(".po file %{name} is missing")
+      "{{.po file {$name} is missing}}"
 
   """
   @spec mf2_source(String.t()) :: String.t()
@@ -229,15 +233,29 @@ defmodule Localize.Gettext.Interpolation do
     end
   end
 
-  # A message in Gettext's syntax as an MF2 quoted pattern: the text
-  # escaped, each placeholder a variable.
+  @doc false
+  # A message read wholly as Gettext text, whatever it holds: for
+  # `Localize.Gettext.Migration`, which converts a msgid with no
+  # placeholder that is not valid MF2 as the text it was written as.
+  @spec __gettext_text__(String.t()) :: String.t()
+  def __gettext_text__(message) when is_binary(message) do
+    quote_legacy(message)
+  end
+
+  # A message in Gettext's syntax as MF2: the text escaped, each placeholder
+  # a variable. A simple message drops leading whitespace and cannot begin
+  # with `.`, so such a pattern is quoted.
   defp quote_legacy(message) do
     pattern =
       @any_legacy_placeholder
       |> Regex.split(message, include_captures: true)
       |> Enum.map_join(&legacy_piece/1)
 
-    "{{" <> pattern <> "}}"
+    if Regex.match?(@needs_quoting, pattern) do
+      "{{" <> pattern <> "}}"
+    else
+      pattern
+    end
   end
 
   defp legacy_piece("%{" <> rest = piece) do

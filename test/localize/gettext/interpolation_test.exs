@@ -296,10 +296,10 @@ defmodule Localize.Gettext.InterpolationTest do
       sentinel = Interpolation.skip_interpolation_sentinel()
 
       assert Interpolation.runtime_interpolate("at least %{count}", sentinel) ==
-               {:ok, "{{at least {$count}}}"}
+               {:ok, "at least {$count}"}
 
       assert LegacyCompiledFixture.at_least(sentinel) ==
-               {:ok, "{{should be at least {$count} character(s)}}"}
+               {:ok, "should be at least {$count} character(s)"}
     end
 
     test "translate Ecto's validation messages through a backend with MF2 interpolation" do
