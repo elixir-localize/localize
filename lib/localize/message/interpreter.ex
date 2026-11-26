@@ -93,27 +93,6 @@ defmodule Localize.Message.Interpreter do
     "lessPrecision" => :less_precision
   }
 
-  # MF2 `grammaticalCase`/`grammaticalGender` values for the `:unit`
-  # function. Fixed tables rather than String.to_existing_atom: the
-  # grammeme atoms otherwise exist only after the locale or
-  # inflection data is loaded, which happens later than option
-  # mapping.
-  @mf2_unit_grammar %{
-    grammatical_case:
-      Map.new(
-        ~w(nominative genitive dative accusative instrumental prepositional locative
-           vocative ablative ergative oblique essive translative partitive inessive
-           elative illative adessive abessive allative comitative terminative sociative
-           causal)a,
-        &{Atom.to_string(&1), &1}
-      ),
-    grammatical_gender:
-      Map.new(
-        ~w(masculine feminine neuter common animate inanimate personal)a,
-        &{Atom.to_string(&1), &1}
-      )
-  }
-
   # TR35's `:date`, `:time` and `:datetime` options choose a semantic
   # skeleton: the date fields `fields` and `dateFields` name, and the
   # lengths, time precisions and zone forms.
@@ -2554,10 +2533,15 @@ defmodule Localize.Message.Interpreter do
   defp add_unit_display(opts, "narrow"), do: Keyword.put(opts, :format, :narrow)
   defp add_unit_display(opts, _other), do: opts
 
+  # MF2 `grammaticalCase`/`grammaticalGender` values for the `:unit`
+  # function, read through `Localize.GrammaticalFeature`'s compiled tables
+  # rather than String.to_existing_atom: no atom is made from a message,
+  # and the values are the same ones every other grammatical option takes.
+  # A value that is not one of them leaves the option unset.
   defp add_unit_grammar(opts, key, value) when is_binary(value) do
-    case get_in(@mf2_unit_grammar, [key, value]) do
-      nil -> opts
-      atom -> Keyword.put(opts, key, atom)
+    case Localize.GrammaticalFeature.cast(key, value) do
+      {:ok, atom} when not is_nil(atom) -> Keyword.put(opts, key, atom)
+      _invalid -> opts
     end
   end
 
