@@ -83,18 +83,26 @@ defmodule Localize.BestMatchTest do
     # script and territory identically, so these would otherwise be
     # decided by whichever the caller happened to list first.
 
+    # Another language is 80 away, beyond the default distance, so these
+    # ties arise only for a caller who accepts a distance of 80.
     test "prefers the territory's own language over another language in that territory" do
       # Samogitian is spoken in Lithuania; `lt` and `en-LT` are both 80 away.
-      assert {:ok, "lt", 80} = LanguageTag.best_match("sgs", ["en-LT", "lt"])
+      assert {:ok, "lt", 80} = LanguageTag.best_match("sgs", ["en-LT", "lt"], 80)
     end
 
     test "the tie-break is independent of the order of the supported list" do
-      assert {:ok, "lt", 80} = LanguageTag.best_match("sgs", ["lt", "en-LT"])
-      assert {:ok, "lt", 80} = LanguageTag.best_match("sgs", ["en-LT", "lt"])
+      assert {:ok, "lt", 80} = LanguageTag.best_match("sgs", ["lt", "en-LT"], 80)
+      assert {:ok, "lt", 80} = LanguageTag.best_match("sgs", ["en-LT", "lt"], 80)
     end
 
     test "applies to Livonian in Latvia" do
-      assert {:ok, "lv", 80} = LanguageTag.best_match("liv", ["en-LV", "lv"])
+      assert {:ok, "lv", 80} = LanguageTag.best_match("liv", ["en-LV", "lv"], 80)
+    end
+
+    test "with the default distance, another language is no match and the first supported is taken" do
+      # As ICU's `LocaleMatcher` gives its default locale.
+      assert {:ok, "en-LT", 80} = LanguageTag.best_match("sgs", ["en-LT", "lt"])
+      assert {:ok, "lt", 80} = LanguageTag.best_match("sgs", ["lt", "en-LT"])
     end
 
     test "does not override a genuinely closer match" do

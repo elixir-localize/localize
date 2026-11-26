@@ -1941,32 +1941,36 @@ defmodule Localize do
 
   ## Locale resolution
 
-  The `:cldr_locale_id` field on the returned language tag is
-  derived by matching the parsed tag against a list of candidate
-  locale IDs:
+  The `:cldr_locale_id` field on the returned language tag is the
+  CLDR locale whose data the tag gets, found in two steps:
 
-  * If `config :localize, supported_locales: [...]` is
-    configured, the candidate list is the resolved supported
-    locales. This restricts matching to only the locales your
-    application explicitly supports.
+  * `Localize.LanguageTag.new/1` finds the CLDR locale by TR35's
+    resource-bundle lookup over every CLDR locale: the locale itself
+    where CLDR has it, else the first CLDR locale it inherits from,
+    else the root, `:und`.
 
-  * If `:supported_locales` is not configured, the candidate
-    list is all CLDR locale IDs.
+  * If `config :localize, supported_locales: [...]` is configured and
+    that locale is not among them, the tag is matched against the
+    supported locales as ICU's `LocaleMatcher` matches: a supported
+    locale within `Localize.LanguageTag.best_match/3`'s default
+    distance, below CLDR's default script distance, is taken; when
+    none is, the first supported locale is, as ICU takes its default
+    locale. List the locale to fall back to first. The root locale is
+    always supported, so a locale CLDR has no data for resolves to it.
 
   Validated locale results are cached in an ETS table so
   repeated calls with the same identifier are fast (~1µs).
 
-  > #### Valid tags always match {: .warning}
+  > #### Valid tags always resolve {: .warning}
   >
-  > This function uses the CLDR locale matching algorithm, which
-  > is designed to **always return a result** for a syntactically
-  > valid language tag — even when CLDR has no data for the
-  > language. For example, `validate_locale("tlh")` (Klingon, a
-  > valid ISO 639 code with no CLDR data) succeeds with a
-  > `:cldr_locale_id` of `:und`, not an error. This is the correct
-  > CLDR behaviour for user-facing locale negotiation (a distant
-  > match is better than no match), but the resolved locale may
-  > not be what the caller expected.
+  > A syntactically valid language tag always resolves, even when
+  > CLDR has no data for the language. For example,
+  > `validate_locale("tlh")` (Klingon, a valid ISO 639 code with no
+  > CLDR data) succeeds with a `:cldr_locale_id` of `:und`, not an
+  > error, and `validate_locale("ru-Latn")`, a script CLDR has no
+  > Russian locale for, does too. With `:supported_locales`
+  > configured, a locale that matches none of them resolves to the
+  > first one, which may not be what the caller expected.
   >
   > Identifiers that do not parse as a valid language tag —
   > including unknown language subtags such as `"xyzzy"` — are

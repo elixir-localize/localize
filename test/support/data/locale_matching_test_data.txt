@@ -144,7 +144,10 @@ zh, zh-TW, zh-HK ; 	zh-MO ; 	zh-HK
 
 zh, zh-Hant ; 	und-TW ; 	zh-Hant	# und-TW should be closer to zh-Hant than to zh
 en-Hant-TW, und-TW ; 	zh-Hant ; 	und-TW	# zh-Hant should be closer to und-TW than to en-Hant-TW
-en-Hant-TW, und-TW ; 	zh ; 	und-TW	# zh should be closer to und-TW than to en-Hant-TW
+# Curated: CLDR-14355 removed the close zh_Hant/zh_Hans distance, so zh is a
+# script away from und-TW, beyond the default threshold; ICU 79's own test data
+# (icu4c/source/test/testdata/localeMatcherTest.txt) expects the first supported.
+en-Hant-TW, und-TW ; 	zh ; 	en-Hant-TW
 
 ##################################################
 # testMatchLegacyCode
@@ -196,8 +199,9 @@ en, de, fr, ja ; 	de-CH, fr ; 	de
 # See: https://unicode-org.atlassian.net/browse/CLDR-14355 where the small difference
 # rule has been removed.
 
-fr, zh-Hans-CN, en-US ; 	zh-TW ; 	zh-Hans-CN
-fr, zh-Hans-CN, en-US ; 	zh-Hant ; 	zh-Hans-CN
+# Curated: no match since CLDR-14355, so the first supported, as ICU 79's test data has it.
+fr, zh-Hans-CN, en-US ; 	zh-TW ; 	fr
+fr, zh-Hans-CN, en-US ; 	zh-Hant ; 	fr
 
 # For geo-political reasons, you might want to avoid a zh-Hant -> zh-Hans match.
 # In this case, if zh-TW, zh-HK or a tag starting with zh-Hant is requested, you can

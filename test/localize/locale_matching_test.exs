@@ -7,11 +7,13 @@ defmodule Localize.LocaleMatchingTest do
 
   @data_file Path.join([__DIR__, "..", "support", "data", "locale_matching_test_data.txt"])
 
-  # The default threshold for the CLDR XLocaleMatcher. In the CLDR distance
-  # system, 100 means "no match" (failure). The ICU default script threshold
-  # is approximately 80, allowing cross-script matches (like zh-Hant/zh-Hans
-  # at distance 54) while rejecting cross-language matches (like de/fr at 84).
-  @default_threshold 80
+  # A section with no `@Threshold` uses the matcher's default, as ICU's test
+  # does: ICU's `LocaleMatcher` accepts distances below its default script
+  # distance, 50, and otherwise returns its default locale, the first
+  # supported one. `LanguageTag.best_match/3` does the same with no distance
+  # given, so the default is passed as `:default`, never as a number, which
+  # is strict.
+  @default_threshold :default
 
   # Parse the test data file into structured test cases.
   # Format: supported ; desired ; expected [; combined]

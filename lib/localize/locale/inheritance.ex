@@ -169,11 +169,14 @@ defmodule Localize.Locale.Inheritance do
 
   # The locale's subtags, without its extensions or ids.
   defp subtags(%LanguageTag{} = tag) do
-    %LanguageTag{
-      language: tag.language,
-      script: tag.script,
-      territory: tag.territory,
-      language_variants: tag.language_variants
+    %{
+      tag
+      | locale: %{},
+        transform: %{},
+        extensions: %{},
+        private_use: [],
+        canonical_locale_id: nil,
+        cldr_locale_id: nil
     }
   end
 
@@ -293,6 +296,12 @@ defmodule Localize.Locale.Inheritance do
   end
 
   defp root do
-    %LanguageTag{language: :und, script: nil, territory: nil, language_variants: []}
+    %LanguageTag{
+      language: :und,
+      script: nil,
+      territory: nil,
+      language_variants: [],
+      requested_locale_id: "und"
+    }
   end
 end

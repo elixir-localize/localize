@@ -166,7 +166,7 @@ iex> Localize.available_locale_id?("tlh")
 false
 ```
 
-Restricting `:supported_locales` is the recommended production setup — it bounds locale matching to what you can actually serve and makes `validate_locale/1` resolve near-miss identifiers to your supported set. See the [README configuration section](https://hexdocs.pm/localize/readme.html#configuration) for the accepted entry forms (atoms, wildcards, coverage levels, Gettext backends).
+Restricting `:supported_locales` is the recommended production setup — it bounds locale matching to what you can actually serve and makes `validate_locale/1` resolve near-miss identifiers to your supported set, and anything further away to the first locale you list. See the [README configuration section](https://hexdocs.pm/localize/readme.html#configuration) for the accepted entry forms (atoms, wildcards, coverage levels, Gettext backends).
 
 ## Locale matching
 
@@ -180,7 +180,7 @@ iex> Localize.LanguageTag.best_match(:"pt-PT", [:"pt-BR", :es, :fr])
 {:ok, :"pt-BR", 5}
 ```
 
-The score is the CLDR match distance — `0` is exact, small values are regional variants, and `80`+ means a different language. With the default threshold the algorithm always returns some supported locale (a distant match beats no match, per the CLDR specification); pass an explicit threshold for strict matching:
+The score is the CLDR match distance — `0` is exact, small values are regional variants, `50` is another script and `80` another language. The default threshold is `49`, below CLDR's default script distance, as ICU's `LocaleMatcher` takes it; when no supported locale is within it, the first supported locale is returned, as ICU returns its default locale, so list the locale to fall back to first. Pass an explicit threshold below the default for strict matching:
 
 ```elixir
 iex> Localize.LanguageTag.best_match(:de, [:en, :de, :fr], 0)

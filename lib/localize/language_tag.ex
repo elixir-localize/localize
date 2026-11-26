@@ -211,7 +211,16 @@ defmodule Localize.LanguageTag do
   # Override with `config :localize, :max_locale_id_bytes, n`.
   @default_max_locale_id_bytes 256
 
-  @default_distance 80
+  # The largest distance language matching accepts by default: below
+  # CLDR's default script distance (50), as ICU's `LocaleMatcher` takes
+  # it, so a supported locale in another script or another language is
+  # not a match. CLDR's own closer pairs still are: `ja-Latn` to `ja` (5),
+  # `zh-Latn` to `zh` (20), `bal` to `ur` (24).
+  @default_distance 49
+
+  # The score a fallback is returned with, which is no match: CLDR's
+  # distance between two languages.
+  @no_match_distance 80
 
   @type t :: %__MODULE__{
           language: Locale.language(),
@@ -815,9 +824,13 @@ defmodule Localize.LanguageTag do
     The root locale in the list, `:und`, matches only a desired
     root and is never a candidate for another locale.
 
-  * `distance` is the maximum acceptable distance score. Matches
-    with a score above this threshold are rejected.
-    The default is #{@default_distance}.
+  * `distance` is the maximum acceptable distance score, an integer.
+    Matches with a score above it are rejected. Omitted, or
+    `:default`, it is
+    #{@default_distance}, below CLDR's default script distance of 50, as
+    ICU's `LocaleMatcher` takes it: a supported locale in another
+    script or another language is not a match, while the pairs CLDR
+    marks as close are (`ja-Latn` and `ja` are 5 apart).
 
   ### Returns
 
@@ -828,15 +841,15 @@ defmodule Localize.LanguageTag do
 
   ### Fallback behaviour
 
-  When using the default threshold (#{@default_distance}), the CLDR
-  algorithm always returns a result when the supported list is
-  non-empty — even if the best match is very distant. This
-  matches the CLDR specification, which says the algorithm should
-  always select a locale rather than fail. The first supported
-  locale is returned as a last resort.
+  When `distance` is omitted, a non-empty supported list always gives
+  a result: when no supported locale is within the default threshold,
+  the first supported locale that is not the root is returned, with a
+  score of #{@no_match_distance}, CLDR's distance between two
+  languages, since it is no match. ICU's `LocaleMatcher` returns its
+  default locale the same way, the first supported one unless set.
+  List the locale to fall back to first.
 
-  When an explicit threshold below the default is provided, no
-  fallback occurs. If nothing matches within the threshold, an
+  When `distance` is given, no fallback occurs. If nothing matches within the threshold, an
   error is returned. This is useful for strict validation (e.g.
   resolving configuration values) where a distant match would be
   surprising.
@@ -851,14 +864,28 @@ defmodule Localize.LanguageTag do
       iex> Localize.LanguageTag.best_match(:en, [:"en-GB", :fi, :und])
       {:ok, :"en-GB", 5}
 
+      iex> # Another script is not a match: the first supported locale is returned
+      iex> Localize.LanguageTag.best_match("ru-Latn", [:en, :ru])
+      {:ok, :en, 80}
+
       iex> # Strict matching: threshold 0 rejects non-exact matches
       iex> {:error, _} = Localize.LanguageTag.best_match("xyzzy", [:en, :fr], 0)
 
   """
-  @spec best_match(t() | String.t() | atom(), [t() | String.t() | atom()], non_neg_integer()) ::
+  @spec best_match(
+          t() | String.t() | atom(),
+          [t() | String.t() | atom()],
+          non_neg_integer() | :default
+        ) ::
           {:ok, t() | String.t() | atom(), non_neg_integer()}
           | {:error, String.t() | Exception.t()}
-  def best_match(desired, supported, distance \\ @default_distance)
+  def best_match(desired, supported, distance \\ :default)
+
+  def best_match(_desired, supported, distance)
+      when is_list(supported) and distance != :default and
+             not (is_integer(distance) and distance >= 0) do
+    {:error, Localize.Utils.Helpers.invalid_value(distance, "a non-negative integer distance")}
+  end
 
   def best_match(%__MODULE__{} = desired, supported, distance) when is_list(supported) do
     with {:ok, desired} <- validate_fields(desired) do
@@ -882,7 +909,7 @@ defmodule Localize.LanguageTag do
     else
       with {:ok, desired_tag} <- resolve_for_matching(desired, :desired) do
         desired_tag
-        |> compute_match_candidates(supported, distance)
+        |> compute_match_candidates(supported, match_threshold(distance))
         |> select_best_match(desired, supported, distance)
       end
     end
@@ -950,28 +977,35 @@ defmodule Localize.LanguageTag do
     end
   end
 
-  # Pick the best candidate (head of the sorted list). When no
-  # candidate is within range: a threshold below the default is
-  # strict and returns an error; the default threshold falls back
-  # to the first supported locale that is not the root, matching the CLDR
-  # algorithm's guarantee that a non-empty supported list always
-  # yields a match.
+  defp match_threshold(:default) do
+    @default_distance
+  end
+
+  defp match_threshold(distance) do
+    distance
+  end
+
+  # Pick the best candidate (head of the sorted list). When no candidate
+  # is within range, a threshold the caller gave is strict and returns an
+  # error; the default falls back to the first supported locale that is
+  # not the root, as ICU's `LocaleMatcher` falls back to its default.
   defp select_best_match([{locale, _tag, score, _idx, _par, _terr} | _], _desired, _supported, _d) do
     {:ok, locale, score}
   end
 
-  defp select_best_match([], desired, _supported, distance) when distance < @default_distance do
-    {:error, Localize.LocaleMatchError.exception(desired: desired, threshold: distance)}
-  end
-
-  defp select_best_match([], desired, supported, distance) do
+  defp select_best_match([], desired, supported, :default) do
     default = first_non_root(supported)
 
     if is_nil(default) do
-      {:error, Localize.LocaleMatchError.exception(desired: desired, threshold: distance)}
+      {:error,
+       Localize.LocaleMatchError.exception(desired: desired, threshold: @default_distance)}
     else
-      {:ok, default, distance}
+      {:ok, default, @no_match_distance}
     end
+  end
+
+  defp select_best_match([], desired, _supported, distance) do
+    {:error, Localize.LocaleMatchError.exception(desired: desired, threshold: distance)}
   end
 
   # A desired root matches the root in supported, returned as the caller
@@ -983,7 +1017,7 @@ defmodule Localize.LanguageTag do
 
     cond do
       not is_nil(root) -> {:ok, root, 0}
-      not is_nil(default) -> {:ok, default, @default_distance}
+      not is_nil(default) -> {:ok, default, @no_match_distance}
       true -> {:error, Localize.LocaleMatchError.exception(desired: "und", threshold: 0)}
     end
   end

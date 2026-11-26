@@ -20,6 +20,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 * `Localize.LanguageTag.new/1` finds `cldr_locale_id` by TR35's resource-bundle lookup, as ICU's `ures_open` does, never by language matching: `ru-Latn` is `:und` (was `:ru`), `en-QA` is `:en` (was `:"en-GB"`) and `gsw-LU` is `:gsw` (was `:"de-LU"`). Measured against ICU 79.1 over 75,144 identifiers, 17 differ, each where ICU departs from TR35 or CLDR's likely subtags.
 
+* Negotiation follows ICU's `LocaleMatcher`: `Localize.LanguageTag.best_match/3` accepts distances below CLDR's default script distance (default 49, was 80) and otherwise returns the first supported locale with a score of 80; a distance the caller gives, 80 included, is strict. `Localize.validate_locale/1` negotiates the same way, so `szl-DE` under `[:fr, :en, :de]` is `:fr` (was `:de`).
+
 * The grammatical options of `Localize.Number.to_string/2`, which `Localize.Unit` passes on, are validated: a value that is not one of CLDR's returns `Localize.InvalidValueError` where it was ignored.
 
 * `Localize.LanguageTag.best_match/3` is 15 to 25 times faster against all CLDR locales (31 ms to 1.3 ms for `pt-BR`): candidate tags are resolved once, and the distance trie indexes its "not in" region rules.

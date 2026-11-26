@@ -99,7 +99,7 @@ Each step lands on its own, with its output compared over every CLDR locale befo
 
 * [x] **`LanguageTag.new/1` resolves by bundle lookup** — `Localize.Locale.Inheritance.bundle_locale_id/2`, shared with `parent/2`; the exact, minimized-form and matcher paths are gone. Against ICU 79.1 over the 75,144 inputs: the same 17 differences as the prototype, plus `be-tarask` and `el-polyton`, which ICU does not build. An `und` with a script or territory keeps the language likely subtags give (`und-TW` is `zh-Hant`), where ICU gives the root. Plural rules found the regression this exposed: a locale whose data is the root's lost its language's rules (`ars`, `bal`, `ny`); 22 more languages had lost them before. 2026-11-27.
 
-* [ ] **`validate_locale/1` negotiates below distance 50** — design 7; a locale with no match takes the default locale, where it took the first configured locale (the 2026-11-17 review kept that; this reverses it). `localize_web` 1.4.0 tests the old answer for itself, so check and adjust it in the same release.
+* [x] **`validate_locale/1` negotiates below distance 50** — `best_match/3`'s default is 49 with ICU's fallback to the first supported locale (ICU's implicit default; reading `Localize.default_locale/0` instead would leave cached results stale after `put_default_locale/1`), scored 80 as no match; an explicit distance is strict. Against ICU 79.1's `LocaleMatcher` over the 75,144 inputs and three supported lists: identical on two, and on the third 312 regional ties left for the paradigm step; the root, always supported, is Localize's own. Three curated CLDR matcher fixtures predating CLDR-14355 now expect what ICU 79's own test data does. `localize_web`'s 642 tests pass against steps 1–4 unchanged. 2026-11-27.
 
 * [ ] **Paradigm locales in the matcher** — ties broken by CLDR's `paradigmLocales`; compared with ICU's `LocaleMatcher` over the same inputs, the 190 `pt` differences gone.
 
@@ -114,5 +114,7 @@ Each step lands on its own, with its output compared over every CLDR locale befo
 * [ ] **The data pass** — `data/locale.ex`'s `locale_chain/1` onto `parent/2`; every generated locale file byte-identical, or each difference explained.
 
 * [ ] **Inflection** — resolve, chain, map to resource names; remove its own `parent/1` and `chain/1`; `sr-Latn` no longer reads `sr`.
+
+* [ ] **`localize_web`** — drop its own matching, fallback and parent calculations (its `@max_match_distance` of 79, the distance re-test and root handling in `closest_supported/2`, `supported_match/2`'s language comparison) and call `Localize` alone (user, 2026-11-27). Its own repository.
 
 * [ ] **`localize_translate`** — onto `fallback_chain/2`, dropping its walker (its own repository).
