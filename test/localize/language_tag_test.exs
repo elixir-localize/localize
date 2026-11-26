@@ -264,6 +264,29 @@ defmodule Localize.LanguageTagTest do
       assert tag.cldr_locale_id == :he
     end
 
+    test "resolves a tag whose minimized form is a CLDR locale to that locale" do
+      for {locale_id, expected} <- [
+            {"pt-BR", :pt},
+            {"fr-Latn", :fr},
+            {"fr-Latn-FR", :fr},
+            {"ar-Arab-EG", :ar},
+            {"zh-Hant-TW", :"zh-Hant"},
+            {"sr-Cyrl-RS", :sr}
+          ] do
+        assert {:ok, %LanguageTag{cldr_locale_id: ^expected}} = LanguageTag.new(locale_id),
+               "#{locale_id} did not resolve to #{expected}"
+      end
+    end
+
+    test "keeps a variant the caller names with explicit script and territory" do
+      # The matcher ignores variants and gave `be` and `el`.
+      assert {:ok, %LanguageTag{cldr_locale_id: :"be-tarask"}} =
+               LanguageTag.new("be-Cyrl-BY-tarask")
+
+      assert {:ok, %LanguageTag{cldr_locale_id: :"el-polyton"}} =
+               LanguageTag.new("el-Grek-GR-polyton")
+    end
+
     test "fully resolves with extensions" do
       {:ok, tag} = LanguageTag.new("en-US-u-ca-gregory")
       assert tag.language == :en

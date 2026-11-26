@@ -18,13 +18,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 * The grammatical options of `Localize.Number.to_string/2`, which `Localize.Unit` passes on, are validated: a value that is not one of CLDR's returns `Localize.InvalidValueError` where it was ignored.
 
-* `Localize.LanguageTag.best_match/3` is 15 to 25 times faster against all CLDR locales (31 ms to 1.3 ms for `pt-BR`), and so is `Localize.LanguageTag.new/1` for a tag that is not a CLDR locale id. Candidate tags are resolved once, and the distance trie indexes its "not in" region rules.
+* `Localize.LanguageTag.best_match/3` is 15 to 25 times faster against all CLDR locales (31 ms to 1.3 ms for `pt-BR`): candidate tags are resolved once, and the distance trie indexes its "not in" region rules. `Localize.LanguageTag.new/1` resolves a tag whose minimized form is a CLDR locale id, such as `pt-BR` or `fr-Latn`, without matching at all, in about 40 µs.
 
 ### Fixed
 
 * `:ordinal` took the alphabetically first gendered rule set where a locale has no unmarked one, so Polish 3 was "trzecia" and Slovenian the dative "tretjemu"; it now takes the masculine nominative ("trzeci"), in 12 locales.
 
 * `:spellout_ordinal` in French wrote 1 as "unième", from a private helper rule set; it now writes "premier".
+
+* `Localize.LanguageTag.new/1` resolved a tag with a variant and an explicit script and territory, such as `be-Cyrl-BY-tarask` or `el-Grek-GR-polyton`, to the locale without the variant; it now gives `be-tarask` and `el-polyton`.
 
 ## [1.10.0] — November 26th, 2026
 

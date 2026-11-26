@@ -461,7 +461,7 @@ defmodule Localize.LanguageTag do
       # `cldr_locale_id`, not this field.
       tag =
         %{resolved | canonical_locale_id: canonical.canonical_locale_id}
-        |> resolve_cldr_locale()
+        |> resolve_cldr_locale(resolved.canonical_locale_id)
 
       {:ok, tag}
     end
@@ -472,14 +472,32 @@ defmodule Localize.LanguageTag do
   # Extensions choose preferences, not the locale whose data is used, so the
   # id is looked up without them: `und-u-nu-latn` is the root locale, as
   # `und` is, where matching its maximized subtags would give `en`.
-  defp resolve_cldr_locale(%__MODULE__{canonical_locale_id: id} = tag) when is_binary(id) do
-    case Map.get(locale_id_index(), base_identifier(id)) do
+  #
+  # The id is looked up as the caller spelled it and then in its minimized
+  # form, so `pt-BR` is `pt` and `fr-Latn` is `fr` without the matcher. A
+  # minimized form that is a CLDR locale is the one the matcher chooses: of
+  # 74,254 language, script and territory combinations over every CLDR
+  # locale, the 1,078 whose minimized form is a locale id all matched it
+  # (checked 2026-11-27). The rest fall through to the matcher.
+  defp resolve_cldr_locale(%__MODULE__{canonical_locale_id: id} = tag, minimized_id)
+       when is_binary(id) do
+    case exact_locale_id([id, minimized_id]) do
       nil -> match_cldr_locale(tag)
       exact -> %{tag | cldr_locale_id: exact}
     end
   end
 
-  defp resolve_cldr_locale(%__MODULE__{} = tag), do: match_cldr_locale(tag)
+  defp resolve_cldr_locale(%__MODULE__{} = tag, _minimized_id) do
+    match_cldr_locale(tag)
+  end
+
+  defp exact_locale_id(ids) do
+    index = locale_id_index()
+
+    Enum.find_value(ids, fn id ->
+      is_binary(id) and Map.get(index, base_identifier(id))
+    end)
+  end
 
   # A canonical id up to its first extension, which starts at the first
   # one-letter subtag: `de-CH-u-nu-latn` is `de-CH`.
