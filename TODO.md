@@ -4,6 +4,8 @@ Outstanding work on Localize. The design detail behind these items lives under [
 
 ## Open
 
+* [ ] **One TR35 implementation of locale inheritance and resolution** — eight places work out parents or chains with five algorithms, and `LanguageTag.new/1` picks a locale's data by language matching, which gave another script's, a sibling's or another language's data for 9,935 of 75,144 inputs measured against ICU 79.1. One `parent/2` and `fallback_chain/2` for every consumer, resolution by TR35's bundle lookup, negotiation as ICU's `LocaleMatcher`: [plans/locale-inheritance.md](plans/locale-inheritance.md).
+
 * [ ] **Context before in collation tailorings** — TR35's `|` (a prefix such as `う|ゝ`, ゝ after う) is not parsed, so the 47 such rules in `ja`, for the kana iteration marks ゝゞヽヾ, produce keys that never match and the marks stay untailored.
 
 * [ ] **Settle the runtime `:persistent_term` writes under rule 14** — about forty sites write at runtime: per-locale data and caches, constants computed on first use, configuration setters and warn-once flags. Needs a decision on per-locale data; the options and their measured costs are in [plans/persistent-term-writes.md](plans/persistent-term-writes.md).
@@ -13,8 +15,6 @@ Outstanding work on Localize. The design detail behind these items lives under [
 * [ ] **Key the locale display-name data by the parts of a locale** — `Localize.Locale.LocaleDisplay.locale_name_from/4` and `Localize.Locale.LocaleDisplay.T.find_longest_language_match/3` still build `"en-GB"`-shaped identifiers from a tag's parts to probe each locale's `languages` display names, whose CLDR keys are such identifiers. Keying that per-locale data by `{language, script, territory, variants}` means regenerating every locale ETF, a new hash manifest and a CDN publish, so it is a data-version release of its own. The likely-subtag, language-alias and collation-tailoring tables were keyed by their parts in 1.6.1; found while fixing #70, 2026-11-02.
 
 * [ ] **Two German words, and the indefinite article in the plural** — `Localize.Inflection.inflect/3` reads an adjective and a noun alone as the upstream project does, the number singular unless asked for, so "kleine Häuser" in the dative is "kleinem Häusern", and an adjective form it does not read stays as it is, "alter Mann" in the genitive and "guter Wein" in the dative; and "ein kleines Haus" in the plural keeps "ein", which German drops. Three or more words agree throughout. Found by the 1.7.0 release review, 2026-11-09.
-
-* [ ] **Say what `validate_locale/1` answers when nothing matches, and for whom** — a valid tag CLDR has no data for (`tlh`) resolves to `:und`, and one too distant from every supported locale (`ja` under `[fr, de, en]`) resolves to the first supported locale; both are right for formatting, which is what `cldr_locale_id` is for. The docs should say that neither is a match for negotiation, which `localize_web` 1.4.0 tests for itself, and that the default locale belongs first in `:supported_locales`. The behaviour stays as it is (reviewed 2026-11-17).
 
 * [ ] **Message resource support** — read and write the Message Resource format of the Unicode message-resource working group, a file of named MessageFormat 2 messages with their comments and metadata, so a set of messages can be kept and loaded as a unit beside Gettext PO files. Scope to be settled before work starts: which draft of the format, and how a resource reaches `Localize.Message` and the `~t` sigil.
 
