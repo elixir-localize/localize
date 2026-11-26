@@ -14,7 +14,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 * `:ordinal`, `:spellout` and a family's own name, such as `:spellout_ordinal`, resolve by the grammatical features CLDR's rule-set names mark rather than by their alphabetical order. A family name in a locale with only gendered rule sets now takes the masculine nominative where it returned `Localize.UnknownRbnfRuleError`.
 
-* `Localize.Locale.fallback_chain/2` resolves a locale and its parents against every CLDR locale, so the chain no longer depends on `supported_locales`: with only `en` configured, `pt-BR` gives `[:pt]` where it gave `[:en]`. Its `:supported` option still keeps only the locales text is kept for.
+* `Localize.Locale.fallback_chain/2` resolves a locale and its parents against every CLDR locale, so the chain no longer depends on `supported_locales`: with only `en` configured, `pt-BR` gives `[:pt]` where it gave `[:en]`. Chains are read from a table of every CLDR locale's chain built on first use, so a locale id atom costs about 1.5 µs.
 
 * The grammatical options of `Localize.Number.to_string/2`, which `Localize.Unit` passes on, are validated: a value that is not one of CLDR's returns `Localize.InvalidValueError` where it was ignored.
 
@@ -27,6 +27,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 * `:spellout_ordinal` in French wrote 1 as "unième", from a private helper rule set; it now writes "premier".
 
 * `Localize.LanguageTag.new/1` resolved a tag with a variant and an explicit script and territory, such as `be-Cyrl-BY-tarask` or `el-Grek-GR-polyton`, to the locale without the variant; it now gives `be-tarask` and `el-polyton`.
+
+* `Localize.Locale.fallback_chain/2` is the chain of the CLDR locale a locale resolves to: `az` gave `[:az, :"az-Latn"]`, naming its child as its parent (21 locales), `en-FO` skipped `en-001` and `gsw-LU` walked from `de-LU` into `gsw`.
 
 ## [1.10.0] — November 26th, 2026
 

@@ -35,6 +35,42 @@ defmodule Localize.Locale.FallbackChainTest do
     end
   end
 
+  test "is the chain of the CLDR locale the locale resolves to" do
+    # Walking the requested subtags followed the requested language
+    # (`gsw-LU` into `gsw`) and skipped parents (`en-FO` missed `en-001`).
+    for {locale, chain} <- [
+          {"es-Latn-PY", [:"es-PY", :"es-419", :es]},
+          {"en-FO", [:"en-GB", :"en-001", :en]},
+          {"pt-CG", [:"pt-AO", :"pt-PT", :pt]},
+          {"gsw-LU", [:"de-LU", :de]},
+          {"sa-Latn", [:"hi-Latn", :"en-IN", :"en-001", :en]}
+        ] do
+      assert {locale, Locale.fallback_chain(locale)} == {locale, {:ok, chain}}
+    end
+  end
+
+  test "never lists a language's default-script locale after the language" do
+    # `az` maximizes to `az-Latn-AZ`, and dropping its territory named its
+    # child `az-Latn` as its parent.
+    for {locale, chain} <- [
+          {:az, [:az]},
+          {:pa, [:pa]},
+          {:sd, [:sd]},
+          {:"kk-KZ", [:"kk-KZ", :kk]},
+          {:"ku-TR", [:"ku-TR", :ku]}
+        ] do
+      assert {locale, Locale.fallback_chain(locale)} == {locale, {:ok, chain}}
+    end
+  end
+
+  test "continues each CLDR locale's chain with its parent's chain" do
+    for locale_id <- Localize.SupplementalData.all_locale_ids(),
+        {:ok, [^locale_id | rest]} <- [Locale.fallback_chain(locale_id)],
+        match?([_ | _], rest) do
+      assert {locale_id, Locale.fallback_chain(hd(rest))} == {locale_id, {:ok, rest}}
+    end
+  end
+
   test "is empty for the root and for a locale that resolves to it" do
     assert Locale.fallback_chain("und") == {:ok, []}
     assert Locale.fallback_chain(:und) == {:ok, []}
@@ -102,6 +138,19 @@ defmodule Localize.Locale.FallbackChainConfiguredTest do
 
     assert tag.cldr_locale_id == :en
     assert Localize.Locale.fallback_chain(tag) == {:ok, [:pt]}
+  end
+
+  test "makes no atom from a locale it is asked for" do
+    Localize.Locale.fallback_chain(:fr)
+    locales = for index <- 1..1_000, do: "fallback-chain-test-#{index}"
+    before = :erlang.system_info(:atom_count)
+
+    for locale <- locales do
+      Localize.Locale.fallback_chain(locale)
+      Localize.Locale.fallback_chain("en", supported: [locale])
+    end
+
+    assert :erlang.system_info(:atom_count) == before
   end
 
   test "resolves :supported entries the same way" do
