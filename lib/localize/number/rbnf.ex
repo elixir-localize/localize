@@ -462,10 +462,9 @@ defmodule Localize.Number.Rbnf do
   # `cldr_locale_id_from/1` always returns an atom locale id.
   defp und?(locale_id), do: locale_id == :und
 
-  defp spellout_family?(rule_name) do
-    rule_name
-    |> normalize_rule_name()
-    |> String.starts_with?("spellout")
+  # The resolved name is always a string: `Resolver.resolve/4` returns one.
+  defp spellout_family?(rule_name) when is_binary(rule_name) do
+    String.starts_with?(rule_name, "spellout")
   end
 
   # The public rule set names for a locale, used to populate the
@@ -628,9 +627,6 @@ defmodule Localize.Number.Rbnf do
   defp extract_rules(%{rules: rules}) when is_list(rules), do: rules
   defp extract_rules(%{"rules" => rules}) when is_list(rules), do: rules
   defp extract_rules(rule_set) when is_map(rule_set), do: Map.get(rule_set, :rules, [])
-
-  defp normalize_rule_name(name) when is_atom(name), do: Atom.to_string(name)
-  defp normalize_rule_name(name) when is_binary(name), do: name
 
   defp cldr_locale_id_from(locale), do: Localize.Locale.cldr_locale_id_from(locale)
 
