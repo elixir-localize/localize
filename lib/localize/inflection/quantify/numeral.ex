@@ -17,16 +17,25 @@ defmodule Localize.Inflection.Quantify.Numeral do
   alias Localize.Inflection.{Concept, NumberConcept, Quantify, SpeakableString}
   alias Localize.Inflection.Quantify.Finnish
 
-  @masculine_feminine %{"masculine" => "cardinal-masculine", "feminine" => "cardinal-feminine"}
-  @masculine_feminine_neuter Map.put(@masculine_feminine, "neuter", "cardinal-neuter")
+  # The words of a number come from the `spellout-cardinal` rule set that
+  # `Localize.Number.Rbnf` chooses for the noun's grammatical features
+  # (`NumberConcept.spoken_cardinal/3`), given here as a map of
+  # grammatical options. Which features each language's numbers agree in
+  # is upstream's; the rule-set names are CLDR's, and the resolver reads
+  # them, so none is spelled out here.
 
-  # The languages whose numbers take the rule set of the noun's gender,
-  # as upstream's `LocalizedCommonConceptFactoryProvider` sets them up.
-  @gender_rule_sets %{
+  @masculine_feminine ~w(masculine feminine)
+  @masculine_feminine_neuter ~w(masculine feminine neuter)
+
+  # The languages whose numbers agree with the noun's gender, and the
+  # genders they agree in, as upstream's
+  # `LocalizedCommonConceptFactoryProvider` sets them up. A noun of
+  # another gender takes digits.
+  @gender_agreement %{
     "ar" => @masculine_feminine,
     "bg" => @masculine_feminine_neuter,
     "ca" => @masculine_feminine,
-    "da" => %{"common" => "cardinal-common", "neuter" => "cardinal-neuter"},
+    "da" => ~w(common neuter),
     "el" => @masculine_feminine_neuter,
     "es" => @masculine_feminine,
     "fr" => @masculine_feminine,
@@ -35,7 +44,7 @@ defmodule Localize.Inflection.Quantify.Numeral do
     "nb" => @masculine_feminine_neuter,
     "pt" => @masculine_feminine,
     "ro" => @masculine_feminine_neuter,
-    "sv" => %{"common" => "cardinal-reale", "neuter" => "cardinal-neuter"}
+    "sv" => ~w(common neuter)
   }
 
   # Finnish numbers take the rule set of the noun's case.
@@ -49,8 +58,8 @@ defmodule Localize.Inflection.Quantify.Numeral do
 
   def formatted(language, locale, number, %Concept{} = concept) do
     cond do
-      Map.has_key?(@gender_rule_sets, language) ->
-        gendered(Map.fetch!(@gender_rule_sets, language), locale, number, concept)
+      Map.has_key?(@gender_agreement, language) ->
+        gendered(Map.fetch!(@gender_agreement, language), locale, number, concept)
 
       language in @slavic ->
         slavic(language, locale, number, concept)
@@ -61,27 +70,34 @@ defmodule Localize.Inflection.Quantify.Numeral do
   end
 
   defp language_specific("de", locale, number, concept) do
-    rule =
-      german_rule(
-        Quantify.feature_print(concept, "case"),
-        Quantify.feature_print(concept, "gender")
-      )
+    grammatical_case = Quantify.feature_print(concept, "case")
+    gender = Quantify.feature_print(concept, "gender")
 
-    spoken(number, locale, rule)
+    if grammatical_case == "genitive" do
+      german_genitive(number, locale, gender)
+    else
+      spoken(number, locale, german_grammar(grammatical_case, gender))
+    end
   end
 
   defp language_specific("fi", locale, number, concept) do
     base =
       case Quantify.feature_print(concept, "case") do
         grammatical_case when grammatical_case in @finnish_cases ->
-          "cardinal-" <> grammatical_case
+          %{grammatical_case: grammatical_case}
 
         _nominative ->
-          "cardinal"
+          %{}
       end
 
-    rule = if Finnish.use_plural?(concept), do: base <> "-plural", else: base
-    NumberConcept.spoken_words(number, locale, rule)
+    grammar =
+      if Finnish.use_plural?(concept) do
+        Map.put(base, :grammatical_number, "plural")
+      else
+        base
+      end
+
+    NumberConcept.spoken_cardinal(number, locale, grammar)
   end
 
   defp language_specific("he", locale, number, concept) do
@@ -119,30 +135,59 @@ defmodule Localize.Inflection.Quantify.Numeral do
   # Only one, and only where the concept names an article, is spoken as one.
   defp indefinite_article(1, locale, number, concept) do
     case Concept.feature_value(concept, "indefArticle") do
-      nil -> NumberConcept.spoken_words(number, locale, "cardinal-masculine")
+      nil -> NumberConcept.spoken_cardinal(number, locale, %{grammatical_gender: "masculine"})
       article -> {:ok, article_print(article)}
     end
   end
 
   defp indefinite_article(_whole, locale, number, _concept) do
-    NumberConcept.spoken_words(number, locale, "cardinal-masculine")
+    NumberConcept.spoken_cardinal(number, locale, %{grammatical_gender: "masculine"})
   end
 
-  defp gendered(rule_sets, locale, number, concept) do
-    spoken(number, locale, Map.get(rule_sets, Quantify.feature_print(concept, "gender")))
+  defp gendered(genders, locale, number, concept) do
+    gender = Quantify.feature_print(concept, "gender")
+
+    if gender in genders do
+      spoken(number, locale, %{grammatical_gender: gender})
+    else
+      spoken(number, locale, nil)
+    end
   end
 
-  defp german_rule(grammatical_case, gender) when grammatical_case in ["", "nominative"] do
-    Map.get(@masculine_feminine_neuter, gender)
+  # German numbers agree in gender and in the dative and accusative;
+  # upstream gives a noun of no known gender digits.
+  defp german_grammar(grammatical_case, gender) when grammatical_case in ["", "nominative"] do
+    if gender in @masculine_feminine_neuter do
+      %{grammatical_gender: gender}
+    end
   end
 
-  defp german_rule("genitive", gender) when gender in ["masculine", "neuter"], do: "cardinal-s"
-  defp german_rule("genitive", "feminine"), do: "cardinal-r"
-  defp german_rule("dative", gender) when gender in ["masculine", "neuter"], do: "cardinal-m"
-  defp german_rule("dative", "feminine"), do: "cardinal-r"
-  defp german_rule("accusative", "masculine"), do: "cardinal-n"
-  defp german_rule("accusative", gender), do: Map.get(@masculine_feminine_neuter, gender)
-  defp german_rule(_grammatical_case, _gender), do: nil
+  defp german_grammar(grammatical_case, gender)
+       when grammatical_case in ["dative", "accusative"] do
+    if gender in @masculine_feminine_neuter do
+      %{grammatical_gender: gender, grammatical_case: grammatical_case}
+    end
+  end
+
+  defp german_grammar(_grammatical_case, _gender) do
+    nil
+  end
+
+  # The genitive keeps upstream's rule sets, named by their endings
+  # (`cardinal-s` for "eines", `cardinal-r` for "einer"), which write
+  # "zwei Kinder". CLDR's feature-named genitive rule sets write the
+  # declined "zweier", which upstream's tests do not expect.
+  defp german_genitive(number, locale, gender) when gender in ["masculine", "neuter"] do
+    NumberConcept.spoken_words(number, locale, "cardinal-s")
+  end
+
+  defp german_genitive(number, locale, "feminine") do
+    NumberConcept.spoken_words(number, locale, "cardinal-r")
+  end
+
+  defp german_genitive(number, locale, _gender) do
+    NumberConcept.digits(number, locale)
+  end
 
   # Slavic numbers agree with the noun's gender and case; with no known
   # gender they are digits.
@@ -153,49 +198,57 @@ defmodule Localize.Inflection.Quantify.Numeral do
 
       gender ->
         grammatical_case = Quantify.feature_print(concept, "case")
-        rule = slavic_rule(language, concept, gender, grammatical_case)
-        NumberConcept.spoken_words(number, locale, rule)
+        grammar = slavic_grammar(language, concept, gender, grammatical_case)
+        NumberConcept.spoken_cardinal(number, locale, grammar)
     end
   end
 
-  defp slavic_rule("pl", concept, gender, grammatical_case) do
-    grammatical_case = if grammatical_case == "nominative", do: "", else: grammatical_case
-
+  # A masculine noun's animacy is read in CLDR's model, as a gender of
+  # its own: Polish `personal` for a human noun, `animate` for another.
+  defp slavic_grammar("pl", concept, gender, grammatical_case) do
     animacy =
       if gender == "masculine", do: Quantify.feature_print(concept, "animacy"), else: ""
 
     cond do
-      animacy == "human" and grammatical_case in ["", "accusative"] ->
-        rule_name(["cardinal", gender, grammatical_case, "personal"])
+      animacy == "human" and grammatical_case in ["", "nominative", "accusative"] ->
+        with_case(%{grammatical_gender: "personal"}, grammatical_case)
 
       animacy == "animate" and grammatical_case == "accusative" ->
-        "cardinal-masculine-accusative-animate"
+        %{grammatical_gender: "animate", grammatical_case: "accusative"}
 
       true ->
-        rule_name(["cardinal", gender, grammatical_case])
+        with_case(%{grammatical_gender: gender}, grammatical_case)
     end
   end
 
-  defp slavic_rule(language, concept, "masculine", "accusative")
+  defp slavic_grammar(language, concept, "masculine", "accusative")
        when language in @animate_accusative do
-    if Quantify.feature_print(concept, "animacy") in ["animate", "human"],
-      do: "cardinal-masculine-animate-accusative",
-      else: "cardinal-masculine-accusative"
+    if Quantify.feature_print(concept, "animacy") in ["animate", "human"] do
+      %{grammatical_gender: "animate", grammatical_case: "accusative"}
+    else
+      %{grammatical_gender: "masculine", grammatical_case: "accusative"}
+    end
   end
 
-  defp slavic_rule(_language, _concept, gender, grammatical_case)
-       when grammatical_case in ["", "nominative"],
-       do: "cardinal-" <> gender
+  defp slavic_grammar(_language, _concept, gender, grammatical_case) do
+    with_case(%{grammatical_gender: gender}, grammatical_case)
+  end
 
-  defp slavic_rule(_language, _concept, gender, grammatical_case),
-    do: rule_name(["cardinal", gender, grammatical_case])
+  defp with_case(grammar, grammatical_case) when grammatical_case in ["", "nominative"] do
+    grammar
+  end
 
-  defp rule_name(parts), do: parts |> Enum.reject(&(&1 == "")) |> Enum.join("-")
+  defp with_case(grammar, grammatical_case) do
+    Map.put(grammar, :grammatical_case, grammatical_case)
+  end
 
   # The article is one of the feature's values, which come as atoms.
   defp article_print(article) when is_atom(article), do: Atom.to_string(article)
   defp article_print(article), do: SpeakableString.print(article)
 
   defp spoken(number, locale, nil), do: NumberConcept.digits(number, locale)
-  defp spoken(number, locale, rule), do: NumberConcept.spoken_words(number, locale, rule)
+
+  defp spoken(number, locale, grammar) do
+    NumberConcept.spoken_cardinal(number, locale, grammar)
+  end
 end

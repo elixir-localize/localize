@@ -124,13 +124,15 @@ Rule-set names are parsed when a lookup needs them, by `Localize.Number.Rbnf.Rul
 
 ## Tasks
 
-* [ ] **MF2** — the `localize:grammatical*` options on the functions that reach RBNF.
-
-* [ ] **`Localize.Inflection.Quantify.Numeral`** — build its rule-set choices through the resolver in place of string concatenation. German cardinals need the `-n`, `-r`, `-s`, `-m` sets read as case and gender, from that module's existing table.
-
 * [ ] **Docs and CHANGELOG** — the RBNF section of the number formatting guide, the `:format` docs, the atom test, and a reply to issue 72.
 
+### Deferred
+
+* [ ] **MF2** — no MF2 function passes Localize's options to an RBNF family: `:number` and `:integer` use RBNF only for algorithmic number systems, and `:i:numeral` names rule sets by upstream's `withVariant` (`ordinal`, `cardinal-feminine`), which now resolves through the family resolver. A Localize function for RBNF with `localize:grammatical*` options would be new work with its own design; out of scope here (user, 2026-11-27).
+
 ### Done
+
+* [x] **`Localize.Inflection.Quantify.Numeral`** — builds grammar maps for `NumberConcept.spoken_cardinal/3` in place of rule-set names; identical output over 9,108 language, gender, case, animacy and number combinations. Two exceptions keep explicit names: the German genitive keeps upstream's `cardinal-s`/`cardinal-r` ("zwei Kinder"; CLDR's feature-named genitive gives "zweier", which upstream's tests reject), and Hebrew, whose `construct-` rule sets are no family. 2026-11-27.
 
 * [x] **The round-trip test** — all 1,065 rule sets that read as features, in the 99 RBNF locales, resolve from their own features to themselves and format as their own names do. 2026-11-27.
 

@@ -37,6 +37,30 @@ defmodule Localize.Inflection.NumberConcept do
     end
   end
 
+  # Digits whose spoken form is the cardinal words agreeing with
+  # `grammar`, a map of grammatical options with string or atom values
+  # (`%{grammatical_gender: "feminine", grammatical_case: "dative"}`):
+  # the `spellout-cardinal` rule set `Localize.Number.Rbnf` chooses for
+  # those features. Where the locale has none agreeing, its default words
+  # are spoken, and where it has no words, the digits, as `spoken_words/3`.
+  def spoken_cardinal(number, locale, grammar) do
+    with {:ok, print} <- Localize.Number.to_string(number, locale: locale) do
+      case cardinal_words(number, locale, grammar) do
+        {:ok, speak} -> {:ok, SpeakableString.new(print, speak)}
+        {:error, _reason} -> {:ok, print}
+      end
+    end
+  end
+
+  defp cardinal_words(number, locale, grammar) do
+    options = [{:locale, locale} | Map.to_list(grammar)]
+
+    case Localize.Number.Rbnf.to_string(number, :spellout_cardinal, options) do
+      {:ok, words} -> {:ok, words}
+      {:error, _no_agreeing_rule_set} -> words(number, locale)
+    end
+  end
+
   # Ordinal digits from `digits-<variant>`, by default `digits-ordinal`.
   def ordinal_digits(number, locale, variant \\ nil) do
     format_with_rule_sets(number, rule_sets("digits-", variant, "ordinal", :ordinal), locale)
