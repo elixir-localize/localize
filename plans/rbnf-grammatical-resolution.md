@@ -108,7 +108,7 @@ Otherwise, the candidates are the family's names that parse into features. Each 
 
 6. **Return an error rather than guess.** A requested value the family varies on but does not have (Polish has `locative`, not `prepositional`) returns `{:error, %Localize.UnknownRbnfRuleError{}}` listing the values the locale has.
 
-The parsed features of a locale's rule sets are computed when the RBNF data is generated and stored with each rule set, so a lookup does no parsing and writes nothing at run time.
+Rule-set names are parsed when a lookup needs them, by `Localize.Number.Rbnf.RuleSetName`, and nothing is stored. Storing the features in the generated RBNF data was the first idea, but locale files are published and checked against `priv/localize/locale_hashes.etf`, so it would mean regenerating and republishing every locale file, and files already downloaded would lack the features. Parsing is a few dozen string splits and map lookups a call, and writes nothing.
 
 ## Changes in behaviour
 
@@ -119,8 +119,6 @@ The parsed features of a locale's rule sets are computed when the RBNF data is g
 * **`:grammatical_case` and `:grammatical_gender` on `Localize.Number.to_string/2`** — accepted today and ignored; they now choose the rule set. A value outside the table, accepted silently today, becomes an error.
 
 ## Tasks
-
-* [ ] **Parse rule-set names at data generation** — store each rule set's features in the RBNF data; a test that every one of CLDR's 1,022 family names parses or is listed as a style name, and that none collide.
 
 * [ ] **The resolver in `Localize.Number.Rbnf`** — families, defaults, agreement, specificity, the gender order and errors; replace the pattern preferences in `resolve_rule_name/3`.
 
@@ -135,6 +133,8 @@ The parsed features of a locale's rule sets are computed when the RBNF data is g
 * [ ] **Docs and CHANGELOG** — the RBNF section of the number formatting guide, the `:format` docs, the atom test, and a reply to issue 72.
 
 ### Done
+
+* [x] **Parse rule-set names** — `Localize.Number.Rbnf.RuleSetName.parse/1`, at lookup time; of the 1,022 family names in Localize's data, 967 read and none collide, and the rest carry a style segment. 2026-11-27.
 
 * [x] **`Localize.GrammaticalFeature`** — compiled tables of CLDR's case, gender, number and definiteness values, and `cast/2`; MF2's `:unit` options read through it. 2026-11-27.
 
