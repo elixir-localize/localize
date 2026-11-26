@@ -62,6 +62,8 @@ Inflection is separate because its data comes from the Unicode inflection projec
 
 * 2026-11-27 — Resolution follows ICU's split (user): `new/1` finds a locale's data by TR35's bundle lookup and never matches; `validate_locale/1` negotiates as `LocaleMatcher` does, below distance 50, falling back to the default locale. Because matching against every CLDR locale with a cutoff of 80 gave another script's data (`ru-Latn` → `ru`), a regional sibling for the parent (`en-QA` → `en-GB`) and another language (`gsw-LU` → `de-LU`), 9,935 inputs in all, measured below.
 
+* 2026-11-27 — An `und` with a script or territory resolves by the language likely subtags give it (`und-TW` is `zh-Hant`, `und-FR` is `fr`), where ICU's resource lookup gives the root (user). Because TR35's Lookup canonicalizes by likely subtags first, and Localize has resolved them so all along.
+
 ## Resolution, measured against ICU
 
 `LanguageTag.new/1` chooses a locale's CLDR data by language matching against every CLDR locale, rejecting only at distance 80, CLDR's language distance. ICU keeps two answers apart: `ures_open` finds a locale's data by TR35 inheritance and never matches, and `LocaleMatcher` negotiates among an application's supported locales with a threshold of 50, CLDR's default script distance, exclusive (`localematcher.cpp`, `locdistance.cpp`, `uresbund.cpp` at `release-78.1`).
@@ -95,7 +97,7 @@ Each step lands on its own, with its output compared over every CLDR locale befo
 
 * [x] **`parent_locales.etf` by component** — generated from `parentLocales.json`, which carries the components and `_localeRules` (the XML was not needed), as `%{main: ..., collations: ..., grammatical_features: ..., plurals: ..., segmentations: ...}`; the main map byte-identical to the old file; the data pass fails on a component or locale rule it does not know; `parent/2` takes `:component`. 2026-11-27.
 
-* [ ] **`LanguageTag.new/1` resolves by bundle lookup** — design 6; the exact, minimized-form and matcher paths go. Compared with ICU 79.1's `ures_open` over the 75,144 inputs: the 17 differences recorded above and no others.
+* [x] **`LanguageTag.new/1` resolves by bundle lookup** — `Localize.Locale.Inheritance.bundle_locale_id/2`, shared with `parent/2`; the exact, minimized-form and matcher paths are gone. Against ICU 79.1 over the 75,144 inputs: the same 17 differences as the prototype, plus `be-tarask` and `el-polyton`, which ICU does not build. An `und` with a script or territory keeps the language likely subtags give (`und-TW` is `zh-Hant`), where ICU gives the root. Plural rules found the regression this exposed: a locale whose data is the root's lost its language's rules (`ars`, `bal`, `ny`); 22 more languages had lost them before. 2026-11-27.
 
 * [ ] **`validate_locale/1` negotiates below distance 50** — design 7; a locale with no match takes the default locale, where it took the first configured locale (the 2026-11-17 review kept that; this reverses it). `localize_web` 1.4.0 tests the old answer for itself, so check and adjust it in the same release.
 

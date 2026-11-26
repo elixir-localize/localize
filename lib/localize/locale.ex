@@ -35,6 +35,7 @@ defmodule Localize.Locale do
   import Localize.Utils.Helpers, only: [is_keyword_list: 1]
 
   alias Localize.LanguageTag
+  alias Localize.Locale.Inheritance
   alias Localize.Locale.Provider
   alias Localize.SupplementalData
 
@@ -286,7 +287,7 @@ defmodule Localize.Locale do
     with {:ok, identity} <- inherited_identity(tag) do
       parent =
         identity
-        |> parent_subtags(component)
+        |> Inheritance.parent(component)
         |> with_cldr_locale_id()
         |> transfer_extensions(tag)
 
@@ -312,143 +313,6 @@ defmodule Localize.Locale do
          {:ok, parsed} <- LanguageTag.parse(Atom.to_string(locale_id)) do
       LanguageTag.canonicalize(parsed)
     end
-  end
-
-  # TR35's parent of a locale's subtags: the component's
-  # `parentLocales`, then for the main component the non-likely-script
-  # rule, then truncation.
-  defp parent_subtags(%LanguageTag{} = tag, component) do
-    case listed_parent(tag, component) do
-      {:ok, parent_id} -> named_parent(parent_id)
-      :error -> unlisted_parent(tag, component)
-    end
-  end
-
-  # The parent `parentLocales` names for the locale, under its own name
-  # or under its name without a script likely subtags imply, since TR35
-  # treats the two as one locale: `en-Latn-RO` is `en-RO`, whose parent
-  # is `en-150`.
-  defp listed_parent(%LanguageTag{} = tag, component) do
-    parent_locales = SupplementalData.parent_locales(component)
-
-    tag
-    |> identical_names()
-    |> Enum.find_value(:error, &fetch_listed(parent_locales, &1))
-  end
-
-  defp identical_names(%LanguageTag{} = tag) do
-    name = locale_id_from(tag.language, tag.script, tag.territory, tag.language_variants)
-
-    if implied_script?(tag) do
-      [name, locale_id_from(tag.language, nil, tag.territory, tag.language_variants)]
-    else
-      [name]
-    end
-  end
-
-  defp implied_script?(%LanguageTag{script: script, territory: territory} = tag)
-       when not is_nil(script) and not is_nil(territory) do
-    script == likely_script(tag.language, territory)
-  end
-
-  defp implied_script?(%LanguageTag{}) do
-    false
-  end
-
-  defp fetch_listed(parent_locales, name) do
-    case Map.fetch(parent_locales, name) do
-      {:ok, parent_id} -> {:ok, parent_id}
-      :error -> nil
-    end
-  end
-
-  defp named_parent(parent_id) do
-    {:ok, parsed} = LanguageTag.parse(parent_id)
-    {:ok, canonical} = LanguageTag.canonicalize(parsed)
-    canonical
-  end
-
-  # TR35 applies the non-likely-script rule to the main component only:
-  # collation and plural data do not mix scripts in text.
-  defp unlisted_parent(%LanguageTag{} = tag, :main) do
-    if nonlikely_script?(tag) do
-      root_tag()
-    else
-      truncated(tag)
-    end
-  end
-
-  defp unlisted_parent(%LanguageTag{} = tag, _component) do
-    truncated(tag)
-  end
-
-  # TR35's `localeRules="nonlikelyScript"`: a language and script, with
-  # no territory or variant, whose script is not the one likely subtags
-  # give the language. CLDR lists some of these locales for migration;
-  # the rule covers every one, `ru-Latn` included.
-  defp nonlikely_script?(
-         %LanguageTag{script: script, territory: nil, language_variants: []} = tag
-       )
-       when not is_nil(script) do
-    script != likely_script(tag.language, nil)
-  end
-
-  defp nonlikely_script?(%LanguageTag{}) do
-    false
-  end
-
-  # The script likely subtags give a language, in a territory where one
-  # is given (`sr` in `RO` is `Latn`). The table is keyed by strings, so
-  # no atom is made here.
-  defp likely_script(language, territory) do
-    likely_subtags = SupplementalData.likely_subtags()
-
-    language
-    |> Atom.to_string()
-    |> likely_keys(territory)
-    |> Enum.find_value(&likely_script_for(likely_subtags, &1))
-  end
-
-  defp likely_keys(language, nil) do
-    [{language, nil, nil}]
-  end
-
-  defp likely_keys(language, territory) do
-    [{language, nil, Atom.to_string(territory)}, {language, nil, nil}]
-  end
-
-  defp likely_script_for(likely_subtags, key) do
-    case Map.fetch(likely_subtags, key) do
-      {:ok, %{script: script}} -> script
-      :error -> nil
-    end
-  end
-
-  # Truncation removes the last subtag: a variant, then the territory,
-  # then the script; a language alone has the root as its parent. The
-  # child's ids name the child, so the parent keeps neither: a validated
-  # `ar-SA` carrying `cldr_locale_id: :"ar-SA"` into its parent made every
-  # lookup through the parent read `ar-SA`'s data again, and RBNF found
-  # no rules where `ar` has them.
-  defp truncated(%LanguageTag{language_variants: [_ | _] = variants} = tag) do
-    %{
-      tag
-      | language_variants: List.delete_at(variants, -1),
-        canonical_locale_id: nil,
-        cldr_locale_id: nil
-    }
-  end
-
-  defp truncated(%LanguageTag{territory: territory} = tag) when not is_nil(territory) do
-    %{tag | territory: nil, canonical_locale_id: nil, cldr_locale_id: nil}
-  end
-
-  defp truncated(%LanguageTag{script: script} = tag) when not is_nil(script) do
-    %{tag | script: nil, canonical_locale_id: nil, cldr_locale_id: nil}
-  end
-
-  defp truncated(%LanguageTag{}) do
-    root_tag()
   end
 
   # A parent names the CLDR locale its subtags resolve to, found through

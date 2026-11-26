@@ -6,6 +6,34 @@ defmodule Localize.Number.PluralRuleDispatchTest do
 
   doctest Localize.Number.PluralRule
 
+  # These languages have plural rules of their own in CLDR but no main
+  # locale, so their data is the root's. The root's single category masked
+  # their rules, and `bal` took Urdu's through matching.
+  describe "a locale whose data is the root's" do
+    test "takes its language's plural rules where CLDR has them" do
+      alias Localize.Number.PluralRule.Cardinal
+
+      assert Enum.map([1, 2, 3, 11], &Cardinal.plural_rule(&1, :ars)) == [:one, :two, :few, :many]
+      assert Cardinal.plural_rule(1, :ny) == :one
+      assert Cardinal.plural_rule(1, :bal) == :one
+      assert Cardinal.plural_rule(1, :an) == :one
+      assert Cardinal.plural_rules_for(:ny) |> Keyword.keys() |> Enum.sort() == [:one, :other]
+    end
+
+    test "takes the root's rules when the root is asked for, or the language has none" do
+      alias Localize.Number.PluralRule.Cardinal
+
+      for locale <- ["und", "und-u-nu-latn", "tlh"] do
+        assert {locale, Cardinal.plural_rule(1, locale)} == {locale, :other}
+      end
+    end
+
+    test "takes its language's rules for a script CLDR has no locale for" do
+      # TR35 does not apply the non-likely-script rule to plurals.
+      assert PluralRule.plural_type(2, locale: "ru-Latn") == :few
+    end
+  end
+
   describe "plural_type/2 with the Elixir backend" do
     test "defaults to the current locale and cardinal type" do
       assert PluralRule.plural_type(1) == :one

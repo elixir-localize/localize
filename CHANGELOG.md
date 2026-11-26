@@ -18,9 +18,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 * `Localize.Locale.fallback_chain/2` resolves a locale and its parents against every CLDR locale, so the chain no longer depends on `supported_locales`: with only `en` configured, `pt-BR` gives `[:pt]` where it gave `[:en]`. Chains are read from a table of every CLDR locale's chain built on first use, so a locale id atom costs about 1.5 µs.
 
+* `Localize.LanguageTag.new/1` finds `cldr_locale_id` by TR35's resource-bundle lookup, as ICU's `ures_open` does, never by language matching: `ru-Latn` is `:und` (was `:ru`), `en-QA` is `:en` (was `:"en-GB"`) and `gsw-LU` is `:gsw` (was `:"de-LU"`). Measured against ICU 79.1 over 75,144 identifiers, 17 differ, each where ICU departs from TR35 or CLDR's likely subtags.
+
 * The grammatical options of `Localize.Number.to_string/2`, which `Localize.Unit` passes on, are validated: a value that is not one of CLDR's returns `Localize.InvalidValueError` where it was ignored.
 
-* `Localize.LanguageTag.best_match/3` is 15 to 25 times faster against all CLDR locales (31 ms to 1.3 ms for `pt-BR`): candidate tags are resolved once, and the distance trie indexes its "not in" region rules. `Localize.LanguageTag.new/1` resolves a tag whose minimized form is a CLDR locale id, such as `pt-BR` or `fr-Latn`, without matching at all, in about 40 µs.
+* `Localize.LanguageTag.best_match/3` is 15 to 25 times faster against all CLDR locales (31 ms to 1.3 ms for `pt-BR`): candidate tags are resolved once, and the distance trie indexes its "not in" region rules.
 
 ### Fixed
 
@@ -30,7 +32,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 * `Localize.LanguageTag.new/1` resolved a tag with a variant and an explicit script and territory, such as `be-Cyrl-BY-tarask` or `el-Grek-GR-polyton`, to the locale without the variant; it now gives `be-tarask` and `el-polyton`.
 
-* `Localize.Locale.fallback_chain/2` is the chain of the CLDR locale a locale resolves to: `az` gave `[:az, :"az-Latn"]`, naming its child as its parent (21 locales), `en-FO` skipped `en-001` and `gsw-LU` walked from `de-LU` into `gsw`.
+* Plural rules for a locale whose data is the root's take its language's rules where CLDR has them: 24 languages, among them `ars`, `ny`, `an` and `smj`, had the root's single category, and `bal` had Urdu's.
+
+* `Localize.Locale.fallback_chain/2` is the chain of the CLDR locale a locale resolves to: `az` gave `[:az, :"az-Latn"]`, naming its child as its parent, in 21 locales.
 
 * `Localize.Locale.parent/1` follows TR35: a script that is not the language's likely one has the root as its parent (`ru-Latn`), and a validated tag falls back from its CLDR locale, so an `az` tag's parent is the root, not its child `az-Latn`. It takes a locale id atom too.
 

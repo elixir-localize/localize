@@ -28,7 +28,7 @@ Validation performs, in one pass:
 
 * **`-u-` extension parsing** — Unicode extension keywords are validated and decoded into a `Localize.LanguageTag.U` struct on the tag's `:locale` field.
 
-* **CLDR locale matching** — the tag is matched against the candidate locales (all ~657 CLDR locales, or your configured `:supported_locales`) to populate `:cldr_locale_id`, the key used for all data lookup.
+* **CLDR data locale** — `:cldr_locale_id`, the key used for all data lookup, is the CLDR locale whose data the tag gets, found by TR35's resource-bundle lookup as ICU finds it: the locale itself where CLDR has it, else the first CLDR locale it inherits from (`pt-BR` is `pt`, `zh-TW` is `zh-Hant`, `en-QA` is `en`), else the root `:und`. Where you configure `:supported_locales` and that locale is not among them, the tag is then matched against the ones you support.
 
 * **Caching** — the result is cached in ETS, so repeated validation of the same identifier costs about a microsecond.
 
@@ -54,16 +54,20 @@ Note the last example: `canonical_locale_id` preserves the caller's request in c
 |-------|---------|------------------------------|
 | `:requested_locale_id` | The input, verbatim. | `"iw-US"` |
 | `:canonical_locale_id` | Canonical syntax: aliases resolved, subtags ordered — neither maximized nor minimized. | `"he-US"` |
-| `:cldr_locale_id` | The matched CLDR data locale, as an atom. | `:he` |
+| `:cldr_locale_id` | The CLDR data locale, as an atom. | `:he` |
 
-### Unmatchable languages resolve to root
+### Locales CLDR has no data for resolve to root
 
-When the language is valid but CLDR has no data for it, the tag resolves to the root locale `:und` rather than to a wrong language:
+When the language is valid but CLDR has no data for it, or CLDR has no locale for the script it is written in, the tag resolves to the root locale `:und` rather than to another language's or another script's data:
 
 ```elixir
 iex> {:ok, tag} = Localize.validate_locale("tlh")
 iex> {tag.canonical_locale_id, tag.cldr_locale_id}
 {"tlh", :und}
+
+iex> {:ok, tag} = Localize.validate_locale("ru-Latn")
+iex> {tag.canonical_locale_id, tag.cldr_locale_id}
+{"ru-Latn", :und}
 ```
 
 A string that is not a well-formed BCP 47 tag, or whose subtags are not in the CLDR validity sets, returns an error:

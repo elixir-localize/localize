@@ -423,6 +423,16 @@ defmodule Localize.LanguageTag do
   stays `"en-US"`. Locale identity and data lookup key off
   `cldr_locale_id`, not `canonical_locale_id`.
 
+  `cldr_locale_id` is the CLDR locale whose data the tag gets, found
+  by TR35's resource-bundle lookup over every CLDR locale, as ICU's
+  resource lookup finds it: the locale itself where CLDR has it, else
+  the first CLDR locale it inherits from (`pt-BR` is `pt`, `zh-TW` is
+  `zh-Hant`, `en-QA` is `en`), else the root, `:und`. It is never chosen
+  by language matching, so a script CLDR has no locale for gets the
+  root's data rather than another script's: `ru-Latn` is `:und`, not
+  `:ru`. Choosing among the locales an application supports is
+  `Localize.validate_locale/1`'s.
+
   ### Arguments
 
   * `locale_id` is any BCP 47 locale string.
@@ -445,6 +455,12 @@ defmodule Localize.LanguageTag do
       :TW
       iex> tag.canonical_locale_id
       "zh-TW"
+      iex> tag.cldr_locale_id
+      :"zh-Hant"
+
+      iex> {:ok, tag} = Localize.LanguageTag.new("ru-Latn")
+      iex> tag.cldr_locale_id
+      :und
 
   """
   @spec new(String.t()) :: {:ok, t()} | {:error, term()}
@@ -459,90 +475,24 @@ defmodule Localize.LanguageTag do
       # `en-US` stays `en-US`) rather than collapsing to the minimal
       # identity form. Locale identity/data lookup keys off
       # `cldr_locale_id`, not this field.
-      tag =
-        %{resolved | canonical_locale_id: canonical.canonical_locale_id}
-        |> resolve_cldr_locale(resolved.canonical_locale_id)
+      locale_id = Localize.Locale.Inheritance.bundle_locale_id(canonical, locale_id_index())
 
-      {:ok, tag}
+      {:ok,
+       %{resolved | canonical_locale_id: canonical.canonical_locale_id, cldr_locale_id: locale_id}}
     end
   end
 
   def new(locale_id), do: {:error, Localize.InvalidLocaleError.exception(locale_id: locale_id)}
 
-  # Extensions choose preferences, not the locale whose data is used, so the
-  # id is looked up without them: `und-u-nu-latn` is the root locale, as
-  # `und` is, where matching its maximized subtags would give `en`.
-  #
-  # The id is looked up as the caller spelled it and then in its minimized
-  # form, so `pt-BR` is `pt` and `fr-Latn` is `fr` without the matcher. A
-  # minimized form that is a CLDR locale is the one the matcher chooses: of
-  # 74,254 language, script and territory combinations over every CLDR
-  # locale, the 1,078 whose minimized form is a locale id all matched it
-  # (checked 2026-11-27). The rest fall through to the matcher.
-  defp resolve_cldr_locale(%__MODULE__{canonical_locale_id: id} = tag, minimized_id)
-       when is_binary(id) do
-    case exact_locale_id([id, minimized_id]) do
-      nil -> match_cldr_locale(tag)
-      exact -> %{tag | cldr_locale_id: exact}
-    end
-  end
-
-  defp resolve_cldr_locale(%__MODULE__{} = tag, _minimized_id) do
-    match_cldr_locale(tag)
-  end
-
-  defp exact_locale_id(ids) do
-    index = locale_id_index()
-
-    Enum.find_value(ids, fn id ->
-      is_binary(id) and Map.get(index, base_identifier(id))
-    end)
-  end
-
-  # A canonical id up to its first extension, which starts at the first
-  # one-letter subtag: `de-CH-u-nu-latn` is `de-CH`.
-  defp base_identifier(id) do
-    id
-    |> String.split("-")
-    |> Enum.take_while(&(String.length(&1) > 1))
-    |> Enum.join("-")
-  end
-
-  # A tag that names a locale we actually hold data for resolves to that
-  # locale, without consulting the matcher. Language matching answers "which
-  # of these is closest", and for an exact identity it can answer with an
-  # equally-close *different* locale: `ar` maximizes to `ar-Arab-EG`, so `ar`
-  # and `ar-EG` both score 0 against a desired `ar-EG` and the tie went to
-  # `ar`. Twenty-five of the 657 locales resolved to a neighbour this way,
-  # `zh-Hans`, `sr-Cyrl`, `ca-ES-valencia`, `be-tarask` and `el-polyton`
-  # among them, every one of which ships data that differs from what it
-  # collapsed to — `ar-EG` formats in `arab` digits where `ar` deliberately
-  # uses `latn`.
-  #
-  # The index is built once and maps the canonical string to the atom already
-  # in `all_locale_ids/0`, so no atom is created from the input.
+  # Each CLDR locale's name, as `parse/1` and `canonicalize/1` spell it,
+  # mapped to the atom already in `all_locale_ids/0`, so no atom is made
+  # from the input. Extensions choose preferences, not the locale whose
+  # data is used, so the bundle lookup reads the subtags alone:
+  # `und-u-nu-latn` is the root, as `und` is.
   defp locale_id_index do
     cached(:locale_id_index, fn ->
       Map.new(SupplementalData.all_locale_ids(), &{Atom.to_string(&1), &1})
     end)
-  end
-
-  defp match_cldr_locale(%__MODULE__{} = tag) do
-    case best_match(tag, SupplementalData.all_locale_ids()) do
-      # A score of 80 or more is the CLDR language-mismatch distance:
-      # the best "match" speaks a different language. Another
-      # language's data is never the right source for a tag (Klingon
-      # must not format with Afar data), so per TR35 the tag falls
-      # back to the root locale.
-      {:ok, _cldr_locale, score} when score >= 80 ->
-        %{tag | cldr_locale_id: :und}
-
-      {:ok, cldr_locale, _score} ->
-        %{tag | cldr_locale_id: cldr_locale}
-
-      {:error, _} ->
-        %{tag | cldr_locale_id: :und}
-    end
   end
 
   @doc """

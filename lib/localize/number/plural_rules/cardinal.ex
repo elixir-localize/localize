@@ -43,6 +43,11 @@ defmodule Localize.Number.PluralRule.Cardinal do
 
   @rules_at_compile Localize.Number.PluralRule.Loader.load_plural_rules(:cardinal)
 
+  # The locales with rules of their own, as a map a guard can test. A
+  # locale whose data is the root's takes its language's rules where CLDR
+  # has them: `ars`, `bal` and `ny` have plural rules but no main locale.
+  @rule_locales Map.new(Map.keys(@rules_at_compile), &{&1, true})
+
   @default_substitution :other
 
   @doc """
@@ -229,8 +234,8 @@ defmodule Localize.Number.PluralRule.Cardinal do
   """
   @spec plural_rules_for(atom() | String.t() | LanguageTag.t()) ::
           Keyword.t() | nil | {:error, Exception.t()}
-  def plural_rules_for(%LanguageTag{cldr_locale_id: cldr_locale_id, language: language}) do
-    plural_rules()[cldr_locale_id] || plural_rules()[language]
+  def plural_rules_for(%LanguageTag{} = language_tag) do
+    plural_rules()[rules_locale(language_tag)]
   end
 
   def plural_rules_for(locale_name) when is_atom(locale_name) or is_binary(locale_name) do
@@ -241,6 +246,33 @@ defmodule Localize.Number.PluralRule.Cardinal do
 
   def plural_rules_for(locale),
     do: {:error, Localize.InvalidLocaleError.exception(locale_id: locale)}
+
+  # The locale whose rules apply. TR35 gives plural rules their own
+  # inheritance, by truncation: the CLDR locale where it has rules, else
+  # its language. A locale whose data is the root's still takes its
+  # language's rules where CLDR has them (`ars`, `bal`, `ny`); the root
+  # itself, asked for as `und`, takes the root's, although its validated
+  # tag carries the likely language `en`.
+  defp rules_locale(%LanguageTag{cldr_locale_id: locale_id} = language_tag) do
+    cond do
+      locale_id != :und and is_map_key(@rule_locales, locale_id) -> locale_id
+      locale_id == :und and requests_root?(language_tag) -> :und
+      is_map_key(@rule_locales, language_tag.language) -> language_tag.language
+      true -> locale_id
+    end
+  end
+
+  defp requests_root?(%LanguageTag{canonical_locale_id: "und"}) do
+    true
+  end
+
+  defp requests_root?(%LanguageTag{canonical_locale_id: "und-" <> _extensions}) do
+    true
+  end
+
+  defp requests_root?(%LanguageTag{}) do
+    false
+  end
 
   # ── Plural rule function: public API ──────────────────────────
 
@@ -426,7 +458,7 @@ defmodule Localize.Number.PluralRule.Cardinal do
 
   # Silence warnings since the success typing of do_plural_rule
   # will depend on the locale used.
-  @dialyzer {:nowarn_function, [do_plural_rule: 8]}
+  @dialyzer {:nowarn_function, [do_plural_rule: 8, locale_plural_rule: 8]}
 
   @spec do_plural_rule(
           LanguageTag.t(),
@@ -440,14 +472,20 @@ defmodule Localize.Number.PluralRule.Cardinal do
         ) :: :zero | :one | :two | :few | :many | :other | {:error, Exception.t()}
 
   # Generate per-locale do_plural_rule/8 functions from the CLDR data
+  defp do_plural_rule(%LanguageTag{} = language_tag, n, i, v, w, f, t, e) do
+    language_tag
+    |> rules_locale()
+    |> locale_plural_rule(n, i, v, w, f, t, e)
+  end
+
   for locale_name <- @rules_at_compile |> Map.keys() |> Enum.sort() do
     function_body =
       @rules_at_compile
       |> Map.get(locale_name)
       |> rules_to_condition_statement(__MODULE__)
 
-    defp do_plural_rule(
-           %LanguageTag{cldr_locale_id: unquote(locale_name)},
+    defp locale_plural_rule(
+           unquote(locale_name),
            n,
            i,
            v,
@@ -464,24 +502,7 @@ defmodule Localize.Number.PluralRule.Cardinal do
 
   Module.delete_attribute(__MODULE__, :rules_at_compile)
 
-  # If the locale doesn't have a plural rule, try the language
-  defp do_plural_rule(%LanguageTag{} = language_tag, n, i, v, w, f, t, e) do
-    # `language_tag.language` is already a validated atom (or nil) after
-    # `LanguageTag.parse/1`. The previous `String.to_atom(to_string(...))`
-    # round-trip was a no-op for atoms but would atomise `""` from a nil
-    # language; using the field directly avoids both.
-    language_atom = language_tag.language
-
-    if language_atom == language_tag.cldr_locale_id do
-      {:error,
-       Localize.UnknownPluralRulesError.exception(
-         locale_id: language_tag.cldr_locale_id,
-         type: :cardinal
-       )}
-    else
-      language_tag
-      |> Map.put(:cldr_locale_id, language_atom)
-      |> do_plural_rule(n, i, v, w, f, t, e)
-    end
+  defp locale_plural_rule(locale_id, _n, _i, _v, _w, _f, _t, _e) do
+    {:error, Localize.UnknownPluralRulesError.exception(locale_id: locale_id, type: :cardinal)}
   end
 end

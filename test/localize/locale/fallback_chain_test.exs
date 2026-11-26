@@ -36,14 +36,16 @@ defmodule Localize.Locale.FallbackChainTest do
   end
 
   test "is the chain of the CLDR locale the locale resolves to" do
-    # Walking the requested subtags followed the requested language
-    # (`gsw-LU` into `gsw`) and skipped parents (`en-FO` missed `en-001`).
+    # The locale resolves by TR35's bundle lookup, as ICU's does: `en-FO`
+    # inherits from `en`, `gsw-LU` from `gsw`, and `sa-Latn`, a script
+    # CLDR has no Sanskrit locale for, from the root.
     for {locale, chain} <- [
           {"es-Latn-PY", [:"es-PY", :"es-419", :es]},
-          {"en-FO", [:"en-GB", :"en-001", :en]},
-          {"pt-CG", [:"pt-AO", :"pt-PT", :pt]},
-          {"gsw-LU", [:"de-LU", :de]},
-          {"sa-Latn", [:"hi-Latn", :"en-IN", :"en-001", :en]}
+          {"en-FO", [:en]},
+          {"pt-CG", [:pt]},
+          {"gsw-LU", [:gsw]},
+          {"zh-TW", [:"zh-Hant"]},
+          {"sa-Latn", []}
         ] do
       assert {locale, Locale.fallback_chain(locale)} == {locale, {:ok, chain}}
     end

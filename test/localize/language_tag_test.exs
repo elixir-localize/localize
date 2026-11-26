@@ -264,17 +264,34 @@ defmodule Localize.LanguageTagTest do
       assert tag.cldr_locale_id == :he
     end
 
-    test "resolves a tag whose minimized form is a CLDR locale to that locale" do
+    # TR35's resource-bundle lookup, as ICU's `ures_open` does it: the
+    # locale without a script likely subtags imply, a `lang-Region` read as
+    # its likely `lang-Script-Region`, then its parents.
+    test "resolves a locale to the first CLDR locale it inherits from" do
       for {locale_id, expected} <- [
             {"pt-BR", :pt},
             {"fr-Latn", :fr},
             {"fr-Latn-FR", :fr},
-            {"ar-Arab-EG", :ar},
+            {"ar-Arab-EG", :"ar-EG"},
             {"zh-Hant-TW", :"zh-Hant"},
-            {"sr-Cyrl-RS", :sr}
+            {"zh-TW", :"zh-Hant"},
+            {"sr-Cyrl-RS", :"sr-Cyrl"},
+            {"sr-ME", :"sr-Latn-ME"},
+            {"en-QA", :en},
+            {"pt-CG", :pt},
+            {"gsw-LU", :gsw},
+            {"ff-NG", :"ff-Latn-NG"}
           ] do
         assert {:ok, %LanguageTag{cldr_locale_id: ^expected}} = LanguageTag.new(locale_id),
                "#{locale_id} did not resolve to #{expected}"
+      end
+    end
+
+    # Matching chose another script's data (`ru-Latn` gave `ru`), a sibling
+    # (`en-QA` gave `en-GB`) or another language (`gsw-LU` gave `de-LU`).
+    test "gives the root for a script CLDR has no locale for, never another script's data" do
+      for locale_id <- ["ru-Latn", "el-Latn", "uk-Latn", "en-Cyrl", "ja-Latn", "sa-Latn"] do
+        assert {:ok, %LanguageTag{cldr_locale_id: :und}} = LanguageTag.new(locale_id), locale_id
       end
     end
 
