@@ -143,6 +143,37 @@ iex> rules
 
 The root locale (`:und`) provides universal rules like `roman_upper`, `roman_lower`, `hebrew`, `ethiopic`, `greek_upper`, `greek_lower`, `armenian_upper`, `armenian_lower`, `cyrillic_lower`, `georgian`, and `tamil`.
 
+### Gender and case in RBNF formats
+
+Many languages decline their ordinals and spelled-out numbers: a Russian ordinal ends in `-й`, `-я` or `-е` by gender, and in `-го` in the genitive. CLDR names those rule sets by their features, such as `digits_ordinal_masculine_genitive`. The formats `:ordinal` and `:spellout`, and a family's own name (`:digits_ordinal`, `:spellout_ordinal`, `:spellout_cardinal`, `:spellout_numbering`), choose among them by the grammatical options:
+
+```elixir
+iex> Localize.Number.to_string(3, format: :ordinal, locale: :ru)
+{:ok, "3"}
+
+iex> Localize.Number.to_string(3, format: :ordinal, locale: :ru, grammatical_gender: :masculine)
+{:ok, "3-й"}
+
+iex> Localize.Number.to_string(3, format: :ordinal, locale: :ru, grammatical_gender: :masculine, grammatical_case: :genitive)
+{:ok, "3-го"}
+
+iex> Localize.Number.to_string(3, format: :ordinal, locale: :pl)
+{:ok, "trzeci"}
+
+iex> Localize.Number.to_string(3, format: :spellout_ordinal, locale: :pl, grammatical_gender: :feminine)
+{:ok, "trzecia"}
+```
+
+* **No grammatical option** — the family's unmarked rule set, as CLDR intends. CLDR's Russian `digits_ordinal` writes the digits alone, so `"3"`.
+
+* **A gender, case, number or definiteness** — the rule set that agrees with every one given and marks the most of them. A feature the family does not vary on is ignored, so `grammatical_gender: :feminine` with `locale: :en` still gives `"3rd"`.
+
+* **No unmarked rule set** — the masculine nominative, as Polish shows. The choice never depends on the alphabetical order of the names.
+
+* **A value the locale's family does not have** — an error naming the values it has: Polish has a locative but no prepositional case.
+
+The genders are CLDR's: `:masculine`, `:feminine`, `:neuter`, `:common`, and the masculine animacy genders of Polish, Czech and other Slavic languages, `:animate`, `:inanimate` and `:personal`. Each option takes an atom or its name as a string. `:ordinal` writes digits where the locale has digit ordinals and spells the ordinal out where it does not, as German does; ask for `:digits_ordinal` to get digits or an error.
+
 ### Range formatting
 
 Format numeric ranges with locale-appropriate separators:
@@ -355,6 +386,10 @@ All options accepted by `Localize.Number.to_string/2`:
 | `:locale` | atom, string, or `LanguageTag` | `Localize.get_locale()` | Locale for patterns, symbols, and plural rules. |
 | `:format` | atom or pattern string | `:standard` | Format style or custom pattern. See format table above. |
 | `:currency` | atom | `nil` | ISO 4217 currency code. Automatically selects currency format. |
+| `:grammatical_gender` | atom or string | `nil` | Gender of an RBNF family format such as `:ordinal`. See Gender and case in RBNF formats. |
+| `:grammatical_case` | atom or string | `nil` | Case of an RBNF family format; unmarked means nominative. |
+| `:grammatical_number` | atom or string | `nil` | `:singular`, `:plural` or `:dual`, for an RBNF family format. |
+| `:grammatical_definiteness` | atom or string | `nil` | `:indefinite`, `:definite`, `:construct` or `:unspecified`, for an RBNF family format. |
 | `:number_system` | atom | `:default` | Number system name (`:latn`, `:arab`, etc.) or type (`:default`, `:native`). |
 | `:fractional_digits` | integer | `nil` | Set both min and max fractional digits. |
 | `:min_fractional_digits` | integer | `nil` | Minimum trailing zeros after decimal. Overrides `:fractional_digits` for the minimum. |

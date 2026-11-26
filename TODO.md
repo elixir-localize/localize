@@ -4,8 +4,6 @@ Outstanding work on Localize. The design detail behind these items lives under [
 
 ## Open
 
-* [ ] **RBNF rule sets chosen by grammatical features** — `:ordinal` and `:spellout` pick a gendered rule set by alphabetical order (Polish 3 is "trzecia"), and `:grammatical_case`/`:grammatical_gender` on `Localize.Number.to_string/2` are accepted and ignored; issue 72. Plan in [plans/rbnf-grammatical-resolution.md](plans/rbnf-grammatical-resolution.md), with four open questions for the user.
-
 * [ ] **Context before in collation tailorings** — TR35's `|` (a prefix such as `う|ゝ`, ゝ after う) is not parsed, so the 47 such rules in `ja`, for the kana iteration marks ゝゞヽヾ, produce keys that never match and the marks stay untailored.
 
 * [ ] **Settle the runtime `:persistent_term` writes under rule 14** — about forty sites write at runtime: per-locale data and caches, constants computed on first use, configuration setters and warn-once flags. Needs a decision on per-locale data; the options and their measured costs are in [plans/persistent-term-writes.md](plans/persistent-term-writes.md).
@@ -21,6 +19,8 @@ Outstanding work on Localize. The design detail behind these items lives under [
 * [ ] **Message resource support** — read and write the Message Resource format of the Unicode message-resource working group, a file of named MessageFormat 2 messages with their comments and metadata, so a set of messages can be kept and loaded as a unit beside Gettext PO files. Scope to be settled before work starts: which draft of the format, and how a resource reaches `Localize.Message` and the `~t` sigil.
 
 ## In progress
+
+* [ ] **RBNF rule sets chosen by grammatical features** — issue 72. Landed for 1.11.0: grammatical options on `Localize.Number.to_string/2` and `Localize.Number.Rbnf.to_string/3`, the family resolver, `Quantify.Numeral` on it, guide and CHANGELOG; awaiting release. Plan in [plans/rbnf-grammatical-resolution.md](plans/rbnf-grammatical-resolution.md).
 
 * [ ] **CLDR 49 upgrade** — the plan's items are closed bar item 11; the data is built from the final `release-49` (below). [plans/cldr-49.md](plans/cldr-49.md).
 

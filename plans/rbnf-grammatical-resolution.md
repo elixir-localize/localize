@@ -2,6 +2,8 @@
 
 **Status:** in progress, 2026-11-27
 
+All tasks are done for 1.11.0 apart from the deferred MF2 function; the status becomes `implemented (v1.11.0)` when it is released.
+
 Issue 72 reports that `Localize.Number.to_string(3, format: :ordinal, locale: :ru)` returns `"3"`. The plan is to choose an RBNF rule set by grammatical case, gender, number and definiteness, as named options, rather than by matching rule-set names against a fixed list of patterns. It also covers how option values are taken without making atoms.
 
 ## The problem
@@ -124,13 +126,13 @@ Rule-set names are parsed when a lookup needs them, by `Localize.Number.Rbnf.Rul
 
 ## Tasks
 
-* [ ] **Docs and CHANGELOG** — the RBNF section of the number formatting guide, the `:format` docs, the atom test, and a reply to issue 72.
-
 ### Deferred
 
 * [ ] **MF2** — no MF2 function passes Localize's options to an RBNF family: `:number` and `:integer` use RBNF only for algorithmic number systems, and `:i:numeral` names rule sets by upstream's `withVariant` (`ordinal`, `cardinal-feminine`), which now resolves through the family resolver. A Localize function for RBNF with `localize:grammatical*` options would be new work with its own design; out of scope here (user, 2026-11-27).
 
 ### Done
+
+* [x] **Docs and CHANGELOG** — "Gender and case in RBNF formats" in the number formatting guide, the options table, and `## [1.11.0] — Unreleased` (Added, Changed, Fixed); the issue 72 reply and the CLDR report are drafted for the user. 2026-11-27.
 
 * [x] **`Localize.Inflection.Quantify.Numeral`** — builds grammar maps for `NumberConcept.spoken_cardinal/3` in place of rule-set names; identical output over 9,108 language, gender, case, animacy and number combinations. Two exceptions keep explicit names: the German genitive keeps upstream's `cardinal-s`/`cardinal-r` ("zwei Kinder"; CLDR's feature-named genitive gives "zweier", which upstream's tests reject), and Hebrew, whose `construct-` rule sets are no family. 2026-11-27.
 

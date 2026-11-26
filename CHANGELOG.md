@@ -4,11 +4,25 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.10.1] — Unreleased
+## [1.11.0] — Unreleased
+
+### Added
+
+* `:grammatical_gender`, `:grammatical_case`, `:grammatical_number` and `:grammatical_definiteness` on `Localize.Number.to_string/2` and `Localize.Number.Rbnf.to_string/3` choose a gendered or declined RBNF rule set, so a Russian ordinal 3 is "3-й", or "3-го" in the genitive. The genders are CLDR's, Slavic masculine animacy (`:animate`, `:inanimate`, `:personal`) included.
 
 ### Changed
 
+* `:ordinal`, `:spellout` and a family's own name, such as `:spellout_ordinal`, resolve by the grammatical features CLDR's rule-set names mark rather than by their alphabetical order. A family name in a locale with only gendered rule sets now takes the masculine nominative where it returned `Localize.UnknownRbnfRuleError`.
+
+* The grammatical options of `Localize.Number.to_string/2`, which `Localize.Unit` passes on, are validated: a value that is not one of CLDR's returns `Localize.InvalidValueError` where it was ignored.
+
 * `Localize.LanguageTag.best_match/3` is 15 to 25 times faster against all CLDR locales (31 ms to 1.3 ms for `pt-BR`), and so is `Localize.LanguageTag.new/1` for a tag that is not a CLDR locale id. Candidate tags are resolved once, and the distance trie indexes its "not in" region rules.
+
+### Fixed
+
+* `:ordinal` took the alphabetically first gendered rule set where a locale has no unmarked one, so Polish 3 was "trzecia" and Slovenian the dative "tretjemu"; it now takes the masculine nominative ("trzeci"), in 12 locales.
+
+* `:spellout_ordinal` in French wrote 1 as "unième", from a private helper rule set; it now writes "premier".
 
 ## [1.10.0] — November 26th, 2026
 

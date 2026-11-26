@@ -228,10 +228,12 @@ defmodule Localize.Locale.SupportedLocalesTest do
     end
 
     test "a spellout rule set the locale lacks is an error, not English words", context do
-      Localize.put_supported_locales([:en, :ru, :nb])
+      # Korean's cardinals are all style variants (`sinokorean`, `native`),
+      # so it has no `spellout_cardinal` family to resolve.
+      Localize.put_supported_locales([:en, :ko, :nb])
 
-      assert {:error, %Localize.UnknownRbnfRuleError{locale: :ru}} =
-               Localize.Number.Rbnf.to_string(2_000_000, :spellout_cardinal, locale: :ru)
+      assert {:error, %Localize.UnknownRbnfRuleError{locale: :ko}} =
+               Localize.Number.Rbnf.to_string(2_000_000, :spellout_cardinal, locale: :ko)
 
       assert {:error, %Localize.UnknownRbnfRuleError{locale: :nb}} =
                Localize.Number.to_string(3, format: :spellout, locale: :nb)
@@ -264,10 +266,10 @@ defmodule Localize.Locale.SupportedLocalesTest do
     end
 
     test "the error names no parent where the locale has rules of its own", context do
-      Localize.put_supported_locales([:en, :ru])
+      Localize.put_supported_locales([:en, :ko])
 
-      assert {:error, %Localize.UnknownRbnfRuleError{locale: :ru, rules_in: nil} = error} =
-               Localize.Number.Rbnf.to_string(2_000_000, :spellout_cardinal, locale: :ru)
+      assert {:error, %Localize.UnknownRbnfRuleError{locale: :ko, rules_in: nil} = error} =
+               Localize.Number.Rbnf.to_string(2_000_000, :spellout_cardinal, locale: :ko)
 
       refute Exception.message(error) =~ "supported locale"
 
