@@ -210,7 +210,7 @@ iex> Localize.Locale.fallback_chain("zh-HK")
 {:ok, [:"zh-Hant-HK", :"zh-Hant"]}
 ```
 
-The root locale holds no text of its own, so it is left out. The `:supported` option keeps only the locales text is kept for:
+The root locale holds no text of its own, so it is left out. The chain is the same whatever `supported_locales` holds: it names the CLDR locales a locale falls back through, where `Localize.validate_locale/1` chooses which configured locale serves a request, which with only `en` configured is `en` even for `pt-BR`. The `:supported` option keeps only the locales text is kept for:
 
 ```elixir
 iex> Localize.Locale.fallback_chain("en-AU", supported: [:en, :fr])

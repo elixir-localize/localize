@@ -14,6 +14,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 * `:ordinal`, `:spellout` and a family's own name, such as `:spellout_ordinal`, resolve by the grammatical features CLDR's rule-set names mark rather than by their alphabetical order. A family name in a locale with only gendered rule sets now takes the masculine nominative where it returned `Localize.UnknownRbnfRuleError`.
 
+* `Localize.Locale.fallback_chain/2` resolves a locale and its parents against every CLDR locale, so the chain no longer depends on `supported_locales`: with only `en` configured, `pt-BR` gives `[:pt]` where it gave `[:en]`. Its `:supported` option still keeps only the locales text is kept for.
+
 * The grammatical options of `Localize.Number.to_string/2`, which `Localize.Unit` passes on, are validated: a value that is not one of CLDR's returns `Localize.InvalidValueError` where it was ignored.
 
 * `Localize.LanguageTag.best_match/3` is 15 to 25 times faster against all CLDR locales (31 ms to 1.3 ms for `pt-BR`), and so is `Localize.LanguageTag.new/1` for a tag that is not a CLDR locale id. Candidate tags are resolved once, and the distance trie indexes its "not in" region rules.

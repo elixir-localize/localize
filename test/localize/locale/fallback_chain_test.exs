@@ -78,11 +78,36 @@ defmodule Localize.Locale.FallbackChainConfiguredTest do
     on_exit(fn -> Localize.put_supported_locales(original_supported) end)
   end
 
-  test "lists the locales Localize is configured for" do
+  # The chain names the CLDR locales a locale falls back through, whatever
+  # Localize is configured for: with only `en` and `fr` configured,
+  # `validate_locale/1` serves `pt-BR` from `en`, but a translation stored
+  # for Portuguese is still found under `pt`.
+  test "is the same whatever Localize is configured for" do
+    inputs = ["fr-CA", "en-AU", "fr", "pt-BR", "sv", "zh-Hans", "de-CH", "nb"]
+    full = Map.new(inputs, &{&1, Localize.Locale.fallback_chain(&1)})
+
     :ok = Localize.put_supported_locales([:en, :fr])
 
-    assert Localize.Locale.fallback_chain("fr-CA") == {:ok, [:fr]}
-    assert Localize.Locale.fallback_chain("en-AU") == {:ok, [:en]}
-    assert Localize.Locale.fallback_chain("fr") == {:ok, [:fr]}
+    for input <- inputs do
+      assert {input, Localize.Locale.fallback_chain(input)} == {input, full[input]}
+    end
+
+    assert Localize.Locale.fallback_chain("pt-BR") == {:ok, [:pt]}
+    assert Localize.Locale.fallback_chain("zh-Hans") == {:ok, [:"zh-Hans", :zh]}
+  end
+
+  test "resolves a validated tag from the locale it was asked for" do
+    :ok = Localize.put_supported_locales([:en, :fr])
+    {:ok, tag} = Localize.validate_locale("pt-BR")
+
+    assert tag.cldr_locale_id == :en
+    assert Localize.Locale.fallback_chain(tag) == {:ok, [:pt]}
+  end
+
+  test "resolves :supported entries the same way" do
+    :ok = Localize.put_supported_locales([:en, :fr])
+
+    assert Localize.Locale.fallback_chain("pt-BR", supported: ["pt-BR", "en"]) == {:ok, [:pt]}
+    assert Localize.Locale.fallback_chain("pt-BR", supported: [:en]) == {:ok, []}
   end
 end

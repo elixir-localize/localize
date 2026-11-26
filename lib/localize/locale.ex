@@ -268,7 +268,7 @@ defmodule Localize.Locale do
 
   An application that keeps text by locale, such as a table of translations keyed by language, looks a key up in each locale of the chain until one has it: `fr-CA` then `fr`, or `en-AU` then `en-001` then `en`. The chain follows CLDR's parent locales, which are not always the truncation of the identifier: `pt-AO` falls back to `pt-PT` before `pt`, and `zh-Hant-HK` to `zh-Hant`, never to `zh`, whose script differs.
 
-  Each entry is the CLDR locale whose data a step resolves to, as `Localize.validate_locale/1` resolves it, so the chain lists the locales Localize is configured for: with only `en` and `fr` configured, `fr-CA` gives `[:fr]`. The root locale, `und`, holds no text of its own and is left out, so a locale that resolves to it gives an empty chain.
+  Each entry is the CLDR locale a step names, resolved against every CLDR locale, so the chain is the same whatever Localize is configured for: `pt-BR` gives `[:pt]` even where `Localize.validate_locale/1`, which chooses the configured locale to serve a request from, would answer `en`. A chain is therefore a stable set of keys to store and look up text by; use `:supported` to keep only the locales text is kept for. The root locale, `und`, holds no text of its own and is left out, so a locale that resolves to it gives an empty chain.
 
   ### Arguments
 
@@ -278,7 +278,7 @@ defmodule Localize.Locale do
 
   ### Options
 
-  * `:supported` is a list of locales to keep, as locale identifier atoms or strings or `t:Localize.LanguageTag.t/0`, so a chain lists only the locales text is kept for. An entry that is not a valid locale is ignored. The default is `nil`, which keeps the whole chain.
+  * `:supported` is a list of locales to keep, as locale identifier atoms or strings or `t:Localize.LanguageTag.t/0`, so a chain lists only the locales text is kept for. An atom is taken as the CLDR locale id it is, and any other entry is resolved as the locale is. An entry that is not a valid locale is ignored. The default is `nil`, which keeps the whole chain.
 
   ### Returns
 
@@ -312,7 +312,7 @@ defmodule Localize.Locale do
 
   def fallback_chain(locale, options) when is_list(options) do
     with {:ok, supported} <- chain_supported(Keyword.get(options, :supported)),
-         {:ok, tag} <- Localize.validate_locale(locale) do
+         {:ok, tag} <- cldr_tag(locale) do
       {:ok, tag |> locale_chain() |> keep_supported(supported)}
     end
   end
@@ -345,9 +345,9 @@ defmodule Localize.Locale do
   end
 
   defp walk_chain_parent(%LanguageTag{} = parent, acc) do
-    case cldr_locale_id_from(parent) do
-      {:ok, :und} -> Enum.reverse(acc)
-      {:ok, locale_id} -> walk_chain(parent, [locale_id | acc])
+    case cldr_tag(parent) do
+      {:ok, %LanguageTag{cldr_locale_id: :und}} -> Enum.reverse(acc)
+      {:ok, %LanguageTag{cldr_locale_id: locale_id}} -> walk_chain(parent, [locale_id | acc])
       {:error, _exception} -> Enum.reverse(acc)
     end
   end
@@ -395,7 +395,41 @@ defmodule Localize.Locale do
   end
 
   defp supported_locale_id(locale) do
-    cldr_locale_id_from(locale)
+    with {:ok, tag} <- cldr_tag(locale) do
+      {:ok, tag.cldr_locale_id}
+    end
+  end
+
+  # The tag of a locale with the CLDR locale it names, resolved against
+  # every CLDR locale rather than the ones Localize is configured for, so a
+  # chain and its keys are the same whatever `supported_locales` holds.
+  # `Localize.validate_locale/1` answers which configured locale should
+  # serve a request, which may be another language's (`pt-BR` is `en` with
+  # only `en` and `fr` configured), so it is not used here. A validated tag
+  # is resolved again from the locale it was asked for.
+  defp cldr_tag(%LanguageTag{canonical_locale_id: canonical}) when is_binary(canonical) do
+    LanguageTag.new(canonical)
+  end
+
+  defp cldr_tag(%LanguageTag{} = tag) do
+    tag
+    |> Map.put(:cldr_locale_id, nil)
+    |> LanguageTag.to_string()
+    |> LanguageTag.new()
+  end
+
+  defp cldr_tag(locale) when is_atom(locale) and not is_nil(locale) do
+    locale
+    |> Atom.to_string()
+    |> LanguageTag.new()
+  end
+
+  defp cldr_tag(locale) when is_binary(locale) do
+    LanguageTag.new(locale)
+  end
+
+  defp cldr_tag(locale) do
+    {:error, Localize.InvalidLocaleError.exception(locale_id: inspect(locale))}
   end
 
   @doc """
