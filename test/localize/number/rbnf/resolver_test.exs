@@ -3,6 +3,7 @@ defmodule Localize.Number.Rbnf.ResolverTest do
   use ExUnit.Case, async: false
 
   alias Localize.Number.Rbnf
+  alias Localize.Number.Rbnf.{Resolver, RuleSetName}
 
   describe "a family with an unmarked rule set" do
     test "takes it when no grammatical option is given, as CLDR intends" do
@@ -201,5 +202,36 @@ defmodule Localize.Number.Rbnf.ResolverTest do
       assert options.grammatical_case == nil
       assert Localize.Number.to_string(3, options) == {:ok, "3-я"}
     end
+  end
+
+  describe "every rule set CLDR names by its features" do
+    # For each rule set whose name reads as a family and features, in every
+    # RBNF locale, asking the family for those features chooses that rule
+    # set: no two are confused, and none is out of reach.
+    test "is the one its own features resolve to" do
+      for locale <- Localize.SupplementalData.rbnf_locales(),
+          names = public_names(locale),
+          name <- names,
+          {:ok, family, features} <- [RuleSetName.parse(name)] do
+        assert Resolver.resolve(family, features, names, locale) == {:ok, name},
+               "#{locale}: #{family} with #{inspect(features)} did not resolve to #{name}"
+      end
+    end
+
+    test "formats as its own name does" do
+      for locale <- Localize.SupplementalData.rbnf_locales(),
+          name <- public_names(locale),
+          {:ok, family, features} <- [RuleSetName.parse(name)] do
+        options = [{:locale, locale} | Map.to_list(features)]
+
+        assert Rbnf.to_string(21, family, options) == Rbnf.to_string(21, name, locale: locale),
+               "#{locale}: #{family} with #{inspect(features)}"
+      end
+    end
+  end
+
+  defp public_names(locale) do
+    {:ok, names} = Rbnf.rule_names_for_locale(locale)
+    Enum.map(names, &String.replace(&1, "_", "-"))
   end
 end
