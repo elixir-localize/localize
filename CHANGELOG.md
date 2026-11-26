@@ -22,6 +22,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 * Negotiation follows ICU's `LocaleMatcher`: `Localize.LanguageTag.best_match/3` accepts distances below CLDR's default script distance (default 49, was 80) and otherwise returns the first supported locale with a score of 80; a distance the caller gives, 80 included, is strict. `Localize.validate_locale/1` negotiates the same way, so `szl-DE` under `[:fr, :en, :de]` is `:fr` (was `:de`).
 
+* With `:supported_locales` configured, `Localize.validate_locale/1` negotiates the request itself as ICU's `LocaleMatcher` does, not the locale it inherits from: `pt-BE` is `:"pt-PT"` (was `:pt`), and a locale that matches none of them, such as `tlh` or `ru-Latn`, takes the default locale where it took the root.
+
 * The grammatical options of `Localize.Number.to_string/2`, which `Localize.Unit` passes on, are validated: a value that is not one of CLDR's returns `Localize.InvalidValueError` where it was ignored.
 
 * `Localize.LanguageTag.best_match/3` is 15 to 25 times faster against all CLDR locales (31 ms to 1.3 ms for `pt-BR`): candidate tags are resolved once, and the distance trie indexes its "not in" region rules.
@@ -33,6 +35,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 * `:spellout_ordinal` in French wrote 1 as "unième", from a private helper rule set; it now writes "premier".
 
 * `Localize.LanguageTag.new/1` resolved a tag with a variant and an explicit script and territory, such as `be-Cyrl-BY-tarask` or `el-Grek-GR-polyton`, to the locale without the variant; it now gives `be-tarask` and `el-polyton`.
+
+* `Localize.LanguageTag.best_match/3` applied CLDR's paradigm locales only to supported locales given as strings, read a macro-region such as `001` or `419` as one region, and read the root with extensions, `und-u-nu-latn`, as English. It now takes `en` for `en-001` between `en` and `en-GB` whatever the order, as ICU does, and the root for `und-u-nu-latn`.
 
 * Plural rules for a locale whose data is the root's take its language's rules where CLDR has them: 24 languages, among them `ars`, `ny`, `an` and `smj`, had the root's single category, and `bal` had Urdu's.
 

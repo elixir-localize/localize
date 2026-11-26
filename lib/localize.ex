@@ -337,15 +337,23 @@ defmodule Localize do
   @spec put_default_locale(Localize.LanguageTag.t() | atom() | String.t()) ::
           {:ok, Localize.LanguageTag.t()} | {:error, Exception.t()}
   def put_default_locale(%Localize.LanguageTag{} = language_tag) do
-    :persistent_term.put(@default_locale_key, language_tag)
+    store_default_locale(language_tag)
     {:ok, language_tag}
   end
 
   def put_default_locale(locale) do
     with {:ok, language_tag} <- validate_locale(locale) do
-      :persistent_term.put(@default_locale_key, language_tag)
+      store_default_locale(language_tag)
       {:ok, language_tag}
     end
+  end
+
+  # A locale that matches none of the supported locales is validated to
+  # the default locale, so validations cached before it changed are
+  # cleared with it.
+  defp store_default_locale(language_tag) do
+    :persistent_term.put(@default_locale_key, language_tag)
+    Localize.Locale.Loader.clear_cache()
   end
 
   @doc """
@@ -483,8 +491,15 @@ defmodule Localize do
     # `Exception.message/1`, which routes through the Localize Gettext backend,
     # which needs the default locale, which is what we're in the middle of
     # resolving — manifesting as a 60-second hang behind the Gettext gen_server.
+    #
+    # The pre-seed is `en` as `Localize.LanguageTag.new/1` resolves it, which
+    # reads no configuration, so that validating a locale while the default
+    # is resolved, which negotiation against the supported locales does for
+    # a locale that matches none of them, sees it rather than resolving
+    # again. Storing the resolved default clears what was validated meanwhile.
+    provisional_tag = Localize.LanguageTag.new!("en")
+    :persistent_term.put(@default_locale_key, provisional_tag)
     {:ok, en_tag} = validate_locale(:en)
-    :persistent_term.put(@default_locale_key, en_tag)
 
     language_tag =
       try_locale_from_env("LOCALIZE_DEFAULT_LOCALE") ||
@@ -492,7 +507,7 @@ defmodule Localize do
         try_locale_from_env("LANG") ||
         en_tag
 
-    :persistent_term.put(@default_locale_key, language_tag)
+    store_default_locale(language_tag)
     language_tag
   end
 
@@ -1949,14 +1964,17 @@ defmodule Localize do
     where CLDR has it, else the first CLDR locale it inherits from,
     else the root, `:und`.
 
-  * If `config :localize, supported_locales: [...]` is configured and
-    that locale is not among them, the tag is matched against the
-    supported locales as ICU's `LocaleMatcher` matches: a supported
-    locale within `Localize.LanguageTag.best_match/3`'s default
-    distance, below CLDR's default script distance, is taken; when
-    none is, the first supported locale is, as ICU takes its default
-    locale. List the locale to fall back to first. The root locale is
-    always supported, so a locale CLDR has no data for resolves to it.
+  * If `config :localize, supported_locales: [...]` is configured, the
+    request itself is negotiated against them as ICU's `LocaleMatcher`
+    negotiates: the nearest supported locale within
+    `Localize.LanguageTag.best_match/3`'s default distance, below CLDR's
+    default script distance, and when none is, the default locale
+    (`default_locale/0`) where it is supported, else the first supported
+    locale, as ICU takes the default locale set for it. Supporting every
+    CLDR locale negotiates nothing. The request is negotiated rather than the locale it
+    inherits from: `pt-BE` inherits from `pt`, but CLDR rates it nearer
+    `pt-PT`. A request for the root locale resolves to the root, which
+    is always supported.
 
   Validated locale results are cached in an ETS table so
   repeated calls with the same identifier are fast (~1µs).
@@ -1969,8 +1987,9 @@ defmodule Localize do
   > CLDR data) succeeds with a `:cldr_locale_id` of `:und`, not an
   > error, and `validate_locale("ru-Latn")`, a script CLDR has no
   > Russian locale for, does too. With `:supported_locales`
-  > configured, a locale that matches none of them resolves to the
-  > first one, which may not be what the caller expected.
+  > configured, a locale that matches none of them, these included,
+  > resolves to the default locale, which may not be what the caller
+  > expected.
   >
   > Identifiers that do not parse as a valid language tag —
   > including unknown language subtags such as `"xyzzy"` — are
@@ -2108,16 +2127,44 @@ defmodule Localize do
     |> String.downcase()
   end
 
-  # When supported_locales is configured and the tag's cldr_locale_id
-  # was already set by LanguageTag.new, check whether it's in the
-  # supported list. If not, re-resolve via best_match against the
-  # supported list to find the closest supported locale.
-  defp resolve_cldr_locale(%Localize.LanguageTag{cldr_locale_id: nil} = language_tag) do
-    supported_locale_ids = supported_locales()
+  # A tag's CLDR locale. Without `:supported_locales` configured it is the
+  # locale `Localize.LanguageTag.new/1` finds by TR35's resource-bundle
+  # lookup, the same whatever Localize runs with. With them configured, the
+  # request itself is negotiated against them as ICU's `LocaleMatcher`
+  # negotiates: the closest supported locale within the default distance,
+  # else the first supported one. The bundle locale is not taken first:
+  # CLDR rates `pt-BE` closer to `pt-PT` than to the `pt` it inherits from.
+  defp maybe_restrict_to_supported(%Localize.LanguageTag{} = tag) do
+    if restricted_supported_locales?() do
+      negotiate(tag)
+    else
+      {:ok, tag}
+    end
+  end
 
-    case Localize.LanguageTag.best_match(language_tag, supported_locale_ids) do
+  defp resolve_cldr_locale(%Localize.LanguageTag{cldr_locale_id: nil} = language_tag) do
+    if restricted_supported_locales?() do
+      negotiate(language_tag)
+    else
+      bundle_locale(language_tag)
+    end
+  end
+
+  # The request as asked for, so that a request for the root matches the
+  # root: a validated `und` carries the likely subtags `en-Latn-US`. A
+  # request that matches none of the supported locales takes the default
+  # locale, as ICU's `LocaleMatcher` takes the default locale set for it.
+  defp negotiate(%Localize.LanguageTag{} = language_tag) do
+    desired = language_tag.canonical_locale_id || %{language_tag | cldr_locale_id: nil}
+    supported = supported_locales()
+    distance = Localize.LanguageTag.default_distance()
+
+    case Localize.LanguageTag.best_match(desired, supported, distance) do
       {:ok, cldr_locale_id, _score} ->
         {:ok, %{language_tag | cldr_locale_id: cldr_locale_id}}
+
+      {:error, %Localize.LocaleMatchError{}} ->
+        {:ok, %{language_tag | cldr_locale_id: fallback_locale_id(supported)}}
 
       {:error, _} ->
         locale_id = Localize.LanguageTag.to_string(language_tag)
@@ -2125,11 +2172,37 @@ defmodule Localize do
     end
   end
 
-  defp maybe_restrict_to_supported(%Localize.LanguageTag{cldr_locale_id: cldr_locale_id} = tag) do
-    if cldr_locale_id in supported_locales() do
-      {:ok, tag}
+  # The default locale where it is supported, else the first supported
+  # locale that is not the root. Setting the default clears the validations
+  # cached before, so none keeps an earlier default.
+  defp fallback_locale_id(supported) do
+    %Localize.LanguageTag{cldr_locale_id: default_locale_id} = default_locale()
+
+    if default_locale_id != :und and default_locale_id in supported do
+      default_locale_id
     else
-      resolve_cldr_locale(%{tag | cldr_locale_id: nil})
+      Enum.find(supported, &(&1 != :und))
     end
+  end
+
+  defp bundle_locale(%Localize.LanguageTag{} = language_tag) do
+    with {:ok, %Localize.LanguageTag{cldr_locale_id: cldr_locale_id}} <-
+           language_tag
+           |> Localize.LanguageTag.to_string()
+           |> Localize.LanguageTag.new() do
+      {:ok, %{language_tag | cldr_locale_id: cldr_locale_id}}
+    end
+  end
+
+  # Whether the application supports fewer than every CLDR locale, in its
+  # configuration or with `put_supported_locales/1`. Supporting them all
+  # negotiates nothing: every request has its own CLDR locale.
+  defp restricted_supported_locales? do
+    configured =
+      not is_nil(:persistent_term.get({:localize, :supported_locales}, nil)) or
+        is_list(Application.get_env(:localize, :supported_locales))
+
+    configured and
+      length(supported_locales()) < length(Localize.SupplementalData.all_locale_ids())
   end
 end

@@ -28,7 +28,7 @@ Validation performs, in one pass:
 
 * **`-u-` extension parsing** — Unicode extension keywords are validated and decoded into a `Localize.LanguageTag.U` struct on the tag's `:locale` field.
 
-* **CLDR data locale** — `:cldr_locale_id`, the key used for all data lookup, is the CLDR locale whose data the tag gets, found by TR35's resource-bundle lookup as ICU finds it: the locale itself where CLDR has it, else the first CLDR locale it inherits from (`pt-BR` is `pt`, `zh-TW` is `zh-Hant`, `en-QA` is `en`), else the root `:und`. Where you configure `:supported_locales` and that locale is not among them, the tag is then matched against the ones you support.
+* **CLDR data locale** — `:cldr_locale_id`, the key used for all data lookup, is the CLDR locale whose data the tag gets, found by TR35's resource-bundle lookup as ICU finds it: the locale itself where CLDR has it, else the first CLDR locale it inherits from (`pt-BR` is `pt`, `zh-TW` is `zh-Hant`, `en-QA` is `en`), else the root `:und`. Where you configure `:supported_locales`, the request itself is negotiated against them as ICU's `LocaleMatcher` negotiates: the nearest supported locale, or when none is near the default locale, if you support it, else the first one you list (`pt-BE` takes `pt-PT` over `pt`, the locale it inherits from, since CLDR rates it nearer).
 
 * **Caching** — the result is cached in ETS, so repeated validation of the same identifier costs about a microsecond.
 
@@ -166,7 +166,7 @@ iex> Localize.available_locale_id?("tlh")
 false
 ```
 
-Restricting `:supported_locales` is the recommended production setup — it bounds locale matching to what you can actually serve and makes `validate_locale/1` resolve near-miss identifiers to your supported set, and anything further away to the first locale you list. See the [README configuration section](https://hexdocs.pm/localize/readme.html#configuration) for the accepted entry forms (atoms, wildcards, coverage levels, Gettext backends).
+Restricting `:supported_locales` is the recommended production setup — it bounds locale matching to what you can actually serve and makes `validate_locale/1` resolve near-miss identifiers to your supported set, and anything further away to the default locale. See the [README configuration section](https://hexdocs.pm/localize/readme.html#configuration) for the accepted entry forms (atoms, wildcards, coverage levels, Gettext backends).
 
 ## Locale matching
 

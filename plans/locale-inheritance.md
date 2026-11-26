@@ -64,6 +64,8 @@ Inflection is separate because its data comes from the Unicode inflection projec
 
 * 2026-11-27 — An `und` with a script or territory resolves by the language likely subtags give it (`und-TW` is `zh-Hant`, `und-FR` is `fr`), where ICU's resource lookup gives the root (user). Because TR35's Lookup canonicalizes by likely subtags first, and Localize has resolved them so all along.
 
+* 2026-11-27 — With `:supported_locales` configured, `validate_locale/1` negotiates the request itself, as ICU's `LocaleMatcher` does, rather than returning the locale it inherits from when that is supported (user). Because negotiation is the matcher's question, and CLDR rates `pt-BE` nearer `pt-PT` than the `pt` it inherits from. A locale that matches none then takes the default locale, not the root.
+
 ## Resolution, measured against ICU
 
 `LanguageTag.new/1` chooses a locale's CLDR data by language matching against every CLDR locale, rejecting only at distance 80, CLDR's language distance. ICU keeps two answers apart: `ures_open` finds a locale's data by TR35 inheritance and never matches, and `LocaleMatcher` negotiates among an application's supported locales with a threshold of 50, CLDR's default script distance, exclusive (`localematcher.cpp`, `locdistance.cpp`, `uresbund.cpp` at `release-78.1`).
@@ -101,7 +103,7 @@ Each step lands on its own, with its output compared over every CLDR locale befo
 
 * [x] **`validate_locale/1` negotiates below distance 50** — `best_match/3`'s default is 49 with ICU's fallback to the first supported locale (ICU's implicit default; reading `Localize.default_locale/0` instead would leave cached results stale after `put_default_locale/1`), scored 80 as no match; an explicit distance is strict. Against ICU 79.1's `LocaleMatcher` over the 75,144 inputs and three supported lists: identical on two, and on the third 312 regional ties left for the paradigm step; the root, always supported, is Localize's own. Three curated CLDR matcher fixtures predating CLDR-14355 now expect what ICU 79's own test data does. `localize_web`'s 642 tests pass against steps 1–4 unchanged. 2026-11-27.
 
-* [ ] **Paradigm locales in the matcher** — ties broken by CLDR's `paradigmLocales`; compared with ICU's `LocaleMatcher` over the same inputs, the 190 `pt` differences gone.
+* [x] **Negotiate the request, and match ties as ICU does** — the 312 differences were not missing paradigms: `best_match/3` already chose `pt-PT` for `pt-BE`, but `validate_locale/1` returned the bundle locale whenever it was supported. With `:supported_locales` configured it now negotiates the request itself (user, below); without them it is the bundle lookup. The matcher scans in ICU's order (first supported, paradigm locales, the rest) with ICU's `compareLikely` on ties, reads paradigm locales given as atoms, and gives a macro-region whose regions fall into several partitions the largest distance over one region of each (`en-001` ties `en` and `en-GB`, and `en` wins). Against ICU 79.1 over the 75,144 inputs and four supported lists (one reversed, to test ties): `best_match/3` and `validate_locale/1` identical, but for `und`, which Localize answers with the root. 2026-11-27.
 
 * [ ] **`fallback_chain/2` from `parent/2`** — per-component tables; chains for all 657 ids unchanged for `:main`.
 

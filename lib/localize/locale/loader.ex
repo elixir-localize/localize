@@ -174,23 +174,22 @@ defmodule Localize.Locale.Loader do
 
   """
   @spec clear_cache() :: :ok
+  # The owner clears the table itself when it is the caller, as it is when
+  # resolving the default locale while loading a locale: a call to itself
+  # would wait for ever.
   def clear_cache do
-    if Process.whereis(__MODULE__) do
-      GenServer.call(__MODULE__, :clear_locale_cache)
-    else
-      :ok
+    owner = Process.whereis(__MODULE__)
+
+    cond do
+      is_nil(owner) -> :ok
+      owner == self() -> delete_locale_cache()
+      true -> GenServer.call(__MODULE__, :clear_locale_cache)
     end
   end
 
   @impl GenServer
   def handle_call(:clear_locale_cache, _from, state) do
-    table = :localize_locale_cache
-
-    if :ets.whereis(table) != :undefined do
-      :ets.delete_all_objects(table)
-    end
-
-    {:reply, :ok, state}
+    {:reply, delete_locale_cache(), state}
   end
 
   @impl GenServer
@@ -254,5 +253,15 @@ defmodule Localize.Locale.Loader do
       {:error, _exception} = error ->
         error
     end
+  end
+
+  defp delete_locale_cache do
+    table = :localize_locale_cache
+
+    if :ets.whereis(table) != :undefined do
+      :ets.delete_all_objects(table)
+    end
+
+    :ok
   end
 end

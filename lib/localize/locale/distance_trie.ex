@@ -27,7 +27,7 @@ defmodule Localize.Locale.DistanceTrie do
         supported_script,
         supported_territory
       ) do
-    {trie, variables} = ensure_loaded()
+    {trie, variables, macro_regions} = ensure_loaded()
     default_lang_node = Map.get(trie, {:*, :*}) || %{distance: 0, script: %{}}
 
     # Language level
@@ -94,15 +94,33 @@ defmodule Localize.Locale.DistanceTrie do
       if desired_territory == supported_territory do
         0
       else
-        resolve_territory_distance(
-          territory_rules(script_node),
-          territory_rules(default_script_node),
+        territory_distance(
+          {territory_rules(script_node), territory_rules(default_script_node)},
+          macro_regions,
           desired_territory,
           supported_territory
         )
       end
 
     lang_distance + script_distance + territory_distance
+  end
+
+  # A macro-region whose regions the rules treat in more than one way, such
+  # as `001`, stands for one region of each such way, and its distance is
+  # the largest of theirs, as ICU's `LocaleDistance` takes "the maximum
+  # distance" over a region's partitions. `en-001` is then as far from
+  # `en-GB` as from `en`, where reading `001` as outside `$enUS` put it
+  # nearer `en-GB`.
+  defp territory_distance({rules, default_rules}, macro_regions, desired, supported) do
+    for desired_region <- Map.get(macro_regions, desired, [desired]),
+        supported_region <- Map.get(macro_regions, supported, [supported]),
+        reduce: 0 do
+      distance ->
+        max(
+          distance,
+          resolve_territory_distance(rules, default_rules, desired_region, supported_region)
+        )
+    end
   end
 
   # A script node's territory table, with the index of its "not in" rules.
@@ -216,7 +234,69 @@ defmodule Localize.Locale.DistanceTrie do
     trie = insert_script_rules(trie, script_rules)
     trie = insert_territory_rules(trie, territory_rules, variables)
     trie = index_not_in_rules(trie, variables)
-    {trie, variables}
+    {trie, variables, macro_regions(territory_rules, variables)}
+  end
+
+  # For each macro-region whose regions fall into more than one partition,
+  # one region of each partition. Regions are in one partition when every
+  # rule treats them alike: they are in the same region variables, and a
+  # rule names neither (as `en_GB` is named) or names that one alone.
+  defp macro_regions(territory_rules, variables) do
+    named = named_regions(territory_rules)
+    containers = Localize.SupplementalData.territory_containers()
+
+    for container <- Map.keys(containers),
+        representatives =
+          container
+          |> leaf_regions(containers)
+          |> partition_representatives(variables, named),
+        match?([_, _ | _], representatives),
+        into: %{} do
+      {container, representatives}
+    end
+  end
+
+  # The regions a container holds that hold none themselves, through every
+  # level of containment: `419` holds `029`, which holds `PR`.
+  defp leaf_regions(region, containers) do
+    case Map.fetch(containers, region) do
+      {:ok, contents} -> Enum.flat_map(contents, &leaf_regions(&1, containers))
+      :error -> [region]
+    end
+  end
+
+  defp partition_representatives(regions, variables, named) do
+    regions
+    |> Enum.uniq()
+    |> Enum.sort()
+    |> Enum.group_by(&partition(&1, variables, named))
+    |> Enum.map(fn {_partition, [first | _rest]} -> first end)
+    |> Enum.sort()
+  end
+
+  defp partition(region, variables, named) do
+    in_variables =
+      for {name, members} <- variables, region in members, do: name
+
+    {Enum.sort(in_variables), named_region(region, named)}
+  end
+
+  defp named_region(region, named) do
+    if MapSet.member?(named, region) do
+      region
+    else
+      nil
+    end
+  end
+
+  # The regions a rule names itself rather than through a variable.
+  defp named_regions(territory_rules) do
+    for rule <- territory_rules,
+        [_language, _script, region] <- [rule.desired, rule.supported],
+        is_atom(region) and region != :*,
+        into: MapSet.new() do
+      region
+    end
   end
 
   defp partition_rules(rules) do

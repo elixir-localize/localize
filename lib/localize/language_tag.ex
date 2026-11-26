@@ -931,11 +931,115 @@ defmodule Localize.LanguageTag do
   defp compute_match_candidates(desired_tag, supported, distance) do
     territory_language = territory_language(desired_tag)
 
-    supported
-    |> Enum.with_index()
-    |> Enum.reject(fn {locale, _index} -> root?(locale) end)
+    indexed =
+      supported
+      |> Enum.with_index()
+      |> Enum.reject(fn {locale, _index} -> root?(locale) end)
+
+    default_index =
+      case indexed do
+        [{_locale, index} | _rest] -> index
+        [] -> nil
+      end
+
+    indexed
     |> Enum.flat_map(&score_candidate(&1, desired_tag, territory_language, distance))
-    |> Enum.sort(&match_comparator/2)
+    |> Enum.sort_by(&icu_order(&1, default_index))
+    |> Enum.reduce(nil, &better_candidate/2)
+    |> List.wrap()
+  end
+
+  # ICU's `LocaleMatcher` compares the supported locales in this order: its
+  # default locale, the first supported one, then CLDR's paradigm locales,
+  # then the rest, each in the order given. A later locale replaces the
+  # best so far only when it is nearer, or as near and more likely.
+  defp icu_order({_locale, _tag, _score, index, _paradigm, _territory}, index) do
+    {0, index}
+  end
+
+  defp icu_order({_locale, _tag, _score, index, true, _territory}, _default_index) do
+    {1, index}
+  end
+
+  defp icu_order({_locale, _tag, _score, index, _paradigm, _territory}, _default_index) do
+    {2, index}
+  end
+
+  defp better_candidate(candidate, nil) do
+    candidate
+  end
+
+  # Among locales as near, ICU takes the more likely of the same language
+  # (`en` over `en-GB` for `en-001`). Localize then prefers the desired
+  # territory's own language, which only distances beyond the default
+  # reach, since another language is 80 away.
+  defp better_candidate(
+         {_l, candidate_tag, candidate_score, _i, _p, candidate_territory} = candidate,
+         {_lb, best_tag, best_score, _ib, _pb, best_territory} = best
+       ) do
+    cond do
+      candidate_score != best_score -> nearer(candidate, best)
+      more_likely?(candidate_tag, best_tag) -> candidate
+      candidate_territory and not best_territory -> candidate
+      true -> best
+    end
+  end
+
+  defp nearer(
+         {_l, _t, candidate_score, _i, _p, _te} = candidate,
+         {_lb, _tb, best_score, _ib, _pb, _teb}
+       )
+       when candidate_score < best_score do
+    candidate
+  end
+
+  defp nearer(_candidate, best) do
+    best
+  end
+
+  # ICU's `LikelySubtags::compareLikely/3`: of two locales of one language,
+  # the one with the language's likely script where the scripts differ, or
+  # its likely region where only the regions differ.
+  defp more_likely?(
+         %__MODULE__{language: language} = tag,
+         %__MODULE__{language: language} = other
+       ) do
+    cond do
+      tag.script != other.script -> tag.script == likely_script_of(language)
+      tag.territory != other.territory -> tag.territory == likely_region_of(language, tag.script)
+      true -> false
+    end
+  end
+
+  defp more_likely?(%__MODULE__{}, %__MODULE__{}) do
+    false
+  end
+
+  defp likely_script_of(language) do
+    Localize.Locale.Inheritance.likely_script(language, nil)
+  end
+
+  defp likely_region_of(language, script) do
+    likely_subtags = SupplementalData.likely_subtags()
+    language = Atom.to_string(language)
+
+    [{language, script_name(script), nil}, {language, nil, nil}]
+    |> Enum.find_value(&likely_territory(likely_subtags, &1))
+  end
+
+  defp script_name(nil) do
+    nil
+  end
+
+  defp script_name(script) do
+    Atom.to_string(script)
+  end
+
+  defp likely_territory(likely_subtags, key) do
+    case Map.fetch(likely_subtags, key) do
+      {:ok, %{territory: territory}} -> territory
+      :error -> nil
+    end
   end
 
   # Score one supported locale. Returns a one-element list when the
@@ -1043,6 +1147,18 @@ defmodule Localize.LanguageTag do
 
   defp root?(%__MODULE__{language: :und, script: nil, territory: nil, language_variants: []}) do
     true
+  end
+
+  # The root with extensions, `und-u-nu-latn`, which choose preferences,
+  # not the locale: its subtags before the first singleton are `und` alone.
+  defp root?(locale) when is_binary(locale) do
+    base =
+      locale
+      |> String.downcase()
+      |> String.split(["-", "_"])
+      |> Enum.take_while(&(String.length(&1) > 1))
+
+    base in [["und"], ["root"]]
   end
 
   defp root?(_locale) do
@@ -1177,25 +1293,23 @@ defmodule Localize.LanguageTag do
     )
   end
 
-  # Sort matches: lower distance first, then paradigm locale preference,
-  # then the desired territory's own language, then original order.
-  defp match_comparator(
-         {_, _, distance_a, index_a, paradigm_a, territory_language_a},
-         {_, _, distance_b, index_b, paradigm_b, territory_language_b}
-       ) do
-    cond do
-      distance_a != distance_b -> distance_a < distance_b
-      paradigm_a != paradigm_b -> paradigm_a
-      territory_language_a != territory_language_b -> territory_language_a
-      true -> index_a < index_b
-    end
-  end
-
+  # CLDR's paradigm locales, however the supported locale is given: an
+  # atom such as `:"en-GB"`, the usual form, as well as a string.
   defp paradigm_locale?(locale) when is_binary(locale) do
     MapSet.member?(paradigm_locales(), locale)
   end
 
-  defp paradigm_locale?(_), do: false
+  defp paradigm_locale?(locale) when is_atom(locale) and not is_nil(locale) do
+    paradigm_locale?(Atom.to_string(locale))
+  end
+
+  defp paradigm_locale?(%__MODULE__{} = tag) do
+    paradigm_locale?(build_canonical_name(%{tag | locale: %{}, transform: %{}}))
+  end
+
+  defp paradigm_locale?(_locale) do
+    false
+  end
 
   # ── Likely subtags ──────────────────────────────────────────────
 
