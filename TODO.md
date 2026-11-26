@@ -20,8 +20,6 @@ Outstanding work on Localize. The design detail behind these items lives under [
 
 ## In progress
 
-* [ ] **RBNF rule sets chosen by grammatical features** — issue 72. Landed for 1.11.0: grammatical options on `Localize.Number.to_string/2` and `Localize.Number.Rbnf.to_string/3`, the family resolver, `Quantify.Numeral` on it, guide and CHANGELOG; awaiting release. Plan in [plans/rbnf-grammatical-resolution.md](plans/rbnf-grammatical-resolution.md).
-
 * [ ] **CLDR 49 upgrade** — the plan's items are closed bar item 11; the data is built from the final `release-49` (below). [plans/cldr-49.md](plans/cldr-49.md).
 
 ## Blocked
@@ -73,6 +71,8 @@ Outstanding work on Localize. The design detail behind these items lives under [
 * [ ] **`localize_emoji` sibling library** — plan item 11, a separate package on its own schedule. A Phoenix LiveView picker (`localize_emoji_live`) is out of scope for its 0.1.0.
 
 ## Done
+
+* [x] **RBNF rule sets chosen by grammatical features** — `:ordinal`, `:spellout` and family names choose by `:grammatical_gender`, `:grammatical_case`, `:grammatical_number` and `:grammatical_definiteness` rather than alphabetical order; issue 72. 2026-11-27, v1.11.0.
 
 * [x] **A `localize` MF2 namespace** — `:localize:list`, `:localize:relativeTime` and the `:unit` options `localize:grammaticalCase`, `localize:grammaticalGender`, `localize:inflect`; the namespace is reserved; `:list` and the bare options are deprecated aliases until 2.0. 2026-11-25.
 

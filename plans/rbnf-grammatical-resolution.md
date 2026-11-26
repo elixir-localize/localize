@@ -1,8 +1,8 @@
 # RBNF rule sets chosen by grammatical features
 
-**Status:** in progress, 2026-11-27
+**Status:** implemented (v1.11.0), 2026-11-27
 
-All tasks are done for 1.11.0 apart from the deferred MF2 function; the status becomes `implemented (v1.11.0)` when it is released.
+All tasks are done apart from the deferred MF2 function.
 
 Issue 72 reports that `Localize.Number.to_string(3, format: :ordinal, locale: :ru)` returns `"3"`. The plan is to choose an RBNF rule set by grammatical case, gender, number and definiteness, as named options, rather than by matching rule-set names against a fixed list of patterns. It also covers how option values are taken without making atoms.
 
