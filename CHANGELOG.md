@@ -8,6 +8,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
+* `Localize.Locale.parent/2` takes `:component` — `:collations`, `:grammatical_features`, `:plurals` or `:segmentations` — for the parents CLDR gives those kinds of data, read on their own as TR35 says: `zh-Hant`'s collation parent is `zh`.
+
 * `:grammatical_gender`, `:grammatical_case`, `:grammatical_number` and `:grammatical_definiteness` on `Localize.Number.to_string/2` and `Localize.Number.Rbnf.to_string/3` choose a gendered or declined RBNF rule set, so a Russian ordinal 3 is "3-й", or "3-го" in the genitive. The genders are CLDR's, Slavic masculine animacy (`:animate`, `:inanimate`, `:personal`) included.
 
 ### Changed

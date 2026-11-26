@@ -33,7 +33,7 @@ Two areas are explicitly out of scope:
 
 | Feature | Status | Notes |
 |---------|--------|-------|
-| Parent locale chain | Implemented | `Localize.Locale.parent/1` uses CLDR parent locale data. |
+| Parent locale chain | Implemented | `Localize.Locale.parent/2` follows TR35: CLDR parent locales by component, the non-likely-script rule, and truncation. |
 | Likely subtags | Implemented | `Localize.LanguageTag.add_likely_subtags/1` and `remove_likely_subtags/2`, including both the favor-script (default) and favor-region removal variants, verified against the CLDR likely-subtags test data. |
 | Locale matching / best match | Implemented | `Localize.LanguageTag.best_match/3` using CLDR language matching data. |
 | Default content locales | Not implemented | |
@@ -425,7 +425,7 @@ Two areas are explicitly out of scope:
 
 | Feature | Status | Notes |
 |---------|--------|-------|
-| CLDR parent locale data | Implemented | `Localize.Locale.parent/1`. |
+| CLDR parent locale data | Implemented | `Localize.Locale.parent/2`, the main component and each component's own. |
 
 ### Unit Data (Supplemental)
 

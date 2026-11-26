@@ -225,6 +225,61 @@ defmodule Localize.LocaleInheritanceTest do
     end
   end
 
+  describe "parent/2 with a component" do
+    test "takes the component's own parents" do
+      for {locale, parent} <- [{"yue", "zh-Hant"}, {"yue-Hans", "zh-Hans"}, {"yue-CN", "zh-Hans"}] do
+        assert {:ok, tag} = Locale.parent(locale, component: :collations)
+        assert {locale, LanguageTag.to_string(tag)} == {locale, parent}
+      end
+    end
+
+    # TR35: component parents "are now not merged, but instead are treated
+    # as stand-alone", and the non-likely-script rule is for the main
+    # component only.
+    test "reads the component's parents on their own, without the main ones" do
+      for {locale, component, parent} <- [
+            {"zh-Hant", :collations, "zh"},
+            {"sr-Latn", :collations, "sr"},
+            {"nb", :collations, "und"},
+            {"es-AR", :plurals, "es"},
+            {"en-AU", :plurals, "en"},
+            {"pt-AO", :grammatical_features, "pt"},
+            {"az-Cyrl", :segmentations, "az"}
+          ] do
+        assert {:ok, tag} = Locale.parent(locale, component: component)
+        assert {locale, component, LanguageTag.to_string(tag)} == {locale, component, parent}
+      end
+    end
+
+    test "is the main component by default" do
+      for locale <- ["en-AU", "zh-Hant", "nb", "yue"] do
+        assert Locale.parent(locale) == Locale.parent(locale, component: :main), locale
+      end
+    end
+
+    test "reaches the root from every CLDR locale, without a cycle, for every component" do
+      for component <- [:collations, :grammatical_features, :plurals, :segmentations],
+          locale_id <- Localize.SupplementalData.all_locale_ids(),
+          locale_id != :und do
+        chain = string_chain(Atom.to_string(locale_id), component: component)
+
+        assert {component, locale_id, List.last(chain)} == {component, locale_id, "und"}
+        assert {component, locale_id, Enum.uniq(chain)} == {component, locale_id, chain}
+      end
+    end
+
+    test "is an error for a component that is not one, or options that are not a list" do
+      assert {:error, %Localize.InvalidValueError{expected: :component}} =
+               Locale.parent("en-AU", component: :numbers)
+
+      assert {:error, %Localize.InvalidValueError{expected: :component}} =
+               Locale.parent("en-AU", component: "collations")
+
+      assert {:error, %Localize.InvalidValueError{}} =
+               Locale.parent("en-AU", %{component: :collations})
+    end
+  end
+
   describe "parent/1 follows TR35" do
     test "gives the root for a script that is not the language's likely script" do
       for locale <- ["ru-Latn", "en-Cyrl", "ja-Latn", "el-Latn", "sr-Latn", "zh-Hant", "az-Cyrl"] do
@@ -328,10 +383,10 @@ defmodule Localize.LocaleInheritanceTest do
     end
   end
 
-  defp string_chain(name) do
+  defp string_chain(name, options \\ []) do
     name
     |> Stream.unfold(fn name ->
-      case Locale.parent(name) do
+      case Locale.parent(name, options) do
         {:ok, parent} ->
           parent_name = LanguageTag.to_string(parent)
           {parent_name, parent_name}

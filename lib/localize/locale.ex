@@ -16,8 +16,9 @@ defmodule Localize.Locale do
 
   ## Locale resolution
 
-  * `parent/1` — returns the CLDR parent locale (e.g.,
-    `:"en-AU"` → `:en`, `:en` → `:und`).
+  * `parent/2` — returns the TR35 parent locale (e.g.,
+    `:"en-AU"` → `:"en-001"`, `:en` → `:und`), for main data or for
+    a component with parents of its own, such as collations.
 
   * `cldr_locale_id_from/1` — resolves a language tag, atom, or string
     to its canonical CLDR locale identifier atom, returning an error
@@ -40,6 +41,10 @@ defmodule Localize.Locale do
   # The coverage levels CLDR ranks locales by, lowest first.
   @coverage_levels [:basic, :moderate, :modern]
 
+  # The kinds of data CLDR's `parentLocales` gives parents of their own,
+  # `:main` being every kind without parents of its own.
+  @inheritance_components [:main, :collations, :grammatical_features, :plurals, :segmentations]
+
   @typedoc "A BCP 47 language subtag as an atom."
   @type language :: atom() | nil
 
@@ -51,6 +56,13 @@ defmodule Localize.Locale do
 
   @typedoc "A locale identifier as an atom."
   @type locale_id :: atom()
+
+  @typedoc """
+  A kind of locale data with parents of its own in CLDR's
+  `parentLocales`, or `:main` for every other kind.
+  """
+  @type inheritance_component ::
+          :main | :collations | :grammatical_features | :plurals | :segmentations
 
   # ── Display names ────────────────────────────────────────────
 
@@ -161,6 +173,17 @@ defmodule Localize.Locale do
   * `locale` is a `%Localize.LanguageTag{}` struct, or a BCP 47
     locale identifier string or atom.
 
+  * `options` is a keyword list of options.
+
+  ### Options
+
+  * `:component` is the kind of data whose parent is wanted. CLDR gives
+    `:collations`, `:grammatical_features`, `:plurals` and
+    `:segmentations` parents of their own, read on their own and
+    without the non-likely-script rule, as TR35 says: `zh-Hant` takes
+    its collation data from `zh` although its main parent is the root.
+    The default is `:main`, for every other kind of data.
+
   ### Returns
 
   * `{:ok, parent_tag}` where `parent_tag` is a
@@ -170,7 +193,10 @@ defmodule Localize.Locale do
     is the root locale (`und`) which has no parent, or
 
   * `{:error, Localize.InvalidLocaleError.exception(locale_id: locale)}` if
-    the locale is not a valid locale identifier.
+    the locale is not a valid locale identifier, or
+
+  * `{:error, Localize.InvalidValueError.exception(value: component)}` if
+    `:component` is not one of the components.
 
   ### Examples
 
@@ -188,32 +214,62 @@ defmodule Localize.Locale do
       iex> parent.language
       :und
 
+      iex> {:ok, parent} = Localize.Locale.parent("zh-Hant", component: :collations)
+      iex> Localize.LanguageTag.to_string(parent)
+      "zh"
+
   """
-  @spec parent(LanguageTag.t() | String.t() | atom()) ::
+  @spec parent(LanguageTag.t() | String.t() | atom(), Keyword.t()) ::
           {:ok, LanguageTag.t()} | {:error, Exception.t()}
+  def parent(locale, options \\ [])
+
   # A struct built by hand can carry fields of the wrong shape, which are
   # reported as an invalid locale rather than raised on.
-  def parent(%LanguageTag{} = language_tag) do
-    with {:ok, tag} <- LanguageTag.validate_fields(language_tag) do
-      tag_parent(tag)
+  def parent(%LanguageTag{} = language_tag, options) when is_keyword_list(options) do
+    with {:ok, component} <- inheritance_component(options),
+         {:ok, tag} <- LanguageTag.validate_fields(language_tag) do
+      tag_parent(tag, component)
     end
   end
 
-  def parent(locale_id) when is_binary(locale_id) do
+  def parent(locale_id, options) when is_binary(locale_id) and is_keyword_list(options) do
     with {:ok, parsed} <- LanguageTag.parse(locale_id),
          {:ok, canonical} <- LanguageTag.canonicalize(parsed) do
-      parent(canonical)
+      parent(canonical, options)
     end
   end
 
-  def parent(locale_id) when is_atom(locale_id) and not is_nil(locale_id) do
-    parent(Atom.to_string(locale_id))
+  def parent(locale_id, options)
+      when is_atom(locale_id) and not is_nil(locale_id) and is_keyword_list(options) do
+    parent(Atom.to_string(locale_id), options)
   end
 
-  def parent(locale), do: {:error, Localize.InvalidLocaleError.exception(locale_id: locale)}
+  def parent(_locale, options) when not is_keyword_list(options) do
+    {:error, Localize.Utils.Helpers.invalid_options(options)}
+  end
+
+  def parent(locale, _options) do
+    {:error, Localize.InvalidLocaleError.exception(locale_id: locale)}
+  end
+
+  defp inheritance_component(options) do
+    component = Keyword.get(options, :component, :main)
+
+    if component in @inheritance_components do
+      {:ok, component}
+    else
+      {:error,
+       Localize.InvalidValueError.exception(
+         value: component,
+         expected: :component,
+         allowed_values: @inheritance_components
+       )}
+    end
+  end
 
   defp tag_parent(
-         %LanguageTag{language: :und, script: nil, territory: nil, language_variants: []} = _tag
+         %LanguageTag{language: :und, script: nil, territory: nil, language_variants: []} = _tag,
+         _component
        ) do
     {:error, Localize.NoParentError.exception(locale: "und")}
   end
@@ -222,13 +278,19 @@ defmodule Localize.Locale do
   # parent. A validated `und` carries the subtags likely-subtag
   # resolution gives it, `en-Latn-US`, so dropping them would walk
   # English data from the root locale.
-  defp tag_parent(%LanguageTag{cldr_locale_id: :und} = tag) do
+  defp tag_parent(%LanguageTag{cldr_locale_id: :und} = tag, _component) do
     {:ok, transfer_extensions(root_tag(), tag)}
   end
 
-  defp tag_parent(%LanguageTag{} = tag) do
+  defp tag_parent(%LanguageTag{} = tag, component) do
     with {:ok, identity} <- inherited_identity(tag) do
-      {:ok, identity |> parent_subtags() |> with_cldr_locale_id() |> transfer_extensions(tag)}
+      parent =
+        identity
+        |> parent_subtags(component)
+        |> with_cldr_locale_id()
+        |> transfer_extensions(tag)
+
+      {:ok, parent}
     end
   end
 
@@ -252,12 +314,13 @@ defmodule Localize.Locale do
     end
   end
 
-  # TR35's parent of a locale's subtags: `parentLocales`, then the
-  # non-likely-script rule, then truncation.
-  defp parent_subtags(%LanguageTag{} = tag) do
-    case listed_parent(tag) do
+  # TR35's parent of a locale's subtags: the component's
+  # `parentLocales`, then for the main component the non-likely-script
+  # rule, then truncation.
+  defp parent_subtags(%LanguageTag{} = tag, component) do
+    case listed_parent(tag, component) do
       {:ok, parent_id} -> named_parent(parent_id)
-      :error -> unlisted_parent(tag)
+      :error -> unlisted_parent(tag, component)
     end
   end
 
@@ -265,8 +328,8 @@ defmodule Localize.Locale do
   # or under its name without a script likely subtags imply, since TR35
   # treats the two as one locale: `en-Latn-RO` is `en-RO`, whose parent
   # is `en-150`.
-  defp listed_parent(%LanguageTag{} = tag) do
-    parent_locales = SupplementalData.parent_locales()
+  defp listed_parent(%LanguageTag{} = tag, component) do
+    parent_locales = SupplementalData.parent_locales(component)
 
     tag
     |> identical_names()
@@ -305,12 +368,18 @@ defmodule Localize.Locale do
     canonical
   end
 
-  defp unlisted_parent(%LanguageTag{} = tag) do
+  # TR35 applies the non-likely-script rule to the main component only:
+  # collation and plural data do not mix scripts in text.
+  defp unlisted_parent(%LanguageTag{} = tag, :main) do
     if nonlikely_script?(tag) do
       root_tag()
     else
       truncated(tag)
     end
+  end
+
+  defp unlisted_parent(%LanguageTag{} = tag, _component) do
+    truncated(tag)
   end
 
   # TR35's `localeRules="nonlikelyScript"`: a language and script, with
@@ -399,17 +468,26 @@ defmodule Localize.Locale do
   @doc """
   Return the parent locale of the given language tag, or raise.
 
-  Same as `parent/1` but returns the parent `t:Localize.LanguageTag.t/0`
+  Same as `parent/2` but returns the parent `t:Localize.LanguageTag.t/0`
   directly on success or raises the error exception on failure.
 
   ### Arguments
 
-  * `locale` is a `%Localize.LanguageTag{}` struct or a BCP 47
-    locale identifier string.
+  * `locale` is a `%Localize.LanguageTag{}` struct, or a BCP 47
+    locale identifier string or atom.
+
+  * `options` is a keyword list of options.
+
+  ### Options
+
+  * `:component` is the kind of data whose parent is wanted, as for
+    `parent/2`. The default is `:main`.
 
   ### Returns
 
   * A `%Localize.LanguageTag{}` representing the parent locale.
+
+  * Raises the error `parent/2` returns.
 
   ### Examples
 
@@ -418,9 +496,10 @@ defmodule Localize.Locale do
       :en
 
   """
-  @spec parent!(LanguageTag.t() | String.t()) :: LanguageTag.t() | no_return()
-  def parent!(locale) do
-    case parent(locale) do
+  @spec parent!(LanguageTag.t() | String.t() | atom(), Keyword.t()) ::
+          LanguageTag.t() | no_return()
+  def parent!(locale, options \\ []) do
+    case parent(locale, options) do
       {:ok, tag} -> tag
       {:error, exception} -> raise exception
     end
@@ -1364,7 +1443,7 @@ defmodule Localize.Locale do
   # not-found error returned at the end of the chain references the
   # originally requested locale, not the deepest parent walked.
   #
-  # Cycle protection is belt-and-braces: `parent/1` terminates at
+  # Cycle protection is belt-and-braces: `parent/2` terminates at
   # `und` with `{:error, NoParentError}` so a normal walk always
   # ends, but the visited set guards against any future inheritance
   # graph that could close into a loop.

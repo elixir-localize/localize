@@ -54,7 +54,7 @@ defmodule Localize.Collation.Tailoring.LocaleDefaults do
   end
 
   # A language without defaults of its own takes its parents', following
-  # CLDR's inheritance through `Localize.Locale.parent/1`; the root has none.
+  # CLDR's inheritance through `Localize.Locale.parent/2`; the root has none.
   defp options_from_parent(language_tag) do
     case Localize.Locale.parent(language_tag) do
       {:ok, %Localize.LanguageTag{language: :und}} -> []

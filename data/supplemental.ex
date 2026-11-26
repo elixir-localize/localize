@@ -15,17 +15,54 @@ defmodule Localize.Data.Supplemental do
 
   @language_population_key "language_population"
 
+  # The components `parentLocales.json` gives parents of their own, and
+  # the key each is kept under. A component CLDR adds that is not here
+  # fails the data pass, so it is seen rather than dropped.
+  @parent_locale_components %{
+    "collations" => :collations,
+    "grammaticalFeatures" => :grammatical_features,
+    "plurals" => :plurals,
+    "segmentations" => :segmentations
+  }
+
+  # The locale rules `Localize.Locale.parent/2` implements. A rule CLDR
+  # adds fails the data pass for the same reason.
+  @parent_locale_rules %{"parentLocale" => %{"nonlikelyScript" => "root"}}
+
   # ── Simple generators ───────────────────────────────────────────
 
   @doc """
   Generates parent locale data from `parentLocales.json`.
 
-  Returns a map of locale strings to their parent locale strings.
+  Returns a map with the main component's parents under `:main` and
+  each component's own under `:collations`, `:grammatical_features`,
+  `:plurals` and `:segmentations`, every one a map of locale strings to
+  their parent locale strings. TR35 reads a component's parents on
+  their own, not merged with the main ones. Raises when CLDR adds a
+  component or a locale rule this does not know.
 
   """
   def generate_parent_locales do
-    Localize.Data.read_json("parentLocales.json")
-    |> get_in(["supplemental", "parentLocales", "parentLocale"])
+    parent_locales =
+      "parentLocales.json"
+      |> Localize.Data.read_json()
+      |> get_in(["supplemental", "parentLocales"])
+
+    known = ["parentLocale", "_localeRules" | Map.keys(@parent_locale_components)]
+
+    case Map.keys(parent_locales) -- known do
+      [] -> :ok
+      unknown -> raise "parentLocales.json has components not read: #{inspect(unknown)}"
+    end
+
+    if Map.get(parent_locales, "_localeRules") != @parent_locale_rules do
+      raise "parentLocales.json has locale rules not implemented: " <>
+              inspect(Map.get(parent_locales, "_localeRules"))
+    end
+
+    @parent_locale_components
+    |> Map.new(fn {name, key} -> {key, Map.fetch!(parent_locales, name)} end)
+    |> Map.put(:main, Map.fetch!(parent_locales, "parentLocale"))
   end
 
   @doc """

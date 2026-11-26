@@ -86,10 +86,17 @@ defmodule Localize.SupplementalData do
   def validity(:subdivisions), do: load_validity("validity_subdivisions.etf")
   def validity(:units), do: load_validity("validity_units.etf")
 
+  # The parents CLDR's `parentLocales` names for a component, as a map of
+  # locale strings to parent locale strings: `:main` (the default),
+  # `:collations`, `:grammatical_features`, `:plurals` or
+  # `:segmentations`. Each component's parents stand alone, as TR35 says;
+  # they are not merged with the main ones.
   @doc false
-  @spec parent_locales() :: %{String.t() => String.t()}
-  def parent_locales do
-    load_supplemental("parent_locales.etf")
+  @spec parent_locales(Localize.Locale.inheritance_component()) :: %{String.t() => String.t()}
+  def parent_locales(component \\ :main) do
+    "parent_locales.etf"
+    |> load_supplemental()
+    |> Map.fetch!(component)
   end
 
   # The CLDR locales with RBNF rules of their own, `und` among them, as a

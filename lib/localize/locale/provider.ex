@@ -293,7 +293,7 @@ defmodule Localize.Locale.Provider do
 
     case parent_locale_id(locale_id) do
       {:ok, parent_id} ->
-        # Cycle guard. `Localize.Locale.parent/1` returns `und` for
+        # Cycle guard. `Localize.Locale.parent/2` returns `und` for
         # bare languages like `ja`, and `cldr_locale_id_from/1` used to run
         # that tag through `validate_locale/1`/likely-subtag resolution,
         # which maximized `und` back to a concrete locale id (e.g.

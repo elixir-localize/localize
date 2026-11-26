@@ -2,7 +2,7 @@
 
 **Status:** planning, 2026-11-27
 
-Localize works out a locale's parent, or a chain of them, in eight places, with five different algorithms. Each answers TR35's question ("which locale's data does this locale inherit?") a little differently, and four of them are wrong for some locales. This plan makes one implementation of TR35 inheritance, `Localize.Locale.parent/2` and `Localize.Locale.fallback_chain/2`, and moves every consumer onto it. Resolution follows: which CLDR locale's data a locale gets is found by the same inheritance, as ICU's resource lookup does, and language matching is kept for negotiating among the configured locales.
+Localize works out a locale's parent, or a chain of them, in nine places, with six different algorithms. Each answers TR35's question ("which locale's data does this locale inherit?") a little differently, and four of them are wrong for some locales. This plan makes one implementation of TR35 inheritance, `Localize.Locale.parent/2` and `Localize.Locale.fallback_chain/2`, and moves every consumer onto it. Resolution follows: which CLDR locale's data a locale gets is found by the same inheritance, as ICU's resource lookup does, and language matching is kept for negotiating among the configured locales.
 
 ## What TR35 says
 
@@ -29,6 +29,7 @@ TR35 Part 1, *Parent Locales* (`docs/ldml/tr35.md` at `release-49`):
 | `Localize.Number.Rbnf` `locale_chain/2`, `nearest_rules_ancestor/1` | `parent/1` of the validated tag | The maximized-tag defect: 21 chains gain the default-script id. No output changes, measured over all 656 ids (2026-11-27). Configuration-dependent. |
 | `Localize.Collation.Tailoring` chains | Built by the data pass (`data/collation.ex`) from the main and `collations` entries merged, minus the non-likely-script rule | Merges the main entries, where TR35 says component entries stand alone: `nb` takes `no`'s collation through the main entry. To be checked against CLDR's own collation inheritance. |
 | `Localize.Collation.Tailoring.LocaleDefaults` | `parent/1` of the validated tag | The maximized-tag defect; no output changes, measured. |
+| `data/locale.ex` `locale_chain/1` (the data pass, for subdivisions) | `parentLocales` and truncation over names | No non-likely-script rule. Build time only. |
 | `Localize.Inflection.Locale.parent/1` | Truncation of the caller's spelling, underscored | Ignores `parentLocales` and the non-likely-script rule: `sr_Latn` gives `sr`, so Latin Serbian reads the Cyrillic inflection data. Keys by the spelling, not the resolved locale. |
 
 Outside Localize, `localize_translate` walks parents itself (`Localize.Translate.Locale.expand_one/1`), through `validate_locale/1`, and is moving to `fallback_chain/2`.
@@ -41,7 +42,7 @@ Inflection is separate because its data comes from the Unicode inflection projec
 
 2. **The non-likely-script rule computed from likely subtags**, for the main component: a `lang-Script` identifier, no territory or variant, whose script differs from the script `lang` maximizes to, has root as its parent. CLDR's explicit list is then redundant; a test checks every listed locale is one the rule gives.
 
-3. **`parentLocales` by component.** The data pass writes `parent_locales.etf` as `%{main: %{...}, collations: %{...}, plurals: %{...}, ...}` from `supplementalData.xml`, read stand-alone per component. The JSON `parentLocales.json` carries the main entries only, which is why the XML is read (the collation pass reads it already).
+3. **`parentLocales` by component.** The data pass writes `parent_locales.etf` as `%{main: %{...}, collations: %{...}, plurals: %{...}, ...}` from `parentLocales.json`, which carries every component, read stand-alone per component.
 
 4. **One chain function.** `fallback_chain(locale, options)` resolves the locale to its CLDR locale by the bundle lookup (6), then iterates `parent/2` over CLDR ids for the component, from a table per component built on first use. `:supported` filters, as now.
 
@@ -92,7 +93,7 @@ Each step lands on its own, with its output compared over every CLDR locale befo
 
 * [x] **`parent/2` over identifiers** — `parent/1` for now (`:component` comes with the next step). Measured over every CLDR id and 75,144 inputs: validated-tag walks equal `fallback_chain/2` for all 656 ids (474 differed); RBNF lookup locales and collation defaults unchanged; input parents change only for the 9,577 non-likely `lang-Script` inputs, now root. 2026-11-27.
 
-* [ ] **`parent_locales.etf` by component** — regenerate from `supplementalData.xml` as `%{main: ..., collations: ..., plurals: ..., grammatical_features: ..., segmentations: ...}`; the main map byte-identical to today's; `parent/2` takes `:component`.
+* [x] **`parent_locales.etf` by component** — generated from `parentLocales.json`, which carries the components and `_localeRules` (the XML was not needed), as `%{main: ..., collations: ..., grammatical_features: ..., plurals: ..., segmentations: ...}`; the main map byte-identical to the old file; the data pass fails on a component or locale rule it does not know; `parent/2` takes `:component`. 2026-11-27.
 
 * [ ] **`LanguageTag.new/1` resolves by bundle lookup** — design 6; the exact, minimized-form and matcher paths go. Compared with ICU 79.1's `ures_open` over the 75,144 inputs: the 17 differences recorded above and no others.
 
@@ -107,6 +108,8 @@ Each step lands on its own, with its output compared over every CLDR locale befo
 * [ ] **RBNF** — `locale_chain/2` and `nearest_rules_ancestor/1` onto `fallback_chain/2`; formatting unchanged for every RBNF locale and rule set.
 
 * [ ] **Collation** — `LocaleDefaults` and the data pass onto `parent(_, component: :collations)`; sort keys compared over every locale.
+
+* [ ] **The data pass** — `data/locale.ex`'s `locale_chain/1` onto `parent/2`; every generated locale file byte-identical, or each difference explained.
 
 * [ ] **Inflection** — resolve, chain, map to resource names; remove its own `parent/1` and `chain/1`; `sr-Latn` no longer reads `sr`.
 
