@@ -112,15 +112,17 @@ Rule-set names are parsed when a lookup needs them, by `Localize.Number.Rbnf.Rul
 
 ## Changes in behaviour
 
-* **Polish and 17 other locales** — `:ordinal` and the `:spellout` fallback choose the masculine nominative in place of the feminine: Polish 3 becomes "trzeci", not "trzecia". This is a fix and goes under `### Fixed`.
+* **Polish and 11 other locales** — `:ordinal` chooses the masculine nominative in place of the alphabetically first rule set: Polish 3 becomes "trzeci", not "trzecia", and Slovenian "tretji", not the dative "tretjemu". Measured over every RBNF locale, the 12 are be, hr, lb, lt, ne, pl, pt-PT, sk, sl, sr, sr-Latn and vec; `:spellout` changes in none. This is a fix and goes under `### Fixed`.
+
+* **A family's own name resolves** — `format: :spellout_cardinal` or `:spellout_ordinal` in a locale with only gendered rule sets returned `UnknownRbnfRuleError`; it now takes the masculine nominative (Russian 3 is "три", French 3rd "troisième"). Across the 99 RBNF locales, 41 gain `spellout_cardinal` and 34 `spellout_ordinal`; Korean, whose rule sets are all style variants, still errors.
+
+* **French `:spellout_ordinal` of 1** — was "unième", from the private `%%spellout-ordinal` helper the exact lookup reached without checking access; the family sees public rule sets only, and gives "premier". 21 is still "vingt-et-unième".
 
 * **Russian `:ordinal`** — unchanged (`"3"`); `grammatical_gender: :masculine` gives `"3-й"`, and with `grammatical_case: :genitive` gives `"3-го"`.
 
 * **`:grammatical_case` and `:grammatical_gender` on `Localize.Number.to_string/2`** — accepted today and ignored; they now choose the rule set. A value outside the table, accepted silently today, becomes an error.
 
 ## Tasks
-
-* [ ] **The resolver in `Localize.Number.Rbnf`** — families, defaults, agreement, specificity, the gender order and errors; replace the pattern preferences in `resolve_rule_name/3`.
 
 * [ ] **Options through `Localize.Number.to_string/2`** — pass the grammatical options to RBNF, validated in `Localize.Number.Format.Options`.
 
@@ -133,6 +135,8 @@ Rule-set names are parsed when a lookup needs them, by `Localize.Number.Rbnf.Rul
 * [ ] **Docs and CHANGELOG** — the RBNF section of the number formatting guide, the `:format` docs, the atom test, and a reply to issue 72.
 
 ### Done
+
+* [x] **The resolver** — `Localize.Number.Rbnf.Resolver`, called from `Localize.Number.Rbnf.to_string/3`, which takes the four grammatical options; the pattern preferences are gone. 2026-11-27.
 
 * [x] **Parse rule-set names** — `Localize.Number.Rbnf.RuleSetName.parse/1`, at lookup time; of the 1,022 family names in Localize's data, 967 read and none collide, and the rest carry a style segment. 2026-11-27.
 

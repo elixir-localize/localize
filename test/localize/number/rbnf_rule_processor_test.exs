@@ -91,7 +91,13 @@ defmodule Localize.Number.RbnfRuleProcessorTest do
     end
 
     test "French ordinal" do
-      assert Number.to_string(1, format: :spellout_ordinal, locale: "fr") == {:ok, "unième"}
+      # French has no public unmarked `spellout-ordinal`, so the family
+      # resolves to the masculine. "unième" is the private
+      # `%%spellout-ordinal` helper, used inside "vingt-et-unième".
+      assert Number.to_string(1, format: :spellout_ordinal, locale: "fr") == {:ok, "premier"}
+
+      assert Number.to_string(21, format: :spellout_ordinal, locale: "fr") ==
+               {:ok, "vingt-et-unième"}
     end
 
     test "Spanish gendered ordinals" do

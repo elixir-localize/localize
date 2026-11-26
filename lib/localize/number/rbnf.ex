@@ -35,7 +35,7 @@ defmodule Localize.Number.Rbnf do
 
   import Localize.Utils.Helpers, only: [is_keyword_list: 1]
 
-  alias Localize.Number.Rbnf.Processor
+  alias Localize.Number.Rbnf.{Processor, Resolver}
   alias Localize.Utils.Helpers
 
   @doc """
@@ -46,10 +46,14 @@ defmodule Localize.Number.Rbnf do
   * `number` is an integer or float.
 
   * `rule_name` is the rule set name atom or string
-    (e.g., `:spellout_cardinal`, `"roman-upper"`). The atoms
-    `:spellout` and `:ordinal` are interpreted specially and
-    map to the best available spellout or ordinal rule for
-    the locale.
+    (e.g., `:spellout_cardinal`, `"roman-upper"`), or a family:
+    `:ordinal` (digits ordinals where the locale has them, else
+    spelled-out ordinals), `:spellout` (`spellout_numbering`, else
+    the cardinals), or one family's own name, `:digits_ordinal`,
+    `:spellout_ordinal`, `:spellout_cardinal` or
+    `:spellout_numbering`. A family resolves to the rule set
+    whose grammatical features agree with the options below. See
+    "Choosing a rule set by grammatical features".
 
   * `options` is a keyword list of options.
 
@@ -57,12 +61,44 @@ defmodule Localize.Number.Rbnf do
 
   * `:locale` is a locale identifier. The default is `:en`.
 
+  * `:grammatical_gender` is the gender the number agrees with:
+    `:masculine`, `:feminine`, `:neuter`, `:common`, or CLDR's
+    masculine animacy genders `:animate`, `:inanimate` and
+    `:personal`. The default is the family's unmarked rule set
+    where it has one, else the masculine.
+
+  * `:grammatical_case` is the case, such as `:nominative`,
+    `:genitive`, `:dative` or `:accusative`. The default is
+    `:nominative`.
+
+  * `:grammatical_number` is `:singular`, `:plural` or `:dual`. The
+    default is `:singular`.
+
+  * `:grammatical_definiteness` is `:indefinite`, `:definite`,
+    `:construct` or `:unspecified`. The default is `:indefinite`.
+
+  Each grammatical option takes an atom or its name as a string, and
+  applies only to a family; with any other rule name it is an error.
+  A feature the locale's family does not vary on is ignored, so
+  `grammatical_gender: :feminine` with `locale: :en` gives "3rd".
+
+  ### Choosing a rule set by grammatical features
+
+  CLDR names gendered and declined rule sets by their features, as
+  in `digits_ordinal_masculine_genitive`. With no grammatical option
+  a family takes its unmarked rule set (`digits_ordinal`), as CLDR
+  intends. Otherwise, or where it has none, the rule set agreeing
+  with every requested feature, and marking the most of them, is
+  chosen; with no gender requested the masculine is preferred. A
+  requested value the locale's family does not have is an error.
+
   ### Returns
 
   * `{:ok, formatted_string}` on success.
 
   * `{:error, exception}` if the number, rule name or options are
-    not valid, or the rules are not available.
+    not valid, the rules are not available, or no rule set of the
+    family agrees with the grammatical options.
 
   ### Examples
 
@@ -75,6 +111,12 @@ defmodule Localize.Number.Rbnf do
       iex> Localize.Number.Rbnf.to_string(1, :ordinal, locale: :en)
       {:ok, "1st"}
 
+      iex> Localize.Number.Rbnf.to_string(3, :ordinal, locale: :ru, grammatical_gender: :masculine)
+      {:ok, "3-й"}
+
+      iex> Localize.Number.Rbnf.to_string(3, :ordinal, locale: :pl)
+      {:ok, "trzeci"}
+
   """
   @spec to_string(number() | Decimal.t(), atom() | String.t(), Keyword.t()) ::
           {:ok, String.t()} | {:error, Exception.t()}
@@ -85,12 +127,9 @@ defmodule Localize.Number.Rbnf do
              (is_atom(rule_name) or is_binary(rule_name)) and is_keyword_list(options) do
     requested_locale = Keyword.get(options, :locale, Localize.get_locale())
 
-    case Localize.validate_locale(requested_locale) do
-      {:ok, language_tag} ->
-        lookup_and_format(rbnf_value(number), rule_name, language_tag)
-
-      {:error, _} = error ->
-        error
+    with {:ok, grammar} <- grammar(options),
+         {:ok, language_tag} <- Localize.validate_locale(requested_locale) do
+      lookup_and_format(rbnf_value(number), rule_name, grammar, language_tag)
     end
   end
 
@@ -102,6 +141,26 @@ defmodule Localize.Number.Rbnf do
 
   def to_string(number, _rule_name, _options),
     do: {:error, Localize.Utils.Helpers.invalid_value(number, "a number or a Decimal")}
+
+  # The grammatical options given, as a map of the features to their
+  # values, each checked against `Localize.GrammaticalFeature`'s compiled
+  # values, so no atom is made from an option.
+  defp grammar(options) do
+    Enum.reduce_while(Localize.GrammaticalFeature.features(), {:ok, %{}}, fn feature, acc ->
+      cast_feature(acc, feature, Keyword.get(options, feature))
+    end)
+  end
+
+  defp cast_feature(acc, _feature, nil) do
+    {:cont, acc}
+  end
+
+  defp cast_feature({:ok, grammar}, feature, value) do
+    case Localize.GrammaticalFeature.cast(feature, value) do
+      {:ok, cast} -> {:cont, {:ok, Map.put(grammar, feature, cast)}}
+      {:error, _exception} = error -> {:halt, error}
+    end
+  end
 
   # Coerce Decimal inputs to a native numeric type so the
   # `Localize.Number.Rbnf.Processor` (whose dispatch is built on
@@ -145,11 +204,11 @@ defmodule Localize.Number.Rbnf do
   # chain, its own first and `und` last, and format with the first that
   # has it. When none does, return an `UnknownRbnfRuleError` that reports
   # the requested locale.
-  defp lookup_and_format(number, rule_name, language_tag) do
+  defp lookup_and_format(number, rule_name, grammar, language_tag) do
     with {:ok, requested_id} <- cldr_locale_id_from(language_tag) do
       language_tag
       |> locale_chain(requested_id)
-      |> Enum.find_value(&format_in(number, rule_name, &1, requested_id))
+      |> Enum.find_value(&format_in(number, rule_name, grammar, &1, requested_id))
       |> Kernel.||(
         {:error,
          Localize.UnknownRbnfRuleError.exception(
@@ -212,8 +271,8 @@ defmodule Localize.Number.Rbnf do
     Enum.find(Localize.SupplementalData.rbnf_locales(), &(Atom.to_string(&1) == name))
   end
 
-  defp format_in(number, rule_name, locale_id, requested_id) do
-    case rule_set_in(rule_name, locale_id, requested_id) do
+  defp format_in(number, rule_name, grammar, locale_id, requested_id) do
+    case rule_set_in(rule_name, grammar, locale_id, requested_id) do
       {:ok, resolved_name, rule_set, all_rule_sets} ->
         # The digits are formatted in the requested locale; the plural forms of
         # `$(cardinal,…)$` come from the locale whose rules were found, since
@@ -223,6 +282,11 @@ defmodule Localize.Number.Rbnf do
           plural_locale: Localize.Locale.data_locale_id(locale_id),
           rules_locale: locale_id
         })
+
+      # The locale has the family but nothing agreeing with the request:
+      # its parents would not either, so the error is the answer.
+      {:halt, error} ->
+        error
 
       {:error, _not_in_this_locale} ->
         nil
@@ -339,10 +403,10 @@ defmodule Localize.Number.Rbnf do
 
   # The rule set of this name in this locale, with the locale's whole set of
   # rules, which `$(cardinal,…)$` and `%%rule` references are resolved in.
-  defp rule_set_in(rule_name, locale_id, requested_id) do
+  defp rule_set_in(rule_name, grammar, locale_id, requested_id) do
     with {:ok, rbnf_data} <- load_rbnf_data(locale_id),
          {:ok, all_rule_sets} <- extract_rule_sets(rbnf_data),
-         {:ok, resolved_name} <- resolve_rule_name(rule_name, all_rule_sets, locale_id),
+         {:ok, resolved_name} <- resolve_rule_name(rule_name, grammar, all_rule_sets, locale_id),
          :ok <- reject_und_spellout_stub(locale_id, requested_id, resolved_name),
          {:ok, rule_set} <- find_rule_set(all_rule_sets, resolved_name, locale_id) do
       {:ok, resolved_name, rule_set, all_rule_sets}
@@ -527,70 +591,23 @@ defmodule Localize.Number.Rbnf do
     end
   end
 
-  # Resolve a rule_name argument to a concrete rule name string.
-  #
-  # The atoms `:spellout` and `:ordinal` are special: they map to
-  # the "best available" rule in the locale's public rule sets.
-  # Any other atom or string is returned unchanged in string form.
-  # spellout-numbering leads the preferences: TR35 has `numbering`
-  # "the default used when there is no context for the number", and it
-  # exists in every locale
-  # with spellout rules — including locales like de and ru that have
-  # only gendered spellout-cardinal variants.
-  defp resolve_rule_name(:spellout, all_rule_sets, locale_id) do
-    resolve_best_rule(all_rule_sets, :spellout, locale_id, [
-      "spellout-numbering",
-      "spellout-cardinal",
-      ~r/^spellout-cardinal-/,
-      ~r/^spellout-/
-    ])
-  end
-
-  defp resolve_rule_name(:ordinal, all_rule_sets, locale_id) do
-    resolve_best_rule(all_rule_sets, :ordinal, locale_id, [
-      "digits-ordinal",
-      "spellout-ordinal",
-      ~r/^digits-ordinal-/,
-      ~r/^spellout-ordinal-/,
-      ~r/-ordinal(-|$)/
-    ])
-  end
-
-  defp resolve_rule_name(name, _all_rule_sets, _locale_id) do
-    {:ok, normalize_rule_name(name)}
-  end
-
-  defp resolve_best_rule(all_rule_sets, requested, locale_id, preferences) do
+  # The rule-set name a request resolves to in one locale: a family
+  # (`:ordinal`, `:spellout`, `:spellout_ordinal`, …) by the grammatical
+  # features its names mark, any other name as it is. See
+  # `Localize.Number.Rbnf.Resolver`.
+  defp resolve_rule_name(rule_name, grammar, all_rule_sets, locale_id) do
     public_names = public_rule_names(all_rule_sets)
 
-    match =
-      Enum.find_value(preferences, fn preference ->
-        preferred_rule_name(preference, public_names)
-      end)
-
-    if match do
-      {:ok, match}
-    else
-      {:error,
-       Localize.UnknownRbnfRuleError.exception(
-         rule_name: requested,
-         locale: locale_id,
-         available: public_names
-       )}
+    case Resolver.resolve(rule_name, grammar, public_names, locale_id) do
+      {:ok, name} -> {:ok, name}
+      :not_found -> {:error, :not_found}
+      {:error, _exception} = error -> {:halt, error}
     end
   end
 
-  defp preferred_rule_name(name, public_names) when is_binary(name) do
-    if name in public_names, do: name
-  end
-
-  defp preferred_rule_name(%Regex{} = regex, public_names) do
-    Enum.find(public_names, &Regex.match?(regex, &1))
-  end
-
-  # Sorted so regex-preference matching is deterministic — map
-  # iteration order varies across OTP releases, which once made
-  # `:spellout` pick a different gendered rule set per OTP version.
+  # Sorted so a listing is deterministic — map iteration order varies
+  # across OTP releases, which once made `:spellout` pick a different
+  # gendered rule set per OTP version.
   defp public_rule_names(all_rule_sets) do
     all_rule_sets
     |> Enum.filter(fn {_key, rule_set} ->

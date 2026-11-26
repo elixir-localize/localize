@@ -997,20 +997,25 @@ defmodule Localize.Number.RbnfTest do
   end
 
   describe "spellout requests are not satisfied by und digit stubs" do
-    test "ru :spellout_cardinal returns an UnknownRbnfRuleError listing the locale's rule sets" do
-      # Regression: ru has only gendered spellout rule sets, so
-      # :spellout_cardinal used to fall back to und's digit-format
-      # stub and silently return "2 000 000". The error's :available
-      # field also used to be empty.
-      assert {:error, %Localize.UnknownRbnfRuleError{locale: :ru, available: available}} =
-               Rbnf.to_string(2_000_000, :spellout_cardinal, locale: :ru)
+    test "ko :spellout_cardinal returns an UnknownRbnfRuleError listing the locale's rule sets" do
+      # Regression: a locale without the family used to fall back to und's
+      # digit-format stub and silently return "2 000 000", and the error's
+      # :available field used to be empty. Korean's cardinals are all style
+      # variants (`sinokorean`, `native`), so it has no `spellout_cardinal`
+      # family to resolve.
+      assert {:error, %Localize.UnknownRbnfRuleError{locale: :ko, available: available}} =
+               Rbnf.to_string(2_000_000, :spellout_cardinal, locale: :ko)
 
-      assert "spellout_cardinal_masculine" in available
+      assert "spellout_cardinal_sinokorean" in available
     end
 
     test "the same error surfaces through Number.to_string/2" do
       assert {:error, %Localize.UnknownRbnfRuleError{available: [_ | _]}} =
-               Localize.Number.to_string(2_000_000, format: :spellout_cardinal, locale: "ru")
+               Localize.Number.to_string(2_000_000, format: :spellout_cardinal, locale: "ko")
+    end
+
+    test "ru :spellout_cardinal resolves to the masculine, ru having no unmarked cardinal" do
+      assert {:ok, "два миллиона"} = Rbnf.to_string(2_000_000, :spellout_cardinal, locale: :ru)
     end
 
     test ":spellout resolves to spellout-numbering for ru" do
