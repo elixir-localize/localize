@@ -947,7 +947,7 @@ defmodule Localize.LanguageTag do
   # distance is within the threshold (so the caller's `flat_map`
   # builds the candidate set), or an empty list otherwise.
   defp score_candidate({supported_locale, index}, desired_tag, territory_language, distance) do
-    case resolve_for_matching(supported_locale, :supported) do
+    case supported_tag(supported_locale) do
       {:ok, supported_tag} ->
         score = compute_match_distance(desired_tag, supported_tag)
 
@@ -1114,6 +1114,37 @@ defmodule Localize.LanguageTag do
 
   defp resolve_for_matching(locale, _role),
     do: {:error, Localize.InvalidLocaleError.exception(locale_id: locale)}
+
+  # The maximized tag of a supported locale. Every CLDR locale id is resolved
+  # once, when first needed, and kept: `best_match/3` against all of them would
+  # otherwise parse, canonicalize and maximize the same 657 ids on every call,
+  # which is nearly all of its cost. A locale that is not a CLDR locale id, such
+  # as a string a caller supplies, is resolved as before.
+  defp supported_tag(locale) when is_atom(locale) do
+    case Map.fetch(supported_tag_index(), locale) do
+      {:ok, tag} -> {:ok, tag}
+      :error -> resolve_for_matching(locale, :supported)
+    end
+  end
+
+  defp supported_tag(locale) do
+    resolve_for_matching(locale, :supported)
+  end
+
+  defp supported_tag_index do
+    cached(:supported_tag_index, fn ->
+      SupplementalData.all_locale_ids()
+      |> Enum.flat_map(&resolved_supported_tag/1)
+      |> Map.new()
+    end)
+  end
+
+  defp resolved_supported_tag(locale) do
+    case resolve_for_matching(locale, :supported) do
+      {:ok, tag} -> [{locale, tag}]
+      {:error, _exception} -> []
+    end
+  end
 
   @dialyzer {:nowarn_function, ensure_maximized: 1}
   defp ensure_maximized(%__MODULE__{script: nil} = tag) do

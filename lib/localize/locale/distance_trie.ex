@@ -11,6 +11,8 @@ defmodule Localize.Locale.DistanceTrie do
 
   @persistent_term_key {:localize, :distance_trie}
 
+  @empty_not_in_index %{desired: %{}, supported: %{}, both: []}
+
   @doc false
   @spec lookup(String.t(), atom(), atom(), String.t(), atom(), atom()) :: number()
   # The trie walk: match/wildcard/default fallbacks at each of the
@@ -88,29 +90,34 @@ defmodule Localize.Locale.DistanceTrie do
         Map.get(default_script_table, {:*, :*}) ||
         %{distance: 0, territory: %{}}
 
-    territory_table = (script_node && script_node[:territory]) || %{}
-    default_territory_table = default_script_node[:territory] || %{}
-
     territory_distance =
       if desired_territory == supported_territory do
         0
       else
         resolve_territory_distance(
-          territory_table,
-          default_territory_table,
+          territory_rules(script_node),
+          territory_rules(default_script_node),
           desired_territory,
-          supported_territory,
-          variables
+          supported_territory
         )
       end
 
     lang_distance + script_distance + territory_distance
   end
 
-  defp resolve_territory_distance(territory_table, default_table, desired, supported, variables) do
-    case territory_cascade_lookup(territory_table, desired, supported, variables) do
+  # A script node's territory table, with the index of its "not in" rules.
+  defp territory_rules(nil) do
+    {%{}, @empty_not_in_index}
+  end
+
+  defp territory_rules(script_node) do
+    {script_node[:territory] || %{}, script_node[:not_in] || @empty_not_in_index}
+  end
+
+  defp resolve_territory_distance(territory_rules, default_rules, desired, supported) do
+    case territory_cascade_lookup(territory_rules, desired, supported) do
       nil ->
-        case territory_cascade_lookup(default_table, desired, supported, variables) do
+        case territory_cascade_lookup(default_rules, desired, supported) do
           nil -> 0
           distance -> distance
         end
@@ -122,69 +129,53 @@ defmodule Localize.Locale.DistanceTrie do
 
   # Territory-level cascade with variable-aware matching.
   # Tries in order: exact → {desired, :*} → {:*, supported} → not_in rules → {:*, :*}
-  defp territory_cascade_lookup(table, desired, supported, variables) do
+  defp territory_cascade_lookup({table, not_in_index}, desired, supported) do
     Map.get(table, {desired, supported}) ||
       Map.get(table, {desired, :*}) ||
       Map.get(table, {:*, supported}) ||
-      find_not_in_match(table, desired, supported, variables) ||
+      find_not_in_match(not_in_index, desired, supported) ||
       Map.get(table, {:*, :*})
   end
 
-  # Check {:not_in, var} entries — both desired and supported must NOT be in the variable
-  defp find_not_in_match(table, desired, supported, variables) do
-    # Try concrete + not_in combinations first (more specific),
-    # then not_in + not_in (less specific)
-    find_not_in_concrete(table, desired, supported, variables) ||
-      find_not_in_both(table, desired, supported, variables)
+  # Check {:not_in, var} entries. Concrete + not_in combinations come first
+  # (more specific), then not_in + not_in and not_in + :* (less specific).
+  # Within each group the first rule in the table's own order wins, as the
+  # index keeps that order.
+  defp find_not_in_match(not_in_index, desired, supported) do
+    find_not_in_concrete(not_in_index, desired, supported) ||
+      find_not_in_both(not_in_index, desired, supported)
   end
 
-  # One side is a concrete territory, the other is {:not_in, var}
-  defp find_not_in_concrete(table, desired, supported, variables) do
-    # Check {desired, {:not_in, var}} — desired is concrete, supported must not be in var
-    result =
-      Enum.find_value(table, fn
-        {{^desired, {:not_in, var}}, distance} ->
-          set = Map.fetch!(variables, var)
-          if supported not in set, do: distance
-
-        _ ->
-          nil
-      end)
-
-    # Check {{:not_in, var}, supported} — supported is concrete, desired must not be in var
-    result ||
-      Enum.find_value(table, fn
-        {{{:not_in, var}, ^supported}, distance} ->
-          set = Map.fetch!(variables, var)
-          if desired not in set, do: distance
-
-        _ ->
-          nil
-      end)
+  # One side is a concrete territory, the other is {:not_in, var}.
+  defp find_not_in_concrete(%{desired: by_desired, supported: by_supported}, desired, supported) do
+    first_not_in(Map.get(by_desired, desired, []), supported) ||
+      first_not_in(Map.get(by_supported, supported, []), desired)
   end
 
-  # Both sides are {:not_in, var} or {:not_in, var} + :*
-  defp find_not_in_both(table, desired, supported, variables) do
-    Enum.find_value(table, fn
-      {{{:not_in, var_d}, {:not_in, var_s}}, distance} ->
-        desired_set = Map.fetch!(variables, var_d)
-        supported_set = Map.fetch!(variables, var_s)
-
-        if desired not in desired_set and supported not in supported_set do
-          distance
-        end
-
-      {{{:not_in, var}, :*}, distance} ->
-        set = Map.fetch!(variables, var)
-        if desired not in set, do: distance
-
-      {{:*, {:not_in, var}}, distance} ->
-        set = Map.fetch!(variables, var)
-        if supported not in set, do: distance
-
-      _ ->
-        nil
+  # Both sides are {:not_in, var}, or one is {:not_in, var} and the other :*.
+  # A `nil` set stands for :*, which every territory matches.
+  defp find_not_in_both(%{both: rules}, desired, supported) do
+    Enum.find_value(rules, fn {desired_set, supported_set, distance} ->
+      if outside?(desired, desired_set) and outside?(supported, supported_set) do
+        distance
+      end
     end)
+  end
+
+  defp first_not_in(rules, territory) do
+    Enum.find_value(rules, fn {set, distance} ->
+      if outside?(territory, set) do
+        distance
+      end
+    end)
+  end
+
+  defp outside?(_territory, nil) do
+    true
+  end
+
+  defp outside?(territory, set) do
+    not MapSet.member?(set, territory)
   end
 
   # Cascade lookup for language and script levels (no variable matching needed)
@@ -224,6 +215,7 @@ defmodule Localize.Locale.DistanceTrie do
     trie = insert_language_rules(trie, lang_rules)
     trie = insert_script_rules(trie, script_rules)
     trie = insert_territory_rules(trie, territory_rules, variables)
+    trie = index_not_in_rules(trie, variables)
     {trie, variables}
   end
 
@@ -385,6 +377,94 @@ defmodule Localize.Locale.DistanceTrie do
           distance
         )
     end
+  end
+
+  # ── "Not in" rule index ────────────────────────────────────
+
+  # A territory rule such as `{BR, {:not_in, :"$americas"}}` matches by
+  # testing membership, so it cannot be found by key. Each script node
+  # keeps those rules beside its territory table, grouped by their concrete
+  # side and with each variable's territories in a set, so a lookup does
+  # not walk the whole table (over 4,000 entries for Spanish and Portuguese)
+  # to find them. Each group keeps the table's iteration order, so the
+  # first matching rule is the one a walk of the table would find.
+  defp index_not_in_rules(trie, variables) do
+    Map.new(trie, fn {lang_key, lang_node} ->
+      {lang_key, index_lang_node(lang_node, variables)}
+    end)
+  end
+
+  defp index_lang_node(%{script: script_table} = lang_node, variables) do
+    indexed =
+      Map.new(script_table, fn {script_key, script_node} ->
+        {script_key, index_script_node(script_node, variables)}
+      end)
+
+    %{lang_node | script: indexed}
+  end
+
+  defp index_lang_node(lang_node, _variables) do
+    lang_node
+  end
+
+  defp index_script_node(%{territory: territory_table} = script_node, variables) do
+    Map.put(script_node, :not_in, not_in_index(territory_table, variables))
+  end
+
+  defp index_script_node(script_node, _variables) do
+    script_node
+  end
+
+  defp not_in_index(territory_table, variables) do
+    sets =
+      Map.new(variables, fn {variable, territories} -> {variable, MapSet.new(territories)} end)
+
+    %{desired: by_desired, supported: by_supported, both: both} =
+      Enum.reduce(territory_table, @empty_not_in_index, fn {key, distance}, index ->
+        add_not_in_rule(index, key, distance, sets)
+      end)
+
+    %{
+      desired: Map.new(by_desired, fn {territory, rules} -> {territory, Enum.reverse(rules)} end),
+      supported:
+        Map.new(by_supported, fn {territory, rules} -> {territory, Enum.reverse(rules)} end),
+      both: Enum.reverse(both)
+    }
+  end
+
+  defp add_not_in_rule(index, {{:not_in, desired}, {:not_in, supported}}, distance, sets) do
+    rule = {Map.fetch!(sets, desired), Map.fetch!(sets, supported), distance}
+    %{index | both: [rule | index.both]}
+  end
+
+  defp add_not_in_rule(index, {{:not_in, desired}, supported}, distance, sets) do
+    set = Map.fetch!(sets, desired)
+    index = %{index | supported: prepend(index.supported, supported, {set, distance})}
+
+    if supported == :* do
+      %{index | both: [{set, nil, distance} | index.both]}
+    else
+      index
+    end
+  end
+
+  defp add_not_in_rule(index, {desired, {:not_in, supported}}, distance, sets) do
+    set = Map.fetch!(sets, supported)
+    index = %{index | desired: prepend(index.desired, desired, {set, distance})}
+
+    if desired == :* do
+      %{index | both: [{nil, set, distance} | index.both]}
+    else
+      index
+    end
+  end
+
+  defp add_not_in_rule(index, _key, _distance, _sets) do
+    index
+  end
+
+  defp prepend(groups, territory, rule) do
+    Map.update(groups, territory, [rule], &[rule | &1])
   end
 
   # Expand territory patterns to trie keys.
