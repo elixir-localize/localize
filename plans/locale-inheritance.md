@@ -37,7 +37,7 @@ Inflection is separate because its data comes from the Unicode inflection projec
 
 ## Design
 
-1. **One parent function, over identifiers.** `Localize.Locale.parent(locale, options)` returns the TR35 parent of the identifier as written, canonicalized but never maximized. Extensions are dropped and restored, as TR35 says. A validated tag is read by its `canonical_locale_id`, so an `az` tag's parent is root, never `az-Latn`. Option `:component` — `:main` (default), `:collations`, `:plurals`, `:grammatical_features`, `:segmentations`.
+1. **One parent function, over identifiers.** `Localize.Locale.parent(locale, options)` returns the TR35 parent of the identifier as written, canonicalized but never maximized. Extensions are dropped and restored, as TR35 says. A validated tag is read as the CLDR locale its request resolves to among every CLDR locale, so an `az` tag's parent is root, never `az-Latn`. Not by its `canonical_locale_id` as written: a validated `zh-TW`, whose data is `zh-Hant`'s, would go to `zh`. Not by its `cldr_locale_id` field either: that can name a configured locale, and a walk through `supported_locales` cycled. `parentLocales` is looked up under the name and under the name without a script likely subtags imply, since TR35 treats `en-Latn-RO` and `en-RO` as one locale. Option `:component` — `:main` (default), `:collations`, `:plurals`, `:grammatical_features`, `:segmentations`.
 
 2. **The non-likely-script rule computed from likely subtags**, for the main component: a `lang-Script` identifier, no territory or variant, whose script differs from the script `lang` maximizes to, has root as its parent. CLDR's explicit list is then redundant; a test checks every listed locale is one the rule gives.
 
@@ -90,7 +90,7 @@ The ICU harness (`icu_measure.cpp`, the input generator and the comparison) was 
 
 Each step lands on its own, with its output compared over every CLDR locale before and after. The ICU harness is rebuilt for the resolution steps.
 
-* [ ] **`parent/2` over identifiers** — the identifier as written, canonical and never maximized, extensions dropped and restored; the non-likely-script rule from likely subtags. Tests for the TR35 invariants over every CLDR id and every language and script pair, and that every locale in CLDR's explicit list is one the rule gives.
+* [x] **`parent/2` over identifiers** — `parent/1` for now (`:component` comes with the next step). Measured over every CLDR id and 75,144 inputs: validated-tag walks equal `fallback_chain/2` for all 656 ids (474 differed); RBNF lookup locales and collation defaults unchanged; input parents change only for the 9,577 non-likely `lang-Script` inputs, now root. 2026-11-27.
 
 * [ ] **`parent_locales.etf` by component** — regenerate from `supplementalData.xml` as `%{main: ..., collations: ..., plurals: ..., grammatical_features: ..., segmentations: ...}`; the main map byte-identical to today's; `parent/2` takes `:component`.
 

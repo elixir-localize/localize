@@ -30,6 +30,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 * `Localize.Locale.fallback_chain/2` is the chain of the CLDR locale a locale resolves to: `az` gave `[:az, :"az-Latn"]`, naming its child as its parent (21 locales), `en-FO` skipped `en-001` and `gsw-LU` walked from `de-LU` into `gsw`.
 
+* `Localize.Locale.parent/1` follows TR35: a script that is not the language's likely one has the root as its parent (`ru-Latn`), and a validated tag falls back from its CLDR locale, so an `az` tag's parent is the root, not its child `az-Latn`. It takes a locale id atom too.
+
 ## [1.10.0] — November 26th, 2026
 
 ### Added

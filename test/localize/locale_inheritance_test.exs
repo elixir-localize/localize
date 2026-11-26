@@ -163,15 +163,17 @@ defmodule Localize.LocaleInheritanceTest do
                {:ok, "vingt-et-un"}
     end
 
+    # Each CLDR locale appears once: the walk truncated the maximized
+    # subtags (`ar-Arab-SA`, `ar-Arab`, `ar`), so `ar` was reached twice.
     test "a parent found by dropping a subtag resolves its own CLDR locale" do
       for {locale, expected} <- [
-            {"ar-SA", [:ar, :ar, :und]},
-            {"de-AT", [:de, :de, :und]},
-            {"fr-CA", [:fr, :fr, :und]},
-            {"es-419", [:es, :es, :und]},
+            {"ar-SA", [:ar, :und]},
+            {"de-AT", [:de, :und]},
+            {"fr-CA", [:fr, :und]},
+            {"es-419", [:es, :und]},
             {"zh-Hant-HK", [:"zh-Hant", :und]},
-            {"ca-ES-valencia", [:ca, :ca, :ca, :und]},
-            {"ar-SA-u-nu-latn", [:ar, :ar, :und]}
+            {"ca-ES-valencia", [:ca, :und]},
+            {"ar-SA-u-nu-latn", [:ar, :und]}
           ] do
         {:ok, tag} = Localize.validate_locale(locale)
         assert cldr_chain(tag) == expected, locale
@@ -197,6 +199,163 @@ defmodule Localize.LocaleInheritanceTest do
         assert cldr_chain(tag) == [:und], locale
       end
     end
+
+    # A validated tag's subtags are maximized: `az` is `az-Latn-AZ`, and
+    # truncating them named `az`'s own child `az-Latn` as its parent.
+    test "is read as the CLDR locale it resolved to" do
+      for {locale, expected} <- [
+            {"az", [:und]},
+            {"pa", [:und]},
+            {"kk-KZ", [:kk, :und]},
+            {"zh-TW", [:und]},
+            {"sr-ME", [:"sr-Latn", :und]}
+          ] do
+        {:ok, tag} = Localize.validate_locale(locale)
+        assert {locale, cldr_chain(tag)} == {locale, expected}
+      end
+    end
+
+    test "walks the same chain as fallback_chain/2 for every CLDR locale" do
+      for locale_id <- Localize.SupplementalData.all_locale_ids(), locale_id != :und do
+        {:ok, tag} = Localize.LanguageTag.new(Atom.to_string(locale_id))
+        {:ok, [^locale_id | parents]} = Locale.fallback_chain(locale_id)
+
+        assert {locale_id, cldr_chain(tag)} == {locale_id, parents ++ [:und]}
+      end
+    end
+  end
+
+  describe "parent/1 follows TR35" do
+    test "gives the root for a script that is not the language's likely script" do
+      for locale <- ["ru-Latn", "en-Cyrl", "ja-Latn", "el-Latn", "sr-Latn", "zh-Hant", "az-Cyrl"] do
+        assert {:ok, %LanguageTag{language: :und, script: nil, territory: nil}} =
+                 Locale.parent(locale),
+               locale
+      end
+    end
+
+    test "gives the root for every language and script CLDR uses where the script is not likely" do
+      tags =
+        for id <- Localize.SupplementalData.all_locale_ids(),
+            do: LanguageTag.new!(Atom.to_string(id))
+
+      languages =
+        tags
+        |> Enum.map(& &1.language)
+        |> Enum.uniq()
+
+      scripts =
+        tags
+        |> Enum.map(& &1.script)
+        |> Enum.reject(&is_nil/1)
+        |> Enum.uniq()
+
+      listed = Localize.SupplementalData.parent_locales()
+
+      for language <- languages, language != :und, script <- scripts do
+        name = "#{language}-#{script}"
+        {:ok, parent} = Locale.parent(name)
+
+        assert {name, LanguageTag.to_string(parent)} ==
+                 {name, Map.get(listed, name, unlisted_parent(language, script))}
+      end
+    end
+
+    test "truncates a language's likely script" do
+      for {locale, parent} <- [{"ru-Cyrl", "ru"}, {"sr-Cyrl", "sr"}, {"zh-Hans", "zh"}] do
+        assert {:ok, tag} = Locale.parent(locale)
+        assert {locale, LanguageTag.to_string(tag)} == {locale, parent}
+      end
+    end
+
+    test "gives every locale CLDR lists under the non-likely-script rule a script the rule gives" do
+      for {name, "und"} <- Localize.SupplementalData.parent_locales(),
+          [language, script] <- [String.split(name, "-")],
+          String.length(script) == 4 do
+        {:ok, tag} = LanguageTag.new(language)
+        assert {name, Atom.to_string(tag.script) != script} == {name, true}
+      end
+    end
+
+    test "reads a script likely subtags imply as absent when looking up CLDR's parent locales" do
+      for {locale, parent} <- [
+            {"en-Latn-RO", "en-150"},
+            {"es-Latn-BR", "es-419"},
+            {"pt-Latn-AO", "pt-PT"}
+          ] do
+        assert {:ok, tag} = Locale.parent(locale)
+        assert {locale, LanguageTag.to_string(tag)} == {locale, parent}
+      end
+    end
+
+    test "truncates a script that is not implied, rather than dropping it" do
+      assert {:ok, tag} = Locale.parent("sr-Latn-ME")
+      assert LanguageTag.to_string(tag) == "sr-Latn"
+    end
+
+    test "drops one variant at a time" do
+      assert {:ok, tag} = Locale.parent("sl-biske-rozaj")
+      assert [_one_variant] = tag.language_variants
+
+      assert {:ok, tag} = Locale.parent("ca-ES-valencia")
+      assert LanguageTag.to_string(tag) == "ca-ES"
+    end
+
+    test "takes a locale id atom" do
+      assert {:ok, tag} = Locale.parent(:"en-AU")
+      assert LanguageTag.to_string(tag) == "en-001"
+    end
+
+    test "reaches the root from every CLDR locale, without a cycle" do
+      for locale_id <- Localize.SupplementalData.all_locale_ids(), locale_id != :und do
+        chain = string_chain(Atom.to_string(locale_id))
+
+        assert {locale_id, List.last(chain)} == {locale_id, "und"}
+        assert {locale_id, Enum.uniq(chain)} == {locale_id, chain}
+      end
+    end
+
+    test "keeps the child's likely script, or gives the root" do
+      for locale_id <- Localize.SupplementalData.all_locale_ids(), locale_id != :und do
+        name = Atom.to_string(locale_id)
+        {:ok, parent} = Locale.parent(name)
+        parent_name = LanguageTag.to_string(parent)
+
+        if parent_name != "und" do
+          assert {name, likely_script(parent_name)} == {name, likely_script(name)}
+        end
+      end
+    end
+  end
+
+  defp string_chain(name) do
+    name
+    |> Stream.unfold(fn name ->
+      case Locale.parent(name) do
+        {:ok, parent} ->
+          parent_name = LanguageTag.to_string(parent)
+          {parent_name, parent_name}
+
+        {:error, _reason} ->
+          nil
+      end
+    end)
+    |> Enum.take(12)
+  end
+
+  # A language and script CLDR does not list: the language where the script
+  # is its likely one, the root otherwise.
+  defp unlisted_parent(language, script) do
+    if LanguageTag.new!(Atom.to_string(language)).script == script do
+      Atom.to_string(language)
+    else
+      "und"
+    end
+  end
+
+  defp likely_script(name) do
+    {:ok, tag} = LanguageTag.new(name)
+    tag.script
   end
 
   # The CLDR locale of each ancestor of a tag, up to the root.
@@ -213,5 +372,64 @@ defmodule Localize.LocaleInheritanceTest do
       end
     end)
     |> Enum.to_list()
+  end
+end
+
+defmodule Localize.LocaleInheritanceAtomTest do
+  # Not async: counting atoms needs no other test making atoms meanwhile.
+  use ExUnit.Case, async: false
+
+  test "parent/1 makes no atom from the locale it is given" do
+    # One locale of each shape first, so data read on first use is loaded
+    # before counting.
+    for locale <- ["ru-Latn", "en-x-parentwarm", "zzwarm-Latn", "en-Latn-QW"] do
+      Localize.Locale.parent(locale)
+    end
+
+    locales =
+      for index <- 1..500, do: ["en-x-parent#{index}", "zz#{index}-Latn", "en-Latn-Q#{index}"]
+
+    before = :erlang.system_info(:atom_count)
+
+    for locale <- List.flatten(locales) do
+      Localize.Locale.parent(locale)
+    end
+
+    assert :erlang.system_info(:atom_count) == before
+  end
+end
+
+defmodule Localize.LocaleInheritanceConfiguredTest do
+  # Changes the supported locales for the whole node, so it runs alone.
+  use ExUnit.Case, async: false
+
+  setup do
+    original_supported = Localize.supported_locales()
+    on_exit(fn -> Localize.put_supported_locales(original_supported) end)
+  end
+
+  # A parent's `:cldr_locale_id` names a configured locale, so reading a
+  # tag by it sent RBNF's walk round in a cycle.
+  test "every validated tag's parents reach the root under a restricted configuration" do
+    :ok = Localize.put_supported_locales([:en, :fr, :nb])
+
+    for locale_id <- Localize.SupplementalData.all_locale_ids() do
+      {:ok, tag} = Localize.validate_locale(locale_id)
+      chain = walk(tag)
+
+      assert {locale_id, Enum.count_until(chain, 8) < 8} == {locale_id, true}
+      assert {locale_id, List.last(chain)} == {locale_id, :und}
+    end
+  end
+
+  defp walk(tag) do
+    tag
+    |> Stream.unfold(fn tag ->
+      case Localize.Locale.parent(tag) do
+        {:ok, parent} -> {parent.cldr_locale_id, parent}
+        {:error, _reason} -> nil
+      end
+    end)
+    |> Enum.take(8)
   end
 end

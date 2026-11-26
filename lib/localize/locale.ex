@@ -127,35 +127,50 @@ defmodule Localize.Locale do
   # ── Locale inheritance ────────────────────────────────────────
 
   @doc """
-  Return the parent locale of the given language tag.
+  Return the parent locale of the given locale.
 
-  Implements the CLDR locale ID inheritance algorithm (bundle
-  inheritance) from
-  [Unicode TR35](https://www.unicode.org/reports/tr35/tr35.html#Locale_Inheritance).
-  The parent locale is determined by first checking the CLDR
-  `parentLocales` supplemental data for an explicit override,
-  then falling back to progressive subtag removal.
+  Implements locale inheritance as
+  [TR35](https://www.unicode.org/reports/tr35/tr35.html#Parent_Locales)
+  defines it, in this order:
 
-  Extensions (`-u-` and `-t-`) are transferred from the child
-  to the parent so that calendar, numbering system, and other
-  preferences are preserved across the inheritance chain.
+  * CLDR's `parentLocales` names the parent where it is not the
+    truncation: `en-AU` → `en-001`, `pt-AO` → `pt-PT`, `nb` → `no`.
 
-  The parent's `:cldr_locale_id` is left unset, and
-  `cldr_locale_id_from/1` resolves it from the parent's own subtags, so
-  data looked up through the parent is the parent's, never the child's.
+  * A language and a script that is not the language's likely script,
+    with no territory or variant, has the root as its parent: `sr-Latn`,
+    `zh-Hant` and `ru-Latn`. TR35 applies this rule to every such
+    locale, not only to the ones CLDR lists.
+
+  * Otherwise the last subtag is removed: `fr-CA` → `fr`,
+    `zh-Hant-TW` → `zh-Hant`, `en` → `und`.
+
+  A string, an atom or a parsed tag is read as written, never with the
+  likely subtags added. A validated tag, one that carries a
+  `:cldr_locale_id`, is read as the CLDR locale its request resolves to
+  among every CLDR locale, whatever `supported_locales` holds, so a
+  validated `zh-TW` falls back from `zh-Hant`, whose data it uses, not
+  from `zh`. A tag whose data is the root's has the root as its parent.
+
+  Extensions (`-u-` and `-t-`) are transferred from the child to the
+  parent so that calendar, numbering system, and other preferences are
+  preserved across the inheritance chain. The parent carries the CLDR
+  locale its own subtags resolve to, never the child's.
 
   ### Arguments
 
-  * `locale` is a `%Localize.LanguageTag{}` struct or a BCP 47
-    locale identifier string.
+  * `locale` is a `%Localize.LanguageTag{}` struct, or a BCP 47
+    locale identifier string or atom.
 
   ### Returns
 
   * `{:ok, parent_tag}` where `parent_tag` is a
-    `%Localize.LanguageTag{}` struct representing the parent locale.
+    `%Localize.LanguageTag{}` struct representing the parent locale, or
 
   * `{:error, Localize.NoParentError.exception(locale: locale)}` if the locale
-    is the root locale (`und`) which has no parent.
+    is the root locale (`und`) which has no parent, or
+
+  * `{:error, Localize.InvalidLocaleError.exception(locale_id: locale)}` if
+    the locale is not a valid locale identifier.
 
   ### Examples
 
@@ -169,8 +184,12 @@ defmodule Localize.Locale do
       iex> parent.language
       :und
 
+      iex> {:ok, parent} = Localize.Locale.parent("ru-Latn")
+      iex> parent.language
+      :und
+
   """
-  @spec parent(LanguageTag.t() | String.t()) ::
+  @spec parent(LanguageTag.t() | String.t() | atom()) ::
           {:ok, LanguageTag.t()} | {:error, Exception.t()}
   # A struct built by hand can carry fields of the wrong shape, which are
   # reported as an invalid locale rather than raised on.
@@ -185,6 +204,10 @@ defmodule Localize.Locale do
          {:ok, canonical} <- LanguageTag.canonicalize(parsed) do
       parent(canonical)
     end
+  end
+
+  def parent(locale_id) when is_atom(locale_id) and not is_nil(locale_id) do
+    parent(Atom.to_string(locale_id))
   end
 
   def parent(locale), do: {:error, Localize.InvalidLocaleError.exception(locale_id: locale)}
@@ -204,25 +227,165 @@ defmodule Localize.Locale do
   end
 
   defp tag_parent(%LanguageTag{} = tag) do
-    parent_tag =
-      case lookup_parent_locale(tag) do
-        nil ->
-          find_parent(tag)
+    with {:ok, identity} <- inherited_identity(tag) do
+      {:ok, identity |> parent_subtags() |> with_cldr_locale_id() |> transfer_extensions(tag)}
+    end
+  end
 
-        parent_id ->
-          {:ok, parsed} = LanguageTag.parse(parent_id)
-          {:ok, canonical} = LanguageTag.canonicalize(parsed)
-          canonical
-      end
+  # The locale a tag inherits as. A validated tag's subtags are the
+  # maximized request, `az-Latn-AZ` for `az`, and truncating them named
+  # `az`'s own child `az-Latn` as its parent, so a validated tag is read
+  # as the CLDR locale its request resolves to. That is resolved against
+  # every CLDR locale, never read from the tag's `:cldr_locale_id`: that
+  # field can name a configured locale (`en` for `pt-BR`), and reading it
+  # sent a walk through `supported_locales` round in a cycle. Each step
+  # goes up the CLDR chain, so a walk ends. Any other tag is read as
+  # written.
+  defp inherited_identity(%LanguageTag{cldr_locale_id: nil} = tag) do
+    {:ok, tag}
+  end
 
-    {:ok, parent_tag |> with_cldr_locale_id() |> transfer_extensions(tag)}
+  defp inherited_identity(%LanguageTag{} = tag) do
+    with {:ok, %LanguageTag{cldr_locale_id: locale_id}} <- cldr_tag(tag),
+         {:ok, parsed} <- LanguageTag.parse(Atom.to_string(locale_id)) do
+      LanguageTag.canonicalize(parsed)
+    end
+  end
+
+  # TR35's parent of a locale's subtags: `parentLocales`, then the
+  # non-likely-script rule, then truncation.
+  defp parent_subtags(%LanguageTag{} = tag) do
+    case listed_parent(tag) do
+      {:ok, parent_id} -> named_parent(parent_id)
+      :error -> unlisted_parent(tag)
+    end
+  end
+
+  # The parent `parentLocales` names for the locale, under its own name
+  # or under its name without a script likely subtags imply, since TR35
+  # treats the two as one locale: `en-Latn-RO` is `en-RO`, whose parent
+  # is `en-150`.
+  defp listed_parent(%LanguageTag{} = tag) do
+    parent_locales = SupplementalData.parent_locales()
+
+    tag
+    |> identical_names()
+    |> Enum.find_value(:error, &fetch_listed(parent_locales, &1))
+  end
+
+  defp identical_names(%LanguageTag{} = tag) do
+    name = locale_id_from(tag.language, tag.script, tag.territory, tag.language_variants)
+
+    if implied_script?(tag) do
+      [name, locale_id_from(tag.language, nil, tag.territory, tag.language_variants)]
+    else
+      [name]
+    end
+  end
+
+  defp implied_script?(%LanguageTag{script: script, territory: territory} = tag)
+       when not is_nil(script) and not is_nil(territory) do
+    script == likely_script(tag.language, territory)
+  end
+
+  defp implied_script?(%LanguageTag{}) do
+    false
+  end
+
+  defp fetch_listed(parent_locales, name) do
+    case Map.fetch(parent_locales, name) do
+      {:ok, parent_id} -> {:ok, parent_id}
+      :error -> nil
+    end
+  end
+
+  defp named_parent(parent_id) do
+    {:ok, parsed} = LanguageTag.parse(parent_id)
+    {:ok, canonical} = LanguageTag.canonicalize(parsed)
+    canonical
+  end
+
+  defp unlisted_parent(%LanguageTag{} = tag) do
+    if nonlikely_script?(tag) do
+      root_tag()
+    else
+      truncated(tag)
+    end
+  end
+
+  # TR35's `localeRules="nonlikelyScript"`: a language and script, with
+  # no territory or variant, whose script is not the one likely subtags
+  # give the language. CLDR lists some of these locales for migration;
+  # the rule covers every one, `ru-Latn` included.
+  defp nonlikely_script?(
+         %LanguageTag{script: script, territory: nil, language_variants: []} = tag
+       )
+       when not is_nil(script) do
+    script != likely_script(tag.language, nil)
+  end
+
+  defp nonlikely_script?(%LanguageTag{}) do
+    false
+  end
+
+  # The script likely subtags give a language, in a territory where one
+  # is given (`sr` in `RO` is `Latn`). The table is keyed by strings, so
+  # no atom is made here.
+  defp likely_script(language, territory) do
+    likely_subtags = SupplementalData.likely_subtags()
+
+    language
+    |> Atom.to_string()
+    |> likely_keys(territory)
+    |> Enum.find_value(&likely_script_for(likely_subtags, &1))
+  end
+
+  defp likely_keys(language, nil) do
+    [{language, nil, nil}]
+  end
+
+  defp likely_keys(language, territory) do
+    [{language, nil, Atom.to_string(territory)}, {language, nil, nil}]
+  end
+
+  defp likely_script_for(likely_subtags, key) do
+    case Map.fetch(likely_subtags, key) do
+      {:ok, %{script: script}} -> script
+      :error -> nil
+    end
+  end
+
+  # Truncation removes the last subtag: a variant, then the territory,
+  # then the script; a language alone has the root as its parent. The
+  # child's ids name the child, so the parent keeps neither: a validated
+  # `ar-SA` carrying `cldr_locale_id: :"ar-SA"` into its parent made every
+  # lookup through the parent read `ar-SA`'s data again, and RBNF found
+  # no rules where `ar` has them.
+  defp truncated(%LanguageTag{language_variants: [_ | _] = variants} = tag) do
+    %{
+      tag
+      | language_variants: List.delete_at(variants, -1),
+        canonical_locale_id: nil,
+        cldr_locale_id: nil
+    }
+  end
+
+  defp truncated(%LanguageTag{territory: territory} = tag) when not is_nil(territory) do
+    %{tag | territory: nil, canonical_locale_id: nil, cldr_locale_id: nil}
+  end
+
+  defp truncated(%LanguageTag{script: script} = tag) when not is_nil(script) do
+    %{tag | script: nil, canonical_locale_id: nil, cldr_locale_id: nil}
+  end
+
+  defp truncated(%LanguageTag{}) do
+    root_tag()
   end
 
   # A parent names the CLDR locale its subtags resolve to, found through
   # the cached validation of its canonical string, so that no caller has to
   # validate the tag itself, which matches it against every CLDR locale and
-  # took about 20 ms a step. Its subtags stay as they are, for the next step
-  # of the walk to drop one more.
+  # took about 20 ms a step.
   defp with_cldr_locale_id(%LanguageTag{} = parent) do
     case parent |> LanguageTag.to_string() |> Localize.validate_locale() do
       {:ok, %LanguageTag{cldr_locale_id: cldr_locale_id}} ->
@@ -531,51 +694,7 @@ defmodule Localize.Locale do
     end
   end
 
-  # Look up a parent locale in the parent_locales map.
-  # The map uses minimal keys (e.g., "en-AU" not "en-Latn-AU"),
-  # so we also try without the script since maximized tags include
-  # the likely script which is usually omitted in the map keys.
-  # We only check forms with the SAME specificity — we don't
-  # drop territory or variants here (that's find_parent's job).
-  defp lookup_parent_locale(%LanguageTag{} = tag) do
-    full_key =
-      locale_id_from(tag.language, tag.script, tag.territory, tag.language_variants)
-
-    parent_locales = SupplementalData.parent_locales()
-
-    case Map.get(parent_locales, full_key) do
-      nil ->
-        # Try without script (handles maximized tags like en-Latn-AU → en-AU)
-        no_script_key =
-          locale_id_from(tag.language, nil, tag.territory, tag.language_variants)
-
-        Map.get(parent_locales, no_script_key)
-
-      result ->
-        result
-    end
-  end
-
-  # Progressively strip subtags to find the parent.
-  # Order: drop variants → drop territory → drop script → und (root).
-  # The child's ids name the child, so the parent keeps neither: a
-  # validated `ar-SA` carrying `cldr_locale_id: :"ar-SA"` into its
-  # parent `ar-Arab` made every lookup through the parent read `ar-SA`'s
-  # data again, and RBNF found no rules where `ar` has them.
-  defp find_parent(%LanguageTag{language_variants: [_ | _]} = tag) do
-    %{tag | language_variants: [], canonical_locale_id: nil, cldr_locale_id: nil}
-  end
-
-  defp find_parent(%LanguageTag{territory: territory} = tag) when not is_nil(territory) do
-    %{tag | territory: nil, canonical_locale_id: nil, cldr_locale_id: nil}
-  end
-
-  defp find_parent(%LanguageTag{script: script} = tag) when not is_nil(script) do
-    %{tag | script: nil, canonical_locale_id: nil, cldr_locale_id: nil}
-  end
-
-  defp find_parent(%LanguageTag{} = _tag), do: root_tag()
-
+  # The root locale, as a tag that names itself.
   defp root_tag do
     {:ok, parsed} = LanguageTag.parse("und")
     {:ok, canonical} = LanguageTag.canonicalize(parsed)
