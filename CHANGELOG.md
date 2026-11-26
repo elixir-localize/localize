@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.10.1] — Unreleased
+
+### Changed
+
+* `Localize.LanguageTag.best_match/3` is 15 to 25 times faster against all CLDR locales (31 ms to 1.3 ms for `pt-BR`), and so is `Localize.LanguageTag.new/1` for a tag that is not a CLDR locale id. Candidate tags are resolved once, and the distance trie indexes its "not in" region rules.
+
 ## [1.10.0] — November 26th, 2026
 
 ### Added
