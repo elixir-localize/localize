@@ -50,10 +50,20 @@ defmodule Localize.Number do
     precision. Any RBNF rule name atom supported by the locale is
     also accepted (e.g., `:spellout_cardinal`, `:spellout_ordinal`,
     `:digits_ordinal`, `:roman_upper`). The atoms `:spellout` and
-    `:ordinal` resolve to the best available spellout or ordinal
-    rule for the locale. See
+    `:ordinal`, and a family's own name such as
+    `:spellout_ordinal`, resolve to the rule set of the locale
+    whose grammatical features agree with the grammatical options
+    below; see `Localize.Number.Rbnf.to_string/3`. See
     `Localize.Number.Rbnf.rule_names_for_locale/1` to discover the
     rule names supported by a locale.
+
+  * `:grammatical_gender`, `:grammatical_case`,
+    `:grammatical_number` and `:grammatical_definiteness` choose
+    the rule set of an RBNF family format, such as a Russian
+    ordinal's gender and case; with any other format they are
+    validated and have no effect. Each takes an atom or its name as
+    a string. See `Localize.Number.Rbnf.to_string/3` for the values
+    and defaults.
 
   * `:currency` is a currency code atom (e.g., `:USD`). When
     provided, currency formatting is applied.
@@ -135,6 +145,9 @@ defmodule Localize.Number do
       iex> Localize.Number.to_string(0.56, format: :percent, locale: :en)
       {:ok, "56%"}
 
+      iex> Localize.Number.to_string(3, format: :ordinal, locale: :ru, grammatical_gender: :masculine)
+      {:ok, "3-й"}
+
   """
   @spec to_string(number() | Decimal.t(), Keyword.t() | struct()) ::
           {:ok, String.t()} | {:error, Exception.t()}
@@ -198,6 +211,18 @@ defmodule Localize.Number do
     end
   end
 
+  # The locale and the grammatical options, which choose the rule set when
+  # the format is an RBNF family such as `:ordinal`.
+  defp rbnf_options(validated_options) do
+    grammar =
+      for feature <- Localize.GrammaticalFeature.features(),
+          value = Map.get(validated_options, feature),
+          not is_nil(value),
+          do: {feature, value}
+
+    [{:locale, validated_options.locale} | grammar]
+  end
+
   defp dispatch_format_style(number, format, validated_options) do
     cond do
       format in [:decimal_short, :decimal_long, :currency_short] ->
@@ -215,7 +240,7 @@ defmodule Localize.Number do
         System.to_system(number, validated_options.number_system)
 
       is_atom(format) ->
-        Rbnf.to_string(number, format, locale: validated_options.locale)
+        Rbnf.to_string(number, format, rbnf_options(validated_options))
 
       true ->
         {:error,

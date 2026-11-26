@@ -124,8 +124,6 @@ Rule-set names are parsed when a lookup needs them, by `Localize.Number.Rbnf.Rul
 
 ## Tasks
 
-* [ ] **Options through `Localize.Number.to_string/2`** — pass the grammatical options to RBNF, validated in `Localize.Number.Format.Options`.
-
 * [ ] **The round-trip test** — for every rule set that parses, in every RBNF locale, resolving its own features returns that rule set.
 
 * [ ] **MF2** — the `localize:grammatical*` options on the functions that reach RBNF.
@@ -135,6 +133,8 @@ Rule-set names are parsed when a lookup needs them, by `Localize.Number.Rbnf.Rul
 * [ ] **Docs and CHANGELOG** — the RBNF section of the number formatting guide, the `:format` docs, the atom test, and a reply to issue 72.
 
 ### Done
+
+* [x] **Options through `Localize.Number.to_string/2`** — validated in `Localize.Number.Format.Options` (which gains `:grammatical_number` and `:grammatical_definiteness`, and holds each as its atom) and passed to RBNF; `Localize.Unit` passes its own on, so they are validated there too. 2026-11-27.
 
 * [x] **The resolver** — `Localize.Number.Rbnf.Resolver`, called from `Localize.Number.Rbnf.to_string/3`, which takes the four grammatical options; the pattern preferences are gone. 2026-11-27.
 

@@ -127,7 +127,7 @@ defmodule Localize.Number.Rbnf do
              (is_atom(rule_name) or is_binary(rule_name)) and is_keyword_list(options) do
     requested_locale = Keyword.get(options, :locale, Localize.get_locale())
 
-    with {:ok, grammar} <- grammar(options),
+    with {:ok, grammar} <- Localize.GrammaticalFeature.from_options(options),
          {:ok, language_tag} <- Localize.validate_locale(requested_locale) do
       lookup_and_format(rbnf_value(number), rule_name, grammar, language_tag)
     end
@@ -141,26 +141,6 @@ defmodule Localize.Number.Rbnf do
 
   def to_string(number, _rule_name, _options),
     do: {:error, Localize.Utils.Helpers.invalid_value(number, "a number or a Decimal")}
-
-  # The grammatical options given, as a map of the features to their
-  # values, each checked against `Localize.GrammaticalFeature`'s compiled
-  # values, so no atom is made from an option.
-  defp grammar(options) do
-    Enum.reduce_while(Localize.GrammaticalFeature.features(), {:ok, %{}}, fn feature, acc ->
-      cast_feature(acc, feature, Keyword.get(options, feature))
-    end)
-  end
-
-  defp cast_feature(acc, _feature, nil) do
-    {:cont, acc}
-  end
-
-  defp cast_feature({:ok, grammar}, feature, value) do
-    case Localize.GrammaticalFeature.cast(feature, value) do
-      {:ok, cast} -> {:cont, {:ok, Map.put(grammar, feature, cast)}}
-      {:error, _exception} = error -> {:halt, error}
-    end
-  end
 
   # Coerce Decimal inputs to a native numeric type so the
   # `Localize.Number.Rbnf.Processor` (whose dispatch is built on

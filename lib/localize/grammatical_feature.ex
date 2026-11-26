@@ -88,6 +88,21 @@ defmodule Localize.GrammaticalFeature do
     invalid(feature, value)
   end
 
+  # The grammatical options in a keyword list, as a map of each one given
+  # to its atom, or the error for the first that is not valid. Options
+  # given as `nil` are left out.
+  @spec from_options(Keyword.t()) ::
+          {:ok, %{optional(feature()) => atom()}} | {:error, Exception.t()}
+  def from_options(options) do
+    Enum.reduce_while(features(), {:ok, %{}}, fn feature, {:ok, grammar} ->
+      case cast(feature, Keyword.get(options, feature)) do
+        {:ok, nil} -> {:cont, {:ok, grammar}}
+        {:ok, value} -> {:cont, {:ok, Map.put(grammar, feature, value)}}
+        {:error, _exception} = error -> {:halt, error}
+      end
+    end)
+  end
+
   defp invalid(feature, value) do
     {:error,
      Localize.InvalidValueError.exception(

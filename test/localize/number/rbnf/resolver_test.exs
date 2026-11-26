@@ -146,4 +146,60 @@ defmodule Localize.Number.Rbnf.ResolverTest do
       assert :erlang.system_info(:atom_count) == before
     end
   end
+
+  describe "through Localize.Number.to_string/2" do
+    test "formats the gendered ordinal issue 72 asked for" do
+      assert Localize.Number.to_string(3, format: :ordinal, locale: :ru) == {:ok, "3"}
+
+      assert Localize.Number.to_string(3,
+               format: :ordinal,
+               locale: :ru,
+               grammatical_gender: :masculine
+             ) == {:ok, "3-й"}
+
+      assert Localize.Number.to_string(3,
+               format: :ordinal,
+               locale: :ru,
+               grammatical_gender: "masculine",
+               grammatical_case: "genitive"
+             ) == {:ok, "3-го"}
+    end
+
+    test "passes number and definiteness too" do
+      assert Localize.Number.to_string(3,
+               format: :ordinal,
+               locale: :pl,
+               grammatical_gender: :personal,
+               grammatical_number: :plural
+             ) == {:ok, "trzeci"}
+
+      assert {:error, %Localize.InvalidValueError{expected: :grammatical_definiteness}} =
+               Localize.Number.to_string(3,
+                 format: :ordinal,
+                 locale: :ru,
+                 grammatical_definiteness: :bogus
+               )
+    end
+
+    test "validates the options with a format that is not a family, and ignores them" do
+      assert Localize.Number.to_string(1234.5, locale: :de, grammatical_case: :dative) ==
+               {:ok, "1.234,5"}
+
+      assert {:error, %Localize.InvalidValueError{expected: :grammatical_case}} =
+               Localize.Number.to_string(1234.5, locale: :de, grammatical_case: "bogus")
+    end
+
+    test "a validated options struct holds each option as its atom" do
+      {:ok, options} =
+        Localize.Number.Format.Options.validate_options(0,
+          format: :ordinal,
+          locale: :ru,
+          grammatical_gender: "feminine"
+        )
+
+      assert options.grammatical_gender == :feminine
+      assert options.grammatical_case == nil
+      assert Localize.Number.to_string(3, options) == {:ok, "3-я"}
+    end
+  end
 end

@@ -17,6 +17,8 @@ defmodule Localize.Number.Format.Options do
     :format,
     :grammatical_case,
     :grammatical_gender,
+    :grammatical_number,
+    :grammatical_definiteness,
     :currency_format,
     :currency_digits,
     :currency_spacing,
@@ -220,6 +222,7 @@ defmodule Localize.Number.Format.Options do
          :ok <- validate_rounding_priority(Keyword.get(options, :rounding_priority)),
          :ok <- validate_digit_counts(options, @digit_count_options),
          :ok <- validate_wrapper(Keyword.get(options, :wrapper)),
+         {:ok, grammar} <- Localize.GrammaticalFeature.from_options(options),
          {:ok, symbols} <- resolve_symbols(locale_data.symbols, currency_struct),
          {:ok, resolved_format, formats} <- resolve_format(format, locale_data) do
       currency_symbol = resolve_currency_symbol(currency_struct, options[:currency_symbol])
@@ -256,6 +259,7 @@ defmodule Localize.Number.Format.Options do
           max_fractional_digits: max_fractional_digits,
           pattern: pattern
         })
+        |> Map.merge(grammatical_fields(grammar))
 
       {:ok, result}
     end
@@ -263,6 +267,12 @@ defmodule Localize.Number.Format.Options do
 
   def validate_options(_number, options),
     do: {:error, Localize.Utils.Helpers.invalid_options(options)}
+
+  # Every grammatical field, as its validated atom or `nil`, so a value
+  # given as a string is held as its atom.
+  defp grammatical_fields(grammar) do
+    Map.new(Localize.GrammaticalFeature.features(), &{&1, Map.get(grammar, &1)})
+  end
 
   # ── Format aliases ──────────────────────────────────────────
 
