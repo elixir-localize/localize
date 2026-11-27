@@ -253,7 +253,7 @@ defmodule Localize.Inflection.Quantify do
 
   defp factory(internal) do
     Map.get(@factories, internal) ||
-      Map.get(@factories, Locale.parent(internal)) ||
+      Map.get(@factories, Locale.language(internal)) ||
       {Base, nil}
   end
 
@@ -261,7 +261,7 @@ defmodule Localize.Inflection.Quantify do
     case Keyword.get(options, :plural_categories) do
       nil ->
         internal in @single_category_locales or
-          Locale.parent(internal) in @single_category_locales
+          Locale.language(internal) in @single_category_locales
 
       categories ->
         not match?([_, _ | _], categories)

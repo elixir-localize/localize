@@ -7,11 +7,10 @@ defmodule Localize.Inflection.Locale do
   # locales are underscore-form atoms because the upstream resource
   # names carry underscores and the data tables are keyed by atom.
   #
-  # Binary input only becomes an atom after the corresponding data
-  # artifact is confirmed to exist, so the atom space stays bounded
-  # by the shipped data. That holds because `normalize/1` admits only
-  # well-formed locale identifiers, which cannot name a file outside
-  # the data directory.
+  # A locale reads the data upstream would give it: the canonical locale,
+  # then each name `upstream_fallback/1` gives, the first supported language
+  # whose artifact exists. Only a supported language becomes an atom, so the
+  # atom space stays bounded by the shipped data.
 
   alias Localize.Inflection.{DataDir, Provider}
 
@@ -62,10 +61,12 @@ defmodule Localize.Inflection.Locale do
   Resolves a locale to the internal locale atom whose data artifact
   is available, downloading it on demand when permitted.
 
-  Regional locales fall back to their parent language, as in the
-  upstream supported-locales groups (en_AU resolves to en, de_CH
-  to de). When no artifact for the fallback chain is present locally
-  and the resolved language is supported, the artifact is fetched
+  The locale is canonicalized, so a deprecated language reads its
+  replacement's data (`iw` reads `he`), then walked as upstream walks
+  it, with `upstream_fallback/1`: `en-AU` reads `en`, `zh-TW` reads
+  `zh` and `sr-Latn` reads `sr`. Upstream's data is found by its own
+  rule, not by CLDR inheritance, whose parent for `zh-TW` (`zh-Hant`)
+  is the root. When the data is not present locally, it is fetched
   from the CDN if runtime downloads are permitted (the locale
   provider's `Localize.Locale.Provider.allow_download?/0` gate,
   `false` by default).
@@ -84,18 +85,66 @@ defmodule Localize.Inflection.Locale do
 
   """
   def resolve(locale) do
-    candidates = locale |> normalize() |> chain()
+    candidates = candidates(locale)
 
     cond do
       match = Enum.find(candidates, &artifact?/1) ->
         {:ok, String.to_atom(match)}
 
-      target = Enum.find(candidates, &(&1 in @supported)) ->
+      target = List.first(candidates) ->
         fetch_artifact(target, locale)
 
       true ->
         {:error, Localize.InflectionNotSupportedError.exception(locale: locale)}
     end
+  end
+
+  # The supported languages on the locale's walk. No supported language is
+  # deprecated and every walk ends at its language, so canonicalizing can
+  # change the result only where the locale as given reaches none: that
+  # case alone pays for it.
+  defp candidates(%Localize.LanguageTag{} = language_tag) do
+    language_tag
+    |> normalize()
+    |> supported_on_walk()
+  end
+
+  defp candidates(locale) do
+    internal = normalize(locale)
+
+    case supported_on_walk(internal) do
+      [] -> internal |> canonical() |> supported_on_walk()
+      [_ | _] = candidates -> candidates
+    end
+  end
+
+  defp supported_on_walk(internal) do
+    internal
+    |> upstream_chain()
+    |> Enum.filter(&(&1 in @supported))
+  end
+
+  # The internal form of the canonical locale, so a deprecated language
+  # reads its replacement (`iw` as `he`); one that does not parse stays.
+  defp canonical(internal) do
+    case canonical_tag(internal) do
+      {:ok, language_tag} -> normalize(language_tag)
+      {:error, _reason} -> internal
+    end
+  end
+
+  defp canonical_tag(internal) do
+    with {:ok, parsed} <- Localize.LanguageTag.parse(internal) do
+      Localize.LanguageTag.canonicalize(parsed)
+    end
+  end
+
+  defp upstream_chain("") do
+    []
+  end
+
+  defp upstream_chain(internal) do
+    [internal | upstream_chain(upstream_fallback(internal))]
   end
 
   # Fetches the fallback target's artifact on demand when runtime
@@ -146,23 +195,30 @@ defmodule Localize.Inflection.Locale do
   def supported, do: @supported
 
   @doc """
-  Returns the locale fallback chain for an internal locale string,
-  from most to least specific.
+  Returns the name upstream falls back to from an internal locale
+  string: the name with its last subtag dropped, ICU's
+  `ULocale::getFallback`, which upstream's `LocaleUtils::getFallbackPair`
+  applies where its own fallbacks name nothing; `""` for a bare
+  language. This names upstream's resources the way upstream does; it is
+  not locale inheritance, which `Localize.Locale.parent/2` gives.
 
   """
-  def chain(""), do: []
-  def chain(internal), do: [internal | chain(parent(internal))]
-
-  @doc """
-  Returns the parent of an internal locale string, or "" for a
-  bare language.
-
-  """
-  def parent(internal) do
+  def upstream_fallback(internal) when is_binary(internal) do
     case String.split(internal, "_") do
       [_language] -> ""
-      parts -> parts |> Enum.drop(-1) |> Enum.join("_")
+      subtags -> subtags |> Enum.drop(-1) |> Enum.join("_")
     end
+  end
+
+  @doc """
+  Returns the language subtag of an internal locale string: `"tr"` for
+  `"tr_Latn_TR"`, and `""` for `""`.
+
+  """
+  def language(internal) when is_binary(internal) do
+    internal
+    |> String.split("_")
+    |> hd()
   end
 
   @doc """

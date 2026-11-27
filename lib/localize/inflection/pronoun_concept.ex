@@ -223,7 +223,9 @@ defmodule Localize.Inflection.PronounConcept do
         {:ok, locale, lines}
 
       true ->
-        resolve_table(Map.get(@locale_fallbacks, locale) || Locale.parent(locale))
+        # Upstream's own walk (`LocaleUtils::getFallbackPair`): its
+        # fallbacks, then `Locale.upstream_fallback/1`.
+        resolve_table(Map.get(@locale_fallbacks, locale) || Locale.upstream_fallback(locale))
     end
   end
 

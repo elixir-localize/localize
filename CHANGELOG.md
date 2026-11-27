@@ -40,6 +40,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 * Collation inherits along CLDR's `collations` parents alone, as TR35 says, so `hi-Latn` sorts as `hi` (was the root), as ICU does. `nb` and `nn` keep `no`'s collation through a marked correction of a CLDR data gap.
 
+* Inflection reads a deprecated language as its replacement, so `iw` and `in` find the Hebrew and Indonesian data, and a three-part locale such as `zh-Hant-HK` takes its language's quantity rules.
+
 * A key missing from a locale's data, and a locale whose data fails to load, fall back along `Localize.Locale.fallback_chain/2`, kept to the supported locales. Each parent was validated against the supported locales instead, so with only `en-AU` supported `en-001` became `en-AU` again and the lookup never reached the root.
 
 * Plural rules for a locale whose data is the root's take its language's rules where CLDR has them: 24 languages, among them `ars`, `ny`, `an` and `smj`, had the root's single category, and `bal` had Urdu's.

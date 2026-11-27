@@ -302,7 +302,7 @@ defmodule Localize.Unit.Inflection do
 
   defp singular_after_numeral?(internal) do
     internal in @singular_after_numeral or
-      InflectionLocale.parent(internal) in @singular_after_numeral
+      InflectionLocale.language(internal) in @singular_after_numeral
   end
 
   # Joins that do not produce "number space noun" (the Arabic dual

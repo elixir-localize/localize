@@ -30,11 +30,11 @@ TR35 Part 1, *Parent Locales* (`docs/ldml/tr35.md` at `release-49`):
 | `Localize.Collation.Tailoring` chains | Built by the data pass (`data/collation.ex`) from the main and `collations` entries merged, minus the non-likely-script rule | Merges the main entries, where TR35 says component entries stand alone: `nb` takes `no`'s collation through the main entry. To be checked against CLDR's own collation inheritance. |
 | `Localize.Collation.Tailoring.LocaleDefaults` | `parent/1` of the validated tag | The maximized-tag defect; no output changes, measured. |
 | `data/locale.ex` `locale_chain/1` (the data pass, for subdivisions) | `parentLocales` and truncation over names | No non-likely-script rule. Build time only. |
-| `Localize.Inflection.Locale.parent/1` | Truncation of the caller's spelling, underscored | Ignores `parentLocales` and the non-likely-script rule: `sr_Latn` gives `sr`, so Latin Serbian reads the Cyrillic inflection data. Keys by the spelling, not the resolved locale. |
+| `Localize.Inflection.Locale.parent/1` | Truncation of the caller's spelling, underscored | Upstream's own rule (ICU truncation), which upstream's data and conformance tests follow; kept, below. |
 
 Outside Localize, `localize_translate` walks parents itself (`Localize.Translate.Locale.expand_one/1`), through `validate_locale/1`, and is moving to `fallback_chain/2`.
 
-Inflection is separate because its data comes from the Unicode inflection project, not CLDR: resource files named by underscored language (`sr.etf`, `pt.etf`), read with string operations so that no atom is made before a file is known to exist. Neither reason needs its own inheritance: the chain is a list of CLDR locale ids, all existing atoms, mapped to resource names.
+Inflection is separate because its data comes from the Unicode inflection project, not CLDR: resource files named by underscored language (`sr.etf`, `pt.etf`), read with string operations so that no atom is made before a file is known to exist. This plan first said neither reason needs its own inheritance; that was wrong (2026-11-28, below). Upstream finds its data by its own rule, `LocaleUtils::getFallbackPair` (its fallbacks, then ICU's `ULocale::getFallback`, which drops the last subtag), and its supported-locale groups are regions, not CLDR inheritance: `zh` covers `zh_TW` and `zh_HK`, whose CLDR parent is the root, and its list tests use `hi_Latn` with `hi`.
 
 ## Design
 
@@ -46,7 +46,7 @@ Inflection is separate because its data comes from the Unicode inflection projec
 
 4. **One chain function.** `fallback_chain(locale, options)` resolves the locale to its CLDR locale by the bundle lookup (6), then iterates `parent/2` over CLDR ids for the component, from a table per component built on first use. `:supported` filters, as now.
 
-5. **Consumers move onto them,** one per step: the data lookup and the provider walk (chains filtered to the locales whose data is installed, so a parent that is not downloaded is skipped rather than resolved to a neighbour); RBNF (`fallback_chain` filtered to RBNF locales); collation (the `:collations` component, and the data pass derives its chains from the same function); inflection (resolve, take the chain, map ids to resource names, delete `Localize.Inflection.Locale.parent/1` and `chain/1`); `localize_translate`.
+5. **Consumers move onto them,** one per step: the data lookup and the provider walk (chains filtered to the locales whose data is installed, so a parent that is not downloaded is skipped rather than resolved to a neighbour); RBNF (`fallback_chain` filtered to RBNF locales); collation (the `:collations` component, and the data pass derives its chains from the same function); inflection (which turned out to follow upstream's own rule, not TR35: see Tasks); `localize_translate`.
 
 6. **Resolution is TR35's bundle lookup.** `LanguageTag.new/1` sets `cldr_locale_id` to the first CLDR locale on the identifier's way up: start without a script likely subtags imply (`ar-Arab-EG` → `ar-EG`), read `lang-Region` as its likely `lang-Script-Region` unless `parentLocales` names its parent, then step by `parent/2`; root when none is found. It never calls the matcher. This replaces the exact and minimized-form lookups added in 1.11.0 and the matcher fallback behind them.
 
@@ -67,6 +67,8 @@ Inflection is separate because its data comes from the Unicode inflection projec
 * 2026-11-27 — With `:supported_locales` configured, `validate_locale/1` negotiates the request itself, as ICU's `LocaleMatcher` does, rather than returning the locale it inherits from when that is supported (user). Because negotiation is the matcher's question, and CLDR rates `pt-BE` nearer `pt-PT` than the `pt` it inherits from. A locale that matches none then takes the default locale, not the root.
 
 * 2026-11-28 — Collation follows TR35's stand-alone `collations` component, with `nb` and `nn` → `no` added to it in the data pass as a marked correction of a CLDR data gap, removed once CLDR lists them (user). Because CLDR-14493 made `nb` and `nn` children of `no` in the main component only and CLDR-16253 never listed them under `collations`, so the literal rule gives them the root's collation; ICU 79 and CLDR's tools ignore component parents (ICU-22289, CLDR-16361). With the correction the rule matches ICU's collation locale for every CLDR id.
+
+* 2026-11-28 — Inflection data is found as upstream finds it, by truncation, not by CLDR inheritance or by script (user). Because the data and its supported-locale groups are upstream's, and upstream's own conformance suite resolves `hi_Latn` to `hi`; a refused locale cannot build a concept at all, where data in another script only leaves Latin words uninflected.
 
 ## Resolution, measured against ICU
 
@@ -117,7 +119,7 @@ Each step lands on its own, with its output compared over every CLDR locale befo
 
 * [x] **The data pass** — `data/locale.ex`'s `locale_chain/1`, used only for inherited subdivision names, is `fallback_chain/2` without the root; its own `parentLocales`-and-truncation walk is gone. Of 656 chains one differs, `ca-ES-valencia`, which no longer visits the default-content `ca-ES` (no data of its own), and its 4,364 names are unchanged; `en.etf` and `und.etf` regenerate byte-identical. 2026-11-28.
 
-* [ ] **Inflection** — resolve, chain, map to resource names; remove its own `parent/1` and `chain/1`; `sr-Latn` no longer reads `sr`.
+* [x] **Inflection** — follows upstream, not TR35: `resolve/1` walks the locale with `Inflection.Locale.upstream_fallback/1`, the one copy of upstream's truncation, which `PronounConcept`'s table walk shares; `parent/1` and `chain/1` are gone, and the factory and numeral tables key by the language. A locale whose walk reaches no supported language is canonicalized first, so `iw` and `in` read `he` and `id`; nothing else changes over every CLDR locale, and resolution costs 45 µs (was 60). The TR35 chain lost `zh-TW` and `yue-Hans`, and a script rule failed upstream's `hi_Latn` list conformance. 2026-11-28.
 
 * [ ] **`localize_web`** — drop its own matching, fallback and parent calculations (its `@max_match_distance` of 79, the distance re-test and root handling in `closest_supported/2`, `supported_match/2`'s language comparison) and call `Localize` alone (user, 2026-11-27). Its own repository.
 

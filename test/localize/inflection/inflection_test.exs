@@ -34,6 +34,44 @@ defmodule Localize.InflectionTest do
     assert_raise ArgumentError, fn -> String.to_existing_atom(probe) end
   end
 
+  # Upstream finds its data by dropping the last subtag (ICU's
+  # `ULocale::getFallback`), not by CLDR inheritance: `zh-TW`'s CLDR parent
+  # is the root, and upstream's own list tests use `hi_Latn` with `hi`.
+  describe "resolving a locale to its inflection data" do
+    test "walks the locale as upstream does" do
+      for {locale, data} <- [
+            {"en-AU", :en},
+            {:"de-CH", :de},
+            {"zh-TW", :zh},
+            {"zh-Hant-HK", :zh},
+            {"yue-HK", :yue},
+            {"sr-Latn", :sr},
+            {"hi-Latn", :hi},
+            {"ar-SA-u-nu-arab", :ar}
+          ] do
+        assert {locale, Localize.Inflection.Locale.resolve(locale)} == {locale, {:ok, data}}
+      end
+    end
+
+    test "reads a deprecated language as its replacement" do
+      assert Localize.Inflection.Locale.resolve("iw") == {:ok, :he}
+      assert Localize.Inflection.Locale.resolve("in-ID") == {:ok, :id}
+    end
+
+    test "finds nothing for the root or an unsupported language" do
+      for locale <- ["und", "und-u-nu-latn", "nn", "xx", ""] do
+        assert {:error, %Localize.InflectionNotSupportedError{}} =
+                 Localize.Inflection.Locale.resolve(locale)
+      end
+    end
+
+    test "upstream_fallback/1 drops the last subtag" do
+      assert Localize.Inflection.Locale.upstream_fallback("zh_Hant_TW") == "zh_Hant"
+      assert Localize.Inflection.Locale.upstream_fallback("zh_Hant") == "zh"
+      assert Localize.Inflection.Locale.upstream_fallback("zh") == ""
+    end
+  end
+
   test "inflects with invalid constraints" do
     assert {:error, %Localize.UnknownFeatureError{feature: "sizzle"}} =
              Localize.Inflection.inflect("cat", :en, sizzle: "plural")

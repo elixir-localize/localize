@@ -251,7 +251,7 @@ defmodule Localize.Inflection.ConceptList do
 
   defp customization(internal, kind) do
     configuration =
-      Map.get(@factories, internal) || Map.get(@factories, Locale.parent(internal)) || %{}
+      Map.get(@factories, internal) || Map.get(@factories, Locale.language(internal)) || %{}
 
     Map.get(configuration, kind, [])
   end
