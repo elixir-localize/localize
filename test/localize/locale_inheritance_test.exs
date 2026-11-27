@@ -240,7 +240,7 @@ defmodule Localize.LocaleInheritanceTest do
       for {locale, component, parent} <- [
             {"zh-Hant", :collations, "zh"},
             {"sr-Latn", :collations, "sr"},
-            {"nb", :collations, "und"},
+            {"hi-Latn", :collations, "hi"},
             {"es-AR", :plurals, "es"},
             {"en-AU", :plurals, "en"},
             {"pt-AO", :grammatical_features, "pt"},
@@ -248,6 +248,15 @@ defmodule Localize.LocaleInheritanceTest do
           ] do
         assert {:ok, tag} = Locale.parent(locale, component: component)
         assert {locale, component, LanguageTag.to_string(tag)} == {locale, component, parent}
+      end
+    end
+
+    # CLDR lists `nb` and `nn` → `no` in the main component only; the data
+    # pass adds them to `collations` as a marked correction of that gap.
+    test "takes nb and nn to no for collations, by the marked correction" do
+      for locale <- ["nb", "nn"] do
+        assert {:ok, tag} = Locale.parent(locale, component: :collations)
+        assert {locale, LanguageTag.to_string(tag)} == {locale, "no"}
       end
     end
 

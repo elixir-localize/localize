@@ -1297,84 +1297,58 @@ defmodule Localize.Locale do
 
   defp default_locale_result({:error, _} = error, _original_id, _keys), do: error
 
-  # Walk the CLDR parent locale chain looking for `keys`. Each parent
-  # is loaded through the same provider before being read. The
-  # not-found error returned at the end of the chain references the
-  # originally requested locale, not the deepest parent walked.
-  #
-  # Cycle protection is belt-and-braces: `parent/2` terminates at
-  # `und` with `{:error, NoParentError}` so a normal walk always
-  # ends, but the visited set guards against any future inheritance
-  # graph that could close into a loop.
+  # Look `keys` up in each locale the data inherits from, nearest first.
+  # Each is loaded through the same provider before being read. The
+  # not-found error returned at the end references the originally requested
+  # locale, not the deepest parent walked.
   @spec fallback_through_parents(Provider.locale(), list(), module(), Keyword.t()) ::
           {:ok, term()} | {:error, term()}
   defp fallback_through_parents(original_locale, keys, provider, options) do
     with {:ok, original_id} <- cldr_locale_id_from(original_locale) do
-      walk_parents(original_id, original_id, keys, provider, options, [original_id])
+      original_id
+      |> data_parents()
+      |> find_in_parents(original_id, keys, provider, options)
     end
   end
 
-  # `visited` is a small list (the depth of the CLDR locale
-  # inheritance graph is typically 2–4) used to guard against any
-  # future inheritance cycle. We use a list rather than a `MapSet`
-  # so the type flows cleanly through the recursion under Elixir
-  # 1.20's stricter opacity checks.
-  @spec walk_parents(atom(), atom(), list(), module(), Keyword.t(), [atom(), ...]) ::
-          {:ok, term()} | {:error, term()}
-  defp walk_parents(original_id, current_id, keys, provider, options, visited) do
-    case next_parent(current_id, visited) do
-      {:ok, parent_id} ->
-        case load_and_store(parent_id, provider: provider) do
-          :ok ->
-            get_or_next_parent(original_id, parent_id, keys, provider, options, visited)
-
-          {:error, _} = error ->
-            error
-        end
-
-      :no_parent ->
-        {:error, Localize.ItemNotFoundError.exception(locale: original_id, keys: keys)}
-    end
+  # The locales a locale's data inherits from: its fallback chain without
+  # itself, kept to the supported locales, whose data is the data installed,
+  # then the root, which is always supported. Each parent is named by the
+  # chain, never validated against `supported_locales`, which negotiates
+  # it, so a parent the application does not support is skipped rather than
+  # replaced by a neighbour.
+  @doc false
+  @spec data_parents(locale_id()) :: [locale_id()]
+  def data_parents(:und) do
+    []
   end
 
-  defp get_or_next_parent(original_id, parent_id, keys, provider, options, visited) do
-    case provider.get(parent_id, keys, options) do
-      {:ok, _} = ok ->
-        ok
+  def data_parents(locale_id) do
+    supported = Localize.supported_locales()
 
-      {:error, %Localize.ItemNotFoundError{}} ->
-        walk_parents(
-          original_id,
-          parent_id,
-          keys,
-          provider,
-          options,
-          [parent_id | visited]
-        )
+    parents =
+      case fallback_chain(locale_id) do
+        {:ok, [^locale_id | parents]} -> parents
+        _other -> []
+      end
 
-      {:error, _} = error ->
-        error
-    end
+    Enum.filter(parents, &(&1 in supported)) ++ [:und]
   end
 
-  @spec next_parent(atom(), [atom(), ...]) :: {:ok, atom()} | :no_parent
-  defp next_parent(locale_id, visited) do
-    case parent(to_string(locale_id)) do
-      {:ok, parent_tag} -> unvisited_parent(parent_tag, visited)
-      {:error, _no_parent} -> :no_parent
-    end
+  defp find_in_parents([], original_id, keys, _provider, _options) do
+    {:error, Localize.ItemNotFoundError.exception(locale: original_id, keys: keys)}
   end
 
-  # A parent already walked ends the chain rather than looping it.
-  defp unvisited_parent(parent_tag, visited) do
-    case cldr_locale_id_from(parent_tag) do
-      {:ok, parent_id} -> unwalked(parent_id, visited)
-      {:error, _unnameable_parent} -> :no_parent
-    end
-  end
+  defp find_in_parents([parent_id | rest], original_id, keys, provider, options) do
+    with :ok <- load_and_store(parent_id, provider: provider) do
+      case provider.get(parent_id, keys, options) do
+        {:error, %Localize.ItemNotFoundError{}} ->
+          find_in_parents(rest, original_id, keys, provider, options)
 
-  defp unwalked(parent_id, visited) do
-    if parent_id in visited, do: :no_parent, else: {:ok, parent_id}
+        result ->
+          result
+      end
+    end
   end
 
   # ── CLDR Locale ID resolution ────────────────────────────────────────

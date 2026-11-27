@@ -25,6 +25,15 @@ defmodule Localize.Data.Supplemental do
     "segmentations" => :segmentations
   }
 
+  # CORRECTION OF A CLDR DATA GAP, to delete once CLDR lists these itself.
+  # CLDR-14493 made `nb` and `nn` children of `no`, whose collation file
+  # holds the Norwegian rules, and ships them empty collation files to
+  # inherit it. CLDR-16253 then made component parents stand-alone but did
+  # not list `nb` and `nn` under `collations`, so read literally they take
+  # the root's collation. ICU 79 collates them as `no`. The data pass fails
+  # once CLDR lists either, so the correction is removed rather than kept.
+  @collation_parent_corrections %{"nb" => "no", "nn" => "no"}
+
   # The locale rules `Localize.Locale.parent/2` implements. A rule CLDR
   # adds fails the data pass for the same reason.
   @parent_locale_rules %{"parentLocale" => %{"nonlikelyScript" => "root"}}
@@ -38,8 +47,10 @@ defmodule Localize.Data.Supplemental do
   each component's own under `:collations`, `:grammatical_features`,
   `:plurals` and `:segmentations`, every one a map of locale strings to
   their parent locale strings. TR35 reads a component's parents on
-  their own, not merged with the main ones. Raises when CLDR adds a
-  component or a locale rule this does not know.
+  their own, not merged with the main ones. The `:collations` map also
+  carries `nb` and `nn` → `no`, a marked correction of a CLDR data gap.
+  Raises when CLDR adds a component or a locale rule this does not know,
+  or lists a parent the correction supplies.
 
   """
   def generate_parent_locales do
@@ -63,6 +74,18 @@ defmodule Localize.Data.Supplemental do
     @parent_locale_components
     |> Map.new(fn {name, key} -> {key, Map.fetch!(parent_locales, name)} end)
     |> Map.put(:main, Map.fetch!(parent_locales, "parentLocale"))
+    |> Map.update!(:collations, &correct_collation_parents/1)
+  end
+
+  defp correct_collation_parents(collations) do
+    listed = Map.take(collations, Map.keys(@collation_parent_corrections))
+
+    if map_size(listed) > 0 do
+      raise "CLDR now lists collation parents for #{inspect(listed)}: " <>
+              "remove @collation_parent_corrections from #{__ENV__.file}"
+    end
+
+    Map.merge(collations, @collation_parent_corrections)
   end
 
   @doc """

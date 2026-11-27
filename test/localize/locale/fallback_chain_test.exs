@@ -185,6 +185,22 @@ defmodule Localize.Locale.FallbackChainConfiguredTest do
     assert :erlang.system_info(:atom_count) == before
   end
 
+  # The data lookup inherits along the fallback chain, kept to the supported
+  # locales, whose data is installed, then the root. A parent was named by
+  # validating it, which negotiated it among the supported locales: with
+  # only `en-AU` supported, `en-001` became `en-AU` again and the walk
+  # ended without reaching the root.
+  test "data_parents/1 keeps the chain's supported locales, then the root" do
+    assert Localize.Locale.data_parents(:"en-AU") == [:"en-001", :en, :und]
+    assert Localize.Locale.data_parents(:und) == []
+
+    :ok = Localize.put_supported_locales([:"en-AU", :en])
+    assert Localize.Locale.data_parents(:"en-AU") == [:en, :und]
+
+    :ok = Localize.put_supported_locales([:"en-AU"])
+    assert Localize.Locale.data_parents(:"en-AU") == [:und]
+  end
+
   test "resolves :supported entries the same way" do
     :ok = Localize.put_supported_locales([:en, :fr])
 

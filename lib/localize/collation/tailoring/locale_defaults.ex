@@ -40,10 +40,9 @@ defmodule Localize.Collation.Tailoring.LocaleDefaults do
   """
   @spec options_for(Localize.LanguageTag.t() | atom() | String.t()) :: keyword()
   def options_for(%Localize.LanguageTag{} = language_tag) do
-    case Map.get(@locale_defaults, language_of(language_tag)) do
-      nil -> options_from_parent(language_tag)
-      defaults -> defaults
-    end
+    language_tag
+    |> collation_locales()
+    |> Enum.find_value([], &Map.get(@locale_defaults, &1))
   end
 
   def options_for(locale) do
@@ -53,13 +52,14 @@ defmodule Localize.Collation.Tailoring.LocaleDefaults do
     end
   end
 
-  # A language without defaults of its own takes its parents', following
-  # CLDR's inheritance through `Localize.Locale.parent/2`; the root has none.
-  defp options_from_parent(language_tag) do
-    case Localize.Locale.parent(language_tag) do
-      {:ok, %Localize.LanguageTag{language: :und}} -> []
-      {:ok, parent} -> options_for(parent)
-      {:error, _no_parent} -> []
+  # The tag's language, then the locales of its collation chain: collation
+  # data inherits along TR35's `collations` component, not the main
+  # parents. The language comes first so a language that is not a CLDR
+  # locale, such as `cu`, still finds its own defaults; the root has none.
+  defp collation_locales(language_tag) do
+    case Localize.Locale.fallback_chain(language_tag, component: :collations) do
+      {:ok, chain} -> [language_of(language_tag) | Enum.map(chain, &Atom.to_string/1)]
+      {:error, _reason} -> [language_of(language_tag)]
     end
   end
 

@@ -195,11 +195,12 @@ defmodule Localize.Locale.Provider do
   Loads locale data with fallback through the CLDR parent chain.
 
   Attempts to load the requested locale via `provider.load/1`. If the
-  load fails, walks up the CLDR locale inheritance chain (e.g.
-  `en-AU` → `en`) trying each parent in turn. The walk stops before
-  the root locale `und`, which has no currency data and no localized
-  names, and falls back to `:en`. Only an explicit request for `:und`
-  loads the root locale.
+  load fails, tries each locale of its fallback chain in turn
+  (`Localize.Locale.fallback_chain/2`, so `en-AU` → `en-001` → `en`),
+  kept to the supported locales, whose data is the data installed. The
+  walk stops before the root locale `und`, which has no currency data
+  and no localized names, and falls back to `:en`. Only an explicit
+  request for `:und` loads the root locale.
 
   Returns `{:ok, locale_data, resolved_locale_id}` so the caller
   knows which locale was actually loaded.
@@ -251,7 +252,7 @@ defmodule Localize.Locale.Provider do
       domain: [:localize]
     )
 
-    case walk_parent_chain(provider, locale_id, locale_id, [locale_id]) do
+    case load_parent(provider, locale_id) do
       {:ok, _locale_data, _resolved_locale_id} = result -> result
       {:error, _} -> error
     end
@@ -273,120 +274,41 @@ defmodule Localize.Locale.Provider do
 
   defp warn_stale_locale(_locale_id, _error), do: :ok
 
-  # `:none` where a locale has no parent to walk to, which only `und` has not.
-  defp parent_locale_id(locale_id) do
-    case Localize.Locale.parent(to_string(locale_id)) do
-      {:ok, parent_tag} -> parent_id_of(parent_tag)
-      {:error, _no_parent} -> :none
-    end
+  # The first of the locale's parents that loads, from its fallback chain
+  # kept to the supported locales (`Localize.Locale.data_parents/1`). The
+  # walk stops short of the root, which has no currency data and no
+  # localized names, and falls back to `:en`.
+  defp load_parent(provider, locale_id) do
+    locale_id
+    |> Localize.Locale.data_parents()
+    |> Enum.reject(&(&1 == :und))
+    |> load_first(provider, locale_id)
   end
 
-  defp parent_id_of(parent_tag) do
-    case Localize.Locale.cldr_locale_id_from(parent_tag) do
-      {:ok, parent_id} -> {:ok, parent_id}
-      {:error, _unnameable_parent} -> :none
-    end
+  defp load_first([], provider, original_locale_id) do
+    fallback_to_en(provider, original_locale_id)
   end
 
-  defp walk_parent_chain(provider, locale_id, original_locale_id, visited) do
+  defp load_first([parent_id | rest], provider, original_locale_id) do
     require Logger
 
-    case parent_locale_id(locale_id) do
-      {:ok, parent_id} ->
-        # Cycle guard. `Localize.Locale.parent/2` returns `und` for
-        # bare languages like `ja`, and `cldr_locale_id_from/1` used to run
-        # that tag through `validate_locale/1`/likely-subtag resolution,
-        # which maximized `und` back to a concrete locale id (e.g.
-        # `:en`, `:aa`, or the originally-requested locale depending on
-        # the environment). The upstream fix in `cldr_locale_id_from/1` maps
-        # bare `und` directly to `:und`, but this guard remains as
-        # defence-in-depth so any future resolver quirk cannot loop the
-        # provider.
-        cond do
-          parent_id == locale_id ->
-            Logger.debug(
-              "Parent of #{inspect(locale_id)} resolved back to itself — stopping parent-chain walk.",
-              domain: [:localize]
-            )
+    case provider.load(parent_id) do
+      {:ok, locale_data} ->
+        Logger.debug(
+          "Loaded and using locale #{inspect(parent_id)} (a parent locale) since #{inspect(original_locale_id)} is not available.",
+          domain: [:localize]
+        )
 
-            fallback_to_en(provider, original_locale_id)
+        {:ok, locale_data, parent_id}
 
-          parent_id in visited ->
-            Logger.debug(
-              "Parent chain for #{inspect(original_locale_id)} revisited #{inspect(parent_id)} — stopping walk to avoid infinite recursion.",
-              domain: [:localize]
-            )
+      {:error, _} ->
+        Logger.debug(
+          "Unable to load locale #{inspect(parent_id)}, a parent of #{inspect(original_locale_id)}.",
+          domain: [:localize]
+        )
 
-            fallback_to_en(provider, original_locale_id)
-
-          parent_id == :und ->
-            fallback_to_en(provider, original_locale_id)
-
-          true ->
-            Logger.debug(
-              "Attempting to load locale #{inspect(parent_id)} (parent locale of #{inspect(locale_id)}).",
-              domain: [:localize]
-            )
-
-            handle_parent_load(
-              provider.load(parent_id),
-              provider,
-              parent_id,
-              locale_id,
-              original_locale_id,
-              visited
-            )
-        end
-
-      :none ->
-        # Only `und` has no parent, so this is an explicit `:und`
-        # request that failed to load.
-        fallback_to_en(provider, original_locale_id)
+        load_first(rest, provider, original_locale_id)
     end
-  end
-
-  defp handle_parent_load(
-         {:ok, locale_data},
-         _provider,
-         parent_id,
-         locale_id,
-         original_locale_id,
-         _visited
-       ) do
-    require Logger
-
-    Logger.debug(
-      "Loaded and using locale #{inspect(parent_id)} (parent locale of #{inspect(locale_id)}) since #{inspect(original_locale_id)} is not available.",
-      domain: [:localize]
-    )
-
-    {:ok, locale_data, parent_id}
-  end
-
-  defp handle_parent_load(
-         {:error, _},
-         provider,
-         parent_id,
-         _locale_id,
-         original_locale_id,
-         visited
-       ) do
-    require Logger
-
-    allow_download =
-      Application.get_env(:localize, :allow_runtime_locale_download, false)
-
-    Logger.debug(
-      "Unable to load locale #{inspect(parent_id)} and :allow_runtime_locale_download is set to #{inspect(allow_download)}.",
-      domain: [:localize]
-    )
-
-    walk_parent_chain(
-      provider,
-      parent_id,
-      original_locale_id,
-      [parent_id | visited]
-    )
   end
 
   defp fallback_to_en(provider, original_locale_id) do

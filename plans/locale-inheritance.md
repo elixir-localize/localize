@@ -66,6 +66,8 @@ Inflection is separate because its data comes from the Unicode inflection projec
 
 * 2026-11-27 — With `:supported_locales` configured, `validate_locale/1` negotiates the request itself, as ICU's `LocaleMatcher` does, rather than returning the locale it inherits from when that is supported (user). Because negotiation is the matcher's question, and CLDR rates `pt-BE` nearer `pt-PT` than the `pt` it inherits from. A locale that matches none then takes the default locale, not the root.
 
+* 2026-11-28 — Collation follows TR35's stand-alone `collations` component, with `nb` and `nn` → `no` added to it in the data pass as a marked correction of a CLDR data gap, removed once CLDR lists them (user). Because CLDR-14493 made `nb` and `nn` children of `no` in the main component only and CLDR-16253 never listed them under `collations`, so the literal rule gives them the root's collation; ICU 79 and CLDR's tools ignore component parents (ICU-22289, CLDR-16361). With the correction the rule matches ICU's collation locale for every CLDR id.
+
 ## Resolution, measured against ICU
 
 `LanguageTag.new/1` chooses a locale's CLDR data by language matching against every CLDR locale, rejecting only at distance 80, CLDR's language distance. ICU keeps two answers apart: `ures_open` finds a locale's data by TR35 inheritance and never matches, and `LocaleMatcher` negotiates among an application's supported locales with a threshold of 50, CLDR's default script distance, exclusive (`localematcher.cpp`, `locdistance.cpp`, `uresbund.cpp` at `release-78.1`).
@@ -111,7 +113,7 @@ Each step lands on its own, with its output compared over every CLDR locale befo
 
 * [x] **RBNF** — the lookup chain is `[locale | Localize.Locale.data_parents/1]` and the error's `rules_in` the first RBNF locale on the unfiltered fallback chain; the per-locale chain cache and the tag walks are gone. Every CLDR locale's output for seven families, its own rule sets and five numbers is unchanged, 29,185 results under the full configuration and 875 under a restricted one, `rules_in` included. 2026-11-27.
 
-* [ ] **Collation** — `LocaleDefaults` and the data pass onto `parent(_, component: :collations)`; sort keys compared over every locale.
+* [x] **Collation** — the data pass builds each chain from `fallback_chain(_, component: :collations)` and `LocaleDefaults.options_for/1` walks the same chain; their private parent rules are gone. Against the shipped `collation_inheritance.etf` one chain differs, `hi-Latn` → `hi` (was the root through `en-IN`), as ICU 79 collates it; default types and every locale's option defaults are unchanged, so no other locale's sort order can change. 2026-11-28.
 
 * [ ] **The data pass** — `data/locale.ex`'s `locale_chain/1` onto `parent/2`; every generated locale file byte-identical, or each difference explained.
 

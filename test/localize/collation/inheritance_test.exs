@@ -1,9 +1,10 @@
 defmodule Localize.Collation.InheritanceTest do
   # Collation data inherits along its own chain (TR35): the `collations`
-  # component of `parentLocales`, then the main component's explicit
-  # entries but not its `nonlikelyScript` rule, then truncation. A locale's
-  # default collation type is the `defaultCollation` of the first locale on
-  # that chain that declares one.
+  # component of `parentLocales`, stand-alone, then truncation. The main
+  # component's entries and its `nonlikelyScript` rule do not apply. The
+  # component carries `nb` and `nn` → `no`, a marked correction of a CLDR
+  # data gap. A locale's default collation type is the `defaultCollation`
+  # of the first locale on that chain that declares one.
   use ExUnit.Case, async: true
 
   alias Localize.Collation
@@ -60,14 +61,35 @@ defmodule Localize.Collation.InheritanceTest do
       assert chain("yue-Hans") == [:zh, :und]
     end
 
-    test "follows the main component's explicit entries" do
-      assert chain("nb") == [:no, :und]
+    test "does not follow the main component's entries" do
+      # Main parents: `hi-Latn` → `en-IN`, `es-AR` → `es-419`.
+      assert chain("hi-Latn") == [:hi, :und]
       assert chain("es-AR") == [:es, :und]
+    end
+
+    test "takes Norwegian Bokmål and Nynorsk to no, by the marked correction" do
+      assert chain("nb") == [:no, :und]
+      assert chain("nb-SJ") == [:no, :und]
+      assert chain("nn") == [:no, :und]
     end
 
     test "ends with the root, and is only the root for a locale with no collation data" do
       assert chain("en") == [:und]
       assert chain("fr-CA") == [:"fr-CA", :und]
+    end
+  end
+
+  describe "the collation option defaults" do
+    test "are found along the collation chain" do
+      for locale <- ["da", "da-GL", "nb", "nb-SJ", "nn", "no", "mt", "cu"] do
+        assert {locale, LocaleDefaults.options_for(locale)} == {locale, [case_first: :upper]}
+      end
+    end
+
+    test "are empty where nothing on the chain has any" do
+      for locale <- ["en", "hi-Latn", "sv", "und", "not a locale!"] do
+        assert {locale, LocaleDefaults.options_for(locale)} == {locale, []}
+      end
     end
   end
 
@@ -91,6 +113,12 @@ defmodule Localize.Collation.InheritanceTest do
 
       refute Collation.sort(@cities, locale: :root) == @by_pinyin
       refute Collation.sort(@cities, locale: :root) == @by_stroke
+    end
+
+    test "hi-Latn sorts as hi, as ICU does" do
+      words = ["a", "क", "ॐ", "Z"]
+      assert Collation.sort(words, locale: "hi-Latn") == Collation.sort(words, locale: "hi")
+      refute Collation.sort(words, locale: "hi-Latn") == Collation.sort(words, locale: :root)
     end
 
     test "a -u-co- keyword still chooses the type" do
