@@ -234,8 +234,7 @@ defmodule Localize.Locale do
   end
 
   def parent(locale_id, options) when is_binary(locale_id) and is_keyword_list(options) do
-    with {:ok, parsed} <- LanguageTag.parse(locale_id),
-         {:ok, canonical} <- LanguageTag.canonicalize(parsed) do
+    with {:ok, canonical} <- canonical_tag(locale_id) do
       parent(canonical, options)
     end
   end
@@ -251,6 +250,26 @@ defmodule Localize.Locale do
 
   def parent(locale, _options) do
     {:error, Localize.InvalidLocaleError.exception(locale_id: locale)}
+  end
+
+  # A locale that does not parse is an invalid locale, as
+  # `Localize.validate_locale/1` reports it, whatever the parser's reason.
+  defp canonical_tag(locale_id) do
+    case LanguageTag.parse(locale_id) do
+      {:ok, parsed} -> canonicalized(parsed, locale_id)
+      {:error, _reason} -> invalid_locale(locale_id)
+    end
+  end
+
+  defp canonicalized(parsed, locale_id) do
+    case LanguageTag.canonicalize(parsed) do
+      {:ok, canonical} -> {:ok, canonical}
+      {:error, _reason} -> invalid_locale(locale_id)
+    end
+  end
+
+  defp invalid_locale(locale_id) do
+    {:error, Localize.InvalidLocaleError.exception(locale_id: locale_id)}
   end
 
   defp inheritance_component(options) do
@@ -394,7 +413,9 @@ defmodule Localize.Locale do
 
   * `{:ok, chain}`, where `chain` is a list of CLDR locale id atoms, nearest first, or
 
-  * `{:error, exception}` when `locale` is not a valid locale or an option is not valid.
+  * `{:error, Localize.InvalidLocaleError.t()}` when `locale` is not a valid locale, or
+
+  * `{:error, exception}` when an option is not valid.
 
   ### Examples
 
@@ -557,28 +578,37 @@ defmodule Localize.Locale do
   # only `en` and `fr` configured), so it is not used here. A validated tag
   # is resolved again from the locale it was asked for.
   defp cldr_tag(%LanguageTag{canonical_locale_id: canonical}) when is_binary(canonical) do
-    LanguageTag.new(canonical)
+    new_cldr_tag(canonical)
   end
 
   defp cldr_tag(%LanguageTag{} = tag) do
     tag
     |> Map.put(:cldr_locale_id, nil)
     |> LanguageTag.to_string()
-    |> LanguageTag.new()
+    |> new_cldr_tag()
   end
 
   defp cldr_tag(locale) when is_atom(locale) and not is_nil(locale) do
     locale
     |> Atom.to_string()
-    |> LanguageTag.new()
+    |> new_cldr_tag()
   end
 
   defp cldr_tag(locale) when is_binary(locale) do
-    LanguageTag.new(locale)
+    new_cldr_tag(locale)
   end
 
   defp cldr_tag(locale) do
     {:error, Localize.InvalidLocaleError.exception(locale_id: inspect(locale))}
+  end
+
+  # A locale that does not parse is an invalid locale, as
+  # `Localize.validate_locale/1` reports it, whatever the parser's reason.
+  defp new_cldr_tag(locale_id) do
+    case LanguageTag.new(locale_id) do
+      {:ok, tag} -> {:ok, tag}
+      {:error, _reason} -> invalid_locale(locale_id)
+    end
   end
 
   @doc """

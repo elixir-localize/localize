@@ -40,6 +40,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 * `Localize.LanguageTag.best_match/3` matched a validated root tag as English, from its likely subtags `en-Latn-US`, and gave a desired root the first supported locale even with a distance the caller gave. A root now matches only a root, and a given distance is strict for it too.
 
+* `Localize.Locale.parent/2` and `Localize.Locale.fallback_chain/2` returned the parser's `Localize.ParseError` or `Localize.InvalidSubtagError` for a locale that does not parse; they return `Localize.InvalidLocaleError`, as `Localize.validate_locale/1` does and `parent/2`'s docs said.
+
 * Collation inherits along CLDR's `collations` parents alone, as TR35 says, so `hi-Latn` sorts as `hi` (was the root), as ICU does. `nb` and `nn` keep `no`'s collation through a marked correction of a CLDR data gap.
 
 * Inflection reads a deprecated language as its replacement, so `iw` and `in` find the Hebrew and Indonesian data, and a three-part locale such as `zh-Hant-HK` takes its language's quantity rules.

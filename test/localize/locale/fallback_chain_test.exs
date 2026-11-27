@@ -208,4 +208,13 @@ defmodule Localize.Locale.FallbackChainConfiguredTest do
     assert Localize.Locale.fallback_chain("pt-BR", supported: ["pt-BR", "en"]) == {:ok, [:pt]}
     assert Localize.Locale.fallback_chain("pt-BR", supported: [:en]) == {:ok, []}
   end
+
+  # Reported as `Localize.validate_locale/1` reports it, whatever the
+  # parser's reason.
+  test "a locale that does not parse is an invalid locale" do
+    for locale <- ["xyzabc", "not a locale", "!!", "", "en-", :"xx yy", nil, 42] do
+      assert {:error, %Localize.InvalidLocaleError{}} = Localize.Locale.fallback_chain(locale),
+             inspect(locale)
+    end
+  end
 end

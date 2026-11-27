@@ -1,6 +1,8 @@
 # Locale inheritance
 
-**Status:** planning, 2026-11-27
+**Status:** in progress, 2026-11-28
+
+Every task below is done and ships in localize 1.11.0, when this becomes `implemented (v1.11.0)`; `localize_web` 1.6.0 and `localize_translate` 0.5.0 then require `localize ~> 1.11`.
 
 Localize works out a locale's parent, or a chain of them, in nine places, with six different algorithms. Each answers TR35's question ("which locale's data does this locale inherit?") a little differently, and four of them are wrong for some locales. This plan makes one implementation of TR35 inheritance, `Localize.Locale.parent/2` and `Localize.Locale.fallback_chain/2`, and moves every consumer onto it. Resolution follows: which CLDR locale's data a locale gets is found by the same inheritance, as ICU's resource lookup does, and language matching is kept for negotiating among the configured locales.
 
@@ -123,4 +125,4 @@ Each step lands on its own, with its output compared over every CLDR locale befo
 
 * [x] **`localize_web`** — accepts a locale by `Localize.LanguageTag.default_distance/0` (was its own 79), with no distance re-test and no root handling of its own, which needed two `best_match/3` fixes here (a validated root matched as English; a given distance was not strict for the root). It keeps choosing which tag to present after a cross-language match (`gsw-CH` gives `de`), which is not matching. 645 tests pass against local localize; its release waits for localize 1.11. 2026-11-28.
 
-* [ ] **`localize_translate`** — onto `fallback_chain/2`, dropping its walker (its own repository).
+* [x] **`localize_translate`** — `Localize.Translate.Locale` takes both its chain and the key it stores under from `fallback_chain/2`, so neither depends on the configured locales (with `[:en, :fr]`, `he` was stored and read as `:en`); its parent walk and tag round trip are gone. Unchanged without `:supported_locales`. It needed `parent/2` and `fallback_chain/2` to report an unparseable locale as `InvalidLocaleError`, fixed here. 387 tests pass against local localize; its release waits for localize 1.11. 2026-11-28.

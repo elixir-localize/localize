@@ -26,6 +26,15 @@ defmodule Localize.LocaleInheritanceTest do
       assert {:error, %Localize.NoParentError{}} = Locale.parent("und")
     end
 
+    # Reported as `Localize.validate_locale/1` reports it, whatever the
+    # parser's reason: `parent/2` returned `Localize.ParseError` or
+    # `Localize.InvalidSubtagError` where its docs named this.
+    test "a locale that does not parse is an invalid locale" do
+      for locale <- ["xyzabc", "not a locale", "!!", "", "en-", :"xx yy", nil, 42] do
+        assert {:error, %Localize.InvalidLocaleError{}} = Locale.parent(locale), inspect(locale)
+      end
+    end
+
     # CLDR's parent locales: `en-AU` inherits from `en-001`, which inherits
     # from `en`, which inherits from root. Each parent names its CLDR
     # locale, so no caller has to validate it again, and keeps the child's
