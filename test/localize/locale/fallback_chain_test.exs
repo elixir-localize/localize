@@ -73,6 +73,36 @@ defmodule Localize.Locale.FallbackChainTest do
     end
   end
 
+  test "follows a component's own parents with :component" do
+    for {locale, component, chain} <- [
+          {:yue, :collations, [:yue, :"zh-Hant", :zh]},
+          {:"zh-Hant", :collations, [:"zh-Hant", :zh]},
+          {:nb, :collations, [:nb]},
+          {:"sr-Latn", :collations, [:"sr-Latn", :sr]},
+          {:"es-AR", :plurals, [:"es-AR", :es]},
+          {:"en-AU", :plurals, [:"en-AU", :en]},
+          {:"zh-Hant", :main, [:"zh-Hant"]}
+        ] do
+      assert {locale, component, Locale.fallback_chain(locale, component: component)} ==
+               {locale, component, {:ok, chain}}
+    end
+  end
+
+  test "walks parent/2 for every CLDR locale and every component" do
+    for component <- [:main, :collations, :grammatical_features, :plurals, :segmentations],
+        locale_id <- Localize.SupplementalData.all_locale_ids(),
+        {:ok, [^locale_id | rest]} <- [Locale.fallback_chain(locale_id, component: component)],
+        match?([_ | _], rest) do
+      assert {component, locale_id, Locale.fallback_chain(hd(rest), component: component)} ==
+               {component, locale_id, {:ok, rest}}
+    end
+  end
+
+  test "is an error for a component that is not one" do
+    assert {:error, %Localize.InvalidValueError{expected: :component}} =
+             Locale.fallback_chain(:fr, component: :numbers)
+  end
+
   test "is empty for the root and for a locale that resolves to it" do
     assert Locale.fallback_chain("und") == {:ok, []}
     assert Locale.fallback_chain(:und) == {:ok, []}

@@ -376,7 +376,7 @@ defmodule Localize.Locale do
 
   The locale is resolved against every CLDR locale, and its chain is that CLDR locale's: `es-PY` and `es-Latn-PY` both resolve to `es-PY` and give `[:"es-PY", :"es-419", :es]`. So the chain is the same whatever Localize is configured for: `pt-BR` gives `[:pt]` even where `Localize.validate_locale/1`, which chooses the configured locale to serve a request from, would answer `en`. A chain is therefore a stable set of keys to store and look up text by; use `:supported` to keep only the locales text is kept for. The root locale, `und`, holds no text of its own and is left out, so a locale that resolves to it gives an empty chain.
 
-  The chains of all CLDR locales are read from CLDR's parent locales once, on first use, and kept in `:persistent_term` (about 40 KiB). A CLDR locale id atom is then looked up directly; any other locale is resolved first.
+  Each step up is `parent/2`'s. The chains of all CLDR locales are built once for each component, on first use, and kept in `:persistent_term` (about 40 KiB each). A CLDR locale id atom is then looked up directly; any other locale is resolved first.
 
   ### Arguments
 
@@ -385,6 +385,8 @@ defmodule Localize.Locale do
   * `options` is a keyword list of options.
 
   ### Options
+
+  * `:component` is the kind of data the chain is for, as `parent/2` takes it: `:collations`, `:grammatical_features`, `:plurals` or `:segmentations` follow the parents CLDR gives that kind of data, on their own, so `yue`'s collation chain is `[:yue, :"zh-Hant", :zh]`. The default is `:main`.
 
   * `:supported` is a list of locales to keep, as locale identifier atoms or strings or `t:Localize.LanguageTag.t/0`, so a chain lists only the locales text is kept for. An atom is taken as the CLDR locale id it is, and any other entry is resolved as the locale is. An entry that is not a valid locale is ignored. The default is `nil`, which keeps the whole chain.
 
@@ -419,9 +421,9 @@ defmodule Localize.Locale do
   end
 
   def fallback_chain(locale, options) when is_list(options) do
-    chains = locale_chains()
-
-    with {:ok, supported} <- chain_supported(Keyword.get(options, :supported)),
+    with {:ok, component} <- inheritance_component(options),
+         {:ok, supported} <- chain_supported(Keyword.get(options, :supported)),
+         chains = locale_chains(component),
          {:ok, locale_id} <- chain_locale_id(locale, chains) do
       chain = Map.get(chains, locale_id, [locale_id])
       {:ok, keep_supported(chain, supported)}
@@ -444,65 +446,58 @@ defmodule Localize.Locale do
     end
   end
 
-  # The chain of every CLDR locale, built on first use. A chain is built
-  # from the locale ids, never by walking a tag's maximized subtags: that
-  # walk took `az` (`az-Latn-AZ`) to its child `az-Latn`, followed the
-  # requested language rather than the resolved one (`gsw-LU` resolves to
-  # `de-LU` and walked into `gsw`), and skipped parents (`en-FO` resolves to
-  # `en-GB` and missed `en-001`), for 5,183 of 75,144 language, script and
-  # territory combinations (checked 2026-11-27). Every atom in it is a CLDR
-  # locale id, so no atom is made.
-  defp locale_chains do
-    key = {__MODULE__, :locale_chains}
+  # The chain of every CLDR locale for a component, built on first use by
+  # walking `Localize.Locale.Inheritance.parent/2` from each CLDR locale, as
+  # `parent/2` does, and keeping the steps that are CLDR locales. A chain is
+  # walked from the locale id, never from a tag's maximized subtags: that
+  # walk took `az` (`az-Latn-AZ`) to its child `az-Latn`. Every atom in it is
+  # a CLDR locale id, so no atom is made.
+  defp locale_chains(component) do
+    key = {__MODULE__, :locale_chains, component}
 
     case :persistent_term.get(key, nil) do
-      nil -> store_locale_chains(key)
+      nil -> store_locale_chains(key, component)
       chains -> chains
     end
   end
 
-  defp store_locale_chains(key) do
+  defp store_locale_chains(key, component) do
     ids = SupplementalData.all_locale_ids()
     by_name = Map.new(ids, &{Atom.to_string(&1), &1})
-    parents = SupplementalData.parent_locales()
-
-    chains =
-      Map.new(ids, fn id ->
-        {id, id_chain(Atom.to_string(id), by_name, parents, [])}
-      end)
+    chains = Map.new(ids, &{&1, id_chain(&1, component, by_name)})
 
     :persistent_term.put(key, chains)
     chains
   end
 
-  # TR35 inheritance over locale ids: CLDR's `parentLocales` names a
-  # locale's parent where it is not the identifier truncated by its last
-  # subtag. The root is left out, as is any step that is not a CLDR locale.
-  defp id_chain(name, _by_name, _parents, acc) when name in ["root", "und"] do
-    Enum.reverse(acc)
+  defp id_chain(:und, _component, _by_name) do
+    []
   end
 
-  defp id_chain(name, by_name, parents, acc) do
-    acc =
-      case Map.fetch(by_name, name) do
-        {:ok, locale_id} -> [locale_id | acc]
-        :error -> acc
-      end
+  defp id_chain(locale_id, component, by_name) do
+    tag =
+      locale_id
+      |> Atom.to_string()
+      |> LanguageTag.parse!()
+      |> LanguageTag.canonicalize!()
 
-    id_chain(parent_name(name, parents), by_name, parents, acc)
+    [locale_id | parent_ids(Inheritance.parent(tag, component), component, by_name)]
   end
 
-  defp parent_name(name, parents) do
-    case Map.fetch(parents, name) do
-      {:ok, parent} -> parent
-      :error -> truncated_name(name)
-    end
+  # The CLDR locales on the way up from a parent, the root left out.
+  defp parent_ids(%LanguageTag{language: :und, script: nil, territory: nil}, _component, _by_name) do
+    []
   end
 
-  defp truncated_name(name) do
-    case String.split(name, "-") do
-      [_language] -> "root"
-      subtags -> Enum.join(Enum.drop(subtags, -1), "-")
+  defp parent_ids(%LanguageTag{} = parent, component, by_name) do
+    name =
+      locale_id_from(parent.language, parent.script, parent.territory, parent.language_variants)
+
+    above = parent_ids(Inheritance.parent(parent, component), component, by_name)
+
+    case Map.fetch(by_name, name) do
+      {:ok, locale_id} -> [locale_id | above]
+      :error -> above
     end
   end
 

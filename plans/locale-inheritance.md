@@ -105,7 +105,7 @@ Each step lands on its own, with its output compared over every CLDR locale befo
 
 * [x] **Negotiate the request, and match ties as ICU does** — the 312 differences were not missing paradigms: `best_match/3` already chose `pt-PT` for `pt-BE`, but `validate_locale/1` returned the bundle locale whenever it was supported. With `:supported_locales` configured it now negotiates the request itself (user, below); without them it is the bundle lookup. The matcher scans in ICU's order (first supported, paradigm locales, the rest) with ICU's `compareLikely` on ties, reads paradigm locales given as atoms, and gives a macro-region whose regions fall into several partitions the largest distance over one region of each (`en-001` ties `en` and `en-GB`, and `en` wins). Against ICU 79.1 over the 75,144 inputs and four supported lists (one reversed, to test ties): `best_match/3` and `validate_locale/1` identical, but for `und`, which Localize answers with the root. 2026-11-27.
 
-* [ ] **`fallback_chain/2` from `parent/2`** — per-component tables; chains for all 657 ids unchanged for `:main`.
+* [x] **`fallback_chain/2` from `parent/2`** — each component's table is built on first use by walking `Inheritance.parent/2` from every CLDR id (main 106 ms with first-use loading, each component 14 ms after); the string-truncation builder is gone; `:component` option. All 657 `:main` chains unchanged; every chain continues with its parent's chain for every component. 2026-11-27.
 
 * [ ] **Data lookup and provider walk** — onto `fallback_chain/2`, skipping parents whose data is not installed; every locale's lookups compared before and after.
 
