@@ -180,7 +180,7 @@ iex> Localize.LanguageTag.best_match(:"pt-PT", [:"pt-BR", :es, :fr])
 {:ok, :"pt-BR", 5}
 ```
 
-The score is the CLDR match distance — `0` is exact, small values are regional variants, `50` is another script and `80` another language. The default threshold is `49`, below CLDR's default script distance, as ICU's `LocaleMatcher` takes it; when no supported locale is within it, the first supported locale is returned, as ICU returns its default locale, so list the locale to fall back to first. Pass an explicit threshold below the default for strict matching:
+The score is the CLDR match distance — `0` is exact, small values are regional variants, `50` is another script and `80` another language. The default threshold is `49`, below CLDR's default script distance, as ICU's `LocaleMatcher` takes it; when no supported locale is within it, the first supported locale is returned, as ICU returns its default locale, so list the locale to fall back to first. The root, `und`, matches only a root in the list. Pass an explicit threshold below the default for strict matching:
 
 ```elixir
 iex> Localize.LanguageTag.best_match(:de, [:en, :de, :fr], 0)
@@ -219,6 +219,16 @@ The root locale holds no text of its own, so it is left out. The chain is the sa
 ```elixir
 iex> Localize.Locale.fallback_chain("en-AU", supported: [:en, :fr])
 {:ok, [:en]}
+```
+
+Some kinds of CLDR data inherit along parents of their own, which TR35 reads apart from the main ones: collations, grammatical features, plurals and segmentations. The `:component` option gives such a chain, and `Localize.Locale.parent/2` takes it too. Traditional Chinese, whose main parent is the root, takes its collation from `zh`:
+
+```elixir
+iex> Localize.Locale.fallback_chain("zh-Hant", component: :collations)
+{:ok, [:"zh-Hant", :zh]}
+
+iex> Localize.Locale.fallback_chain("zh-Hant")
+{:ok, [:"zh-Hant"]}
 ```
 
 ## Text direction

@@ -803,8 +803,33 @@ defmodule Localize.LanguageTag do
     end)
   end
 
-  @doc false
-  def default_distance, do: @default_distance
+  @doc """
+  Returns the default match distance threshold.
+
+  It is the threshold `best_match/3` applies when no distance is
+  given, and the one `Localize.validate_locale/1` negotiates by:
+  below CLDR's default script distance of 50, as ICU's
+  `LocaleMatcher` takes it. Pass it to `best_match/3` to match as
+  Localize does, strictly, with no fallback to the first supported
+  locale.
+
+  ### Returns
+
+  * The threshold, `49`.
+
+  ### Examples
+
+      iex> Localize.LanguageTag.default_distance()
+      49
+
+      iex> Localize.LanguageTag.best_match("zh-TW", ["zh-Hans"], Localize.LanguageTag.default_distance())
+      {:error, %Localize.LocaleMatchError{desired: "zh-TW", threshold: 49}}
+
+  """
+  @spec default_distance() :: 49
+  def default_distance do
+    @default_distance
+  end
 
   @doc """
   Find the best matching supported locale for a desired locale.
@@ -1121,9 +1146,15 @@ defmodule Localize.LanguageTag do
     default = first_non_root(supported)
 
     cond do
-      not is_nil(root) -> {:ok, root, 0}
-      distance == :default and not is_nil(default) -> {:ok, default, @no_match_distance}
-      true -> {:error, Localize.LocaleMatchError.exception(desired: "und", threshold: 0)}
+      not is_nil(root) ->
+        {:ok, root, 0}
+
+      distance == :default and not is_nil(default) ->
+        {:ok, default, @no_match_distance}
+
+      true ->
+        {:error,
+         Localize.LocaleMatchError.exception(desired: "und", threshold: match_threshold(distance))}
     end
   end
 

@@ -180,7 +180,7 @@ defmodule Localize.BestMatchTest do
     # supported locale at 80, where it is strict for every other locale.
     test "a desired root is never matched as English, and a given distance is strict" do
       for desired <- desired_root_forms(), distance <- [0, 49, 79] do
-        assert {:error, %Localize.LocaleMatchError{}} =
+        assert {:error, %Localize.LocaleMatchError{threshold: ^distance}} =
                  LanguageTag.best_match(desired, ["en", "fr"], distance),
                "#{inspect(desired)} at #{distance}"
       end

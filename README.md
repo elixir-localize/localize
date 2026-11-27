@@ -216,7 +216,7 @@ Why `:otp_app` is the recommended anchor: `Application.app_dir/2` is re-resolved
 
 * `:default_locale` is the application-wide default locale. It can also be set at runtime with `Localize.put_default_locale/1`. The default is derived from the `LOCALIZE_DEFAULT_LOCALE` environment variable, then the `LANG` environment variable, then `:en`.
 
-* `:supported_locales` is a list of locale identifiers that your application supports. Each entry is an atom matching a known CLDR locale (e.g. `:en`, `:"fr-CA"`), a wildcard string (e.g. `"en-*"`), a coverage-level keyword (`:modern`, `:moderate`, `:basic`), or a Gettext-style string (e.g. `"pt_BR"`, `"zh_Hans"`). POSIX-style underscores are normalised to hyphens and entries are resolved to their CLDR canonical form via likely-subtag resolution (e.g. `"pt_BR"` → `:pt`). Only exact matches (score 0) are accepted — entries that cannot be resolved log a warning with `domain: :localize` and are skipped. When set, `validate_locale/1` resolves locale identifiers against this list rather than all ~657 CLDR locales. The root locale `:und` is always included, named or not: its data ships with Localize and every locale's parent chain ends at it. A locale whose RBNF spellout rules CLDR keeps in a parent (`nb` and `nn` in `no`, `en-GB` in `en`) needs that parent listed too, since only a supported locale's data is installed. Accessible at runtime via `Localize.supported_locales/0`. The default is `nil`.
+* `:supported_locales` is a list of locale identifiers that your application supports. Each entry is an atom matching a known CLDR locale (e.g. `:en`, `:"fr-CA"`), a wildcard string (e.g. `"en-*"`), a coverage-level keyword (`:modern`, `:moderate`, `:basic`), or a Gettext-style string (e.g. `"pt_BR"`, `"zh_Hans"`). POSIX-style underscores are normalised to hyphens and entries are resolved to their CLDR canonical form via likely-subtag resolution (e.g. `"pt_BR"` → `:pt`). Only exact matches (score 0) are accepted — entries that cannot be resolved log a warning with `domain: :localize` and are skipped. When set, `validate_locale/1` negotiates a locale against this list as ICU's `LocaleMatcher` does, so `pt-BE` is `pt-PT` where both `pt` and `pt-PT` are listed, and a locale close to none of them takes the default locale. The root locale `:und` is always included, named or not: its data ships with Localize and every locale's parent chain ends at it. A locale whose RBNF spellout rules CLDR keeps in a parent (`nb` and `nn` in `no`, `en-GB` in `en`) needs that parent listed too, since only a supported locale's data is installed. Accessible at runtime via `Localize.supported_locales/0`. The default is `nil`.
 
 * `:locale_provider` is a module implementing the `Localize.Locale.Provider` behaviour, for loading and caching per-locale data. The default is `Localize.Locale.Provider.PersistentTerm`.
 
@@ -269,7 +269,7 @@ RUN mix localize.download_locales
 
 Specific locales can also be downloaded explicitly: `mix localize.download_locales en fr de`. Use `--all` for all CLDR locales. Locale data is loaded lazily into `:persistent_term` on first access from the cache.
 
-When `:supported_locales` is **not** configured (the default), `validate_locale/1` matches against all ~657 CLDR locales.
+When `:supported_locales` is **not** configured (the default), `validate_locale/1` finds a locale's CLDR data among all ~657 CLDR locales by TR35's inheritance, as ICU's resource lookup does: `en-QA` is `en` and `ru-Latn` is the root, `und`.
 
 ### Running in an escript
 

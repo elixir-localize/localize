@@ -104,11 +104,7 @@ defmodule Localize.Collation.Tailoring.LocaleDefaults do
 
   # The defaults are keyed by the language subtag's text, which a validated
   # tag carries as an atom.
-  defp language_of(%Localize.LanguageTag{language: language}) when is_atom(language) do
+  defp language_of(%Localize.LanguageTag{language: language}) do
     Atom.to_string(language)
-  end
-
-  defp language_of(%Localize.LanguageTag{language: language}) when is_binary(language) do
-    language
   end
 end
