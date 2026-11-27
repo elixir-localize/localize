@@ -162,14 +162,35 @@ defmodule Localize.BestMatchTest do
     end
 
     test "a desired root matches the root as the caller listed it" do
-      for desired <- [:und, :root, "und", "root"], root <- root_forms() do
+      for desired <- desired_root_forms(), root <- root_forms() do
         assert {:ok, ^root, 0} = LanguageTag.best_match(desired, [:"en-GB", :fi, root]),
                "#{inspect(desired)} in #{inspect(root)}"
       end
     end
 
     test "a desired root with no root listed takes the first supported locale" do
-      assert {:ok, :"en-GB", 80} = LanguageTag.best_match(:und, [:"en-GB", :fi])
+      for desired <- desired_root_forms() do
+        assert {:ok, :"en-GB", 80} = LanguageTag.best_match(desired, [:"en-GB", :fi]),
+               inspect(desired)
+      end
+    end
+
+    # A validated root carries the likely subtags `en-Latn-US`, which matched
+    # it to English at 0; and an explicit distance gave the root the first
+    # supported locale at 80, where it is strict for every other locale.
+    test "a desired root is never matched as English, and a given distance is strict" do
+      for desired <- desired_root_forms(), distance <- [0, 49, 79] do
+        assert {:error, %Localize.LocaleMatchError{}} =
+                 LanguageTag.best_match(desired, ["en", "fr"], distance),
+               "#{inspect(desired)} at #{distance}"
+      end
+    end
+
+    test "a validated root with extensions is still the root" do
+      {:ok, root} = Localize.validate_locale("und-u-nu-latn")
+
+      assert {:ok, :und, 0} = LanguageTag.best_match(root, [:en, :und], 49)
+      assert {:error, %Localize.LocaleMatchError{}} = LanguageTag.best_match(root, [:en], 49)
     end
 
     test "a list of the root alone matches no other locale" do
@@ -202,6 +223,11 @@ defmodule Localize.BestMatchTest do
       [:"en-GB", :und, :"sv-FI", :fi],
       [:"en-GB", :"sv-FI", :fi]
     ]
+  end
+
+  defp desired_root_forms do
+    {:ok, root_tag} = Localize.validate_locale(:und)
+    [:und, :root, "und", "root", root_tag]
   end
 
   defp root_forms do

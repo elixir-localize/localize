@@ -77,7 +77,8 @@ defmodule Localize.Locale.FallbackChainTest do
     for {locale, component, chain} <- [
           {:yue, :collations, [:yue, :"zh-Hant", :zh]},
           {:"zh-Hant", :collations, [:"zh-Hant", :zh]},
-          {:nb, :collations, [:nb]},
+          {:nb, :collations, [:nb, :no]},
+          {:"hi-Latn", :collations, [:"hi-Latn", :hi]},
           {:"sr-Latn", :collations, [:"sr-Latn", :sr]},
           {:"es-AR", :plurals, [:"es-AR", :es]},
           {:"en-AU", :plurals, [:"en-AU", :en]},

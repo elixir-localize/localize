@@ -38,6 +38,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 * `Localize.LanguageTag.best_match/3` applied CLDR's paradigm locales only to supported locales given as strings, read a macro-region such as `001` or `419` as one region, and read the root with extensions, `und-u-nu-latn`, as English. It now takes `en` for `en-001` between `en` and `en-GB` whatever the order, as ICU does, and the root for `und-u-nu-latn`.
 
+* `Localize.LanguageTag.best_match/3` matched a validated root tag as English, from its likely subtags `en-Latn-US`, and gave a desired root the first supported locale even with a distance the caller gave. A root now matches only a root, and a given distance is strict for it too.
+
 * Collation inherits along CLDR's `collations` parents alone, as TR35 says, so `hi-Latn` sorts as `hi` (was the root), as ICU does. `nb` and `nn` keep `no`'s collation through a marked correction of a CLDR data gap.
 
 * Inflection reads a deprecated language as its replacement, so `iw` and `in` find the Hebrew and Indonesian data, and a three-part locale such as `zh-Hant-HK` takes its language's quantity rules.

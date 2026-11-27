@@ -889,7 +889,7 @@ defmodule Localize.LanguageTag do
 
   def best_match(%__MODULE__{} = desired, supported, distance) when is_list(supported) do
     with {:ok, desired} <- validate_fields(desired) do
-      best_match(build_canonical_name(desired), supported, distance)
+      best_match(desired_name(desired), supported, distance)
     end
   end
 
@@ -901,11 +901,11 @@ defmodule Localize.LanguageTag do
   end
 
   def best_match(desired, supported, distance) when is_binary(desired) and is_list(supported) do
-    # The root locale as desired short-circuits to the default-supported
-    # selection: it only ever exact-matches the root in supported, and
-    # otherwise yields the first entry that is not the root.
+    # The root locale as desired only ever exact-matches the root in
+    # supported; with the default distance it otherwise falls back like
+    # any other locale.
     if root?(desired) do
-      best_match_root(supported)
+      best_match_root(supported, distance)
     else
       with {:ok, desired_tag} <- resolve_for_matching(desired, :desired) do
         desired_tag
@@ -1113,17 +1113,34 @@ defmodule Localize.LanguageTag do
   end
 
   # A desired root matches the root in supported, returned as the caller
-  # listed it, and otherwise the first supported locale that is not the
-  # root.
-  defp best_match_root(supported) do
+  # listed it. Otherwise, with the default distance, it falls back to the
+  # first supported locale that is not the root, as any locale does; a
+  # distance the caller gives is strict for the root too.
+  defp best_match_root(supported, distance) do
     root = Enum.find(supported, &root?/1)
     default = first_non_root(supported)
 
     cond do
       not is_nil(root) -> {:ok, root, 0}
-      not is_nil(default) -> {:ok, default, @no_match_distance}
+      distance == :default and not is_nil(default) -> {:ok, default, @no_match_distance}
       true -> {:error, Localize.LocaleMatchError.exception(desired: "und", threshold: 0)}
     end
+  end
+
+  # A desired tag is matched by its subtags, but a validated tag carries its
+  # likely subtags, and the root's are `en-Latn-US`: a validated root is
+  # matched as the root it was requested as, extensions and all.
+  defp desired_name(%__MODULE__{canonical_locale_id: canonical} = desired)
+       when is_binary(canonical) do
+    if root?(canonical) do
+      canonical
+    else
+      build_canonical_name(desired)
+    end
+  end
+
+  defp desired_name(desired) do
+    build_canonical_name(desired)
   end
 
   defp first_non_root(supported) do
