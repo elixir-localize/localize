@@ -297,18 +297,24 @@ defmodule Localize.Locale.SupportedLocalesTest do
       Localize.put_supported_locales(context.original_supported)
     end
 
-    test "a locale chain is kept in the locale cache and cleared with it", context do
-      key = {Localize.Number.Rbnf, :locale_chain, :nb}
+    # The chain is the locale's fallback chain kept to the supported locales,
+    # read from them on each call, so it follows them with nothing stored
+    # for the locale.
+    test "a locale chain follows the supported locales and stores nothing per locale", context do
       Localize.put_supported_locales([:en, :nb, :no])
       assert Localize.Number.to_string(3, format: :spellout, locale: :nb) == {:ok, "tre"}
 
-      # The chain is stored with a cast, which this call waits behind.
-      _state = :sys.get_state(Localize.Locale.Loader)
-      assert {:ok, [:nb | _parents]} = Localize.Locale.Loader.cache_lookup(key)
       refute Enum.any?(:persistent_term.get(), &match?({{Localize.Number.Rbnf, _, _}, _}, &1))
 
+      assert Localize.Locale.Loader.cache_lookup({Localize.Number.Rbnf, :locale_chain, :nb}) ==
+               :miss
+
+      Localize.put_supported_locales([:en, :nb])
+
+      assert {:error, %Localize.UnknownRbnfRuleError{rules_in: :no}} =
+               Localize.Number.to_string(3, format: :spellout, locale: :nb)
+
       Localize.put_supported_locales(context.original_supported)
-      assert Localize.Locale.Loader.cache_lookup(key) == :miss
     end
   end
 

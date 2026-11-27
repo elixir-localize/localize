@@ -186,8 +186,8 @@ defmodule Localize.Number.Rbnf do
   # the requested locale.
   defp lookup_and_format(number, rule_name, grammar, language_tag) do
     with {:ok, requested_id} <- cldr_locale_id_from(language_tag) do
-      language_tag
-      |> locale_chain(requested_id)
+      requested_id
+      |> locale_chain()
       |> Enum.find_value(&format_in(number, rule_name, grammar, &1, requested_id))
       |> Kernel.||(
         {:error,
@@ -227,28 +227,16 @@ defmodule Localize.Number.Rbnf do
     end
   end
 
-  # Each parent is named by its own subtags, not by the supported locale
-  # its tag resolves to, which is what hides an unlisted parent.
+  # The first CLDR locale with rules of its own on the locale's fallback
+  # chain, whether supported or not, which is what finds an unlisted
+  # parent.
   defp nearest_rules_ancestor(language_tag) do
-    case Localize.Locale.parent(language_tag) do
-      {:ok, parent} -> rules_locale_or_next(parent)
-      {:error, _no_parent} -> nil
+    rbnf_locales = Localize.SupplementalData.rbnf_locales()
+
+    case Localize.Locale.fallback_chain(language_tag) do
+      {:ok, [_locale_id | parents]} -> Enum.find(parents, &(&1 in rbnf_locales))
+      _other -> nil
     end
-  end
-
-  defp rules_locale_or_next(parent) do
-    rules_locale = own_rules_locale(parent)
-
-    if is_nil(rules_locale) do
-      nearest_rules_ancestor(parent)
-    else
-      rules_locale
-    end
-  end
-
-  defp own_rules_locale(%{language: language, script: script, territory: territory} = tag) do
-    name = Localize.Locale.locale_id_from(language, script, territory, tag.language_variants)
-    Enum.find(Localize.SupplementalData.rbnf_locales(), &(Atom.to_string(&1) == name))
   end
 
   defp format_in(number, rule_name, grammar, locale_id, requested_id) do
@@ -393,52 +381,14 @@ defmodule Localize.Number.Rbnf do
     end
   end
 
-  # The CLDR locales a locale's rules are looked up in: its own, then each
-  # parent's (`he`, then `und`, whose rules write Hebrew and Roman
-  # numerals). Found once a locale, since finding a parent revalidates its
-  # tag, which took tens of milliseconds a call. A chain names the CLDR
-  # locale each parent resolves to among the supported locales, so it is
-  # kept in the locale-validation cache, which
-  # `Localize.put_supported_locales/1` clears with one call when they change.
-  defp locale_chain(language_tag, locale_id) do
-    key = {__MODULE__, :locale_chain, locale_id}
-
-    case Localize.Locale.Loader.cache_lookup(key) do
-      {:ok, chain} -> chain
-      :miss -> store_locale_chain(key, language_tag, locale_id)
-    end
-  end
-
-  defp store_locale_chain(key, language_tag, locale_id) do
-    chain = parent_chain(language_tag, [locale_id])
-    Localize.Locale.Loader.cache_store({key, chain})
-    chain
-  end
-
-  defp parent_chain(language_tag, chain) do
-    case named_parent(language_tag) do
-      {:ok, parent, parent_id} -> parent_chain(parent, appended(chain, parent_id))
-      :none -> chain
-    end
-  end
-
-  # `:none` where a locale has no parent to walk to, which only `und` has not.
-  defp named_parent(language_tag) do
-    case Localize.Locale.parent(language_tag) do
-      {:ok, parent} -> parent_with_id(parent)
-      {:error, _no_parent} -> :none
-    end
-  end
-
-  defp parent_with_id(parent) do
-    case cldr_locale_id_from(parent) do
-      {:ok, parent_id} -> {:ok, parent, parent_id}
-      {:error, _unnameable_parent} -> :none
-    end
-  end
-
-  defp appended(chain, parent_id) do
-    if parent_id in chain, do: chain, else: chain ++ [parent_id]
+  # The CLDR locales a locale's rules are looked up in: its own, then the
+  # locales its data inherits from (`Localize.Locale.data_parents/1`: its
+  # fallback chain kept to the supported locales, then `und`, whose rules
+  # write Hebrew and Roman numerals). A parent is never negotiated among
+  # the supported locales, so one that is not supported is skipped rather
+  # than replaced by a neighbour.
+  defp locale_chain(locale_id) do
+    [locale_id | Localize.Locale.data_parents(locale_id)]
   end
 
   # The `und` (root) locale's spellout rule sets are digit-format

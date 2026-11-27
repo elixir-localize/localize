@@ -1035,8 +1035,8 @@ defmodule Localize do
 
   This function does not modify the application configuration.
   It directly updates the runtime cache that `supported_locales/0`
-  reads from, and clears the caches that depend on the supported
-  set: validated locales and RBNF locale chains.
+  reads from, and clears the cache that depends on the supported
+  set, the validated locales.
 
   ### Arguments
 
@@ -1071,8 +1071,8 @@ defmodule Localize do
       when locales == [] or (is_list(locales) and is_atom(hd(locales))) do
     :persistent_term.put({:localize, :supported_locales}, with_root(locales))
 
-    # The cache holds the validated locales and the RBNF locale chains,
-    # both resolved among the supported locales, and one call clears both.
+    # The cache holds the validated locales, negotiated among the supported
+    # locales.
     Localize.Locale.Loader.clear_cache()
   end
 

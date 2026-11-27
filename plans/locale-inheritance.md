@@ -107,9 +107,9 @@ Each step lands on its own, with its output compared over every CLDR locale befo
 
 * [x] **`fallback_chain/2` from `parent/2`** — each component's table is built on first use by walking `Inheritance.parent/2` from every CLDR id (main 106 ms with first-use loading, each component 14 ms after); the string-truncation builder is gone; `:component` option. All 657 `:main` chains unchanged; every chain continues with its parent's chain for every component. 2026-11-27.
 
-* [ ] **Data lookup and provider walk** — onto `fallback_chain/2`, skipping parents whose data is not installed; every locale's lookups compared before and after.
+* [x] **Data lookup and provider walk** — both walk `Localize.Locale.data_parents/1`: the fallback chain without the locale, kept to the supported locales (whose data is installed, so nothing unsupported is downloaded at runtime), then the root for the data lookup; the provider stops short of the root and falls back to `:en` as before. Compared with the old walk for every supported locale: identical under the full configuration and an eight-locale one; with only `en-AU` supported the old walk visited nothing (its parent `en-001` negotiated back to `en-AU`) and the new reaches the root. 2026-11-27.
 
-* [ ] **RBNF** — `locale_chain/2` and `nearest_rules_ancestor/1` onto `fallback_chain/2`; formatting unchanged for every RBNF locale and rule set.
+* [x] **RBNF** — the lookup chain is `[locale | Localize.Locale.data_parents/1]` and the error's `rules_in` the first RBNF locale on the unfiltered fallback chain; the per-locale chain cache and the tag walks are gone. Every CLDR locale's output for seven families, its own rule sets and five numbers is unchanged, 29,185 results under the full configuration and 875 under a restricted one, `rules_in` included. 2026-11-27.
 
 * [ ] **Collation** — `LocaleDefaults` and the data pass onto `parent(_, component: :collations)`; sort keys compared over every locale.
 
