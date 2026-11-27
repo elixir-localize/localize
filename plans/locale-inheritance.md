@@ -115,7 +115,7 @@ Each step lands on its own, with its output compared over every CLDR locale befo
 
 * [x] **Collation** — the data pass builds each chain from `fallback_chain(_, component: :collations)` and `LocaleDefaults.options_for/1` walks the same chain; their private parent rules are gone. Against the shipped `collation_inheritance.etf` one chain differs, `hi-Latn` → `hi` (was the root through `en-IN`), as ICU 79 collates it; default types and every locale's option defaults are unchanged, so no other locale's sort order can change. 2026-11-28.
 
-* [ ] **The data pass** — `data/locale.ex`'s `locale_chain/1` onto `parent/2`; every generated locale file byte-identical, or each difference explained.
+* [x] **The data pass** — `data/locale.ex`'s `locale_chain/1`, used only for inherited subdivision names, is `fallback_chain/2` without the root; its own `parentLocales`-and-truncation walk is gone. Of 656 chains one differs, `ca-ES-valencia`, which no longer visits the default-content `ca-ES` (no data of its own), and its 4,364 names are unchanged; `en.etf` and `und.etf` regenerate byte-identical. 2026-11-28.
 
 * [ ] **Inflection** — resolve, chain, map to resource names; remove its own `parent/1` and `chain/1`; `sr-Latn` no longer reads `sr`.
 

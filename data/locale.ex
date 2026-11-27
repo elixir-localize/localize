@@ -209,23 +209,20 @@ defmodule Localize.Data.Locale do
     end
   end
 
-  # The locale and its parents, nearest first: a parent `parentLocales`
-  # names, else the name with its last subtag dropped. The chain stops
-  # short of root, which names no subdivisions.
-  defp locale_chain("und"), do: []
-  defp locale_chain("root"), do: []
-
-  defp locale_chain(locale) do
-    parent =
-      Map.get_lazy(Localize.SupplementalData.parent_locales(), locale, fn ->
-        locale |> String.split("-") |> Enum.drop(-1) |> parent_name()
-      end)
-
-    [locale | locale_chain(parent)]
+  # The locale and its parents, nearest first, as `Localize.Locale.fallback_chain/2`
+  # gives them: TR35's inheritance, through the CLDR locales only. The chain
+  # stops short of root, which names no subdivisions.
+  defp locale_chain(locale) when locale in ["und", "root"] do
+    []
   end
 
-  defp parent_name([]), do: "und"
-  defp parent_name(subtags), do: Enum.join(subtags, "-")
+  defp locale_chain(locale) do
+    {:ok, chain} = Localize.Locale.fallback_chain(locale)
+
+    chain
+    |> List.delete(:und)
+    |> Enum.map(&Atom.to_string/1)
+  end
 
   # ── Loader-equivalent post-processing ──────────────────────────
   #
