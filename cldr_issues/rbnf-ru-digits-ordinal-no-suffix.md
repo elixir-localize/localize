@@ -1,6 +1,6 @@
 # Russian RBNF digits-ordinal has no suffix
 
-**Status:** draft, not filed, 2026-11-28
+**Status:** filed as [CLDR-19933](https://unicode-org.atlassian.net/browse/CLDR-19933), 2026-11-28
 
 **Component:** RBNF (`common/rbnf/ru.xml`).
 
