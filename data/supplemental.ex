@@ -32,6 +32,7 @@ defmodule Localize.Data.Supplemental do
   # not list `nb` and `nn` under `collations`, so read literally they take
   # the root's collation. ICU 79 collates them as `no`. The data pass fails
   # once CLDR lists either, so the correction is removed rather than kept.
+  # Reported as CLDR-19935.
   @collation_parent_corrections %{"nb" => "no", "nn" => "no"}
 
   # The locale rules `Localize.Locale.parent/2` implements. A rule CLDR

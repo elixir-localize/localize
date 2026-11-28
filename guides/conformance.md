@@ -383,7 +383,7 @@ Two areas are explicitly out of scope:
 |---------|--------|-------|
 | Alphabetic index characters | Not implemented | No UI bucketing support. |
 | Collation type fallback chain | Partial | Falls back to standard; full 7-step chain not verified. |
-| Collation inheritance | Implemented | Tailorings and the default type follow TR35's stand-alone `collations` parents, then truncation: `zh-Hant` and `yue` take `zh`'s, `hi-Latn` takes `hi`'s. `nb` and `nn` take `no`'s through a marked correction of a CLDR data gap, as ICU collates them. |
+| Collation inheritance | Implemented | Tailorings and the default type follow TR35's stand-alone `collations` parents, then truncation: `zh-Hant` and `yue` take `zh`'s, `hi-Latn` takes `hi`'s. `nb` and `nn` take `no`'s through a marked correction of a CLDR data gap ([CLDR-19935](https://unicode-org.atlassian.net/browse/CLDR-19935)), as ICU collates them. |
 
 ---
 
